@@ -1,386 +1,628 @@
 <!doctype html>
 <html lang="pt-BR">
-
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Coup Master — Tela de Jogo (Ajuste)</title>
-  <style>
-    :root {
-      --bg-color: #0f172a;
-      --panel-bg: rgba(255, 255, 255, 0.04);
-      --accent: #eab308;
-      --glass: rgba(255, 255, 255, 0.03);
-      --text: #e6eef8;
-      --muted: rgba(230, 238, 248, 0.6);
-      --card-width: 96px;
-      --card-height: 140px;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Card Game - Protótipo</title>
+<style>
+  :root{
+    --bg:#171d26;
+    --panel:#232a33;
+    --accent:#1e90ff;
+    --card-radius:10px;
+    --dotted: 3px dotted rgba(255,255,255,0.12);
+    --text:#e6eef6;
+    --muted: rgba(230,238,246,0.25);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:#f6f8fb;color:var(--text);}
+  .container{max-width:1100px;margin:18px auto;padding:12px;}
+  header{
+    border-radius:18px;border:4px dotted #000;
+    padding:26px 18px;
+    text-align:center;background:white;color:#111;margin-bottom:18px;
+  }
+  header h1{margin:0;font-size:34px;letter-spacing:1px;}
+  header p{margin:6px 0 0;color:#444;}
 
-    * {
-      box-sizing: border-box;
-    }
+  /* Board */
+  .board{
+    background:var(--bg);
+    border-radius:14px;
+    padding:18px;
+    box-shadow: 0 8px 24px rgba(10,10,12,0.08);
+  }
 
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: var(--bg-color);
-      color: var(--text);
-    }
+  .top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .room{color:var(--muted);font-size:14px;}
+  .controls{display:flex;gap:12px;align-items:center;}
+  .controls select, .controls button{
+    padding:8px 10px;border-radius:8px;border:0;background:#111827;color:white;cursor:pointer;
+  }
 
-    .game-wrapper {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      gap: 12px;
-      padding: 16px;
-    }
+  /* === [INÍCIO] MUDANÇAS NO LAYOUT === */
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-    }
+  /* Central area layout (NOVO) */
+  .center-area{
+    display:flex;
+    flex-direction: column;
+    gap:18px; /* Espaço entre a linha dos players e a linha da mesa */
+  }
 
-    .branding {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
+  /* (NOVO) Container para os 4 jogadores no topo */
+  .player-hands-container {
+    display: grid;
+    /* 4 colunas de tamanho igual */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
 
-    .branding h1 {
-      font-size: 20px;
-      margin: 0;
-      letter-spacing: 0.6px;
-    }
+  /* (NOVO) Container para a Área Livre e Deck embaixo */
+  .bottom-table-container {
+    display: grid;
+    /* 2 colunas: Área livre maior (2fr ou 3fr), Deck menor (1fr) */
+    grid-template-columns: 3fr 1fr;
+    gap: 18px;
+    align-items: stretch; /* Faz com que ambos tenham a msm altura */
+  }
 
-    .branding p {
-      margin: 2px 0 0 0;
-      color: var(--muted);
-      font-size: 12px;
-    }
+  /* Player areas labels (AJUSTADO) */
+  .player-area{
+    border-radius:10px;border:2px dashed rgba(255,255,255,0.12);
+    padding:8px;
+    min-height: 140px; /* Altura mínima para as mãos */
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:flex-start;position:relative;
+  }
+  .player-title{font-weight:600;margin-bottom:8px;color:var(--muted);}
 
-    .deck-info {
-      background: var(--panel-bg);
-      padding: 10px 14px;
-      border-radius: 10px;
-      text-align: center;
-      min-width: 120px;
-    }
+  /* Deck area (AJUSTADO) */
+  .deck-area{
+    /* REMOVIDO: grid-column e grid-row */
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:10px;padding:18px;border-radius:18px;border:3px dashed rgba(255,255,255,0.08);
+    background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.02));
+    min-height: 200px; /* Altura mínima */
+  }
+  .deck{
+    width:120px;height:160px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;
+    color:white;cursor:pointer;
+  }
+  .pile-info{display:flex;gap:12px;align-items:center;}
+  .coin{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#f6b04d;color:#222;font-weight:700;}
 
-    .deck-info .count {
-      font-weight: 700;
-      font-size: 18px;
-    }
+  /* Free area below (AJUSTADO) */
+  .free-area{
+    /* REMOVIDO: grid-column e margin-top */
+    border-radius:12px;border:3px dashed rgba(255,255,255,0.06);
+    padding:18px;
+    min-height: 200px; /* Altura mínima */
+    display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-start;
+    background:var(--panel);
+  }
 
-    .deck-info small {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-    }
+  /* === [FIM] MUDANÇAS NO LAYOUT === */
 
-    .main {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 200px 1fr 200px;
-      gap: 12px;
-      align-items: center;
-    }
 
-    .left-col {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+  /* Cards */
+  .card{
+    width:92px;height:128px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.25);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#111;cursor:grab;
+    user-select:none;
+  }
+  .card:active{cursor:grabbing;}
+  .card.small{width:72px;height:100px}
+  .card.back{background:linear-gradient(180deg,#2b3443,#232a33);color:transparent}
+  .card .label{padding:6px;text-align:center;color:#0b0b0b}
 
-    .cemetery {
-      background: var(--glass);
-      padding: 10px;
-      border-radius: 10px;
-      min-height: 120px;
-    }
+  /* Hand layout for bottom player (player1) */
+  .player-hand{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:nowrap;padding:6px;}
+  .player-stack{display:flex;flex-direction:column;gap:10px;align-items:center}
 
-    .cemetery h3 {
-      margin: 0 0 8px 0;
-      font-size: 13px;
-    }
+  /* Points controls */
+  .points{position:absolute;right:8px;top:8px;display:flex;gap:6px;align-items:center}
+  .points button{padding:4px 8px;border-radius:6px;border:0;background:#111;color:white;cursor:pointer}
+  .points .score{min-width:28px;text-align:center;color:var(--muted)}
 
-    .cemetery .cards {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
+  /* small labels */
+  .muted{color:var(--muted);font-size:12px}
 
-    .cemetery .cards img {
-      width: 48px;
-      height: 70px;
-      border-radius: 6px;
-      object-fit: cover;
-      background: rgba(255, 255, 255, 0.02);
-    }
+  /* === [REMOVIDO] Layout antigo de posicionamento === */
+  /* .player-top, .player-left, .player-right, .player-bottom foram removidos */
 
-    .right-col {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      align-items: flex-end;
-    }
+  /* small helpers */
+  .slot{width:96px;height:136px;border-radius:10px;border:2px dashed rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center}
+  .slot.small{width:76px;height:110px}
 
-    .player-slot {
-      background: var(--panel-bg);
-      padding: 8px;
-      border-radius: 10px;
-      min-width: 160px;
-      display: flex;
+  /* Responsive adjustments */
+  @media (max-width:1024px){
+    .container{padding:8px}
+    header h1{font-size:28px}
+
+    /* (AJUSTADO) Responsivo para o novo grid */
+    .player-hands-container {
+      grid-template-columns: repeat(2, 1fr); /* 2x2 grid para tablets */
+    }
+    .bottom-table-container {
+      grid-template-columns: 1fr; /* Stacka área livre e deck */
+    }
+    /* ... (resto dos ajustes de tamanho) ... */
+    .deck{width:92px;height:120px}
+    .card{width:72px;height:100px}
+    .slot{width:76px;height:110px}
+    .player-hand{gap:8px}
+    .card.small{width:60px;height:86px}
+    .free-area{min-height:120px}
+  }
+
+  @media (max-width:520px){
+    /* (AJUSTADO) Responsivo para mobile */
+    .center-area{
+      gap:8px;
+    }
+    .player-hands-container {
+      grid-template-columns: 1fr; /* Stacka os 4 players */
       gap: 8px;
-      align-items: center;
     }
-
-    .player-slot img.card {
-      width: 44px;
-      height: 64px;
-      border-radius: 6px;
-      object-fit: cover;
-    }
-
-    .player-slot .meta {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .playfield {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
-      border-radius: 12px;
-      padding: 18px;
-      height: 420px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .table-area {
-      width: 100%;
-      height: 100%;
-      border: 2px dashed rgba(255, 255, 255, 0.03);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted);
-    }
-
-    .bottom-bar {
-      display: flex;
-      gap: 12px;
-      align-items: flex-end;
-    }
-
-    .hand {
-      flex: 1;
-      background: var(--panel-bg);
-      padding: 10px;
-      border-radius: 10px;
-      display: flex;
+    .bottom-table-container {
+      grid-template-columns: 1fr; /* Stacka área livre e deck */
       gap: 8px;
-      align-items: center;
-      min-height: 120px;
     }
 
-    .hand .card {
-      width: var(--card-width);
-      height: var(--card-height);
-      border-radius: 8px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    .hand .card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .actions {
-      width: 440px; /* aumentado para caber mais botões em 1920x1080 */
-      background: var(--glass);
-      padding: 14px 16px; /* mais compacto */
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px; /* diminui espaço entre linhas */
-      justify-content: center;
-      align-items: stretch;
-    }
-
-    .actions .row {
-      display: flex;
-      gap: 6px; /* reduz o espaço entre botões */
-    }
-
-    .btn {
-      flex: 1;
-      padding: 7px 10px; /* reduzido para caber mais */
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 8px;
-      color: var(--text);
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
-  </style>
+    /* ... (resto dos ajustes de tamanho) ... */
+    .card{width:58px;height:84px}
+    .slot{width:58px;height:84px}
+    .player-area{padding:6px; min-height: 110px;}
+    .points{right:4px;top:4px}
+  }
+</style>
 </head>
-
 <body>
-  <div class="game-wrapper">
-    <div class="top-bar">
-      <div class="branding">
-        <div>
-          <h1 id="game-title">Coup Master</h1>
-          <p id="room-code" class="muted">Sala: <span id="code">A1B2C3</span></p>
-        </div>
-      </div>
-      <div class="deck-info">
-        <div class="count" id="deck-count">35</div>
-        <small>Cartas no baralho</small>
-      </div>
-    </div>
+<div class="container">
+  <header>
+    <h1>CARD-GAME</h1>
+    <p>Sala: <strong id="room-code">1A2B3C4D</strong></p>
+  </header>
 
-    <div class="main">
-      <div class="left-col">
-        <div class="cemetery">
-          <h3>Cemitério</h3>
-          <div class="cards" id="cemetery-cards">
-            <img src="assets/images/cards/capitao.png" alt="Carta eliminada 1" />
-            <img src="assets/images/cards/embaixador.png" alt="Carta eliminada 2" />
-            <img src="assets/images/cards/duque.png" alt="Carta eliminada 3" />
-          </div>
-        </div>
-        <div class="player-slot">
-          <img id="avatar-small" src="assets/images/avatars/Mr-rinha.png" alt="Você" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" />
-          <div class="meta">
-            <div id="player-name">Você</div>
-            <div class="muted" id="player-coins">Moedas: 8</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="playfield">
-        <div class="table-area" id="table-area">
-          Área de jogo — cartas comunitárias / animações aqui (substitua depois)
-        </div>
-      </div>
-
-      <div class="right-col">
-
-        <div class="player-slot">
-          <img class="card" src="assets/images/cards/capa.png" alt="Carta 1" />
-          <div class="meta">
-            <div class="muted">Jogador 2</div>
-            <div class="muted">Influências: <span id="p2-influences">2</span></div>
-            <div class="muted" id="player-coins">Moedas: 5</div>
-          </div>
-        </div>
-
-        <div class="player-slot">
-          <img class="card" src="assets/images/cards/capa.png" alt="Carta 2" />
-          <div class="meta">
-            <div class="muted">Jogador 3</div>
-            <div class="muted">Influências: <span id="p3-influences">1</span></div>
-            <div class="muted" id="player-coins">Moedas: 2</div>
-          </div>
-        </div>
-
-        <div class="player-slot">
-          <img class="card" src="assets/images/cards/capa.png" alt="Carta 2" />
-          <div class="meta">
-            <div class="muted">Jogador 4</div>
-            <div class="muted">Influências: <span id="p3-influences">1</span></div>
-            <div class="muted" id="player-coins">Moedas: 2</div>
-          </div>
-        </div>
-
-        <div class="player-slot">
-          <img class="card" src="assets/images/cards/capa.png" alt="Carta 2" />
-          <div class="meta">
-            <div class="muted">Jogador 5</div>
-            <div class="muted">Influências: <span id="p3-influences">1</span></div>
-            <div class="muted" id="player-coins">Moedas: 2</div>
-          </div>
-        </div>
-
-        <div class="player-slot">
-          <img class="card" src="assets/images/cards/capa.png" alt="Carta 1" />
-          <div class="meta">
-            <div class="muted">Jogador 6</div>
-            <div class="muted">Influências: <span id="p2-influences">2</span></div>
-            <div class="muted" id="player-coins">Moedas: 5</div>
-          </div>
-        </div>
-
-        <div class="player-slot">
-          <img class="card" src="assets/images/cards/capa.png" alt="Carta 2" />
-          <div class="meta">
-            <div class="muted">Jogador 7</div>
-            <div class="muted">Influências: <span id="p3-influences">1</span></div>
-            <div class="muted" id="player-coins">Moedas: 2</div>
-          </div>
-        </div>
-
-        <div class="player-slot">
-          <img class="card" src="assets/images/cards/capa.png" alt="Carta 2" />
-          <div class="meta">
-            <div class="muted">Jogador 8</div>
-            <div class="muted">Influências: <span id="p3-influences">1</span></div>
-            <div class="muted" id="player-coins">Moedas: 2</div>
-          </div>
-        </div>
-
-
+  <div class="board">
+    <div class="top-row">
+      <div class="room muted">Mesa principal</div>
+      <div class="controls">
+        <label class="muted">Jogador local:</label>
+        <select id="localPlayerSelect"></select>
+        <button id="resetBtn" title="Resetar mesa">Reset</button>
+        <button id="shuffleBtn" title="Embaralhar deck">Shuffle Deck</button>
       </div>
     </div>
 
-    <div class="bottom-bar">
-      <div class="hand">
-        <div class="card"><img src="assets/images/cards/assassino.png" alt="Sua carta 1"></div>
-        <div class="card"><img src="assets/images/cards/inquisitor.png" alt="Sua carta 2"></div>
-        <div class="card"><img src="assets/images/cards/condessa.png" alt="Sua carta 3"></div>
-        <div class="card"><img src="assets/images/cards/duque.png" alt="Sua carta 4"></div>
-      </div>
+    <div class="center-area" id="centerArea">
 
-      <div class="actions">
-        <div class="row">
-          <button class="btn">Renda</button>
-          <button class="btn">Ajuda Externa</button>
-          <button class="btn">Golpe de Estado</button>
+      <div class="player-hands-container">
+        
+        <div class="player-area" id="player-1" data-player="1">
+          <div class="points">
+            <button class="minus">-</button>
+            <div class="score" data-score>0</div>
+            <button class="plus">+</button>
+          </div>
+          <div class="player-title">Jogador 1 (você)</div>
+          <div class="player-stack hand" data-hand></div>
         </div>
-        <div class="row">
-          <button class="btn">Imposto</button>
-          <button class="btn">Extorquir</button>
-          <button class="btn">Assassinar</button>
+        
+        <div class="player-area" id="player-2" data-player="2">
+          <div class="points">
+            <button class="minus">-</button>
+            <div class="score" data-score>0</div>
+            <button class="plus">+</button>
+          </div>
+          <div class="player-title">Jogador 2</div>
+          <div class="player-stack hand" data-hand></div>
         </div>
-        <div class="row">
-          <button class="btn">Bloquear Assassino</button>
-          <button class="btn">Trocar 1 Carta</button>
-          <button class="btn">Trocar 2 Cartas</button>
+
+        <div class="player-area" id="player-3" data-player="3">
+          <div class="points">
+            <button class="minus">-</button>
+            <div class="score" data-score>0</div>
+            <button class="plus">+</button>
+          </div>
+          <div class="player-title">Jogador 3</div>
+          <div class="player-stack hand" data-hand></div>
         </div>
-        <div class="row">
-          <button class="btn">Investigar</button>
+
+        <div class="player-area" id="player-4" data-player="4">
+          <div class="points">
+            <button class="minus">-</button>
+            <div class="score" data-score>0</div>
+            <button class="plus">+</button>
+          </div>
+          <div class="player-title">Jogador 4</div>
+          <div class="player-stack hand" data-hand></div>
         </div>
-      </div>
+
+      </div> <div class="bottom-table-container">
+
+        <div class="free-area" id="freeArea" data-area="free">
+          <div class="muted" style="width:100%;">Área livre — arraste cartas aqui para torná-las visíveis a todos</div>
+        </div>
+        
+        <div class="deck-area" id="deck-area">
+          <div class="deck" id="deck" draggable="true">Deck</div>
+          <div class="pile-info muted">
+            <div>Cartas no deck: <span id="deck-count">0</span></div>
+            <div style="margin-left:8px">Grave: <span id="grave-count">0</span></div>
+          </div>
+        </div>
+
+      </div> </div>
     </div>
-  </div>
+</div>
+
+<script>
+/*
+  Protótipo funcional:
+  - 30 cartas: 6 tipos x 5
+  - Drag & drop via HTML5 API
+  - 4 jogadores (1..4)
+  - Current local player can be selected to simulate visibility
+  - Limit 4 cards per player
+  - Cards in player area are hidden to others (show card-back) unless local player is owner
+  - Cards in free area visible to everyone
+  - When returning a card to deck, deck is shuffled
+*/
+
+// === O JAVASCRIPT NÃO PRECISA DE MUDANÇAS ===
+
+const CARD_TYPES = [
+  {type:'Gold', color:'#f6b04d'},
+  {type:'Red', color:'#ff3b3b'},
+  {type:'Green', color:'#3aff7b'},
+  {type:'Cyan', color:'#49f0ff'},
+  {type:'Orange', color:'#ffb000'},
+  {type:'Blue', color:'#2a8cff'},
+];
+
+let deck = []; // array of card objects
+let grave = [];
+let players = {
+  1: {hand:[], score:0},
+  2: {hand:[], score:0},
+  3: {hand:[], score:0},
+  4: {hand:[], score:0},
+};
+
+let localPlayer = 1; // simulate which player is the user viewing
+
+const deckCountEl = document.getElementById('deck-count');
+const graveCountEl = document.getElementById('grave-count');
+const deckEl = document.getElementById('deck');
+const freeArea = document.getElementById('freeArea');
+const localSelect = document.getElementById('localPlayerSelect');
+const shuffleBtn = document.getElementById('shuffleBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+function createDeck(){
+  deck = [];
+  let id = 1;
+  for (let t=0;t<CARD_TYPES.length;t++){
+    for (let i=0;i<5;i++){
+      deck.push({
+        id: 'c'+(id++),
+        type: CARD_TYPES[t].type,
+        color: CARD_TYPES[t].color,
+        owner: null,     // null if in deck/free, or player id if in player's hand
+        visible: false,  // visible to others (true when in free area)
+        location: 'deck' // 'deck' | 'player-X' | 'free'
+      });
+    }
+  }
+  shuffle(deck);
+  renderCounts();
+}
+
+function shuffle(array){
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+function drawCard(toPlayerId){
+  if (deck.length === 0) return null;
+  const card = deck.pop();
+  card.owner = toPlayerId;
+  card.location = 'player-'+toPlayerId;
+  card.visible = false;
+  players[toPlayerId].hand.push(card);
+  renderAll();
+  return card;
+}
+
+function returnCardToDeck(card){
+  // remove from wherever
+  removeCardFromCurrentLocation(card);
+  // add back and shuffle
+  card.owner = null;
+  card.location = 'deck';
+  card.visible = false;
+  deck.push(card);
+  shuffle(deck);
+  renderAll();
+}
+
+function removeCardFromCurrentLocation(card){
+  // check players
+  if (card.owner){
+    const pHand = players[card.owner].hand;
+    const idx = pHand.findIndex(c=>c.id===card.id);
+    if (idx>=0) pHand.splice(idx,1);
+    card.owner = null;
+  } else {
+    // maybe in free area or deck or grave
+    // remove from free area
+    // free area represented in DOM but not in a separate array; store free cards in grave? We'll keep free cards as cards with location 'free' and in a global array 'freeCards'
+  }
+}
+
+let freeCards = [];
+
+function addCardToFree(card){
+  removeCardFromCurrentLocation(card);
+  card.owner = null;
+  card.location = 'free';
+  card.visible = true;
+  freeCards.push(card);
+  renderAll();
+}
+
+// initial render skeleton
+function renderCounts(){
+  deckCountEl.textContent = deck.length;
+  graveCountEl.textContent = grave.length;
+}
+
+function clearDOMHands(){
+  document.querySelectorAll('[data-hand]').forEach(h=>h.innerHTML='');
+  freeArea.querySelectorAll('.card').forEach(n=>n.remove());
+  document.querySelectorAll('.slot').forEach(n=>n.remove());
+}
+
+function createCardElement(card){
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.draggable = true;
+  el.dataset.cardId = card.id;
+  el.style.background = card.color;
+  el.innerHTML = `<div class="label">${card.type}</div>`;
+  // if card is supposed to be shown as back (hidden) => show back style
+  if (shouldShowBack(card)){
+    el.classList.add('back');
+    el.style.background = 'linear-gradient(180deg,#2b3443,#232a33)';
+    el.innerHTML = `<div class="label">?</div>`;
+  }
+
+  el.addEventListener('dragstart', (ev)=>{
+    ev.dataTransfer.setData('text/plain', card.id);
+    // pass card id for drop handler
+  });
+
+  el.addEventListener('dblclick', ()=>{
+    // double click: return to deck (for convenience)
+    returnCardToDeck(card);
+  });
+
+  return el;
+}
+
+function shouldShowBack(card){
+  // card is hidden if: in a player's hand and local player != owner
+  if (card.location && card.location.startsWith('player-')){
+    const ownerId = parseInt(card.location.split('-')[1]);
+    return ownerId !== localPlayer;
+  }
+  // deck shows back
+  if (card.location === 'deck') return true;
+  // if free => visible
+  if (card.location === 'free') return false;
+  return false;
+}
+
+function renderAll(){
+  renderCounts();
+  clearDOMHands();
+  // render deck -- deck element stays as 'back' visual; we won't show each deck card.
+  // render players
+  for (let pid=1;pid<=4;pid++){
+    const handContainer = document.querySelector(`#player-${pid} [data-hand]`);
+    // ensure we have max 4 slots visible (including empty slots)
+    // show slots visually
+    for (let i=0;i<4;i++){
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.dataset.slotIndex = i;
+      handContainer.appendChild(slot);
+    }
+    // add cards into first available slots (left to right)
+    players[pid].hand.forEach((card, idx)=>{
+      const el = createCardElement(card);
+      el.classList.add('small');
+      // put into slot idx
+      const slotNodes = handContainer.querySelectorAll('.slot');
+      if (slotNodes[idx]) slotNodes[idx].appendChild(el);
+      else handContainer.appendChild(el);
+    });
+    // set scores
+    const scoreEl = document.querySelector(`#player-${pid} .score`);
+    scoreEl.textContent = players[pid].score;
+  }
+
+  // render free area cards
+  freeCards.forEach(card=>{
+    const el = createCardElement(card);
+    el.classList.add('small');
+    freeArea.appendChild(el);
+  });
+
+  // add drag/drop listeners to areas
+  setupDropzones();
+
+  // update counts
+  deckCountEl.textContent = deck.length;
+  graveCountEl.textContent = grave.length;
+}
+
+function setupDropzones(){
+  // deck drop: if a card is dropped on deck, return to deck (shuffle)
+  deckEl.ondragover = ev => ev.preventDefault();
+  deckEl.ondrop = ev=>{
+    ev.preventDefault();
+    const id = ev.dataTransfer.getData('text/plain');
+    const card = findCardById(id);
+    if (!card) return;
+    returnCardToDeck(card);
+  };
+  deckEl.onclick = ()=>{
+    // draw a card to localPlayer from deck
+    drawCard(localPlayer);
+  };
+
+  // players area drop
+  document.querySelectorAll('.player-area').forEach(area=>{
+    area.ondragover = ev => ev.preventDefault();
+    area.ondrop = ev=>{
+      ev.preventDefault();
+      const id = ev.dataTransfer.getData('text/plain');
+      const card = findCardById(id);
+      if (!card) return;
+      const pid = parseInt(area.dataset.player);
+      // limit 4 cards
+      if (players[pid].hand.length >= 4){
+        alert('Limite de 4 cartas nessa mão.');
+        return;
+      }
+      // move card to this player's hand
+      removeCardFromCurrentLocation(card);
+      card.owner = pid;
+      card.location = 'player-'+pid;
+      card.visible = (pid===localPlayer); // visible only if local player's hand
+      players[pid].hand.push(card);
+      // if moved from free area, remove from freeCards
+      const idxFree = freeCards.findIndex(c=>c.id===card.id);
+      if (idxFree>=0) freeCards.splice(idxFree,1);
+      renderAll();
+    };
+  });
+
+  // free area drop
+  freeArea.ondragover = ev => ev.preventDefault();
+  freeArea.ondrop = ev=>{
+    ev.preventDefault();
+    const id = ev.dataTransfer.getData('text/plain');
+    const card = findCardById(id);
+    if (!card) return;
+    // move to free area
+    removeCardFromCurrentLocation(card);
+    card.owner = null;
+    card.location = 'free';
+    card.visible = true;
+    freeCards.push(card);
+    // if removed from a player's hand, remove it
+    for (let p=1;p<=4;p++){
+      players[p].hand = players[p].hand.filter(c=>c.id !== card.id);
+    }
+    renderAll();
+  };
+}
+
+function findCardById(id){
+  // search players
+  for (let p=1;p<=4;p++){
+    const c = players[p].hand.find(c=>c.id===id);
+    if (c) return c;
+  }
+  let fc = freeCards.find(c=>c.id===id);
+  if (fc) return fc;
+  let dc = deck.find(c=>c.id===id);
+  if (dc) return dc;
+  let gr = grave.find(c=>c.id===id);
+  if (gr) return gr;
+  return null;
+}
+
+function resetTable(){
+  // clear hands and free
+  for (let p=1;p<=4;p++){ players[p].hand = []; players[p].score = 0; }
+  freeCards = [];
+  grave = [];
+  createDeck();
+  renderAll();
+  // reset score displays
+  document.querySelectorAll('.score').forEach(s=>s.textContent='0');
+}
+
+function setupUI(){
+  // populate local player select
+  for (let p=1;p<=4;p++){
+    const opt = document.createElement('option');
+    opt.value = p; opt.textContent = 'Jogador '+p;
+    localSelect.appendChild(opt);
+  }
+  localSelect.value = localPlayer;
+  localSelect.onchange = (e)=>{
+    localPlayer = parseInt(e.target.value);
+    renderAll();
+  };
+
+  shuffleBtn.onclick = ()=>{
+    shuffle(deck);
+    renderAll();
+  };
+  resetBtn.onclick = resetTable;
+
+  // points +/-
+  document.querySelectorAll('.player-area').forEach(area=>{
+    const pid = parseInt(area.dataset.player);
+    area.querySelector('.plus').addEventListener('click', ()=>{
+      players[pid].score++;
+      area.querySelector('.score').textContent = players[pid].score;
+    });
+    area.querySelector('.minus').addEventListener('click', ()=>{
+      players[pid].score = Math.max(0, players[pid].score-1);
+      area.querySelector('.score').textContent = players[pid].score;
+    });
+  });
+
+  // allow deck drawing by double click too
+  deckEl.addEventListener('dblclick', ()=> drawCard(localPlayer));
+
+  // Accessibility: tapping deck on mobile draws
+  deckEl.addEventListener('touchstart', ()=>{}, {passive:true});
+}
+
+function bootstrap(){
+  createDeck();
+  setupUI();
+  renderAll();
+}
+
+// helper: when removing card from current location, also remove from owner hand/free arrays
+function removeCardFromCurrentLocation(card){
+  // remove from any player's hand
+  for (let p=1;p<=4;p++){
+    const idx = players[p].hand.findIndex(c=>c.id===card.id);
+    if (idx>=0) players[p].hand.splice(idx,1);
+  }
+  // remove from freeCards
+  const idxF = freeCards.findIndex(c=>c.id===card.id);
+  if (idxF>=0) freeCards.splice(idxF,1);
+  // remove from deck
+  const idxD = deck.findIndex(c=>c.id===card.id);
+  if (idxD>=0) deck.splice(idxD,1);
+  // remove from grave
+  const idxG = grave.findIndex(c=>c.id===card.id);
+  if (idxG>=0) grave.splice(idxG,1);
+}
+
+bootstrap();
+</script>
 </body>
 </html>
