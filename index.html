@@ -1,794 +1,1014 @@
 <!doctype html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Coup Master - Protótipo Online</title>
-<style>
-  :root{
-    --bg:#171d26;
-    --panel:#232a33;
-    --accent:#1e90ff;
-    --card-radius:10px;
-    --dotted: 3px dotted rgba(255,255,255,0.12);
-    --text:#e6eef6;
-    --muted: rgba(230,238,246,0.25);
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  }
-  html,body{height:100%;margin:0;background:#f6f8fb;color:var(--text);}
-  .container{max-width:1100px;margin:18px auto;padding:12px;}
-  header{
-    border-radius:18px;border:4px dotted #000;
-    padding:26px 18px;
-    text-align:center;background:white;color:#111;margin-bottom:18px;
-  }
-  header h1{margin:0;font-size:34px;letter-spacing:1px;}
-  header p{margin:6px 0 0;color:#444;}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coup Master - Protótipo Online</title>
 
-  /* Board */
-  .board{
-    background:var(--bg);
-    border-radius:14px;
-    padding:18px;
-    box-shadow: 0 8px 24px rgba(10,10,12,0.08);
-  }
-
-  .top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-  .room{color:var(--muted);font-size:14px;}
-  .controls{display:flex;gap:12px;align-items:center;}
-  .controls button{
-    padding:8px 10px;border-radius:8px;border:0;background:#111827;color:white;cursor:pointer;
-  }
-
-  /* Central area layout (NOVO) */
-  .center-area{
-    display:flex;
-    flex-direction: column;
-    gap:18px; /* Espaço entre a linha dos players e a linha da mesa */
-  }
-
-  /* (NOVO) Container para os 4 jogadores no topo */
-  .player-hands-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-  }
-
-  /* (NOVO) Container para a Área Livre e Deck embaixo */
-  .bottom-table-container {
-    display: grid;
-    grid-template-columns: 3fr 1fr;
-    gap: 18px;
-    align-items: stretch; 
-  }
-
-  /* Player areas labels (AJUSTADO) */
-  .player-area{
-    border-radius:10px;border:2px dashed rgba(255,255,255,0.12);
-    padding:8px;
-    min-height: 140px; 
-    display:flex;flex-direction:column;align-items:center;
-    justify-content:flex-start;position:relative;
-  }
-  .player-title{font-weight:600;margin-bottom:8px;color:var(--muted);}
-  .player-area.local-player .player-title{
-    color: var(--accent);
-    font-weight: 700;
-  }
-
-  /* Deck area (AJUSTADO) */
-  .deck-area{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:10px;padding:18px;border-radius:18px;border:3px dashed rgba(255,255,255,0.08);
-    background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.02));
-    min-height: 200px;
-  }
-  .deck{
-    width:120px;height:160px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;
-    color:white;cursor:pointer;
-  }
-  .pile-info{display:flex;gap:12px;align-items:center;}
-
-  /* Free area below (AJUSTADO) */
-  .free-area{
-    border-radius:12px;border:3px dashed rgba(255,255,255,0.06);
-    padding:18px;
-    min-height: 200px; 
-    display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-start;
-    background:var(--panel);
-  }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Italianno&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Ephesis&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Arizonia&display=swap" rel="stylesheet">
 
 
-  /* Cards */
-  .card{
-    width:92px;height:128px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.25);
-    display:flex;align-items:center;justify-content:center;font-weight:700;color:#111;cursor:grab;
-    user-select:none;
-  }
-  .card:active{cursor:grabbing;}
-  .card.small{width:72px;height:100px}
-  .card.back{background:linear-gradient(180deg,#2b3443,#232a33);color:transparent}
-  .card .label{padding:6px;text-align:center;color:#0b0b0b}
 
-  /* Hand layout */
-  .player-hand{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    justify-content:center;
-    flex-wrap: wrap; /* [CORREÇÃO] MUDADO de 'nowrap' para 'wrap' */
-    padding:6px;
-  }
-  .player-stack{display:flex;flex-direction:column;gap:10px;align-items:center}
+  <style>
+    :root {
+      --bg: #171d26;
+      --panel: #232a33;
+      --accent: #1e90ff;
+      --card-radius: 10px;
+      --dotted: 3px dotted rgba(255, 255, 255, 0.12);
+      --text: #e6eef6;
+      --muted: rgba(230, 238, 246, 0.25);
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
 
-  /* Points controls */
-  .points{position:absolute;right:8px;top:8px;display:flex;gap:6px;align-items:center}
-  .points button{padding:4px 8px;border-radius:6px;border:0;background:#111;color:white;cursor:pointer}
-  .points .score{min-width:28px;text-align:center;color:var(--muted)}
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: #14171e;
+      color: var(--text);
+    }
 
-  /* small labels */
-  .muted{color:var(--muted);font-size:12px}
 
-  /* small helpers */
-  .slot{width:96px;height:136px;border-radius:10px;border:2px dashed rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center}
-  .slot.small{width:76px;height:110px}
+    .container {
+      max-width: 1100px;
+      margin: 18px auto;
+      padding: 12px;
+    }
 
-  /* Responsive adjustments */
-  @media (max-width:1024px){
-    .container{padding:8px}
-    header h1{font-size:28px}
+    header {
+      border-radius: 18px;
+      border: 4px dotted rgba(255, 255, 255, 0.12);
+      padding: 26px 18px;
+      text-align: center;
+      background: #232a33;
+      color: #ffffff;
+      margin-bottom: 18px;
+      font-family: "Arizonia", cursive;
+    }
 
+
+
+    header h1 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: #444;
+    }
+
+    /* Board */
+    .board {
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(10, 10, 12, 0.08);
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .room {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .controls button {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 0;
+      background: #111827;
+      color: white;
+      cursor: pointer;
+    }
+
+    /* Central area layout (NOVO) */
+    .center-area {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      /* Espaço entre a linha dos players e a linha da mesa */
+    }
+
+    /* (NOVO) Container para os 4 jogadores no topo */
     .player-hands-container {
-      grid-template-columns: repeat(2, 1fr); /* 2x2 grid para tablets */
-    }
-    .bottom-table-container {
-      grid-template-columns: 1fr; /* Stacka área livre e deck */
-    }
-    .deck{width:92px;height:120px}
-    .card{width:72px;height:100px}
-    .slot{width:76px;height:110px}
-    .player-hand{gap:8px}
-    .card.small{width:60px;height:86px}
-    .free-area{min-height:120px}
-  }
-
-  @media (max-width:520px){
-    .center-area{ gap:8px; }
-    .player-hands-container {
-      grid-template-columns: 1fr; /* Stacka os 4 players */
-      gap: 8px;
-    }
-    .bottom-table-container {
-      grid-template-columns: 1fr; /* Stacka área livre e deck */
-      gap: 8px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
     }
 
-    .card{width:58px;height:84px}
-    .slot{width:58px;height:84px}
-    .player-area{padding:6px; min-height: 110px;}
-    .points{right:4px;top:4px}
-  }
-</style>
+    /* (NOVO) Container para a Área Livre e Deck embaixo */
+    .bottom-table-container {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    /* Player areas labels (AJUSTADO) */
+    .player-area {
+      border-radius: 10px;
+      border: 2px dashed rgba(255, 255, 255, 0.12);
+      padding: 8px;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+    }
+
+    .player-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    .player-area.local-player .player-title {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* Deck area (AJUSTADO) */
+    .deck-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 3px dashed rgba(255, 255, 255, 0.08);
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.02));
+      min-height: 200px;
+    }
+
+    .deck {
+      width: 120px;
+      height: 160px;
+      border-radius: 10px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+    }
+
+    .pile-info {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* Free area below (AJUSTADO) */
+    .free-area {
+      border-radius: 12px;
+      border: 3px dashed rgba(255, 255, 255, 0.06);
+      padding: 18px;
+      min-height: 200px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: flex-start;
+      background: var(--panel);
+    }
+
+
+    /* Cards */
+    .card {
+      width: 92px;
+      height: 128px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #111;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .card:active {
+      cursor: grabbing;
+    }
+
+    .card.small {
+      width: 72px;
+      height: 100px
+    }
+
+    .card.back {
+      background: linear-gradient(180deg, #2b3443, #232a33);
+      color: transparent
+    }
+
+    .card .label {
+      padding: 6px;
+      text-align: center;
+      color: #0b0b0b
+    }
+
+    /* Hand layout */
+    .player-hand {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      /* [CORREÇÃO] MUDADO de 'nowrap' para 'wrap' */
+      padding: 6px;
+    }
+
+
+    .player-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center
+    }
+
+    /* Points controls */
+    .points {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      display: flex;
+      gap: 6px;
+      align-items: center
+    }
+
+    .points button {
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 0;
+      background: #111;
+      color: white;
+      cursor: pointer
+    }
+
+    .points .score {
+      min-width: 28px;
+      text-align: center;
+      color: var(--muted)
+    }
+
+    /* small labels */
+    .muted {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    /* small helpers */
+    .slot {
+      width: 96px;
+      height: 136px;
+      border-radius: 10px;
+      border: 2px dashed rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .slot.small {
+      width: 76px;
+      height: 110px
+    }
+
+    /* Responsive adjustments */
+    @media (max-width:1024px) {
+      .container {
+        padding: 8px
+      }
+
+      header h1 {
+        font-size: 28px
+      }
+
+      .player-hands-container {
+        grid-template-columns: repeat(2, 1fr);
+        /* 2x2 grid para tablets */
+      }
+
+      .bottom-table-container {
+        grid-template-columns: 1fr;
+        /* Stacka área livre e deck */
+      }
+
+      .deck {
+        width: 92px;
+        height: 120px
+      }
+
+      .card {
+        width: 72px;
+        height: 100px
+      }
+
+      .slot {
+        width: 76px;
+        height: 110px
+      }
+
+      .player-hand {
+        gap: 8px
+      }
+
+      .card.small {
+        width: 60px;
+        height: 86px
+      }
+
+      .free-area {
+        min-height: 120px
+      }
+    }
+
+    @media (max-width:520px) {
+      .center-area {
+        gap: 8px;
+      }
+
+      .player-hands-container {
+        grid-template-columns: 1fr;
+        /* Stacka os 4 players */
+        gap: 8px;
+      }
+
+      .bottom-table-container {
+        grid-template-columns: 1fr;
+        /* Stacka área livre e deck */
+        gap: 8px;
+      }
+
+      .card {
+        width: 58px;
+        height: 84px
+      }
+
+      .slot {
+        width: 58px;
+        height: 84px
+      }
+
+      .player-area {
+        padding: 6px;
+        min-height: 110px;
+      }
+
+      .points {
+        right: 4px;
+        top: 4px
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="container">
-  <header>
-    <h1>Coup Master</h1>
+  <div class="container">
+    <header>
+      <h1>Coup Master</h1>
     </header>
 
-  <div class="board">
-    <div class="top-row">
-      <div class="room muted">Mesa principal</div>
-      <div class="controls">
-        <button id="resetBtn" title="Resetar mesa">Reset</button>
-        <button id="shuffleBtn" title="Embaralhar deck">Shuffle Deck</button>
+    <div class="board">
+      <div class="top-row">
+        <div class="room muted">Mesa principal</div>
+        <div class="controls">
+          <button id="resetBtn" title="Resetar mesa">Reset</button>
+          <button id="shuffleBtn" title="Embaralhar deck">Shuffle Deck</button>
+        </div>
+      </div>
+
+      <div class="center-area" id="centerArea">
+        <div class="player-hands-container">
+
+          <div class="player-area" id="player-1" data-player="1">
+            <div class="points">
+              <button class="minus">-</button>
+              <div class="score" data-score>0</div>
+              <button class="plus">+</button>
+            </div>
+            <div class="player-title">Jogador 1</div>
+            <div class="player-stack hand" data-hand></div>
+          </div>
+
+          <div class="player-area" id="player-2" data-player="2">
+            <div class="points">
+              <button class="minus">-</button>
+              <div class="score" data-score>0</div>
+              <button class="plus">+</button>
+            </div>
+            <div class="player-title">Jogador 2</div>
+            <div class="player-stack hand" data-hand></div>
+          </div>
+
+          <div class="player-area" id="player-3" data-player="3">
+            <div class="points">
+              <button class="minus">-</button>
+              <div class="score" data-score>0</div>
+              <button class="plus">+</button>
+            </div>
+            <div class="player-title">Jogador 3</div>
+            <div class="player-stack hand" data-hand></div>
+          </div>
+
+          <div class="player-area" id="player-4" data-player="4">
+            <div class="points">
+              <button class="minus">-</button>
+              <div class="score" data-score>0</div>
+              <button class="plus">+</button>
+            </div>
+            <div class="player-title">Jogador 4</div>
+            <div class="player-stack hand" data-hand></div>
+          </div>
+
+        </div>
+        <div class="bottom-table-container">
+
+          <div class="free-area" id="freeArea" data-area="free">
+            <div class="muted" style="width:100%;">Área livre — arraste cartas aqui para torná-las visíveis a todos
+            </div>
+          </div>
+
+          <div class="deck-area" id="deck-area">
+            <div class="deck" id="deck" draggable="true">Deck</div>
+            <div class="pile-info muted">
+              <div>Cartas no deck: <span id="deck-count">0</span></div>
+              <div style="margin-left:8px">Grave: <span id="grave-count">0</span></div>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
-
-    <div class="center-area" id="centerArea">
-      <div class="player-hands-container">
-        
-        <div class="player-area" id="player-1" data-player="1">
-          <div class="points">
-            <button class="minus">-</button>
-            <div class="score" data-score>0</div>
-            <button class="plus">+</button>
-          </div>
-          <div class="player-title">Jogador 1</div>
-          <div class="player-stack hand" data-hand></div>
-        </div>
-        
-        <div class="player-area" id="player-2" data-player="2">
-          <div class="points">
-            <button class="minus">-</button>
-            <div class="score" data-score>0</div>
-            <button class="plus">+</button>
-          </div>
-          <div class="player-title">Jogador 2</div>
-          <div class="player-stack hand" data-hand></div>
-        </div>
-
-        <div class="player-area" id="player-3" data-player="3">
-          <div class="points">
-            <button class="minus">-</button>
-            <div class="score" data-score>0</div>
-            <button class="plus">+</button>
-          </div>
-          <div class="player-title">Jogador 3</div>
-          <div class="player-stack hand" data-hand></div>
-        </div>
-
-        <div class="player-area" id="player-4" data-player="4">
-          <div class="points">
-            <button class="minus">-</button>
-            <div class="score" data-score>0</div>
-            <button class="plus">+</button>
-          </div>
-          <div class="player-title">Jogador 4</div>
-          <div class="player-stack hand" data-hand></div>
-        </div>
-
-      </div> <div class="bottom-table-container">
-
-        <div class="free-area" id="freeArea" data-area="free">
-          <div class="muted" style="width:100%;">Área livre — arraste cartas aqui para torná-las visíveis a todos</div>
-        </div>
-        
-        <div class="deck-area" id="deck-area">
-          <div class="deck" id="deck" draggable="true">Deck</div>
-          <div class="pile-info muted">
-            <div>Cartas no deck: <span id="deck-count">0</span></div>
-            <div style="margin-left:8px">Grave: <span id="grave-count">0</span></div>
-          </div>
-        </div>
-
-      </div> </div>
   </div>
-</div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-<script>
+  <script>
 
-// =======================================================
-// === 1. INICIALIZAÇÃO E CONFIGURAÇÃO DO FIREBASE ===
-// =======================================================
+    // =======================================================
+    // === 1. INICIALIZAÇÃO E CONFIGURAÇÃO DO FIREBASE ===
+    // =======================================================
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDQwhYeLEvJW4p9Ml4pKjmr520CeKnZa60",
-  authDomain: "coup-master.firebaseapp.com",
-  databaseURL: "https://coup-master-default-rtdb.firebaseio.com",
-  projectId: "coup-master",
-  storageBucket: "coup-master.firebasestorage.app",
-  messagingSenderId: "876117110623",
-  appId: "1:876117110623:web:b957a148f9f60a51b550ea",
-  measurementId: "G-2BQR65QP2Z"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyDQwhYeLEvJW4p9Ml4pKjmr520CeKnZa60",
+      authDomain: "coup-master.firebaseapp.com",
+      databaseURL: "https://coup-master-default-rtdb.firebaseio.com",
+      projectId: "coup-master",
+      storageBucket: "coup-master.firebasestorage.app",
+      messagingSenderId: "876117110623",
+      appId: "1:876117110623:web:b957a148f9f60a51b550ea",
+      measurementId: "G-2BQR65QP2Z"
+    };
 
-// Inicializa o Firebase
-if (!firebaseConfig.apiKey) {
-  document.body.innerHTML = "<h1>Erro: configure o firebaseConfig no script!</h1>";
-  console.error("Firebase config is missing!");
-}
+    // Inicializa o Firebase
+    if (!firebaseConfig.apiKey) {
+      document.body.innerHTML = "<h1>Erro: configure o firebaseConfig no script!</h1>";
+      console.error("Firebase config is missing!");
+    }
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const gameStateRef = db.ref('gameState');
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const gameStateRef = db.ref('gameState');
 
-// =======================================================
-// === 2. CONSTANTES E VARIÁVEIS GLOBAIS ===
-// =======================================================
+    // =======================================================
+    // === 2. CONSTANTES E VARIÁVEIS GLOBAIS ===
+    // =======================================================
 
-const CARD_TYPES = [
-  {type:'Duque', color:'#f6b04d'},
-  {type:'Capitão', color:'#ff3b3b'},
-  {type:'Assassino', color:'#3aff7b'},
-  {type:'Embaixador', color:'#49f0ff'},
-  {type:'Condessa', color:'#ffb000'},
-  {type:'Inquisidor', color:'#2a8cff'},
-];
+    const CARD_TYPES = [
+      { type: 'Duque', color: '#f6b04d' },
+      { type: 'Capitão', color: '#ff3b3b' },
+      { type: 'Assassino', color: '#3aff7b' },
+      { type: 'Embaixador', color: '#49f0ff' },
+      { type: 'Condessa', color: '#ffb000' },
+      { type: 'Inquisidor', color: '#2a8cff' },
+    ];
 
-// O estado local é um "espelho" do que está no Firebase
-let localGameState = {}; 
-// ID do jogador deste navegador (será 1, 2, 3 ou 4)
-let myPlayerId = null; 
+    // O estado local é um "espelho" do que está no Firebase
+    let localGameState = {};
+    // ID do jogador deste navegador (será 1, 2, 3 ou 4)
+    let myPlayerId = null;
 
-// Referências do DOM
-const deckCountEl = document.getElementById('deck-count');
-const graveCountEl = document.getElementById('grave-count');
-const deckEl = document.getElementById('deck');
-const freeArea = document.getElementById('freeArea');
-const shuffleBtn = document.getElementById('shuffleBtn');
-const resetBtn = document.getElementById('resetBtn');
+    // Referências do DOM
+    const deckCountEl = document.getElementById('deck-count');
+    const graveCountEl = document.getElementById('grave-count');
+    const deckEl = document.getElementById('deck');
+    const freeArea = document.getElementById('freeArea');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const resetBtn = document.getElementById('resetBtn');
 
-// =======================================================
-// === 3. FUNÇÕES DE CRIAÇÃO E MANIPULAÇÃO DO JOGO (LÓGICA) ===
-// =======================================================
+    // =======================================================
+    // === 3. FUNÇÕES DE CRIAÇÃO E MANIPULAÇÃO DO JOGO (LÓGICA) ===
+    // =======================================================
 
-function createDeck(){
-  let newDeck = [];
-  let id = 1;
-  for (let t=0; t<CARD_TYPES.length; t++){
-    for (let i=0; i<5; i++){
-      newDeck.push({
-        id: 'c'+(id++),
-        type: CARD_TYPES[t].type,
-        color: CARD_TYPES[t].color,
-        owner: null,
-        visible: false,
-        location: 'deck'
+    function createDeck() {
+      let newDeck = [];
+      let id = 1;
+      for (let t = 0; t < CARD_TYPES.length; t++) {
+        for (let i = 0; i < 5; i++) {
+          newDeck.push({
+            id: 'c' + (id++),
+            type: CARD_TYPES[t].type,
+            color: CARD_TYPES[t].color,
+            owner: null,
+            visible: false,
+            location: 'deck'
+          });
+        }
+      }
+      shuffle(newDeck);
+      return newDeck;
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    // Encontra uma carta dentro do objeto de estado do jogo
+    function findCardById(state, id) {
+      if (!state || !id) return null;
+      // Procura no deck
+      let card = state.deck?.find(c => c.id === id);
+      if (card) return card;
+      // Procura na área livre
+      card = state.freeCards?.find(c => c.id === id);
+      if (card) return card;
+      // Procura no grave
+      card = state.grave?.find(c => c.id === id);
+      if (card) return card;
+      // Procura na mão dos jogadores
+      for (let p = 1; p <= 4; p++) {
+        card = state.players?.[p]?.hand?.find(c => c.id === id);
+        if (card) return card;
+      }
+      return null;
+    }
+
+    // Remove uma carta de qualquer lugar em um objeto de estado
+    function removeCardFromLocation(state, cardId) {
+      if (!state || !cardId) return;
+      // Remove do deck
+      if (state.deck) state.deck = state.deck.filter(c => c.id !== cardId);
+      // Remove da área livre
+      if (state.freeCards) state.freeCards = state.freeCards.filter(c => c.id !== cardId);
+      // Remove do grave
+      if (state.grave) state.grave = state.grave.filter(c => c.id !== cardId);
+      // Remove da mão de todos os players
+      if (state.players) {
+        for (let p = 1; p <= 4; p++) {
+          if (state.players[p]?.hand) {
+            state.players[p].hand = state.players[p].hand.filter(c => c.id !== cardId);
+          }
+        }
+      }
+    }
+
+    // =======================================================
+    // === 4. FUNÇÕES DE RENDERIZAÇÃO (ATUALIZAR A TELA) ===
+    // =======================================================
+
+    function clearDOM() {
+      document.querySelectorAll('[data-hand]').forEach(h => h.innerHTML = '');
+      freeArea.querySelectorAll('.card').forEach(n => n.remove());
+      document.querySelectorAll('.slot').forEach(n => n.remove());
+      // Limpa classes de jogador local
+      document.querySelectorAll('.player-area.local-player')
+        .forEach(el => el.classList.remove('local-player'));
+    }
+
+    function createCardElement(card) {
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.draggable = true;
+      el.dataset.cardId = card.id;
+
+      // Verifica se a carta deve ser mostrada virada
+      if (shouldShowBack(card)) {
+        el.classList.add('back');
+        el.style.background = 'linear-gradient(180deg,#2b3443,#232a33)';
+        el.innerHTML = `<div class="label">?</div>`;
+      } else {
+        el.style.background = card.color;
+        el.innerHTML = `<div class="label">${card.type}</div>`;
+      }
+
+      el.addEventListener('dragstart', (ev) => {
+        ev.dataTransfer.setData('text/plain', card.id);
+      });
+
+      // Double click para retornar ao deck (precisa escrever no Firebase)
+      el.addEventListener('dblclick', () => {
+        returnCardToDeck(card.id);
+      });
+
+      return el;
+    }
+
+    function shouldShowBack(card) {
+      // Carta está no deck (sempre virada)
+      if (card.location === 'deck') return true;
+      // Carta está na área livre (sempre visível)
+      if (card.location === 'free') return false;
+      // Carta está na mão de um jogador
+      if (card.location?.startsWith('player-')) {
+        // Se não for o MEU player, vira a carta
+        return card.owner !== myPlayerId;
+      }
+      return false;
+    }
+
+    // A função de renderização principal
+    // Lê o estado do Firebase (localGameState) e desenha a tela
+    function renderAll() {
+      const state = localGameState; // Usa a cópia local
+      if (!state || !state.players) return; // Não renderiza se o estado estiver vazio
+
+      clearDOM();
+
+      // Renderiza mãos dos jogadores
+      for (let pid = 1; pid <= 4; pid++) {
+        const player = state.players[pid] || { hand: [], score: 0 };
+        const handContainer = document.querySelector(`#player-${pid} [data-hand]`);
+
+        // Adiciona classe de destaque se for o jogador local
+        if (pid === myPlayerId) {
+          document.getElementById(`player-${pid}`).classList.add('local-player');
+        }
+
+        // === [CORREÇÃO INÍCIO] SLOTS DINÂMICOS ===
+
+        // 1. Renderiza os slots que TÊM cartas
+        player.hand?.forEach((card) => {
+          const slot = document.createElement('div');
+          slot.className = 'slot small'; // Cria o slot
+
+          const el = createCardElement(card);
+          el.classList.add('small'); // Cria a carta
+
+          slot.appendChild(el); // Coloca a carta DENTRO do slot
+          handContainer.appendChild(slot); // Coloca o slot na mão
+        });
+
+        // 2. Se a mão estiver vazia, mostra UM slot vazio
+        if (!player.hand || player.hand.length === 0) {
+          const slot = document.createElement('div');
+          slot.className = 'slot small'; // Cria um slot vazio
+          handContainer.appendChild(slot);
+        }
+        // === [CORREÇÃO FIM] SLOTS DINÂMICOS ===
+
+        // Atualiza pontuação
+        const scoreEl = document.querySelector(`#player-${pid} .score`);
+        scoreEl.textContent = player.score || 0;
+      }
+
+      // Renderiza cartas da área livre
+      state.freeCards?.forEach(card => {
+        const el = createCardElement(card);
+        el.classList.add('small');
+        freeArea.appendChild(el);
+      });
+
+      // Atualiza contadores
+      deckCountEl.textContent = state.deck?.length || 0;
+      graveCountEl.textContent = state.grave?.length || 0;
+    }
+
+    // =======================================================
+    // === 5. AÇÕES DO JOGADOR (ESCREVEM NO FIREBASE) ===
+    // (Essas funções usam "Transações" para evitar conflitos)
+    // =======================================================
+
+    function drawCard() {
+      if (!myPlayerId) return; // Não pode comprar se não for um jogador
+
+      gameStateRef.transaction((currentState) => {
+        if (!currentState) return currentState; // Jogo não existe
+
+        // Verifica se o deck tem cartas
+        if (!currentState.deck || currentState.deck.length === 0) {
+          console.log("Deck vazio.");
+          return currentState; // Aborta
+        }
+
+        // === [CORREÇÃO] LIMITE DE MÃO REMOVIDO ===
+        /*
+        // Verifica se a mão está cheia
+        const playerHand = currentState.players[myPlayerId]?.hand || [];
+        if (playerHand.length >= 4) {
+          console.log("Mão cheia.");
+          return currentState; // Aborta
+        }
+        */
+        // === [FIM DA CORREÇÃO] ===
+
+        // Pega a carta
+        const card = currentState.deck.pop();
+        card.owner = myPlayerId;
+        card.location = 'player-' + myPlayerId;
+        card.visible = false;
+
+        // Adiciona na mão
+        if (!currentState.players[myPlayerId].hand) {
+          currentState.players[myPlayerId].hand = [];
+        }
+        currentState.players[myPlayerId].hand.push(card);
+
+        return currentState; // Salva o novo estado
       });
     }
-  }
-  shuffle(newDeck);
-  return newDeck;
-}
 
-function shuffle(array){
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
+    function returnCardToDeck(cardId) {
+      gameStateRef.transaction((currentState) => {
+        if (!currentState) return currentState;
 
-// Encontra uma carta dentro do objeto de estado do jogo
-function findCardById(state, id){
-  if (!state || !id) return null;
-  // Procura no deck
-  let card = state.deck?.find(c => c.id === id);
-  if (card) return card;
-  // Procura na área livre
-  card = state.freeCards?.find(c => c.id === id);
-  if (card) return card;
-  // Procura no grave
-  card = state.grave?.find(c => c.id === id);
-  if (card) return card;
-  // Procura na mão dos jogadores
-  for (let p=1; p<=4; p++){
-    card = state.players?.[p]?.hand?.find(c => c.id === id);
-    if (card) return card;
-  }
-  return null;
-}
+        const card = findCardById(currentState, cardId);
+        if (!card) return currentState; // Carta não existe
 
-// Remove uma carta de qualquer lugar em um objeto de estado
-function removeCardFromLocation(state, cardId) {
-  if (!state || !cardId) return;
-  // Remove do deck
-  if (state.deck) state.deck = state.deck.filter(c => c.id !== cardId);
-  // Remove da área livre
-  if (state.freeCards) state.freeCards = state.freeCards.filter(c => c.id !== cardId);
-  // Remove do grave
-  if (state.grave) state.grave = state.grave.filter(c => c.id !== cardId);
-  // Remove da mão de todos os players
-  if (state.players) {
-    for (let p=1; p<=4; p++) {
-      if (state.players[p]?.hand) {
-        state.players[p].hand = state.players[p].hand.filter(c => c.id !== cardId);
-      }
-    }
-  }
-}
+        // Remove a carta de onde ela estiver
+        removeCardFromLocation(currentState, cardId);
 
-// =======================================================
-// === 4. FUNÇÕES DE RENDERIZAÇÃO (ATUALIZAR A TELA) ===
-// =======================================================
+        // Devolve ao deck
+        card.owner = null;
+        card.location = 'deck';
+        card.visible = false;
+        if (!currentState.deck) currentState.deck = [];
+        currentState.deck.push(card);
 
-function clearDOM(){
-  document.querySelectorAll('[data-hand]').forEach(h=>h.innerHTML='');
-  freeArea.querySelectorAll('.card').forEach(n=>n.remove());
-  document.querySelectorAll('.slot').forEach(n=>n.remove());
-  // Limpa classes de jogador local
-  document.querySelectorAll('.player-area.local-player')
-    .forEach(el => el.classList.remove('local-player'));
-}
+        // Embaralha o deck
+        shuffle(currentState.deck);
 
-function createCardElement(card){
-  const el = document.createElement('div');
-  el.className = 'card';
-  el.draggable = true;
-  el.dataset.cardId = card.id;
-  
-  // Verifica se a carta deve ser mostrada virada
-  if (shouldShowBack(card)){
-    el.classList.add('back');
-    el.style.background = 'linear-gradient(180deg,#2b3443,#232a33)';
-    el.innerHTML = `<div class="label">?</div>`;
-  } else {
-    el.style.background = card.color;
-    el.innerHTML = `<div class="label">${card.type}</div>`;
-  }
-
-  el.addEventListener('dragstart', (ev)=>{
-    ev.dataTransfer.setData('text/plain', card.id);
-  });
-
-  // Double click para retornar ao deck (precisa escrever no Firebase)
-  el.addEventListener('dblclick', ()=>{
-    returnCardToDeck(card.id);
-  });
-
-  return el;
-}
-
-function shouldShowBack(card){
-  // Carta está no deck (sempre virada)
-  if (card.location === 'deck') return true;
-  // Carta está na área livre (sempre visível)
-  if (card.location === 'free') return false;
-  // Carta está na mão de um jogador
-  if (card.location?.startsWith('player-')){
-    // Se não for o MEU player, vira a carta
-    return card.owner !== myPlayerId;
-  }
-  return false;
-}
-
-// A função de renderização principal
-// Lê o estado do Firebase (localGameState) e desenha a tela
-function renderAll(){
-  const state = localGameState; // Usa a cópia local
-  if (!state || !state.players) return; // Não renderiza se o estado estiver vazio
-  
-  clearDOM();
-
-  // Renderiza mãos dos jogadores
-  for (let pid=1; pid<=4; pid++){
-    const player = state.players[pid] || { hand: [], score: 0 };
-    const handContainer = document.querySelector(`#player-${pid} [data-hand]`);
-    
-    // Adiciona classe de destaque se for o jogador local
-    if (pid === myPlayerId) {
-      document.getElementById(`player-${pid}`).classList.add('local-player');
+        return currentState;
+      });
     }
 
-    // === [CORREÇÃO INÍCIO] SLOTS DINÂMICOS ===
-    
-    // 1. Renderiza os slots que TÊM cartas
-    player.hand?.forEach((card)=>{
-      const slot = document.createElement('div');
-      slot.className = 'slot small'; // Cria o slot
-      
-      const el = createCardElement(card);
-      el.classList.add('small'); // Cria a carta
-      
-      slot.appendChild(el); // Coloca a carta DENTRO do slot
-      handContainer.appendChild(slot); // Coloca o slot na mão
-    });
+    function moveCard(cardId, targetLocation, targetPlayerId = null) {
+      gameStateRef.transaction((currentState) => {
+        if (!currentState) return currentState;
 
-    // 2. Se a mão estiver vazia, mostra UM slot vazio
-    if (!player.hand || player.hand.length === 0) {
-        const slot = document.createElement('div');
-        slot.className = 'slot small'; // Cria um slot vazio
-        handContainer.appendChild(slot);
-    }
-    // === [CORREÇÃO FIM] SLOTS DINÂMICOS ===
-    
-    // Atualiza pontuação
-    const scoreEl = document.querySelector(`#player-${pid} .score`);
-    scoreEl.textContent = player.score || 0;
-  }
+        const card = findCardById(currentState, cardId);
+        if (!card) return currentState; // Carta não foi encontrada
 
-  // Renderiza cartas da área livre
-  state.freeCards?.forEach(card=>{
-    const el = createCardElement(card);
-    el.classList.add('small');
-    freeArea.appendChild(el);
-  });
+        // Lógica para Área do Jogador
+        if (targetLocation === 'player') {
 
-  // Atualiza contadores
-  deckCountEl.textContent = state.deck?.length || 0;
-  graveCountEl.textContent = state.grave?.length || 0;
-}
-
-// =======================================================
-// === 5. AÇÕES DO JOGADOR (ESCREVEM NO FIREBASE) ===
-// (Essas funções usam "Transações" para evitar conflitos)
-// =======================================================
-
-function drawCard(){
-  if (!myPlayerId) return; // Não pode comprar se não for um jogador
-  
-  gameStateRef.transaction((currentState) => {
-    if (!currentState) return currentState; // Jogo não existe
-
-    // Verifica se o deck tem cartas
-    if (!currentState.deck || currentState.deck.length === 0) {
-      console.log("Deck vazio.");
-      return currentState; // Aborta
-    }
-    
-    // === [CORREÇÃO] LIMITE DE MÃO REMOVIDO ===
-    /*
-    // Verifica se a mão está cheia
-    const playerHand = currentState.players[myPlayerId]?.hand || [];
-    if (playerHand.length >= 4) {
-      console.log("Mão cheia.");
-      return currentState; // Aborta
-    }
-    */
-    // === [FIM DA CORREÇÃO] ===
-
-    // Pega a carta
-    const card = currentState.deck.pop();
-    card.owner = myPlayerId;
-    card.location = 'player-'+myPlayerId;
-    card.visible = false;
-    
-    // Adiciona na mão
-    if (!currentState.players[myPlayerId].hand) {
-      currentState.players[myPlayerId].hand = [];
-    }
-    currentState.players[myPlayerId].hand.push(card);
-
-    return currentState; // Salva o novo estado
-  });
-}
-
-function returnCardToDeck(cardId){
-  gameStateRef.transaction((currentState) => {
-    if (!currentState) return currentState;
-    
-    const card = findCardById(currentState, cardId);
-    if (!card) return currentState; // Carta não existe
-
-    // Remove a carta de onde ela estiver
-    removeCardFromLocation(currentState, cardId);
-
-    // Devolve ao deck
-    card.owner = null;
-    card.location = 'deck';
-    card.visible = false;
-    if (!currentState.deck) currentState.deck = [];
-    currentState.deck.push(card);
-    
-    // Embaralha o deck
-    shuffle(currentState.deck);
-
-    return currentState;
-  });
-}
-
-function moveCard(cardId, targetLocation, targetPlayerId = null) {
-  gameStateRef.transaction((currentState) => {
-    if (!currentState) return currentState;
-
-    const card = findCardById(currentState, cardId);
-    if (!card) return currentState; // Carta não foi encontrada
-
-    // Lógica para Área do Jogador
-    if (targetLocation === 'player') {
-      
-      // === [CORREÇÃO] LIMITE DE MÃO REMOVIDO ===
-      /*
-      const playerHand = currentState.players[targetPlayerId]?.hand || [];
-      if (playerHand.length >= 4) {
-        console.log("Mão do Jogador " + targetPlayerId + " está cheia.");
-        return currentState; // Aborta transação
-      }
-      */
-      // === [FIM DA CORREÇÃO] ===
-
-      // Remove a carta de onde estava
-      removeCardFromLocation(currentState, cardId);
-      // Atualiza dados da carta
-      card.owner = targetPlayerId;
-      card.location = 'player-' + targetPlayerId;
-      card.visible = false;
-      // Adiciona na mão do jogador
-      if (!currentState.players[targetPlayerId].hand) {
-        currentState.players[targetPlayerId].hand = [];
-      }
-      currentState.players[targetPlayerId].hand.push(card);
-    }
-    
-    // Lógica para Área Livre
-    else if (targetLocation === 'free') {
-      removeCardFromLocation(currentState, cardId);
-      card.owner = null;
-      card.location = 'free';
-      card.visible = true;
-      if (!currentState.freeCards) currentState.freeCards = [];
-      currentState.freeCards.push(card);
-    }
-    
-    // Lógica para Deck (é o mesmo que returnCardToDeck)
-    else if (targetLocation === 'deck') {
-      removeCardFromLocation(currentState, cardId);
-      card.owner = null;
-      card.location = 'deck';
-      card.visible = false;
-      if (!currentState.deck) currentState.deck = [];
-      currentState.deck.push(card);
-      shuffle(currentState.deck);
-    }
-    
-    return currentState; // Salva o estado modificado
-  });
-}
-
-function updateScore(pid, amount) {
-  // .update é mais simples que transação para valores únicos
-  const scoreRef = db.ref(`gameState/players/${pid}/score`);
-  scoreRef.once('value', (snapshot) => {
-    let newScore = (snapshot.val() || 0) + amount;
-    if (newScore < 0) newScore = 0;
-    scoreRef.set(newScore);
-  });
-}
-
-function resetTable(){
-  console.log("Resetando a mesa...");
-  let newDeck = createDeck();
-  
-  // Pega o estado atual dos players (para manter quem está online)
-  let currentPlayers = localGameState.players || {};
-  let newPlayersState = {
-    1: { online: currentPlayers[1]?.online || false, hand:[], score:0 },
-    2: { online: currentPlayers[2]?.online || false, hand:[], score:0 },
-    3: { online: currentPlayers[3]?.online || false, hand:[], score:0 },
-    4: { online: currentPlayers[4]?.online || false, hand:[], score:0 }, // <-- [CORREÇÃO] Erro de sintaxe corrigido
-  };
-
-
-  let initialState = {
-      deck: newDeck,
-      grave: [],
-      freeCards: [],
-      players: newPlayersState
-  };
-  
-  gameStateRef.set(initialState); // Define o novo estado no Firebase
-}
-
-function shuffleDeck(){
-  gameStateRef.transaction((currentState) => {
-    if (currentState && currentState.deck) {
-      shuffle(currentState.deck);
-    }
-    return currentState;
-  });
-}
-
-// =======================================================
-// === 6. SETUP DE EVENTOS E INICIALIZAÇÃO ===
-// =======================================================
-
-function setupDropzones(){
-  // Drop no Deck
-  deckEl.ondragover = ev => ev.preventDefault();
-  deckEl.ondrop = ev => {
-    ev.preventDefault();
-    const id = ev.dataTransfer.getData('text/plain');
-    moveCard(id, 'deck');
-  };
-  deckEl.onclick = () => drawCard();
-  deckEl.addEventListener('dblclick', () => drawCard());
-
-  // Drop nas Áreas dos Jogadores
-  document.querySelectorAll('.player-area').forEach(area=>{
-    area.ondragover = ev => ev.preventDefault();
-    area.ondrop = ev => {
-      ev.preventDefault();
-      const id = ev.dataTransfer.getData('text/plain');
-      const pid = parseInt(area.dataset.player);
-      moveCard(id, 'player', pid);
-    };
-  });
-
-  // Drop na Área Livre
-  freeArea.ondragover = ev => ev.preventDefault();
-  freeArea.ondrop = ev => {
-    ev.preventDefault();
-    const id = ev.dataTransfer.getData('text/plain');
-    moveCard(id, 'free');
-  };
-}
-
-function setupUI(){
-  // Botões de controle
-  shuffleBtn.onclick = shuffleDeck;
-  resetBtn.onclick = resetTable;
-
-  // Controles de pontos +/-
-  document.querySelectorAll('.player-area').forEach(area=>{
-    const pid = parseInt(area.dataset.player);
-    area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
-    area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
-  });
-}
-
-// Lógica de "Entrar na Sala"
-function findAndOccupySlot() {
-  const playersRef = db.ref('gameState/players');
-  
-  playersRef.once('value', (snapshot) => {
-    let players = snapshot.val();
-    
-    // CASO 1: Jogo não existe. Você é o Jogador 1.
-    if (!players) {
-      console.log("Ninguém na sala. Criando jogo como Jogador 1...");
-      myPlayerId = 1;
-      let newDeck = createDeck();
-      let initialState = {
-          deck: newDeck,
-          grave: [],
-          freeCards: [],
-          players: {
-              1: {hand:[], score:0, online: true},
-              2: {hand:[], score:0, online: false},
-              3: {hand:[], score:0, online: false},
-              4: {hand:[], score:0, online: false},
+          // === [CORREÇÃO] LIMITE DE MÃO REMOVIDO ===
+          /*
+          const playerHand = currentState.players[targetPlayerId]?.hand || [];
+          if (playerHand.length >= 4) {
+            console.log("Mão do Jogador " + targetPlayerId + " está cheia.");
+            return currentState; // Aborta transação
           }
+          */
+          // === [FIM DA CORREÇÃO] ===
+
+          // Remove a carta de onde estava
+          removeCardFromLocation(currentState, cardId);
+          // Atualiza dados da carta
+          card.owner = targetPlayerId;
+          card.location = 'player-' + targetPlayerId;
+          card.visible = false;
+          // Adiciona na mão do jogador
+          if (!currentState.players[targetPlayerId].hand) {
+            currentState.players[targetPlayerId].hand = [];
+          }
+          currentState.players[targetPlayerId].hand.push(card);
+        }
+
+        // Lógica para Área Livre
+        else if (targetLocation === 'free') {
+          removeCardFromLocation(currentState, cardId);
+          card.owner = null;
+          card.location = 'free';
+          card.visible = true;
+          if (!currentState.freeCards) currentState.freeCards = [];
+          currentState.freeCards.push(card);
+        }
+
+        // Lógica para Deck (é o mesmo que returnCardToDeck)
+        else if (targetLocation === 'deck') {
+          removeCardFromLocation(currentState, cardId);
+          card.owner = null;
+          card.location = 'deck';
+          card.visible = false;
+          if (!currentState.deck) currentState.deck = [];
+          currentState.deck.push(card);
+          shuffle(currentState.deck);
+        }
+
+        return currentState; // Salva o estado modificado
+      });
+    }
+
+    function updateScore(pid, amount) {
+      // .update é mais simples que transação para valores únicos
+      const scoreRef = db.ref(`gameState/players/${pid}/score`);
+      scoreRef.once('value', (snapshot) => {
+        let newScore = (snapshot.val() || 0) + amount;
+        if (newScore < 0) newScore = 0;
+        scoreRef.set(newScore);
+      });
+    }
+
+    function resetTable() {
+      console.log("Resetando a mesa...");
+      let newDeck = createDeck();
+
+      // Pega o estado atual dos players (para manter quem está online)
+      let currentPlayers = localGameState.players || {};
+      let newPlayersState = {
+        1: { online: currentPlayers[1]?.online || false, hand: [], score: 0 },
+        2: { online: currentPlayers[2]?.online || false, hand: [], score: 0 },
+        3: { online: currentPlayers[3]?.online || false, hand: [], score: 0 },
+        4: { online: currentPlayers[4]?.online || false, hand: [], score: 0 }, // <-- [CORREÇÃO] Erro de sintaxe corrigido
       };
-      gameStateRef.set(initialState); // Cria o jogo no Firebase
-      setupDisconnectHandler(myPlayerId);
-      return;
+
+
+      let initialState = {
+        deck: newDeck,
+        grave: [],
+        freeCards: [],
+        players: newPlayersState
+      };
+
+      gameStateRef.set(initialState); // Define o novo estado no Firebase
     }
 
-    // CASO 2: Jogo existe. Procurar slot vazio.
-    for (let i = 1; i <= 4; i++) {
-      if (!players[i] || !players[i].online) {
-        console.log(`Encontrado slot vazio: Jogador ${i}`);
-        myPlayerId = i;
-        // "Reivindica" o slot
-        db.ref(`gameState/players/${i}`).update({
-          online: true,
-          // Zera a mão e score caso estivesse offline
-          score: 0, 
-          hand: []
-        });
-        setupDisconnectHandler(myPlayerId);
-        return;
-      }
+    function shuffleDeck() {
+      gameStateRef.transaction((currentState) => {
+        if (currentState && currentState.deck) {
+          shuffle(currentState.deck);
+        }
+        return currentState;
+      });
     }
 
-    // CASO 3: Sala cheia
-    alert("Sala cheia! (Máx 4 jogadores)");
-    document.body.innerHTML = "<h1>Sala cheia. Tente novamente mais tarde.</h1>";
-  });
-}
+    // =======================================================
+    // === 6. SETUP DE EVENTOS E INICIALIZAÇÃO ===
+    // =======================================================
 
-// Handler para quando o jogador fechar a aba
-function setupDisconnectHandler(pid) {
-  const playerRef = db.ref(`gameState/players/${pid}`);
-  // Define o que acontece quando o navegador fechar
-  playerRef.onDisconnect().update({
-    online: false
-    // NOTA: As cartas ficam na mão do jogador "offline"
-  });
-}
+    function setupDropzones() {
+      // Drop no Deck
+      deckEl.ondragover = ev => ev.preventDefault();
+      deckEl.ondrop = ev => {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData('text/plain');
+        moveCard(id, 'deck');
+      };
+      deckEl.onclick = () => drawCard();
+      deckEl.addEventListener('dblclick', () => drawCard());
 
-// =======================================================
-// === 7. O "CORAÇÃO" DO JOGO (O Listener Principal) ===
-// =======================================================
+      // Drop nas Áreas dos Jogadores
+      document.querySelectorAll('.player-area').forEach(area => {
+        area.ondragover = ev => ev.preventDefault();
+        area.ondrop = ev => {
+          ev.preventDefault();
+          const id = ev.dataTransfer.getData('text/plain');
+          const pid = parseInt(area.dataset.player);
+          moveCard(id, 'player', pid);
+        };
+      });
 
-function initializeGame() {
-  if (!firebaseConfig.apiKey) return; // Para se a config estiver faltando
-
-  // 1. Ouve TODAS as mudanças no estado do jogo
-  gameStateRef.on('value', (snapshot) => {
-    const state = snapshot.val();
-    if (state) {
-      // 2. Atualiza nossa cópia local do estado
-      localGameState = state;
-      // 3. Renderiza a tela com os novos dados
-      renderAll(); 
+      // Drop na Área Livre
+      freeArea.ondragover = ev => ev.preventDefault();
+      freeArea.ondrop = ev => {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData('text/plain');
+        moveCard(id, 'free');
+      };
     }
-  });
 
-  // 4. Encontra um slot para este jogador
-  findAndOccupySlot();
+    function setupUI() {
+      // Botões de controle
+      shuffleBtn.onclick = shuffleDeck;
+      resetBtn.onclick = resetTable;
 
-  // 5. Configura a UI (botões, drag/drop)
-  setupUI();
-  setupDropzones();
-}
+      // Controles de pontos +/-
+      document.querySelectorAll('.player-area').forEach(area => {
+        const pid = parseInt(area.dataset.player);
+        area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
+        area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
+      });
+    }
 
-// Inicia o jogo!
-initializeGame();
+    // Lógica de "Entrar na Sala"
+    function findAndOccupySlot() {
+      const playersRef = db.ref('gameState/players');
 
-</script>
+      playersRef.once('value', (snapshot) => {
+        let players = snapshot.val();
+
+        // CASO 1: Jogo não existe. Você é o Jogador 1.
+        if (!players) {
+          console.log("Ninguém na sala. Criando jogo como Jogador 1...");
+          myPlayerId = 1;
+          let newDeck = createDeck();
+          let initialState = {
+            deck: newDeck,
+            grave: [],
+            freeCards: [],
+            players: {
+              1: { hand: [], score: 0, online: true },
+              2: { hand: [], score: 0, online: false },
+              3: { hand: [], score: 0, online: false },
+              4: { hand: [], score: 0, online: false },
+            }
+          };
+          gameStateRef.set(initialState); // Cria o jogo no Firebase
+          setupDisconnectHandler(myPlayerId);
+          return;
+        }
+
+        // CASO 2: Jogo existe. Procurar slot vazio.
+        for (let i = 1; i <= 4; i++) {
+          if (!players[i] || !players[i].online) {
+            console.log(`Encontrado slot vazio: Jogador ${i}`);
+            myPlayerId = i;
+            // "Reivindica" o slot
+            db.ref(`gameState/players/${i}`).update({
+              online: true,
+              // Zera a mão e score caso estivesse offline
+              score: 0,
+              hand: []
+            });
+            setupDisconnectHandler(myPlayerId);
+            return;
+          }
+        }
+
+        // CASO 3: Sala cheia
+        alert("Sala cheia! (Máx 4 jogadores)");
+        document.body.innerHTML = "<h1>Sala cheia. Tente novamente mais tarde.</h1>";
+      });
+    }
+
+    // Handler para quando o jogador fechar a aba
+    function setupDisconnectHandler(pid) {
+      const playerRef = db.ref(`gameState/players/${pid}`);
+      // Define o que acontece quando o navegador fechar
+      playerRef.onDisconnect().update({
+        online: false
+        // NOTA: As cartas ficam na mão do jogador "offline"
+      });
+    }
+
+    // =======================================================
+    // === 7. O "CORAÇÃO" DO JOGO (O Listener Principal) ===
+    // =======================================================
+
+    function initializeGame() {
+      if (!firebaseConfig.apiKey) return; // Para se a config estiver faltando
+
+      // 1. Ouve TODAS as mudanças no estado do jogo
+      gameStateRef.on('value', (snapshot) => {
+        const state = snapshot.val();
+        if (state) {
+          // 2. Atualiza nossa cópia local do estado
+          localGameState = state;
+          // 3. Renderiza a tela com os novos dados
+          renderAll();
+        }
+      });
+
+      // 4. Encontra um slot para este jogador
+      findAndOccupySlot();
+
+      // 5. Configura a UI (botões, drag/drop)
+      setupUI();
+      setupDropzones();
+    }
+
+    // Inicia o jogo!
+    initializeGame();
+
+  </script>
 </body>
+
 </html>
