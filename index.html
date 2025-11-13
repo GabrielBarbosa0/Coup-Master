@@ -428,6 +428,7 @@
       </div>
 
       <div class="center-area" id="centerArea">
+
         <div class="player-hands-container">
 
           <div class="player-area" id="player-1" data-player="1">
@@ -470,6 +471,46 @@
             <div class="player-stack hand" data-hand></div>
           </div>
 
+          <div class="player-area" id="player-5" data-player="5">
+            <div class="points">
+              <button class="minus">-</button>
+              <div class="score" data-score>0</div>
+              <button class="plus">+</button>
+            </div>
+            <div class="player-title">Jogador 5</div>
+            <div class="player-stack hand" data-hand></div>
+          </div>
+
+          <div class="player-area" id="player-6" data-player="6">
+            <div class="points">
+              <button class="minus">-</button>
+              <div class="score" data-score>0</div>
+              <button class="plus">+</button>
+            </div>
+            <div class="player-title">Jogador 6</div>
+            <div class="player-stack hand" data-hand></div>
+          </div>
+
+          <div class="player-area" id="player-7" data-player="7">
+            <div class="points">
+              <button class="minus">-</button>
+              <div class="score" data-score>0</div>
+              <button class="plus">+</button>
+            </div>
+            <div class="player-title">Jogador 7</div>
+            <div class="player-stack hand" data-hand></div>
+          </div>
+
+          <div class="player-area" id="player-8" data-player="8">
+            <div class="points">
+              <button class="minus">-</button>
+              <div class="score" data-score>0</div>
+              <button class="plus">+</button>
+            </div>
+            <div class="player-title">Jogador 8</div>
+            <div class="player-stack hand" data-hand></div>
+          </div>
+
         </div>
         <div class="bottom-table-container">
 
@@ -480,12 +521,10 @@
 
           <div class="deck-area" id="deck-area">
             <div class="pile-info muted">
-              <div>Clique para comprar</div>
-
             </div>
             <div class="deck" id="deck" draggable="true">Deck</div>
             <div class="pile-info muted">
-              <div>Cartas no deck: <span id="deck-count">0</span></div>
+              <div>Cartas no deck: <span id="deck-count"></span> <br> Clique para comprar</div>
 
             </div>
           </div>
@@ -535,14 +574,13 @@
       { type: 'assassino', color: '#3aff7b' },
       { type: 'embaixador', color: '#49f0ff' },
       { type: 'condessa', color: '#ffb000' },
-      { type: 'inquisidor', color: '#2a8cff' },
+      { type: 'inquisitor', color: '#2a8cff' }, // <-- [ETAPA 4: BUG CORRIGIDO]
     ];
 
     // O estado local é um "espelho" do que está no Firebase
     let localGameState = {};
-    // ID do jogador deste navegador (será 1, 2, 3 ou 4)
+    // ID do jogador deste navegador (será 1, 2, 3... 8)
     let myPlayerId = null;
-    let isDrawingCard = false;
 
     // Referências do DOM
     const deckCountEl = document.getElementById('deck-count');
@@ -594,8 +632,9 @@
       // Procura no grave
       card = state.grave?.find(c => c.id === id);
       if (card) return card;
-      // Procura na mão dos jogadores
-      for (let p = 1; p <= 4; p++) {
+
+      // === [ETAPA 2: ATUALIZADO PARA 8 JOGADORES] ===
+      for (let p = 1; p <= 8; p++) {
         card = state.players?.[p]?.hand?.find(c => c.id === id);
         if (card) return card;
       }
@@ -611,9 +650,10 @@
       if (state.freeCards) state.freeCards = state.freeCards.filter(c => c.id !== cardId);
       // Remove do grave
       if (state.grave) state.grave = state.grave.filter(c => c.id !== cardId);
-      // Remove da mão de todos os players
+
+      // === [ETAPA 2: ATUALIZADO PARA 8 JOGADORES] ===
       if (state.players) {
-        for (let p = 1; p <= 4; p++) {
+        for (let p = 1; p <= 8; p++) {
           if (state.players[p]?.hand) {
             state.players[p].hand = state.players[p].hand.filter(c => c.id !== cardId);
           }
@@ -640,28 +680,17 @@
       el.draggable = true;
       el.dataset.cardId = card.id;
 
-      // [CORREÇÃO]
-      // Nós só definimos a imagem de fundo (Duque, Capitão, etc.)
-      // se a carta estiver virada PARA CIMA.
-
       if (shouldShowBack(card)) {
-        // Carta está virada para baixo.
-        // APENAS adicionamos a classe '.back'.
-        // O CSS vai cuidar de aplicar a imagem 'back.png'.
         el.classList.add('back');
       } else {
-        // Carta está virada para cima.
-        // AGORA SIM, definimos a imagem específica da carta.
         const imageUrl = `./img/${card.type.toLowerCase()}.png`; // Ex: ./img/duque.png
         el.style.backgroundImage = `url('${imageUrl}')`;
       }
-      // [FIM DA CORREÇÃO]
 
       el.addEventListener('dragstart', (ev) => {
         ev.dataTransfer.setData('text/plain', card.id);
       });
 
-      // Double click para retornar ao deck (precisa escrever no Firebase)
       el.addEventListener('dblclick', () => {
         returnCardToDeck(card.id);
       });
@@ -683,24 +712,39 @@
     }
 
     // A função de renderização principal
-    // Lê o estado do Firebase (localGameState) e desenha a tela
     function renderAll() {
-      const state = localGameState; // Usa a cópia local
-      if (!state || !state.players) return; // Não renderiza se o estado estiver vazio
+      const state = localGameState;
+      if (!state || !state.players) return;
 
       clearDOM();
 
-      // Renderiza mãos dos jogadores
-      for (let pid = 1; pid <= 4; pid++) {
-        const player = state.players[pid] || { hand: [], score: 0 };
+      // === [ETAPA 2 E 3: JOGADORES DINÂMICOS ATÉ 8] ===
+      for (let pid = 1; pid <= 8; pid++) {
+
+        const playerEl = document.getElementById(`player-${pid}`);
+        // Pula se o HTML (passo 1) ainda não foi feito
+        if (!playerEl) continue;
+
+        // Pega o jogador. Se não existir, assume que está offline.
+        const player = state.players[pid] || { online: false, hand: [], score: 0 };
+
+
+        // === LÓGICA DE MOSTRAR/OCULTAR ===
+        if (player.online) {
+          playerEl.style.display = 'flex'; // 'flex' é o display padrão
+        } else {
+          playerEl.style.display = 'none'; // Esconde o jogador
+          continue; // Pula o resto do loop
+        }
+        // === FIM DA LÓGICA ===
+
+
         const handContainer = document.querySelector(`#player-${pid} [data-hand]`);
 
         // Adiciona classe de destaque se for o jogador local
         if (pid === myPlayerId) {
-          document.getElementById(`player-${pid}`).classList.add('local-player');
+          playerEl.classList.add('local-player');
         }
-
-        // === [CORREÇÃO INÍCIO] SLOTS DINÂMICOS ===
 
         // 1. Renderiza os slots que TÊM cartas
         player.hand?.forEach((card) => {
@@ -720,12 +764,13 @@
           slot.className = 'slot small'; // Cria um slot vazio
           handContainer.appendChild(slot);
         }
-        // === [CORREÇÃO FIM] SLOTS DINÂMICOS ===
 
         // Atualiza pontuação
         const scoreEl = document.querySelector(`#player-${pid} .score`);
         scoreEl.textContent = player.score || 0;
       }
+      // === [FIM DAS ETAPAS 2 E 3] ===
+
 
       // Renderiza cartas da área livre
       state.freeCards?.forEach(card => {
@@ -741,28 +786,18 @@
 
     // =======================================================
     // === 5. AÇÕES DO JOGADOR (ESCREVEM NO FIREBASE) ===
-    // (Essas funções usam "Transações" para evitar conflitos)
     // =======================================================
 
     function drawCard() {
-      if (!myPlayerId) return; // Não pode comprar se não for um jogador
-
-      // [CORREÇÃO 1] Adiciona a "trava"
-      if (isDrawingCard) {
-        console.log("Aguarde, comprando carta...");
-        return; // Já está comprando, ignora este clique
-      }
-      isDrawingCard = true; // Trava a função
+      if (!myPlayerId) return;
 
       gameStateRef.transaction((currentState) => {
-        if (!currentState) return currentState; // Jogo não existe
+        if (!currentState) return currentState;
 
         if (!currentState.deck || currentState.deck.length === 0) {
           console.log("Deck vazio.");
           return currentState; // Aborta
         }
-
-        // (O resto da sua lógica de "limite de mão removido" está correta)
 
         // Pega a carta
         const card = currentState.deck.pop();
@@ -777,17 +812,7 @@
         currentState.players[myPlayerId].hand.push(card);
 
         return currentState; // Salva o novo estado
-      },
-        // [CORREÇÃO 2] Adiciona o "callback" de conclusão
-        (error, committed, snapshot) => {
-          if (error) {
-            console.error("Falha ao comprar carta:", error);
-          }
-
-          // Quando a transação terminar (com sucesso ou falha),
-          // destrava a função para o próximo clique.
-          isDrawingCard = false;
-        });
+      });
     }
 
     function returnCardToDeck(cardId) {
@@ -797,7 +822,6 @@
         const card = findCardById(currentState, cardId);
         if (!card) return currentState; // Carta não existe
 
-        // Remove a carta de onde ela estiver
         removeCardFromLocation(currentState, cardId);
 
         // Devolve ao deck
@@ -807,7 +831,6 @@
         if (!currentState.deck) currentState.deck = [];
         currentState.deck.push(card);
 
-        // Embaralha o deck
         shuffle(currentState.deck);
 
         return currentState;
@@ -819,22 +842,10 @@
         if (!currentState) return currentState;
 
         const card = findCardById(currentState, cardId);
-        if (!card) return currentState; // Carta não foi encontrada
+        if (!card) return currentState;
 
         // Lógica para Área do Jogador
         if (targetLocation === 'player') {
-
-          // === [CORREÇÃO] LIMITE DE MÃO REMOVIDO ===
-          /*
-          const playerHand = currentState.players[targetPlayerId]?.hand || [];
-          if (playerHand.length >= 4) {
-            console.log("Mão do Jogador " + targetPlayerId + " está cheia.");
-            return currentState; // Aborta transação
-          }
-          */
-          // === [FIM DA CORREÇÃO] ===
-
-          // Remove a carta de onde estava
           removeCardFromLocation(currentState, cardId);
           // Atualiza dados da carta
           card.owner = targetPlayerId;
@@ -857,7 +868,7 @@
           currentState.freeCards.push(card);
         }
 
-        // Lógica para Deck (é o mesmo que returnCardToDeck)
+        // Lógica para Deck
         else if (targetLocation === 'deck') {
           removeCardFromLocation(currentState, cardId);
           card.owner = null;
@@ -873,7 +884,6 @@
     }
 
     function updateScore(pid, amount) {
-      // .update é mais simples que transação para valores únicos
       const scoreRef = db.ref(`gameState/players/${pid}/score`);
       scoreRef.once('value', (snapshot) => {
         let newScore = (snapshot.val() || 0) + amount;
@@ -886,15 +896,20 @@
       console.log("Resetando a mesa...");
       let newDeck = createDeck();
 
-      // Pega o estado atual dos players (para manter quem está online)
       let currentPlayers = localGameState.players || {};
+
+      // === [ETAPA 2: ATUALIZADO PARA 8 JOGADORES] ===
       let newPlayersState = {
         1: { online: currentPlayers[1]?.online || false, hand: [], score: 0 },
         2: { online: currentPlayers[2]?.online || false, hand: [], score: 0 },
         3: { online: currentPlayers[3]?.online || false, hand: [], score: 0 },
-        4: { online: currentPlayers[4]?.online || false, hand: [], score: 0 }, // <-- [CORREÇÃO] Erro de sintaxe corrigido
+        4: { online: currentPlayers[4]?.online || false, hand: [], score: 0 },
+        5: { online: currentPlayers[5]?.online || false, hand: [], score: 0 },
+        6: { online: currentPlayers[6]?.online || false, hand: [], score: 0 },
+        7: { online: currentPlayers[7]?.online || false, hand: [], score: 0 },
+        8: { online: currentPlayers[8]?.online || false, hand: [], score: 0 },
       };
-
+      // === [FIM DA ETAPA 2] ===
 
       let initialState = {
         deck: newDeck,
@@ -928,7 +943,7 @@
         moveCard(id, 'deck');
       };
       deckEl.onclick = () => drawCard();
-      // deckEl.addEventListener('dblclick', () => drawCard());
+      // dblclick removido para evitar bug de 3 cartas
 
       // Drop nas Áreas dos Jogadores
       document.querySelectorAll('.player-area').forEach(area => {
@@ -975,6 +990,8 @@
           console.log("Ninguém na sala. Criando jogo como Jogador 1...");
           myPlayerId = 1;
           let newDeck = createDeck();
+
+          // === [ETAPA 2: ATUALIZADO PARA 8 JOGADORES] ===
           let initialState = {
             deck: newDeck,
             grave: [],
@@ -984,22 +1001,28 @@
               2: { hand: [], score: 0, online: false },
               3: { hand: [], score: 0, online: false },
               4: { hand: [], score: 0, online: false },
+              5: { hand: [], score: 0, online: false },
+              6: { hand: [], score: 0, online: false },
+              7: { hand: [], score: 0, online: false },
+              8: { hand: [], score: 0, online: false },
             }
           };
-          gameStateRef.set(initialState); // Cria o jogo no Firebase
+          // === [FIM DA ETAPA 2] ===
+
+          gameStateRef.set(initialState);
           setupDisconnectHandler(myPlayerId);
           return;
         }
 
+        // === [ETAPA 2: ATUALIZADO PARA 8 JOGADORES] ===
         // CASO 2: Jogo existe. Procurar slot vazio.
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 8; i++) {
           if (!players[i] || !players[i].online) {
             console.log(`Encontrado slot vazio: Jogador ${i}`);
             myPlayerId = i;
             // "Reivindica" o slot
             db.ref(`gameState/players/${i}`).update({
               online: true,
-              // Zera a mão e score caso estivesse offline
               score: 0,
               hand: []
             });
@@ -1007,9 +1030,10 @@
             return;
           }
         }
+        // === [FIM DA ETAPA 2] ===
 
         // CASO 3: Sala cheia
-        alert("Sala cheia! (Máx 4 jogadores)");
+        alert("Sala cheia! (Máx 8 jogadores)"); // [ETAPA 2]
         document.body.innerHTML = "<h1>Sala cheia. Tente novamente mais tarde.</h1>";
       });
     }
@@ -1017,10 +1041,8 @@
     // Handler para quando o jogador fechar a aba
     function setupDisconnectHandler(pid) {
       const playerRef = db.ref(`gameState/players/${pid}`);
-      // Define o que acontece quando o navegador fechar
       playerRef.onDisconnect().update({
         online: false
-        // NOTA: As cartas ficam na mão do jogador "offline"
       });
     }
 
@@ -1029,15 +1051,13 @@
     // =======================================================
 
     function initializeGame() {
-      if (!firebaseConfig.apiKey) return; // Para se a config estiver faltando
+      if (!firebaseConfig.apiKey) return;
 
       // 1. Ouve TODAS as mudanças no estado do jogo
       gameStateRef.on('value', (snapshot) => {
         const state = snapshot.val();
         if (state) {
-          // 2. Atualiza nossa cópia local do estado
           localGameState = state;
-          // 3. Renderiza a tela com os novos dados
           renderAll();
         }
       });
