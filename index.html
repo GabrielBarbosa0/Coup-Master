@@ -424,8 +424,63 @@ function shouldShowBack(card){
 
 // A função de renderização principal
 // Lê o estado do Firebase (localGameState) e desenha a tela
+// A função de renderização principal
+
+// Lê o estado do Firebase (localGameState) e desenha a tela
 function renderAll(){
   const state = localGameState; // Usa a cópia local
+  if (!state || !state.players) return; // Não renderiza se o estado estiver vazio
+  
+  clearDOM();
+
+  // Renderiza mãos dos jogadores
+  for (let pid=1; pid<=4; pid++){
+    const player = state.players[pid] || { hand: [], score: 0 };
+    const handContainer = document.querySelector(`#player-${pid} [data-hand]`);
+    
+    // Adiciona classe de destaque se for o jogador local
+    if (pid === myPlayerId) {
+      document.getElementById(`player-${pid}`).classList.add('local-player');
+    }
+
+    // === INÍCIO DA MUDANÇA (SLOTS DINÂMICOS) ===
+    
+    // 1. Renderiza os slots que TÊM cartas
+    player.hand?.forEach((card)=>{
+      const slot = document.createElement('div');
+      slot.className = 'slot small'; // Cria o slot
+      
+      const el = createCardElement(card);
+      el.classList.add('small'); // Cria a carta
+      
+      slot.appendChild(el); // Coloca a carta DENTRO do slot
+      handContainer.appendChild(slot); // Coloca o slot na mão
+    });
+
+    // 2. Se a mão estiver vazia, mostra UM slot vazio
+    if (!player.hand || player.hand.length === 0) {
+        const slot = document.createElement('div');
+        slot.className = 'slot small'; // Cria um slot vazio
+        handContainer.appendChild(slot);
+    }
+    // === FIM DA MUDANÇA ===
+    
+    // Atualiza pontuação
+    const scoreEl = document.querySelector(`#player-${pid} .score`);
+    scoreEl.textContent = player.score || 0;
+  }
+
+  // Renderiza cartas da área livre
+  state.freeCards?.forEach(card=>{
+    const el = createCardElement(card);
+    el.classList.add('small');
+    freeArea.appendChild(el);
+  });
+
+  // Atualiza contadores
+  deckCountEl.textContent = state.deck?.length || 0;
+  graveCountEl.textContent = state.grave?.length || 0;
+}  const state = localGameState; // Usa a cópia local
   if (!state || !state.players) return; // Não renderiza se o estado estiver vazio
   
   clearDOM();
