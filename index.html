@@ -36,7 +36,6 @@
   .top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
   .room{color:var(--muted);font-size:14px;}
   .controls{display:flex;gap:12px;align-items:center;}
-  /* REMOVIDO O SELECT DE JOGADOR LOCAL */
   .controls button{
     padding:8px 10px;border-radius:8px;border:0;background:#111827;color:white;cursor:pointer;
   }
@@ -72,7 +71,6 @@
     justify-content:flex-start;position:relative;
   }
   .player-title{font-weight:600;margin-bottom:8px;color:var(--muted);}
-  /* Destaca o jogador local */
   .player-area.local-player .player-title{
     color: var(--accent);
     font-weight: 700;
@@ -113,7 +111,15 @@
   .card .label{padding:6px;text-align:center;color:#0b0b0b}
 
   /* Hand layout */
-  .player-hand{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:nowrap;padding:6px;}
+  /* [MUDANÇA] Agora a mão 'quebra a linha' se tiver muitas cartas */
+  .player-hand{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap; /* MUDADO de 'nowrap' para 'wrap' */
+    padding:6px;
+  }
   .player-stack{display:flex;flex-direction:column;gap:10px;align-items:center}
 
   /* Points controls */
@@ -169,8 +175,7 @@
 <div class="container">
   <header>
     <h1>Coup Master</h1>
-    <!-- <p>Sala: <strong id="room-code">1A2B3C4D</strong></p> -->
-  </header>
+    </header>
 
   <div class="board">
     <div class="top-row">
@@ -300,14 +305,13 @@ const resetBtn = document.getElementById('resetBtn');
 
 // =======================================================
 // === 3. FUNÇÕES DE CRIAÇÃO E MANIPULAÇÃO DO JOGO (LÓGICA) ===
-// (Funções que NÃO escrevem no Firebase, apenas manipulam dados)
 // =======================================================
 
 function createDeck(){
   let newDeck = [];
   let id = 1;
   for (let t=0; t<CARD_TYPES.length; t++){
-    for (let i=0; i<5; i++){
+    for (let i=0; i<5; i++){ // [NOTA] Isso cria 5 de cada personagem
       newDeck.push({
         id: 'c'+(id++),
         type: CARD_TYPES[t].type,
@@ -440,21 +444,27 @@ function renderAll(){
       document.getElementById(`player-${pid}`).classList.add('local-player');
     }
 
-    // Desenha os 4 slots
-    for (let i=0; i<4; i++){
-      const slot = document.createElement('div');
-      slot.className = 'slot';
-      slot.dataset.slotIndex = i;
-      handContainer.appendChild(slot);
-    }
+    // === [CORREÇÃO INÍCIO] SLOTS DINÂMICOS ===
     
-    // Adiciona as cartas do jogador nos slots
-    player.hand?.forEach((card, idx)=>{
+    // 1. Renderiza os slots que TÊM cartas
+    player.hand?.forEach((card)=>{
+      const slot = document.createElement('div');
+      slot.className = 'slot small'; // Cria o slot
+      
       const el = createCardElement(card);
-      el.classList.add('small');
-      const slotNode = handContainer.querySelectorAll('.slot')[idx];
-      if (slotNode) slotNode.appendChild(el);
+      el.classList.add('small'); // Cria a carta
+      
+      slot.appendChild(el); // Coloca a carta DENTRO do slot
+      handContainer.appendChild(slot); // Coloca o slot na mão
     });
+
+    // 2. Se a mão estiver vazia, mostra UM slot vazio
+    if (!player.hand || player.hand.length === 0) {
+        const slot = document.createElement('div');
+        slot.className = 'slot small'; // Cria um slot vazio
+        handContainer.appendChild(slot);
+    }
+    // === [CORREÇÃO FIM] SLOTS DINÂMICOS ===
     
     // Atualiza pontuação
     const scoreEl = document.querySelector(`#player-${pid} .score`);
@@ -490,14 +500,16 @@ function drawCard(){
       return currentState; // Aborta
     }
     
+    // === [CORREÇÃO] LIMITE DE MÃO REMOVIDO ===
+    /*
     // Verifica se a mão está cheia
     const playerHand = currentState.players[myPlayerId]?.hand || [];
     if (playerHand.length >= 4) {
-      // Usar 'alert' em transações não é ideal, mas funciona para protótipo
-      // O ideal é mostrar a msg no renderAll com base no estado
       console.log("Mão cheia.");
       return currentState; // Aborta
     }
+    */
+    // === [FIM DA CORREÇÃO] ===
 
     // Pega a carta
     const card = currentState.deck.pop();
@@ -548,11 +560,17 @@ function moveCard(cardId, targetLocation, targetPlayerId = null) {
 
     // Lógica para Área do Jogador
     if (targetLocation === 'player') {
+      
+      // === [CORREÇÃO] LIMITE DE MÃO REMOVIDO ===
+      /*
       const playerHand = currentState.players[targetPlayerId]?.hand || [];
       if (playerHand.length >= 4) {
         console.log("Mão do Jogador " + targetPlayerId + " está cheia.");
         return currentState; // Aborta transação
       }
+      */
+      // === [FIM DA CORREÇÃO] ===
+
       // Remove a carta de onde estava
       removeCardFromLocation(currentState, cardId);
       // Atualiza dados da carta
@@ -665,6 +683,37 @@ function setupDropzones(){
   freeArea.ondrop = ev => {
     ev.preventDefault();
     const id = ev.dataTransfer.getData('text/plain');
+    // A linha "Accessing file: index.html" foi removida daqui
+    moveCard(id, 'free');
+  };
+}
+  // Drop no Deck
+  deckEl.ondragover = ev => ev.preventDefault();
+  deckEl.ondrop = ev => {
+    ev.preventDefault();
+    const id = ev.dataTransfer.getData('text/plain');
+    moveCard(id, 'deck');
+  };
+  deckEl.onclick = () => drawCard();
+  deckEl.addEventListener('dblclick', () => drawCard());
+
+  // Drop nas Áreas dos Jogadores
+  document.querySelectorAll('.player-area').forEach(area=>{
+    area.ondragover = ev => ev.preventDefault();
+    area.ondrop = ev => {
+      ev.preventDefault();
+      const id = ev.dataTransfer.getData('text/plain');
+      const pid = parseInt(area.dataset.player);
+      moveCard(id, 'player', pid);
+    };
+  });
+
+  // Drop na Área Livre
+  freeArea.ondragover = ev => ev.preventDefault();
+  freeArea.ondrop = ev => {
+    ev.preventDefault();
+    const id = ev.dataTransfer.getData('text/plain');
+Accessing file: index.html
     moveCard(id, 'free');
   };
 }
@@ -740,8 +789,6 @@ function setupDisconnectHandler(pid) {
   playerRef.onDisconnect().update({
     online: false
     // NOTA: As cartas ficam na mão do jogador "offline"
-    // Você pode adicionar uma lógica no 'resetTable' ou 'findAndOccupySlot'
-    // para limpar a mão de jogadores offline.
   });
 }
 
