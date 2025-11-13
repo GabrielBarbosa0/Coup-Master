@@ -12,7 +12,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Ephesis&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Arizonia&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Pattaya&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
 
 
   <style>
@@ -50,7 +51,7 @@
       background: #232a33;
       color: #ffffff;
       margin-bottom: 18px;
-      font-family: "Arizonia", cursive;
+      font-family: "Orbitron", sans-serif;
     }
 
 
@@ -163,16 +164,19 @@
     }
 
     .deck {
-      width: 120px;
-      height: 160px;
+      width: 98px;
+      height: 148px;
       border-radius: 10px;
-      background: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: white;
       cursor: pointer;
+
+      /* [NOVO] Aplicando a imagem de verso no Deck */
+      background-image: url('./img/back.png');
+      background-size: cover;
+      background-position: center;
+
+      /* Esconde o texto "Deck" que estava lá antes */
+      text-indent: -9999px;
+      overflow: hidden;
     }
 
     .pile-info {
@@ -202,14 +206,34 @@
       height: 128px;
       border-radius: 10px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: #111;
       cursor: grab;
       user-select: none;
+      /* [NOVO] Estilos para a imagem de fundo */
+      background-size: cover;
+      /* Ajusta a imagem para cobrir o elemento */
+      background-position: center;
+      /* Centraliza a imagem */
+      background-repeat: no-repeat;
+      /* Evita repetição */
+      display: block;
+      /* Garante que a div se comporta como um bloco para a imagem */
+      text-indent: -9999px;
+      /* Esconde o texto para leitores de tela */
+      overflow: hidden;
+      /* Garante que o texto escondido não afete o layout */
     }
+
+
+
+    .card:active {
+      cursor: grabbing;
+    }
+
+    .card.small {
+      width: 72px;
+      height: 100px
+    }
+
 
     .card:active {
       cursor: grabbing;
@@ -221,9 +245,9 @@
     }
 
     .card.back {
-      background: linear-gradient(180deg, #2b3443, #232a33);
+      background-image: url('./img/back.png');
       color: transparent
-    }
+    } 
 
     .card .label {
       padding: 6px;
@@ -504,18 +528,19 @@
     // =======================================================
 
     const CARD_TYPES = [
-      { type: 'Duque', color: '#f6b04d' },
-      { type: 'Capitão', color: '#ff3b3b' },
-      { type: 'Assassino', color: '#3aff7b' },
-      { type: 'Embaixador', color: '#49f0ff' },
-      { type: 'Condessa', color: '#ffb000' },
-      { type: 'Inquisidor', color: '#2a8cff' },
+      { type: 'duque', color: '#f6b04d' },
+      { type: 'capitao', color: '#ff3b3b' },
+      { type: 'assassino', color: '#3aff7b' },
+      { type: 'embaixador', color: '#49f0ff' },
+      { type: 'condessa', color: '#ffb000' },
+      { type: 'inquisidor', color: '#2a8cff' },
     ];
 
     // O estado local é um "espelho" do que está no Firebase
     let localGameState = {};
     // ID do jogador deste navegador (será 1, 2, 3 ou 4)
     let myPlayerId = null;
+    let isDrawingCard = false;
 
     // Referências do DOM
     const deckCountEl = document.getElementById('deck-count');
@@ -613,15 +638,22 @@
       el.draggable = true;
       el.dataset.cardId = card.id;
 
-      // Verifica se a carta deve ser mostrada virada
+      // [CORREÇÃO]
+      // Nós só definimos a imagem de fundo (Duque, Capitão, etc.)
+      // se a carta estiver virada PARA CIMA.
+
       if (shouldShowBack(card)) {
+        // Carta está virada para baixo.
+        // APENAS adicionamos a classe '.back'.
+        // O CSS vai cuidar de aplicar a imagem 'back.png'.
         el.classList.add('back');
-        el.style.background = 'linear-gradient(180deg,#2b3443,#232a33)';
-        el.innerHTML = `<div class="label">?</div>`;
       } else {
-        el.style.background = card.color;
-        el.innerHTML = `<div class="label">${card.type}</div>`;
+        // Carta está virada para cima.
+        // AGORA SIM, definimos a imagem específica da carta.
+        const imageUrl = `./img/${card.type.toLowerCase()}.png`; // Ex: ./img/duque.png
+        el.style.backgroundImage = `url('${imageUrl}')`;
       }
+      // [FIM DA CORREÇÃO]
 
       el.addEventListener('dragstart', (ev) => {
         ev.dataTransfer.setData('text/plain', card.id);
@@ -711,44 +743,51 @@
     // =======================================================
 
     function drawCard() {
-      if (!myPlayerId) return; // Não pode comprar se não for um jogador
+  if (!myPlayerId) return; // Não pode comprar se não for um jogador
 
-      gameStateRef.transaction((currentState) => {
-        if (!currentState) return currentState; // Jogo não existe
+  // [CORREÇÃO 1] Adiciona a "trava"
+  if (isDrawingCard) {
+    console.log("Aguarde, comprando carta...");
+    return; // Já está comprando, ignora este clique
+  }
+  isDrawingCard = true; // Trava a função
 
-        // Verifica se o deck tem cartas
-        if (!currentState.deck || currentState.deck.length === 0) {
-          console.log("Deck vazio.");
-          return currentState; // Aborta
-        }
+  gameStateRef.transaction((currentState) => {
+    if (!currentState) return currentState; // Jogo não existe
 
-        // === [CORREÇÃO] LIMITE DE MÃO REMOVIDO ===
-        /*
-        // Verifica se a mão está cheia
-        const playerHand = currentState.players[myPlayerId]?.hand || [];
-        if (playerHand.length >= 4) {
-          console.log("Mão cheia.");
-          return currentState; // Aborta
-        }
-        */
-        // === [FIM DA CORREÇÃO] ===
-
-        // Pega a carta
-        const card = currentState.deck.pop();
-        card.owner = myPlayerId;
-        card.location = 'player-' + myPlayerId;
-        card.visible = false;
-
-        // Adiciona na mão
-        if (!currentState.players[myPlayerId].hand) {
-          currentState.players[myPlayerId].hand = [];
-        }
-        currentState.players[myPlayerId].hand.push(card);
-
-        return currentState; // Salva o novo estado
-      });
+    if (!currentState.deck || currentState.deck.length === 0) {
+      console.log("Deck vazio.");
+      return currentState; // Aborta
     }
 
+    // (O resto da sua lógica de "limite de mão removido" está correta)
+    
+    // Pega a carta
+    const card = currentState.deck.pop();
+    card.owner = myPlayerId;
+    card.location = 'player-' + myPlayerId;
+    card.visible = false;
+
+    // Adiciona na mão
+    if (!currentState.players[myPlayerId].hand) {
+      currentState.players[myPlayerId].hand = [];
+    }
+    currentState.players[myPlayerId].hand.push(card);
+
+    return currentState; // Salva o novo estado
+  }, 
+  // [CORREÇÃO 2] Adiciona o "callback" de conclusão
+  (error, committed, snapshot) => {
+    if (error) {
+      console.error("Falha ao comprar carta:", error);
+    }
+    
+    // Quando a transação terminar (com sucesso ou falha),
+    // destrava a função para o próximo clique.
+    isDrawingCard = false; 
+  });
+}
+    
     function returnCardToDeck(cardId) {
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
@@ -887,7 +926,7 @@
         moveCard(id, 'deck');
       };
       deckEl.onclick = () => drawCard();
-      deckEl.addEventListener('dblclick', () => drawCard());
+      // deckEl.addEventListener('dblclick', () => drawCard());
 
       // Drop nas Áreas dos Jogadores
       document.querySelectorAll('.player-area').forEach(area => {
