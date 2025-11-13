@@ -8,11 +8,6 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Italianno&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Ephesis&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Arizonia&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Pattaya&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
 
 
@@ -409,6 +404,98 @@
         top: 4px
       }
     }
+
+    /* === [NOVO] ESTILOS DO MODAL E FLIP-CARD === */
+    .modal-overlay {
+      display: none;
+      /* Escondido por padrão */
+      position: fixed;
+      /* Cobre a tela inteira */
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      /* Fundo escuro */
+
+      /* Para centralizar o conteúdo */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      position: relative;
+      padding: 20px;
+      /* O tamanho é definido pelo flip-card */
+    }
+
+    .close-btn {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      z-index: 1001;
+      color: #fff;
+      background: #ff3b3b;
+      border: 2px solid white;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      line-height: 30px;
+      /* Alinha o 'X' verticalmente */
+      text-align: center;
+      /* Alinha o 'X' horizontalmente */
+    }
+
+    .close-btn:hover {
+      background: #ff5555;
+    }
+
+    /* --- Estilos do Flip-Card --- */
+    .flip-horizontal-left:hover .flip-card-inner {
+      transform: rotateY(-180deg);
+    }
+
+    .flip-horizontal-left .flip-card-back {
+      transform: rotateY(-180deg);
+    }
+
+    .flip-card {
+      background-color: transparent;
+      width: 300px;
+      height: 450px;
+      perspective: 1000px;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 1s;
+      transform-style: preserve-3d;
+    }
+
+    .flip-card-front,
+    .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+    }
+
+    .flip-card-front img,
+    .flip-card-back img {
+      width: 100%;
+      height: 100%;
+      border-radius: 25px;
+      object-fit: cover;
+    }
+
+    /* === [FIM] NOVOS ESTILOS === */
   </style>
 </head>
 
@@ -424,6 +511,7 @@
         <div class="controls">
           <button id="resetBtn" title="Resetar mesa">Resetar</button>
           <button id="shuffleBtn" title="Embaralhar deck">Embaralhar</button>
+          <button id="infoBtn" title="Ver Ações" style="padding: 8px 12px; font-weight: bold;">ℹ️</button>
         </div>
       </div>
 
@@ -534,6 +622,21 @@
     </div>
   </div>
 
+  <div id="infoModal" class="modal-overlay" style="display: none;"> <div class="modal-content">
+      <button id="closeModalBtn" class="close-btn">&times;</button>
+      
+      <div class="flip-card flip-horizontal-left">
+        <div class="flip-card-inner">
+          <div class="flip-card-front">
+            <img src="img/front-actions.jpg" alt="Ações Personagens - Frente">
+          </div>
+          <div class="flip-card-back">
+            <img src="img/back-actions.jpg" alt="Ações Personagens - Verso">
+          </div>
+        </div>
+      </div>
+      </div>
+  </div>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
@@ -574,13 +677,13 @@
       { type: 'assassino', color: '#3aff7b' },
       { type: 'embaixador', color: '#49f0ff' },
       { type: 'condessa', color: '#ffb000' },
-      { type: 'inquisitor', color: '#2a8cff' }, // <-- [ETAPA 4: BUG CORRIGIDO]
+      { type: 'inquisitor', color: '#2a8cff' }, // [CORRIGIDO]
     ];
 
     // O estado local é um "espelho" do que está no Firebase
     let localGameState = {};
-    // ID do jogador deste navegador (será 1, 2, 3... 8)
     let myPlayerId = null;
+    let isDrawingCard = false; // [ADICIONADO] Trava para cliques rápidos no deck
 
     // Referências do DOM
     const deckCountEl = document.getElementById('deck-count');
@@ -623,17 +726,13 @@
     // Encontra uma carta dentro do objeto de estado do jogo
     function findCardById(state, id) {
       if (!state || !id) return null;
-      // Procura no deck
       let card = state.deck?.find(c => c.id === id);
       if (card) return card;
-      // Procura na área livre
       card = state.freeCards?.find(c => c.id === id);
       if (card) return card;
-      // Procura no grave
       card = state.grave?.find(c => c.id === id);
       if (card) return card;
 
-      // === [ETAPA 2: ATUALIZADO PARA 8 JOGADORES] ===
       for (let p = 1; p <= 8; p++) {
         card = state.players?.[p]?.hand?.find(c => c.id === id);
         if (card) return card;
@@ -644,14 +743,10 @@
     // Remove uma carta de qualquer lugar em um objeto de estado
     function removeCardFromLocation(state, cardId) {
       if (!state || !cardId) return;
-      // Remove do deck
       if (state.deck) state.deck = state.deck.filter(c => c.id !== cardId);
-      // Remove da área livre
       if (state.freeCards) state.freeCards = state.freeCards.filter(c => c.id !== cardId);
-      // Remove do grave
       if (state.grave) state.grave = state.grave.filter(c => c.id !== cardId);
 
-      // === [ETAPA 2: ATUALIZADO PARA 8 JOGADORES] ===
       if (state.players) {
         for (let p = 1; p <= 8; p++) {
           if (state.players[p]?.hand) {
@@ -669,7 +764,6 @@
       document.querySelectorAll('[data-hand]').forEach(h => h.innerHTML = '');
       freeArea.querySelectorAll('.card').forEach(n => n.remove());
       document.querySelectorAll('.slot').forEach(n => n.remove());
-      // Limpa classes de jogador local
       document.querySelectorAll('.player-area.local-player')
         .forEach(el => el.classList.remove('local-player'));
     }
@@ -699,13 +793,9 @@
     }
 
     function shouldShowBack(card) {
-      // Carta está no deck (sempre virada)
       if (card.location === 'deck') return true;
-      // Carta está na área livre (sempre visível)
       if (card.location === 'free') return false;
-      // Carta está na mão de um jogador
       if (card.location?.startsWith('player-')) {
-        // Se não for o MEU player, vira a carta
         return card.owner !== myPlayerId;
       }
       return false;
@@ -718,30 +808,23 @@
 
       clearDOM();
 
-      // === [ETAPA 2 E 3: JOGADORES DINÂMICOS ATÉ 8] ===
       for (let pid = 1; pid <= 8; pid++) {
 
         const playerEl = document.getElementById(`player-${pid}`);
-        // Pula se o HTML (passo 1) ainda não foi feito
         if (!playerEl) continue;
 
-        // Pega o jogador. Se não existir, assume que está offline.
         const player = state.players[pid] || { online: false, hand: [], score: 0 };
 
-
-        // === LÓGICA DE MOSTRAR/OCULTAR ===
+        // LÓGICA DE MOSTRAR/OCULTAR
         if (player.online) {
-          playerEl.style.display = 'flex'; // 'flex' é o display padrão
+          playerEl.style.display = 'flex'; 
         } else {
-          playerEl.style.display = 'none'; // Esconde o jogador
-          continue; // Pula o resto do loop
+          playerEl.style.display = 'none'; 
+          continue; 
         }
-        // === FIM DA LÓGICA ===
-
 
         const handContainer = document.querySelector(`#player-${pid} [data-hand]`);
 
-        // Adiciona classe de destaque se for o jogador local
         if (pid === myPlayerId) {
           playerEl.classList.add('local-player');
         }
@@ -749,19 +832,19 @@
         // 1. Renderiza os slots que TÊM cartas
         player.hand?.forEach((card) => {
           const slot = document.createElement('div');
-          slot.className = 'slot small'; // Cria o slot
+          slot.className = 'slot small'; 
 
           const el = createCardElement(card);
-          el.classList.add('small'); // Cria a carta
+          el.classList.add('small'); 
 
-          slot.appendChild(el); // Coloca a carta DENTRO do slot
-          handContainer.appendChild(slot); // Coloca o slot na mão
+          slot.appendChild(el); 
+          handContainer.appendChild(slot); 
         });
 
         // 2. Se a mão estiver vazia, mostra UM slot vazio
         if (!player.hand || player.hand.length === 0) {
           const slot = document.createElement('div');
-          slot.className = 'slot small'; // Cria um slot vazio
+          slot.className = 'slot small'; 
           handContainer.appendChild(slot);
         }
 
@@ -769,8 +852,6 @@
         const scoreEl = document.querySelector(`#player-${pid} .score`);
         scoreEl.textContent = player.score || 0;
       }
-      // === [FIM DAS ETAPAS 2 E 3] ===
-
 
       // Renderiza cartas da área livre
       state.freeCards?.forEach(card => {
@@ -781,50 +862,64 @@
 
       // Atualiza contadores
       deckCountEl.textContent = state.deck?.length || 0;
-      graveCountEl.textContent = state.grave?.length || 0;
+      if (graveCountEl) {
+        graveCountEl.textContent = state.grave?.length || 0;
+      }
     }
 
     // =======================================================
     // === 5. AÇÕES DO JOGADOR (ESCREVEM NO FIREBASE) ===
     // =======================================================
 
+    // [CORRIGIDO] Função com trava de clique
     function drawCard() {
-      if (!myPlayerId) return;
+      if (!myPlayerId) return; 
+
+      if (isDrawingCard) {
+        console.log("Aguarde, comprando carta...");
+        return; 
+      }
+      isDrawingCard = true; 
 
       gameStateRef.transaction((currentState) => {
-        if (!currentState) return currentState;
+        if (!currentState) return currentState; 
 
         if (!currentState.deck || currentState.deck.length === 0) {
           console.log("Deck vazio.");
-          return currentState; // Aborta
+          return currentState;
         }
 
-        // Pega a carta
         const card = currentState.deck.pop();
         card.owner = myPlayerId;
         card.location = 'player-' + myPlayerId;
         card.visible = false;
 
-        // Adiciona na mão
         if (!currentState.players[myPlayerId].hand) {
           currentState.players[myPlayerId].hand = [];
         }
         currentState.players[myPlayerId].hand.push(card);
 
-        return currentState; // Salva o novo estado
+        return currentState; 
+      },
+      (error, committed, snapshot) => {
+        if (error) {
+          console.error("Falha ao comprar carta:", error);
+        }
+        // Destrava a função, com sucesso ou falha
+        isDrawingCard = false; 
       });
     }
+
 
     function returnCardToDeck(cardId) {
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
 
         const card = findCardById(currentState, cardId);
-        if (!card) return currentState; // Carta não existe
+        if (!card) return currentState; 
 
         removeCardFromLocation(currentState, cardId);
 
-        // Devolve ao deck
         card.owner = null;
         card.location = 'deck';
         card.visible = false;
@@ -844,21 +939,16 @@
         const card = findCardById(currentState, cardId);
         if (!card) return currentState;
 
-        // Lógica para Área do Jogador
         if (targetLocation === 'player') {
           removeCardFromLocation(currentState, cardId);
-          // Atualiza dados da carta
           card.owner = targetPlayerId;
           card.location = 'player-' + targetPlayerId;
           card.visible = false;
-          // Adiciona na mão do jogador
           if (!currentState.players[targetPlayerId].hand) {
             currentState.players[targetPlayerId].hand = [];
           }
           currentState.players[targetPlayerId].hand.push(card);
         }
-
-        // Lógica para Área Livre
         else if (targetLocation === 'free') {
           removeCardFromLocation(currentState, cardId);
           card.owner = null;
@@ -867,8 +957,6 @@
           if (!currentState.freeCards) currentState.freeCards = [];
           currentState.freeCards.push(card);
         }
-
-        // Lógica para Deck
         else if (targetLocation === 'deck') {
           removeCardFromLocation(currentState, cardId);
           card.owner = null;
@@ -879,7 +967,7 @@
           shuffle(currentState.deck);
         }
 
-        return currentState; // Salva o estado modificado
+        return currentState; 
       });
     }
 
@@ -898,7 +986,6 @@
 
       let currentPlayers = localGameState.players || {};
 
-      // === [ETAPA 2: ATUALIZADO PARA 8 JOGADORES] ===
       let newPlayersState = {
         1: { online: currentPlayers[1]?.online || false, hand: [], score: 0 },
         2: { online: currentPlayers[2]?.online || false, hand: [], score: 0 },
@@ -909,7 +996,6 @@
         7: { online: currentPlayers[7]?.online || false, hand: [], score: 0 },
         8: { online: currentPlayers[8]?.online || false, hand: [], score: 0 },
       };
-      // === [FIM DA ETAPA 2] ===
 
       let initialState = {
         deck: newDeck,
@@ -918,7 +1004,7 @@
         players: newPlayersState
       };
 
-      gameStateRef.set(initialState); // Define o novo estado no Firebase
+      gameStateRef.set(initialState); 
     }
 
     function shuffleDeck() {
@@ -935,7 +1021,6 @@
     // =======================================================
 
     function setupDropzones() {
-      // Drop no Deck
       deckEl.ondragover = ev => ev.preventDefault();
       deckEl.ondrop = ev => {
         ev.preventDefault();
@@ -943,9 +1028,8 @@
         moveCard(id, 'deck');
       };
       deckEl.onclick = () => drawCard();
-      // dblclick removido para evitar bug de 3 cartas
+      // [CORRIGIDO] dblclick removido
 
-      // Drop nas Áreas dos Jogadores
       document.querySelectorAll('.player-area').forEach(area => {
         area.ondragover = ev => ev.preventDefault();
         area.ondrop = ev => {
@@ -956,7 +1040,6 @@
         };
       });
 
-      // Drop na Área Livre
       freeArea.ondragover = ev => ev.preventDefault();
       freeArea.ondrop = ev => {
         ev.preventDefault();
@@ -969,6 +1052,30 @@
       // Botões de controle
       shuffleBtn.onclick = shuffleDeck;
       resetBtn.onclick = resetTable;
+
+      // === [NOVO] LÓGICA DO MODAL DE INFO ===
+      const infoBtn = document.getElementById('infoBtn');
+      const infoModal = document.getElementById('infoModal');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+
+      if (infoBtn && infoModal && closeModalBtn) {
+        // Abrir modal
+        infoBtn.onclick = () => {
+          infoModal.style.display = 'flex';
+        };
+        // Fechar no 'X'
+        closeModalBtn.onclick = () => {
+          infoModal.style.display = 'none';
+        };
+        // Fechar clicando no fundo
+        infoModal.onclick = (e) => {
+          if (e.target === infoModal) { // Só fecha se clicar no *fundo*
+            infoModal.style.display = 'none';
+          }
+        };
+      }
+      // === [FIM] LÓGICA DO MODAL ===
+
 
       // Controles de pontos +/-
       document.querySelectorAll('.player-area').forEach(area => {
@@ -985,13 +1092,11 @@
       playersRef.once('value', (snapshot) => {
         let players = snapshot.val();
 
-        // CASO 1: Jogo não existe. Você é o Jogador 1.
         if (!players) {
           console.log("Ninguém na sala. Criando jogo como Jogador 1...");
           myPlayerId = 1;
           let newDeck = createDeck();
 
-          // === [ETAPA 2: ATUALIZADO PARA 8 JOGADORES] ===
           let initialState = {
             deck: newDeck,
             grave: [],
@@ -1007,20 +1112,16 @@
               8: { hand: [], score: 0, online: false },
             }
           };
-          // === [FIM DA ETAPA 2] ===
 
           gameStateRef.set(initialState);
           setupDisconnectHandler(myPlayerId);
           return;
         }
 
-        // === [ETAPA 2: ATUALIZADO PARA 8 JOGADORES] ===
-        // CASO 2: Jogo existe. Procurar slot vazio.
         for (let i = 1; i <= 8; i++) {
           if (!players[i] || !players[i].online) {
             console.log(`Encontrado slot vazio: Jogador ${i}`);
             myPlayerId = i;
-            // "Reivindica" o slot
             db.ref(`gameState/players/${i}`).update({
               online: true,
               score: 0,
@@ -1030,10 +1131,8 @@
             return;
           }
         }
-        // === [FIM DA ETAPA 2] ===
 
-        // CASO 3: Sala cheia
-        alert("Sala cheia! (Máx 8 jogadores)"); // [ETAPA 2]
+        alert("Sala cheia! (Máx 8 jogadores)");
         document.body.innerHTML = "<h1>Sala cheia. Tente novamente mais tarde.</h1>";
       });
     }
