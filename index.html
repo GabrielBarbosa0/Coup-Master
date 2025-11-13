@@ -319,7 +319,6 @@
       right: 8px;
       top: 8px;
       display: flex;
-      gap: 6px;
       align-items: center
     }
 
@@ -1032,14 +1031,14 @@
       let currentPlayers = localGameState.players || {};
 
       let newPlayersState = {
-        1: { online: currentPlayers[1]?.online || false, hand: [], score: 0 },
-        2: { online: currentPlayers[2]?.online || false, hand: [], score: 0 },
-        3: { online: currentPlayers[3]?.online || false, hand: [], score: 0 },
-        4: { online: currentPlayers[4]?.online || false, hand: [], score: 0 },
-        5: { online: currentPlayers[5]?.online || false, hand: [], score: 0 },
-        6: { online: currentPlayers[6]?.online || false, hand: [], score: 0 },
-        7: { online: currentPlayers[7]?.online || false, hand: [], score: 0 },
-        8: { online: currentPlayers[8]?.online || false, hand: [], score: 0 },
+        1: { online: currentPlayers[1]?.online || false, hand: [], score: 2 },
+        2: { online: currentPlayers[2]?.online || false, hand: [], score: 2 },
+        3: { online: currentPlayers[3]?.online || false, hand: [], score: 2 },
+        4: { online: currentPlayers[4]?.online || false, hand: [], score: 2 },
+        5: { online: currentPlayers[5]?.online || false, hand: [], score: 2 },
+        6: { online: currentPlayers[6]?.online || false, hand: [], score: 2 },
+        7: { online: currentPlayers[7]?.online || false, hand: [], score: 2 },
+        8: { online: currentPlayers[8]?.online || false, hand: [], score: 2 },
       };
 
       let initialState = {
@@ -1169,7 +1168,7 @@
             myPlayerId = i;
             db.ref(`gameState/players/${i}`).update({
               online: true,
-              score: 0,
+              score: 2,
               hand: []
             });
             setupDisconnectHandler(myPlayerId);
