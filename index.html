@@ -174,31 +174,34 @@
     /* === [FIM DA NOVA REGRA] === */
 
 
-    /* === [CORREÇÃO] ESTILO MINIMALISTA DO BOTÃO REMOVER === */
+    /* === [CORREÇÃO] ESTILO DO BOTÃO DE REMOVER === */
     .points {
-      position: absolute;
-      right: 8px;
-      top: 8px;
+      /* [REMOVIDO] position: absolute */
       display: flex;
       align-items: center;
-      gap: 4px;
-      /* Espaço entre botões */
+      /* gap: 4px; <-- REMOVIDO CONFORME SOLICITADO */
+      margin-top: 6px; /* Espaçamento */
+      margin-bottom: 10px; /* Espaçamento */
     }
 
-    .points .remove-player {
+    .remove-player { /* [CORREÇÃO] Botão Kickar agora é separado */
+      position: absolute;
+      right: 8px; /* Alinhado à DIREITA */
+      top: 8px;
+      
       background: #ff3b3b;
       width: 12px;
       height: 12px;
       color: white;
       font-size: 0;
-      /* Esconde o X */
-      line-height: 1;
+      line-height: 0;
       border-radius: 50%;
       border: 1px solid white;
       cursor: pointer;
+      padding: 0;
     }
 
-    .points .remove-player:hover {
+    .remove-player:hover {
       background: #ff5555;
     }
 
@@ -210,7 +213,6 @@
       border-radius: 6px;
       font-size: 12px;
       color: white;
-      margin-top: 4px;
       margin-bottom: 8px;
       /* Ajusta espaço */
       cursor: pointer;
@@ -234,8 +236,8 @@
     .player-title {
       font-weight: 600;
       margin-bottom: 0px;
-      /* Reduzido */
       color: var(--muted);
+      /* [REMOVIDO] margin-top: 20px; */
     }
 
     .player-area.local-player .player-title {
@@ -269,7 +271,7 @@
       border: 3px dashed #f0943e80;
       /* Borda laranja */
       background: var(--panel);
-      min-height: 200px;
+      /* min-height: 200px; */
       text-align: center;
     }
 
@@ -427,16 +429,25 @@
     }
 
     /* Points controls */
-    /* REMOVIDO ESTILOS ANTIGOS DO .POINTS AQUI */
-
-    .points button {
-      /* padding: 4px 8px; */
-      border-radius: 20px;
+    /* [CORRIGIDO] Estilo dos botões + e - */
+    .points .plus,
+    .points .minus {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
       border: 0;
       background: #f6c204;
       color: #000;
       font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-      cursor: pointer
+      cursor: pointer;
+
+      /* Centralização do + e - */
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-size: 16px;
     }
 
     .points .score {
@@ -552,6 +563,13 @@
       .points {
         right: 4px;
         top: 4px
+      }
+      
+      .player-area .remove-player {
+          /* [CORREÇÃO] Posição do botão Kickar no Mobile */
+          /* right: auto; 
+          left: 4px; */
+          top: 4px;
       }
     }
 
@@ -740,102 +758,101 @@
         <div class="player-hands-container">
 
           <div class="player-area" id="player-1" data-player="1">
+            <button class="remove-player" data-pid="1" title="Remover Jogador"></button>
+            <div class="player-title">Jogador 1</div>
             <div class="points">
               <button class="minus">-</button>
-              <div class="score" data-score>0</div>
+              <div class="score" data-score="0">0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="1" title="Remover Jogador"></button>
             </div>
-            <div class="player-title">Jogador 1</div>
             <div class="religion-status" data-pid="1">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
           <div class="player-area" id="player-2" data-player="2">
+            <button class="remove-player" data-pid="2" title="Remover Jogador"></button>
+            <div class="player-title">Jogador 2</div>
             <div class="points">
               <button class="minus">-</button>
-              <div class="score" data-score>0</div>
+              <div class="score" data-score="0">0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="2" title="Remover Jogador"></button>
             </div>
-            <div class="player-title">Jogador 2</div>
             <div class="religion-status" data-pid="2">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
           <div class="player-area" id="player-3" data-player="3">
+            <button class="remove-player" data-pid="3" title="Remover Jogador"></button>
+            <div class="player-title">Jogador 3</div>
             <div class="points">
               <button class="minus">-</button>
-              <div class="score" data-score>0</div>
+              <div class="score" data-score="0">0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="3" title="Remover Jogador"></button>
             </div>
-            <div class="player-title">Jogador 3</div>
             <div class="religion-status" data-pid="3">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
           <div class="player-area" id="player-4" data-player="4">
+            <button class="remove-player" data-pid="4" title="Remover Jogador"></button>
+            <div class="player-title">Jogador 4</div>
             <div class="points">
               <button class="minus">-</button>
-              <div class="score" data-score>0</div>
+              <div class="score" data-score="0">0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="4" title="Remover Jogador"></button>
             </div>
-            <div class="player-title">Jogador 4</div>
             <div class="religion-status" data-pid="4">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
           <div class="player-area" id="player-5" data-player="5">
+            <button class="remove-player" data-pid="5" title="Remover Jogador"></button>
+            <div class="player-title">Jogador 5</div>
             <div class="points">
               <button class="minus">-</button>
-              <div class="score" data-score>0</div>
+              <div class="score" data-score="0">0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="5" title="Remover Jogador"></button>
             </div>
-            <div class="player-title">Jogador 5</div>
             <div class="religion-status" data-pid="5">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
           <div class="player-area" id="player-6" data-player="6">
+            <button class="remove-player" data-pid="6" title="Remover Jogador"></button>
+            <div class="player-title">Jogador 6</div>
             <div class="points">
               <button class="minus">-</button>
-              <div class="score" data-score>0</div>
+              <div class="score" data-score="0">0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="6" title="Remover Jogador"></button>
             </div>
-            <div class="player-title">Jogador 6</div>
             <div class="religion-status" data-pid="6">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
           <div class="player-area" id="player-7" data-player="7">
+            <button class="remove-player" data-pid="7" title="Remover Jogador"></button>
+            <div class="player-title">Jogador 7</div>
             <div class="points">
               <button class="minus">-</button>
-              <div class="score" data-score>0</div>
+              <div class="score" data-score="0">0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="7" title="Remover Jogador"></button>
             </div>
-            <div class="player-title">Jogador 7</div>
             <div class="religion-status" data-pid="7">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
           <div class="player-area" id="player-8" data-player="8">
+            <button class="remove-player" data-pid="8" title="Remover Jogador"></button>
+            <div class="player-title">Jogador 8</div>
             <div class="points">
               <button class="minus">-</button>
-              <div class="score" data-score>0</div>
+              <div class="score" data-score="0">0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="8" title="Remover Jogador"></button>
             </div>
-            <div class="player-title">Jogador 8</div>
             <div class="religion-status" data-pid="8">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
-
-        </div>
+          </div>
         <div class="bottom-table-container">
 
           <div class="free-area" id="freeArea" data-area="free">
@@ -913,7 +930,7 @@
         </li>
         <li class="card-config-item">
           <label for="config-inquisidor">Inquisidor</label>
-          <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="5">
+          <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="0">
         </li>
         <li class="card-config-item">
           <label for="config-benfeitor">Benfeitor</label>
@@ -1343,7 +1360,7 @@
 
       // 1. Remove a persistência local (se for o próprio jogador)
       if (pid === myPlayerId) {
-        localStorage.removeItem('myPlayerId');
+        sessionStorage.removeItem('myPlayerId'); // [CORREÇÃO] Usando sessionStorage
         myPlayerId = null; // Zera a ID local
         alert('Você foi removido da sala e seu slot está liberado.');
       }
@@ -1430,7 +1447,7 @@
     function createDefaultDeckConfig() {
       return {
         'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
-        'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0
+        'inquisidor': 0, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0
       };
     }
 
@@ -1468,7 +1485,7 @@
     function setupUI() {
       // Botões de controle
       shuffleBtn.onclick = shuffleDeck;
-      resetBtn.onclick = resetTable;
+      resetBtn.onclick = () => resetTable(); // Chama sem argumentos
 
       // LÓGICA DO MODAL DE INFO
       const infoBtn = document.getElementById('infoBtn');
@@ -1567,9 +1584,10 @@
       });
     }
 
+    // [CORREÇÃO] Usando sessionStorage para persistência por ABA
     // Lógica de "Entrar na Sala"
     function findAndOccupySlot() {
-      const myPersistedId = localStorage.getItem('myPlayerId');
+      const myPersistedId = sessionStorage.getItem('myPlayerId'); // <-- MUDADO para sessionStorage
 
       // Tenta re-ocupar o slot primeiro (Persistência)
       if (myPersistedId) {
@@ -1584,7 +1602,7 @@
             return currentState;
           }
 
-          localStorage.removeItem('myPlayerId');
+          sessionStorage.removeItem('myPlayerId'); // <-- MUDADO para sessionStorage
           return;
         }, (error, committed, snapshot) => {
           if (committed) {
@@ -1615,18 +1633,18 @@
             deckConfig: defaultConfig, // [NOVO]
             // turn: 1, // [REMOVIDO]
             players: {
-              1: { hand: [], score: 2, online: true, religion: 'protestante' },
-              2: { hand: [], score: 2, online: false, religion: 'catolico' },
-              3: { hand: [], score: 2, online: false, religion: 'protestante' },
-              4: { hand: [], score: 2, online: false, religion: 'catolico' },
-              5: { hand: [], score: 2, online: false, religion: 'protestante' },
-              6: { hand: [], score: 2, online: false, religion: 'catolico' },
-              7: { hand: [], score: 2, online: false, religion: 'protestante' },
-              8: { hand: [], score: 2, online: false, religion: 'catolico' },
+              1: { hand: [], score: 2, online: true, religion: 'catolico' },
+              2: { hand: [], score: 2, online: false, religion: 'protestante' },
+              3: { hand: [], score: 2, online: false, religion: 'catolico' },
+              4: { hand: [], score: 2, online: false, religion: 'protestante' },
+              5: { hand: [], score: 2, online: false, religion: 'catolico' },
+              6: { hand: [], score: 2, online: false, religion: 'protestante' },
+              7: { hand: [], score: 2, online: false, religion: 'catolico' },
+              8: { hand: [], score: 2, online: false, religion: 'protestante' },
             }
           };
           myPlayerId = 1;
-          localStorage.setItem('myPlayerId', 1);
+          sessionStorage.setItem('myPlayerId', 1); // <-- MUDADO para sessionStorage
           return initialState;
         }
 
@@ -1638,8 +1656,9 @@
             currentState.players[i].online = true;
             currentState.players[i].score = currentState.players[i].score || 2;
             currentState.players[i].hand = currentState.players[i].hand || [];
-            currentState.players[i].religion = (i % 2 === 1) ? 'catolico' : 'protestante'; myPlayerId = i;
-            localStorage.setItem('myPlayerId', 1);
+            currentState.players[i].religion = (i % 2 === 1) ? 'catolico' : 'protestante';
+            myPlayerId = i;
+            sessionStorage.setItem('myPlayerId', i); // <-- MUDADO para sessionStorage
             return currentState;
           }
         }
@@ -1673,7 +1692,7 @@
     // =======================================================
 
     function initializeGame() {
-      const persistedId = localStorage.getItem('myPlayerId');
+      const persistedId = sessionStorage.getItem('myPlayerId'); // <-- MUDADO para sessionStorage
       if (persistedId) {
         myPlayerId = parseInt(persistedId);
       }
