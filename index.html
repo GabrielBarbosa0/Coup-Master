@@ -912,7 +912,7 @@
         </li>
         <li class="card-config-item">
           <label for="config-inquisidor">Inquisidor</label>
-          <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="3">
+          <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="5">
         </li>
         <li class="card-config-item">
           <label for="config-benfeitor">Benfeitor</label>
@@ -1394,13 +1394,13 @@
 
       let newPlayersState = {
         1: { online: currentPlayers[1]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        2: { online: currentPlayers[2]?.online || false, hand: [], score: 2, religion: 'catolico' },
+        2: { online: currentPlayers[2]?.online || false, hand: [], score: 2, religion: 'protestante' },
         3: { online: currentPlayers[3]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        4: { online: currentPlayers[4]?.online || false, hand: [], score: 2, religion: 'catolico' },
+        4: { online: currentPlayers[4]?.online || false, hand: [], score: 2, religion: 'protestante' },
         5: { online: currentPlayers[5]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        6: { online: currentPlayers[6]?.online || false, hand: [], score: 2, religion: 'catolico' },
+        6: { online: currentPlayers[6]?.online || false, hand: [], score: 2, religion: 'protestante' },
         7: { online: currentPlayers[7]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        8: { online: currentPlayers[8]?.online || false, hand: [], score: 2, religion: 'catolico' },
+        8: { online: currentPlayers[8]?.online || false, hand: [], score: 2, religion: 'protestante' },
       };
 
       let initialState = {
@@ -1429,7 +1429,7 @@
     function createDefaultDeckConfig() {
       return {
         'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
-        'inquisidor': 3, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0
+        'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0
       };
     }
 
