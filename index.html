@@ -176,12 +176,12 @@
 
     /* === [CORREÇÃO] ESTILO DO BOTÃO DE REMOVER === */
     .points {
-      /* [REMOVIDO] position: absolute */
+      /* [CORREÇÃO] Layout centralizado */
       display: flex;
       align-items: center;
-      /* gap: 4px; <-- REMOVIDO CONFORME SOLICITADO */
-      margin-top: 6px; /* Espaçamento */
-      margin-bottom: 10px; /* Espaçamento */
+      gap: 4px; 
+      margin-top: 6px; 
+      margin-bottom: 10px; 
     }
 
     .remove-player { /* [CORREÇÃO] Botão Kickar agora é separado */
@@ -256,7 +256,7 @@
       border-radius: 18px;
       border: 3px dashed rgba(255, 255, 255, 0.08);
       background: var(--panel);
-      min-height: 200px;
+      /* min-height: 200px; */
     }
 
     /* === [NOVO] ESTILO PARA ÁREA DO ASILO === */
@@ -565,10 +565,8 @@
         top: 4px
       }
       
-      .player-area .remove-player {
-          /* [CORREÇÃO] Posição do botão Kickar no Mobile */
-          /* right: auto; 
-          left: 4px; */
+      .remove-player {
+          right: 4px; /* Garante que ele fique à direita no mobile */
           top: 4px;
       }
     }
