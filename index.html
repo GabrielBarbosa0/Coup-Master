@@ -163,13 +163,16 @@
       position: relative;
     }
 
+    /* === [NOVO] Adicione esta regra === */
     /* Esconde todos os jogadores por padrão para evitar o "flash" */
     .player-hands-container>.player-area {
       display: none;
     }
 
+    /* === [FIM DA NOVA REGRA] === */
 
-    /* === [CORREÇÃO] ESTILO MINIMALISTA DO BOTÃO REMOVER === */
+
+    /* === NOVO ESTILO PARA O BOTÃO DE REMOVER === */
     .points {
       position: absolute;
       right: 8px;
@@ -181,20 +184,20 @@
     }
 
     .points .remove-player {
+
       background: #ff3b3b;
-      width: 12px;  /* Pequeno */
-      height: 12px; /* Pequeno */
-      border-radius: 50%; /* Círculo */
-      border: 1px solid #fff; /* Borda branca */
-      padding: 0;
-      font-size: 0; /* Esconde o texto 'X' se houver */
-      line-height: 0;
+      width: 0px;
+      height: 12px;
+      color: white;
+      font-size: 3px;
+      line-height: 1;
     }
 
     .points .remove-player:hover {
       background: #ff5555;
     }
-    /* === FIM DA CORREÇÃO === */
+
+    /* === FIM NOVO ESTILO === */
 
 
     .player-title {
@@ -583,7 +586,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="1" title="Remover Jogador"></button>
+              <button class="remove-player" data-pid="1" title="Remover Jogador">❌</button>
             </div>
             <div class="player-title">Jogador 1</div>
             <div class="player-stack hand" data-hand></div>
@@ -594,7 +597,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="2" title="Remover Jogador"></button>
+              <button class="remove-player" data-pid="2" title="Remover Jogador">❌</button>
             </div>
             <div class="player-title">Jogador 2</div>
             <div class="player-stack hand" data-hand></div>
@@ -605,7 +608,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="3" title="Remover Jogador"></button>
+              <button class="remove-player" data-pid="3" title="Remover Jogador">❌</button>
             </div>
             <div class="player-title">Jogador 3</div>
             <div class="player-stack hand" data-hand></div>
@@ -616,7 +619,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="4" title="Remover Jogador"></button>
+              <button class="remove-player" data-pid="4" title="Remover Jogador">❌</button>
             </div>
             <div class="player-title">Jogador 4</div>
             <div class="player-stack hand" data-hand></div>
@@ -627,7 +630,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="5" title="Remover Jogador"></button>
+              <button class="remove-player" data-pid="5" title="Remover Jogador">❌</button>
             </div>
             <div class="player-title">Jogador 5</div>
             <div class="player-stack hand" data-hand></div>
@@ -638,7 +641,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="6" title="Remover Jogador"></button>
+              <button class="remove-player" data-pid="6" title="Remover Jogador">❌</button>
             </div>
             <div class="player-title">Jogador 6</div>
             <div class="player-stack hand" data-hand></div>
@@ -649,7 +652,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="7" title="Remover Jogador"></button>
+              <button class="remove-player" data-pid="7" title="Remover Jogador">❌</button>
             </div>
             <div class="player-title">Jogador 7</div>
             <div class="player-stack hand" data-hand></div>
@@ -660,7 +663,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="8" title="Remover Jogador"></button>
+              <button class="remove-player" data-pid="8" title="Remover Jogador">❌</button>
             </div>
             <div class="player-title">Jogador 8</div>
             <div class="player-stack hand" data-hand></div>
@@ -886,11 +889,10 @@
 
         const player = state.players[pid] || { online: false, hand: [], score: 0 };
 
-        /* [REMOVIDO] Destaque de turno
+        // [NOVO] DESTAQUE DE TURNO
         if (state.turn === pid) {
-            playerEl.classList.add('active-turn');
+          playerEl.classList.add('active-turn');
         }
-        */
 
         // LÓGICA DE MOSTRAR/OCULTAR
         if (player.online) {
@@ -899,14 +901,6 @@
           playerEl.style.display = 'none';
           continue;
         }
-
-        // [NOVO] ATUALIZA O NOME
-        const titleEl = playerEl.querySelector('.player-title');
-        if (titleEl) {
-            // Se o jogador tiver um nome, mostra. Senão, "Jogador X"
-            titleEl.textContent = player.name ? player.name : `Jogador ${pid}`;
-        }
-
 
         const handContainer = document.querySelector(`#player-${pid} [data-hand]`);
 
@@ -966,15 +960,11 @@
       isDrawingCard = true;
 
       gameStateRef.transaction((currentState) => {
-        if (!currentState) {
-            isDrawingCard = false; // [FIX] Libera a trava
-            return;
-        }
+        if (!currentState) return currentState;
 
         if (!currentState.deck || currentState.deck.length === 0) {
           console.log("Deck vazio.");
-          isDrawingCard = false; // [FIX] Libera a trava
-          return;
+          return currentState;
         }
 
         const card = currentState.deck.pop();
@@ -1059,7 +1049,7 @@
       });
     }
 
-    // [CORREÇÃO] KICK PLAYER
+    // [NOVA FUNÇÃO] KICK PLAYER
     function kickPlayer(pid) {
       if (!confirm(`Tem certeza que deseja remover o Jogador ${pid}?`)) {
         return;
@@ -1072,10 +1062,9 @@
         alert('Você foi removido da sala e seu slot está liberado.');
       }
 
-      // 2. Atualiza o Firebase para 'online: false' E 'name: null'
+      // 2. Atualiza o Firebase para 'online: false'
       db.ref(`gameState/players/${pid}`).update({
-        online: false,
-        name: null // <-- [CORREÇÃO] Limpa o nome
+        online: false
       });
     }
 
@@ -1092,23 +1081,24 @@
       console.log("Resetando a mesa...");
       let newDeck = createDeck();
 
-      // [CORREÇÃO] Não preserva mais os nomes ao resetar
+      let currentPlayers = localGameState.players || {};
+
       let newPlayersState = {
-        1: { online: false, name: null, hand: [], score: 2 },
-        2: { online: false, name: null, hand: [], score: 2 },
-        3: { online: false, name: null, hand: [], score: 2 },
-        4: { online: false, name: null, hand: [], score: 2 },
-        5: { online: false, name: null, hand: [], score: 2 },
-        6: { online: false, name: null, hand: [], score: 2 },
-        7: { online: false, name: null, hand: [], score: 2 },
-        8: { online: false, name: null, hand: [], score: 2 },
+        1: { online: currentPlayers[1]?.online || false, hand: [], score: 2 },
+        2: { online: currentPlayers[2]?.online || false, hand: [], score: 2 },
+        3: { online: currentPlayers[3]?.online || false, hand: [], score: 2 },
+        4: { online: currentPlayers[4]?.online || false, hand: [], score: 2 },
+        5: { online: currentPlayers[5]?.online || false, hand: [], score: 2 },
+        6: { online: currentPlayers[6]?.online || false, hand: [], score: 2 },
+        7: { online: currentPlayers[7]?.online || false, hand: [], score: 2 },
+        8: { online: currentPlayers[8]?.online || false, hand: [], score: 2 },
       };
 
       let initialState = {
         deck: newDeck,
         grave: [],
         freeCards: [],
-        // turn: 1, // [REMOVIDO]
+        turn: 1, // Inicia o turno no jogador 1
         players: newPlayersState
       };
 
@@ -1122,24 +1112,6 @@
         }
         return currentState;
       });
-    }
-
-    // [NOVO] Prompt para nome do jogador
-    function promptForName(pid) {
-        const playerRef = db.ref(`gameState/players/${pid}`);
-        playerRef.child('name').once('value', (snapshot) => {
-            const currentName = snapshot.val();
-            // Se o jogador já tem nome (ex: reconectou), não pergunta de novo.
-            if (currentName) return; 
-
-            let name = prompt("Qual é o seu nome?", `Jogador ${pid}`);
-            if (name) {
-                playerRef.update({ name: name });
-            } else {
-                // Se o jogador cancelar o prompt, atribui um nome padrão
-                playerRef.update({ name: `Jogador ${pid}` });
-            }
-        });
     }
 
     // =======================================================
@@ -1177,8 +1149,6 @@
       // Botões de controle
       shuffleBtn.onclick = shuffleDeck;
       resetBtn.onclick = resetTable;
-
-      // [REMOVIDO] Botão de próximo turno
 
       // LÓGICA DO MODAL DE INFO
       const infoBtn = document.getElementById('infoBtn');
@@ -1256,16 +1226,13 @@
             deck: newDeck,
             grave: [],
             freeCards: [],
-            // turn: 1, // [REMOVIDO]
+            turn: 1,
             players: {
-              1: { hand: [], score: 2, online: true, name: null },
-              2: { hand: [], score: 2, online: false, name: null }, 
-              3: { hand: [], score: 2, online: false, name: null },
-              4: { hand: [], score: 2, online: false, name: null }, 
-              5: { hand: [], score: 2, online: false, name: null },
-              6: { hand: [], score: 2, online: false, name: null }, 
-              7: { hand: [], score: 2, online: false, name: null },
-              8: { hand: [], score: 2, online: false, name: null },
+              1: { hand: [], score: 2, online: true },
+              2: { hand: [], score: 2, online: false }, 3: { hand: [], score: 2, online: false },
+              4: { hand: [], score: 2, online: false }, 5: { hand: [], score: 2, online: false },
+              6: { hand: [], score: 2, online: false }, 7: { hand: [], score: 2, online: false },
+              8: { hand: [], score: 2, online: false },
             }
           };
           myPlayerId = 1;
@@ -1281,7 +1248,6 @@
             currentState.players[i].online = true;
             currentState.players[i].score = currentState.players[i].score || 2;
             currentState.players[i].hand = currentState.players[i].hand || [];
-            currentState.players[i].name = null; // [CORREÇÃO] Garante que o nome seja nulo
             myPlayerId = i;
             localStorage.setItem('myPlayerId', i);
             return currentState;
@@ -1294,8 +1260,6 @@
         if (committed) {
           console.log(`Entrei com sucesso: Jogador ${myPlayerId}`);
           setupDisconnectHandler(myPlayerId);
-          // [NOVO] Pergunta o nome APÓS entrar
-          promptForName(myPlayerId); 
         } else if (error) {
           console.error("Erro na transação:", error);
           alert("Erro de conexão ao entrar na sala. Tente novamente.");
