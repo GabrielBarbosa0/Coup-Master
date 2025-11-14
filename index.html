@@ -10,9 +10,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
-
 
   <style>
     :root {
@@ -57,8 +54,6 @@
       margin-bottom: 18px;
       font-family: "Orbitron", sans-serif;
     }
-
-
 
     header h1 {
       margin: 0;
@@ -128,6 +123,16 @@
       color: white;
       cursor: pointer;
     }
+    
+    /* NOVO ESTILO: BOTÃO REMOVER CENTRALIZADO */
+    #kickPlayerBtn {
+        background: #9d2525;
+        font-weight: bold;
+    }
+    #kickPlayerBtn:hover {
+        background: #c34444;
+    }
+
 
     /* Central area layout (NOVO) */
     .center-area {
@@ -166,13 +171,6 @@
       position: relative;
     }
 
-    /* [NOVO] ESTILO PARA O JOGADOR ATIVO */
-    .player-area.active-turn {
-      border-color: #00ff73;
-      /* Verde para destacar */
-      box-shadow: 0 0 10px #00ff7380;
-    }
-
     /* === [NOVO] Adicione esta regra === */
     /* Esconde todos os jogadores por padrão para evitar o "flash" */
     .player-hands-container>.player-area {
@@ -181,6 +179,11 @@
 
     /* === [FIM DA NOVA REGRA] === */
 
+    /* [NOVO] ESTILO PARA O JOGADOR ATIVO */
+    .player-area.active-turn {
+      border-color: #00ff73; /* Verde para destacar */
+      box-shadow: 0 0 10px #00ff7380;
+    }
 
 
     .player-title {
@@ -236,8 +239,7 @@
     /* Free area below (AJUSTADO) */
     .free-area {
       border-radius: 12px;
-      border: 3px dashed #ffffff0f;
-      box-shadow: 0 0 10px #ff000080;
+      border: 3px dashed rgba(255, 0, 0, 0.5);
       padding: 18px;
       min-height: 200px;
       display: flex;
@@ -330,7 +332,8 @@
       right: 8px;
       top: 8px;
       display: flex;
-      align-items: center
+      align-items: center;
+      gap: 4px; /* Adicionado para separar os botões */
     }
 
     .points button {
@@ -342,6 +345,9 @@
       font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
       cursor: pointer
     }
+    
+    /* REMOVIDO ESTILO .REMOVE-PLAYER INDIVIDUAL */
+
 
     .points .score {
       min-width: 28px;
@@ -561,9 +567,9 @@
         <div class="room muted"> </div>
         <div class="controls">
           <button id="resetBtn" class="resetBtn" title="Resetar Mesa"><img src="img/cached.svg" alt=""></button>
-          <button id="shuffleBtn" class="shuffleBtn" title="Embaralhar Cartas"><img src="img/playing_cards.svg"
-              alt=""></button>
           <button id="infoBtn" class="infoBtn" title="Ver Ações"><img src="img/info.svg" alt=""></button>
+          
+          <button id="kickPlayerBtn" title="Remover Jogador Manualmente" style="background: #9d2525; color: white;">Kickar Jogador</button>
         </div>
       </div>
 
@@ -576,7 +582,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-            </div>
+              </div>
             <div class="player-title">Jogador 1</div>
             <div class="player-stack hand" data-hand></div>
           </div>
@@ -586,7 +592,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-            </div>
+              </div>
             <div class="player-title">Jogador 2</div>
             <div class="player-stack hand" data-hand></div>
           </div>
@@ -596,7 +602,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-            </div>
+              </div>
             <div class="player-title">Jogador 3</div>
             <div class="player-stack hand" data-hand></div>
           </div>
@@ -606,7 +612,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-            </div>
+              </div>
             <div class="player-title">Jogador 4</div>
             <div class="player-stack hand" data-hand></div>
           </div>
@@ -616,7 +622,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-            </div>
+              </div>
             <div class="player-title">Jogador 5</div>
             <div class="player-stack hand" data-hand></div>
           </div>
@@ -626,7 +632,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-            </div>
+              </div>
             <div class="player-title">Jogador 6</div>
             <div class="player-stack hand" data-hand></div>
           </div>
@@ -636,7 +642,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-            </div>
+              </div>
             <div class="player-title">Jogador 7</div>
             <div class="player-stack hand" data-hand></div>
           </div>
@@ -646,7 +652,7 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-            </div>
+              </div>
             <div class="player-title">Jogador 8</div>
             <div class="player-stack hand" data-hand></div>
           </div>
@@ -655,7 +661,7 @@
         <div class="bottom-table-container">
 
           <div class="free-area" id="freeArea" data-area="free">
-            <div class="muted" style="width:100%;">Cemitério — arraste cartas aqui para torná-las visíveis a todos
+            <div class="muted" style="width:100%;">Área livre — arraste cartas aqui para torná-las visíveis a todos
             </div>
           </div>
 
@@ -745,6 +751,7 @@
     const freeArea = document.getElementById('freeArea');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const kickPlayerBtn = document.getElementById('kickPlayerBtn'); // [NOVO]
 
     // =======================================================
     // === 3. FUNÇÕES DE CRIAÇÃO E MANIPULAÇÃO DO JOGO (LÓGICA) ===
@@ -819,7 +826,6 @@
       document.querySelectorAll('.slot').forEach(n => n.remove());
       document.querySelectorAll('.player-area.local-player')
         .forEach(el => el.classList.remove('local-player'));
-      // [NOVO] Limpa o destaque de turno antes de redesenhar
       document.querySelectorAll('.player-area.active-turn')
         .forEach(el => el.classList.remove('active-turn'));
     }
@@ -873,7 +879,7 @@
 
         // [NOVO] DESTAQUE DE TURNO
         if (state.turn === pid) {
-          playerEl.classList.add('active-turn');
+            playerEl.classList.add('active-turn');
         }
 
         // LÓGICA DE MOSTRAR/OCULTAR
@@ -932,7 +938,6 @@
     // === 5. AÇÕES DO JOGADOR (ESCREVEM NO FIREBASE) ===
     // =======================================================
 
-    // [CORRIGIDO] Função com trava de clique
     function drawCard() {
       if (!myPlayerId) return;
 
@@ -1032,6 +1037,26 @@
       });
     }
 
+    // [NOVA FUNÇÃO] KICK PLAYER
+    function kickPlayer(pid) {
+      if (!confirm(`Tem certeza que deseja remover o Jogador ${pid}?`)) {
+        return;
+      }
+      
+      // 1. Remove a persistência local (se for o próprio jogador)
+      if (pid === myPlayerId) {
+         localStorage.removeItem('myPlayerId');
+         myPlayerId = null; // Zera a ID local
+         alert('Você foi removido da sala e seu slot está liberado. Recarregue a página para continuar.');
+      }
+
+      // 2. Atualiza o Firebase para 'online: false'
+      db.ref(`gameState/players/${pid}`).update({
+        online: false
+      });
+    }
+
+
     function updateScore(pid, amount) {
       const scoreRef = db.ref(`gameState/players/${pid}/score`);
       scoreRef.once('value', (snapshot) => {
@@ -1062,7 +1087,7 @@
         deck: newDeck,
         grave: [],
         freeCards: [],
-        turn: 1, // [NOVO] Inicia o turno no jogador 1
+        turn: 1, // Inicia o turno no jogador 1
         players: newPlayersState
       };
 
@@ -1077,164 +1102,92 @@
         return currentState;
       });
     }
+    
+    // Função separada para lidar com a busca e o claim atômico
+    function findNewSlot() {
+        gameStateRef.transaction((currentState) => {
+            if (!currentState || !currentState.players) {
+                // Criação inicial da sala (JOGADOR 1)
+                let newDeck = createDeck();
+                let initialState = {
+                    deck: newDeck,
+                    grave: [],
+                    freeCards: [],
+                    turn: 1, // Inicia o turno no jogador 1
+                    players: {
+                        1: { hand: [], score: 2, online: true },
+                        2: { hand: [], score: 2, online: false }, 3: { hand: [], score: 2, online: false }, 
+                        4: { hand: [], score: 2, online: false }, 5: { hand: [], score: 2, online: false },
+                        6: { hand: [], score: 2, online: false }, 7: { hand: [], score: 2, online: false },
+                        8: { hand: [], score: 2, online: false },
+                    }
+                };
+                myPlayerId = 1;
+                localStorage.setItem('myPlayerId', 1);
+                return initialState;
+            }
 
+            // Busca um slot vazio (online: false)
+            for (let i = 1; i <= 8; i++) {
+                if (!currentState.players[i] || !currentState.players[i].online) {
+                    // Ocupa o slot atomicamente
+                    currentState.players[i] = currentState.players[i] || {};
+                    currentState.players[i].online = true;
+                    currentState.players[i].score = currentState.players[i].score || 2; 
+                    currentState.players[i].hand = currentState.players[i].hand || [];
+                    myPlayerId = i;
+                    localStorage.setItem('myPlayerId', i);
+                    return currentState;
+                }
+            }
 
-
-    // =======================================================
-    // === 6. SETUP DE EVENTOS E INICIALIZAÇÃO ===
-    // =======================================================
-
-    function setupDropzones() {
-      deckEl.ondragover = ev => ev.preventDefault();
-      deckEl.ondrop = ev => {
-        ev.preventDefault();
-        const id = ev.dataTransfer.getData('text/plain');
-        moveCard(id, 'deck');
-      };
-      deckEl.onclick = () => drawCard();
-      // dblclick removido
-
-      document.querySelectorAll('.player-area').forEach(area => {
-        area.ondragover = ev => ev.preventDefault();
-        area.ondrop = ev => {
-          ev.preventDefault();
-          const id = ev.dataTransfer.getData('text/plain');
-          const pid = parseInt(area.dataset.player);
-          moveCard(id, 'player', pid);
-        };
-      });
-
-      freeArea.ondragover = ev => ev.preventDefault();
-      freeArea.ondrop = ev => {
-        ev.preventDefault();
-        const id = ev.dataTransfer.getData('text/plain');
-        moveCard(id, 'free');
-      };
+            // Sala cheia, não pode entrar
+            return; // Aborta a transação
+        }, (error, committed, snapshot) => {
+            if (committed) {
+                console.log(`Entrei com sucesso: Jogador ${myPlayerId}`);
+                setupDisconnectHandler(myPlayerId);
+            } else if (error) {
+                console.error("Erro na transação:", error);
+                alert("Erro de conexão ao entrar na sala. Tente novamente.");
+            } else {
+                // Sala cheia
+                alert("Sala cheia! (Máx 8 jogadores)");
+                document.body.innerHTML = "<h1>Sala cheia. Tente novamente mais tarde.</h1>";
+            }
+        });
     }
-
-
-    function setupUI() {
-      // Botões de controle
-      shuffleBtn.onclick = shuffleDeck;
-      resetBtn.onclick = resetTable;
-
-      // [REMOVIDO] Bloco que criava o botão "Próximo Turno"
-
-      // LÓGICA DO MODAL DE INFO
-      const infoBtn = document.getElementById('infoBtn');
-      const infoModal = document.getElementById('infoModal');
-      const closeModalBtn = document.getElementById('closeModalBtn');
-
-      if (infoBtn && infoModal && closeModalBtn) {
-        infoBtn.onclick = () => { infoModal.style.display = 'flex'; };
-        closeModalBtn.onclick = () => { infoModal.style.display = 'none'; };
-        infoModal.onclick = (e) => {
-          if (e.target === infoModal) {
-            infoModal.style.display = 'none';
-          }
-        };
-      }
-
-
-      // Controles de pontos +/-
-      document.querySelectorAll('.player-area').forEach(area => {
-        const pid = parseInt(area.dataset.player);
-        area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
-        area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
-      });
-    }
-
 
     // Lógica de "Entrar na Sala"
     function findAndOccupySlot() {
-      const myPersistedId = localStorage.getItem('myPlayerId');
+        const myPersistedId = localStorage.getItem('myPlayerId');
+        
+        // Tenta re-ocupar o slot primeiro (Persistência)
+        if (myPersistedId) {
+            gameStateRef.transaction((currentState) => {
+                if (!currentState || !currentState.players) return;
+                
+                const pid = parseInt(myPersistedId);
 
-      // Tenta re-ocupar o slot primeiro
-      if (myPersistedId) {
-        gameStateRef.transaction((currentState) => {
-          if (!currentState || !currentState.players) return;
-
-          const pid = parseInt(myPersistedId);
-
-          // Se o slot existir e não estiver ocupado por OUTRO dispositivo (online: false)
-          if (currentState.players[pid] && !currentState.players[pid].online) {
-            // Ocupa o slot
-            currentState.players[pid].online = true;
-            myPlayerId = pid;
-            return currentState;
-          }
-
-          // Se o slot estiver ocupado, ou não existir, o jogador deve procurar outro
-          localStorage.removeItem('myPlayerId');
-          return; // Aborta a transação para procurar um novo slot
-        }, (error, committed, snapshot) => {
-          if (committed) {
-            console.log(`Reclamei o slot persistido: Jogador ${myPlayerId}`);
-            setupDisconnectHandler(myPlayerId);
-            return;
-          }
-          // Se o reclaim falhou, continua com a lógica normal de busca
-          findNewSlot();
-        });
-      } else {
-        findNewSlot();
-      }
-    }
-
-    // Função separada para lidar com a busca e o claim atômico
-    function findNewSlot() {
-      gameStateRef.transaction((currentState) => {
-        if (!currentState || !currentState.players) {
-          // Caso o estado ainda não exista, o Jogador 1 deve criá-lo
-          let newDeck = createDeck();
-          let initialState = {
-            deck: newDeck,
-            grave: [],
-            freeCards: [],
-            turn: 1, // [NOVO] Inicia o turno no jogador 1
-            players: {
-              1: { hand: [], score: 2, online: true },
-              // ... o resto dos 8 slots como 'online: false' e 'score: 2'
-              2: { hand: [], score: 2, online: false }, 3: { hand: [], score: 2, online: false },
-              4: { hand: [], score: 2, online: false }, 5: { hand: [], score: 2, online: false },
-              6: { hand: [], score: 2, online: false }, 7: { hand: [], score: 2, online: false },
-              8: { hand: [], score: 2, online: false },
-            }
-          };
-          myPlayerId = 1;
-          localStorage.setItem('myPlayerId', 1);
-          return initialState;
-        }
-
-        // Busca um slot vazio (online: false)
-        for (let i = 1; i <= 8; i++) {
-          if (!currentState.players[i] || !currentState.players[i].online) {
-            // Ocupa o slot atomicamente
-            currentState.players[i] = currentState.players[i] || {};
-            currentState.players[i].online = true;
-            currentState.players[i].score = currentState.players[i].score || 2;
-            currentState.players[i].hand = currentState.players[i].hand || [];
-            myPlayerId = i;
-            localStorage.setItem('myPlayerId', i);
-            return currentState;
-          }
-        }
-
-        // Sala cheia, não pode entrar
-        return; // Aborta a transação
-      }, (error, committed, snapshot) => {
-        if (committed) {
-          console.log(`Entrei com sucesso: Jogador ${myPlayerId}`);
-          setupDisconnectHandler(myPlayerId);
-        } else if (error) {
-          console.error("Erro na transação:", error);
-          alert("Erro de conexão ao entrar na sala. Tente novamente.");
+                if (currentState.players[pid] && !currentState.players[pid].online) {
+                    currentState.players[pid].online = true;
+                    myPlayerId = pid;
+                    return currentState;
+                }
+                
+                localStorage.removeItem('myPlayerId');
+                return; 
+            }, (error, committed, snapshot) => {
+                if (committed) {
+                    console.log(`Reclamei o slot persistido: Jogador ${myPlayerId}`);
+                    setupDisconnectHandler(myPlayerId);
+                    return;
+                }
+                findNewSlot(); 
+            });
         } else {
-          // Sala cheia
-          alert("Sala cheia! (Máx 8 jogadores)");
-          document.body.innerHTML = "<h1>Sala cheia. Tente novamente mais tarde.</h1>";
+            findNewSlot();
         }
-      });
     }
 
     // Handler para quando o jogador fechar a aba
@@ -1250,24 +1203,24 @@
     // =======================================================
 
     function initializeGame() {
-      const persistedId = localStorage.getItem('myPlayerId');
-      if (persistedId) {
-        myPlayerId = parseInt(persistedId);
-      }
-
-      if (!firebaseConfig.apiKey) return;
-
-      gameStateRef.on('value', (snapshot) => {
-        const state = snapshot.val();
-        if (state) {
-          localGameState = state;
-          renderAll();
+        const persistedId = localStorage.getItem('myPlayerId');
+        if (persistedId) {
+            myPlayerId = parseInt(persistedId);
         }
-      });
+        
+        if (!firebaseConfig.apiKey) return;
 
-      findAndOccupySlot();
-      setupUI();
-      setupDropzones();
+        gameStateRef.on('value', (snapshot) => {
+            const state = snapshot.val();
+            if (state) {
+                localGameState = state;
+                renderAll();
+            }
+        });
+
+        findAndOccupySlot();
+        setupUI();
+        setupDropzones();
     }
 
     // Inicia o jogo!
