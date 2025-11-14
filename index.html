@@ -1078,37 +1078,7 @@
       });
     }
 
-    // [NOVO] FUNÇÃO PARA PASSAR O TURNO
-    function nextTurn() {
-      gameStateRef.transaction((currentState) => {
-        if (!currentState) return currentState;
 
-        let currentTurn = currentState.turn || 1;
-        let nextPlayer = currentTurn + 1;
-
-        // Loop para encontrar o próximo jogador online
-        while (nextPlayer <= 8) {
-          if (currentState.players[nextPlayer] && currentState.players[nextPlayer].online) {
-            currentState.turn = nextPlayer;
-            return currentState;
-          }
-          nextPlayer++;
-        }
-
-        // Se chegou ao fim (P8), volta para o P1 e repete a busca
-        nextPlayer = 1;
-        while (nextPlayer < currentTurn) {
-          if (currentState.players[nextPlayer] && currentState.players[nextPlayer].online) {
-            currentState.turn = nextPlayer;
-            return currentState;
-          }
-          nextPlayer++;
-        }
-
-        // Se não encontrou ninguém (é o único jogador), fica nele
-        return currentState;
-      });
-    }
 
     // =======================================================
     // === 6. SETUP DE EVENTOS E INICIALIZAÇÃO ===
@@ -1142,17 +1112,13 @@
       };
     }
 
+
     function setupUI() {
       // Botões de controle
       shuffleBtn.onclick = shuffleDeck;
       resetBtn.onclick = resetTable;
 
-      // [NOVO] Adiciona botão para passar o turno
-      const nextTurnBtn = document.createElement('button');
-      nextTurnBtn.textContent = 'Próximo Turno';
-      nextTurnBtn.onclick = nextTurn;
-      document.querySelector('.controls').appendChild(nextTurnBtn);
-
+      // [REMOVIDO] Bloco que criava o botão "Próximo Turno"
 
       // LÓGICA DO MODAL DE INFO
       const infoBtn = document.getElementById('infoBtn');
@@ -1177,6 +1143,7 @@
         area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
       });
     }
+
 
     // Lógica de "Entrar na Sala"
     function findAndOccupySlot() {
