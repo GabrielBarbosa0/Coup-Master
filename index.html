@@ -904,7 +904,7 @@
     <div class="modal-content">
       <button id="closeConfigModalBtn" class="close-btn">&times;</button>
       <h2>Configurar Baralho</h2>
-      <p class="muted">Apenas o Jogador 1 (Host) pode editar. (Use 0 para remover uma carta)</p>
+      <p class="muted">(Use 0 para remover uma carta)</p>
       <ul class="card-config-list">
         <li class="card-config-item">
           <label for="config-duque">Duque</label>
@@ -928,7 +928,7 @@
         </li>
         <li class="card-config-item">
           <label for="config-inquisidor">Inquisidor</label>
-          <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="5">
+          <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="0">
         </li>
         <li class="card-config-item">
           <label for="config-benfeitor">Benfeitor</label>
@@ -945,6 +945,42 @@
         <li class="card-config-item">
           <label for="config-burocrata">Burocrata</label>
           <input type="number" id="config-burocrata" data-card="burocrata" min="0" max="10" value="0">
+        </li>
+        <li class="card-config-item">
+          <label for="config-vigilante">Vigilante</label>
+          <input type="number" id="config-vigilante" data-card="vigilante" min="0" max="10" value="0">
+        </li>
+        <li class="card-config-item">
+          <label for="config-mercenario">Mercenário</label>
+          <input type="number" id="config-mercenario" data-card="mercenario" min="0" max="10" value="0">
+        </li>
+        <li class="card-config-item">
+          <label for="config-purificador">Purificador</label>
+          <input type="number" id="config-purificador" data-card="purificador" min="0" max="10" value="0">
+        </li>
+        <li class="card-config-item">
+          <label for="config-tesoureiro_da_coroa">Tesoureiro da Coroa</label>
+          <input type="number" id="config-tesoureiro_da_coroa" data-card="tesoureiro_da_coroa" min="0" max="10" value="0">
+        </li>
+        <li class="card-config-item">
+          <label for="config-diplomata">Diplomata</label>
+          <input type="number" id="config-diplomata" data-card="diplomata" min="0" max="10" value="0">
+        </li>
+        <li class="card-config-item">
+          <label for="config-marionetista">Marionetista</label>
+          <input type="number" id="config-marionetista" data-card="marionetista" min="0" max="10" value="0">
+        </li>
+        <li class="card-config-item">
+          <label for="config-contador_real">Contador Real</label>
+          <input type="number" id="config-contador_real" data-card="contador_real" min="0" max="10" value="0">
+        </li>
+        <li class="card-config-item">
+          <label for="config-contrabandista">Contrabandista</label>
+          <input type="number" id="config-contrabandista" data-card="contrabandista" min="0" max="10" value="0">
+        </li>
+        <li class="card-config-item">
+          <label for="config-camaleao">Camaleão</label>
+          <input type="number" id="config-camaleao" data-card="camaleao" min="0" max="10" value="0">
         </li>
       </ul>
       <button id="applyDeckConfigBtn">Aplicar e Resetar Jogo</button>
@@ -992,10 +1028,21 @@
       { type: 'embaixador', color: '#49f0ff' },
       { type: 'condessa', color: '#ffb000' },
       { type: 'inquisidor', color: '#2a8cff' },
+      // peronagens promo
       { type: 'benfeitor', color: '#C0C0C0' },
       { type: 'bufao', color: '#FF69B4' },
       { type: 'burgues', color: '#800080' },
-      { type: 'burocrata', color: '#A52A2A' }
+      { type: 'burocrata', color: '#A52A2A' },
+      // --- personagens originais ---
+      { type: 'vigilante', color: '#FFFFFF' },
+      { type: 'mercenario', color: '#FFFFFF' },
+      { type: 'purificador', color: '#FFFFFF' },
+      { type: 'tesoureiro_da_coroa', color: '#FFFFFF' },
+      { type: 'diplomata', color: '#FFFFFF' },
+      { type: 'marionetista', color: '#FFFFFF' },
+      { type: 'contador_real', color: '#FFFFFF' },
+      { type: 'contrabandista', color: '#FFFFFF' },
+      { type: 'camaleao', color: '#FFFFFF' }
     ];
 
     // O estado local é um "espelho" do que está no Firebase
@@ -1441,11 +1488,21 @@
       });
     }
 
-    // [NOVO] Função helper para criar a config padrão
+    // [FUNÇÃO NOVA]
     function createDefaultDeckConfig() {
       return {
         'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
-        'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0
+        'inquisidor': 0, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
+        
+        'vigilante': 0,
+        'mercenario': 0,
+        'purificador': 0,
+        'tesoureiro_da_coroa': 0,
+        'diplomata': 0,
+        'marionetista': 0,
+        'contador_real': 0,
+        'contrabandista': 0,
+        'camaleao': 0
       };
     }
 
