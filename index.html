@@ -23,7 +23,6 @@
       --dotted: 3px dotted rgba(255, 255, 255, 0.12);
       --text: #e6eef6;
       --muted: rgba(230, 238, 246, 0.25);
-      /* font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; */
     }
 
 
@@ -81,7 +80,8 @@
     }
 
     .shuffleBtn {
-      display: none; /* Oculta o botão de embaralhar */
+      display: none !important;
+      /* Oculta o botão de embaralhar */
     }
 
 
@@ -120,13 +120,20 @@
       align-items: center;
     }
 
-    .controls button {
-      padding: 8px 10px;
+    /* [CORREÇÃO] Aplicando o estilo também ao .resetBtn */
+    .controls button,
+    .resetBtn {
+      padding: 8px;
+      /* Padronizado */
       border-radius: 8px;
       border: 0;
       background: var(--panel);
       color: white;
       cursor: pointer;
+      /* Adicionado para centralizar os SVGs */
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* Central area layout (NOVO) */
@@ -179,16 +186,20 @@
       display: flex;
       align-items: center;
       /* gap: 4px; <-- REMOVIDO CONFORME SOLICITADO */
-      margin-top: 4px; /* Espaçamento */
-      margin-bottom: 8px; /* Espaçamento */
+      margin-top: 4px;
+      /* Espaçamento */
+      margin-bottom: 8px;
+      /* Espaçamento */
       justify-content: center;
     }
 
-    .remove-player { /* [CORREÇÃO] Botão Kickar agora é separado */
+    .remove-player {
+      /* [CORREÇÃO] Botão Kickar agora é separado */
       position: absolute;
-      right: 8px; /* Alinhado à DIREITA */
+      right: 8px;
+      /* Alinhado à DIREITA */
       top: 8px;
-      
+
       background: #ff3b3b;
       width: 12px;
       height: 12px;
@@ -296,12 +307,24 @@
       align-items: center;
     }
 
-    .asylum-points button {
+   .asylum-points button {
       background: #f6c204;
       color: #000;
       border: 0;
-      border-radius: 20px;
       cursor: pointer;
+
+      /* === [CORREÇÃO] Círculo Perfeito === */
+      width: 22px;  /* Mesmo tamanho dos botões de jogador */
+      height: 22px;
+      border-radius: 50%; /* Garante um círculo perfeito */
+      
+      /* Centralização do + e - */
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-size: 16px;
     }
 
     .asylum-points .score {
@@ -564,10 +587,11 @@
         right: 4px;
         top: 4px
       }
-      
+
       .remove-player {
-          right: 4px; /* Garante que ele fique à direita no mobile */
-          top: 4px;
+        right: 4px;
+        /* Garante que ele fique à direita no mobile */
+        top: 4px;
       }
     }
 
@@ -740,9 +764,10 @@
 
     <div class="board">
       <div class="top-row">
-        <div class="room muted"> </div>
-        <div class="controls">
+        <div class="room muted">
           <button id="resetBtn" class="resetBtn" title="Resetar Mesa"><img src="img/cached.svg" alt=""></button>
+        </div>
+        <div class="controls">
           <button id="shuffleBtn" class="shuffleBtn" title="Embaralhar Cartas"><img src="img/playing_cards.svg"
               alt=""></button>
           <button id="infoBtn" class="infoBtn" title="Ver Ações"><img src="img/info.svg" alt=""></button>
@@ -850,7 +875,7 @@
             <div class="religion-status" data-pid="8">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
-          </div>
+        </div>
         <div class="bottom-table-container">
 
           <div class="free-area" id="freeArea" data-area="free">
@@ -928,7 +953,7 @@
         </li>
         <li class="card-config-item">
           <label for="config-inquisidor">Inquisidor</label>
-          <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="0">
+          <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="5">
         </li>
         <li class="card-config-item">
           <label for="config-benfeitor">Benfeitor</label>
@@ -960,7 +985,8 @@
         </li>
         <li class="card-config-item">
           <label for="config-tesoureiro_da_coroa">Tesoureiro da Coroa</label>
-          <input type="number" id="config-tesoureiro_da_coroa" data-card="tesoureiro_da_coroa" min="0" max="10" value="0">
+          <input type="number" id="config-tesoureiro_da_coroa" data-card="tesoureiro_da_coroa" min="0" max="10"
+            value="0">
         </li>
         <li class="card-config-item">
           <label for="config-diplomata">Diplomata</label>
@@ -1492,8 +1518,8 @@
     function createDefaultDeckConfig() {
       return {
         'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
-        'inquisidor': 0, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
-        
+        'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
+
         'vigilante': 0,
         'mercenario': 0,
         'purificador': 0,
