@@ -144,10 +144,10 @@
       /* Espaço entre a linha dos players e a linha da mesa */
     }
 
-    /* (NOVO) Container para os 4 jogadores no topo */
+    /* (NOVO) Container para os 3 jogadores no topo */
     .player-hands-container {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 18px;
     }
 
@@ -440,10 +440,10 @@
     }
 
 
-    /* [CORREÇÃO] Aplicando o Grid de 2 colunas no seletor correto */
+    /* [CORREÇÃO] Aplicando o Grid de 3 colunas no seletor correto */
     .player-stack {
       display: grid;
-      grid-template-columns: repeat(2, auto);
+      grid-template-columns: repeat(3, auto);
       gap: 8px;
       justify-content: center;
       align-items: center;
