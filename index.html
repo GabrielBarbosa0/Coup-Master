@@ -88,7 +88,7 @@
 
 
     .infoBtn img,
-    .configBtn img, 
+    .configBtn img,
     .musicBtn img {
       width: 100%;
       height: 100%;
@@ -98,14 +98,17 @@
 
     /* [NOVO] Estilo visual para quando a música estiver desligada */
     .musicBtn.muted {
-      opacity: 0.4; /* Fica "apagado" */
-      filter: grayscale(100%); /* Fica cinza */
+      opacity: 0.4;
+      /* Fica "apagado" */
+      filter: grayscale(100%);
+      /* Fica cinza */
     }
 
 
     /* [NOVO] Estilo do Slider de Volume */
     #volumeSlider {
-      width: 60px; /* Largura compacta */
+      width: 60px;
+      /* Largura compacta */
       height: 6px;
       background: #232a33;
       border-radius: 5px;
@@ -113,8 +116,10 @@
       opacity: 0.7;
       transition: opacity .2s;
       cursor: pointer;
-      align-self: center; /* Centraliza verticalmente na barra */
-      accent-color: #1e90ff; /* Cor azul do tema para a "bolinha" do slider */
+      align-self: center;
+      /* Centraliza verticalmente na barra */
+      accent-color: #1e90ff;
+      /* Cor azul do tema para a "bolinha" do slider */
     }
 
     #volumeSlider:hover {
@@ -294,7 +299,7 @@
       gap: 10px;
       padding: 18px;
       border-radius: 18px;
-      border: 3px dashed #1e90ff ;
+      border: 3px dashed #1e90ff;
       background: var(--panel);
       /* min-height: 200px; */
     }
@@ -801,7 +806,7 @@
         <div class="controls">
           <button id="musicBtn" class="musicBtn" title="Música de Fundo"><img src="img/music_note.svg"
               alt="Música"></button>
-            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.1" title="Volume da Música">
+          <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.1" title="Volume da Música">
           <button id="shuffleBtn" class="shuffleBtn" title="Embaralhar Cartas"><img src="img/playing_cards.svg"
               alt=""></button>
           <button id="infoBtn" class="infoBtn" title="Ver Ações"><img src="img/info.svg" alt=""></button>
@@ -1051,7 +1056,18 @@
     </div>
   </div>
 
-  <audio id="bgmAudio" loop autoplay> <source src="audio/bgm.mp3" type="audio/mpeg"></audio>
+  <audio id="bgmAudio" loop autoplay>
+    <source src="audio/bgm.mp3" type="audio/mpeg">
+  </audio>
+
+
+  <audio id="audio-coin" src="audio/coin.mp3"></audio>
+  <audio id="audio-paper" src="audio/paper.mp3"></audio>
+  <audio id="audio-card-place" src="audio/card-place.mp3"></audio>
+  <audio id="audio-card-slide" src="audio/card-slide.mp3"></audio>
+  <audio id="audio-shuffle" src="audio/shuffle.mp3"></audio>
+  <audio id="audio-click" src="audio/click.mp3"></audio>
+
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 
@@ -1084,6 +1100,16 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const gameStateRef = db.ref('gameState');
+
+
+    // [NOVO] FUNÇÃO DE TOCAR SOM
+    function playSound(id) {
+      const sound = document.getElementById('audio-' + id);
+      if (sound) {
+        sound.currentTime = 0; // Reinicia o som se já estiver tocando (para cliques rápidos)
+        sound.play().catch(e => console.log("Erro ao tocar som:", e));
+      }
+    }
 
     // =======================================================
     // === 2. CONSTANTES E VARIÁVEIS GLOBAIS ===
@@ -1372,6 +1398,7 @@
         return;
       }
       isDrawingCard = true;
+      playSound('card-slide'); // <--- ADICIONE AQUI (Som de deslizar carta)
 
       gameStateRef.transaction((currentState) => {
         if (!currentState) {
@@ -1408,6 +1435,7 @@
 
 
     function returnCardToDeck(cardId) {
+      playSound('shuffle'); // <--- ADICIONE AQUI (Som de embaralhar/devolver)
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
 
@@ -1429,6 +1457,10 @@
     }
 
     function moveCard(cardId, targetLocation, targetPlayerId = null) {
+
+      if (targetLocation === 'free') playSound('card-place'); // Som de colocar na mesa (cemitério)
+      if (targetLocation === 'deck') playSound('shuffle');    // Som de devolver ao deck
+
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
 
@@ -1487,7 +1519,9 @@
     }
 
     function updateScore(pid, amount) {
+      playSound('coin'); // <--- ADICIONE AQUI
       const scoreRef = db.ref(`gameState/players/${pid}/score`);
+
       scoreRef.once('value', (snapshot) => {
         let newScore = (snapshot.val() || 0) + amount;
         if (newScore < 0) newScore = 0;
@@ -1497,6 +1531,8 @@
 
     // [NOVO] Função para o contador do Asilo
     function updateAsylumScore(amount) {
+      playSound('coin'); // <--- ADICIONE AQUI
+
       const scoreRef = db.ref('gameState/asylumScore');
       scoreRef.once('value', (snapshot) => {
         let newScore = (snapshot.val() || 0) + amount;
@@ -1507,6 +1543,7 @@
 
     // [NOVO] Função para trocar religião
     function toggleReligion(pid) {
+      playSound('paper'); // <--- ADICIONE AQUI
       const religionRef = db.ref(`gameState/players/${pid}/religion`);
       religionRef.transaction((currentReligion) => {
         return (currentReligion === 'catolico') ? 'protestante' : 'catolico';
@@ -1629,16 +1666,16 @@
 
       // Lógica do Botão Play/Pause
       if (musicBtn && bgmAudio) {
-        
+
         // [MODIFICADO] Tenta tocar a música imediatamente ao carregar
         bgmAudio.play().then(() => {
-            // Sucesso! O navegador permitiu. O botão fica normal (sem mute).
-            musicBtn.classList.remove('muted');
+          // Sucesso! O navegador permitiu. O botão fica normal (sem mute).
+          musicBtn.classList.remove('muted');
         }).catch(error => {
-            // Bloqueado! O navegador impediu o som automático.
-            // Deixamos o botão mutado visualmente até o jogador clicar.
-            console.log("Autoplay bloqueado (esperando interação):", error);
-            musicBtn.classList.add('muted');
+          // Bloqueado! O navegador impediu o som automático.
+          // Deixamos o botão mutado visualmente até o jogador clicar.
+          console.log("Autoplay bloqueado (esperando interação):", error);
+          musicBtn.classList.add('muted');
         });
 
         musicBtn.onclick = () => {
@@ -1663,8 +1700,12 @@
       const closeModalBtn = document.getElementById('closeModalBtn');
 
       if (infoBtn && infoModal && closeModalBtn) {
+        playSound('click'); // <--- ADICIONE AQUI
         infoBtn.onclick = () => { infoModal.style.display = 'flex'; };
+
         closeModalBtn.onclick = () => { infoModal.style.display = 'none'; };
+        playSound('click'); // <--- ADICIONE AQUI
+
         infoModal.onclick = (e) => {
           if (e.target === infoModal) {
             infoModal.style.display = 'none';
@@ -1686,7 +1727,11 @@
       const configInputs = document.querySelectorAll('.card-config-item input');
 
       if (configBtn && configModal && closeConfigModalBtn) {
+
+        playSound('click'); // <--- ADICIONE AQUI
         configBtn.onclick = () => { configModal.style.display = 'flex'; };
+
+        playSound('click'); // <--- ADICIONE AQUI
         closeConfigModalBtn.onclick = () => { configModal.style.display = 'none'; };
       }
 
@@ -1705,6 +1750,7 @@
           applyDeckConfigBtn.textContent = 'Apenas o Host (Jogador 1) pode aplicar';
         } else {
           applyDeckConfigBtn.onclick = () => {
+            playSound('click'); // <--- ADICIONE AQUI
             // 1. Monta o objeto de configuração
             const newConfig = {};
             configInputs.forEach(input => {
