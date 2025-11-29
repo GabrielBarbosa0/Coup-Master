@@ -14,7 +14,6 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
 
-
   <style>
     :root {
       --bg: #171d26;
@@ -753,10 +752,7 @@
       width: 100%;
       height: 100%;
       border-radius: 25px;
-      /* MUDANÇA AQUI: 'contain' garante que a imagem inteira apareça na melhor qualidade possível */
-      object-fit: contain; 
-      /* Opcional: ajuda a suavizar em alguns navegadores se a imagem for muito pequena */
-      image-rendering: -webkit-optimize-contrast;
+      object-fit: cover;
     }
 
     /* === [NOVO] ESTILOS DO MODAL DE CONFIGURAÇÃO === */
@@ -819,6 +815,7 @@
 
     /* === FIM DOS NOVOS ESTILOS === */
   </style>
+
 </head>
 
 <body>
@@ -1478,13 +1475,21 @@
     }
 
     function kickPlayer(pid) {
-      if (!confirm(`Tem certeza que deseja remover o Jogador ${pid}?`)) return;
+      if (!confirm(`Tem certeza que deseja remover o Jogador ${pid}?`)) {
+        return;
+      }
+
+      // 1. Remove a persistência da SESSÃO (se for o próprio jogador)
       if (pid === myPlayerId) {
-        localStorage.removeItem('myPlayerId');
-        myPlayerId = null;
+        sessionStorage.removeItem('myPlayerId'); // [CORREÇÃO] Volta para sessionStorage
+        myPlayerId = null; 
         alert('Você foi removido da sala e seu slot está liberado.');
       }
-      db.ref(`gameState/players/${pid}`).update({ online: false });
+
+      // 2. Atualiza o Firebase para 'online: false'
+      db.ref(`gameState/players/${pid}`).update({
+        online: false
+      });
     }
 
     function updateScore(pid, amount) {
@@ -1734,12 +1739,50 @@
     }
 
 
-    // =======================================================
-    // === 7. CONEXÃO E LOOP PRINCIPAL ===
-    // =======================================================
-
+     // Lógica de "Entrar na Sala" - Baseada no seu arquivo antigo
     function findAndOccupySlot() {
-      const myPersistedId = localStorage.getItem('myPlayerId'); // <--- VOLTOU PARA LOCALSTORAGE
+      const myPersistedId = sessionStorage.getItem('myPlayerId'); // [CORREÇÃO] Volta para sessionStorage
+
+      // Tenta re-ocupar o slot primeiro (Persistência)
+      if (myPersistedId) {
+        gameStateRef.transaction((currentState) => {
+          if (!currentState || !currentState.players) return;
+
+          const pid = parseInt(myPersistedId);
+
+          // Se o slot existir e estiver marcado como seu (mesmo que offline)
+          if (currentState.players[pid]) {
+             // Reconecta
+             currentState.players[pid].online = true;
+             myPlayerId = pid;
+             return currentState;
+          }
+
+          // Se falhar, limpa a sessão
+          sessionStorage.removeItem('myPlayerId'); 
+          return;
+        }, (error, committed, snapshot) => {
+          if (committed) {
+            console.log(`Reclamei o slot persistido: Jogador ${myPlayerId}`);
+            setupDisconnectHandler(myPlayerId);
+            return;
+          }
+          // Se falhou em reconectar, procura um novo
+          findNewSlot();
+        });
+      } else {
+        findNewSlot();
+      }
+    }
+
+
+
+
+
+
+
+    
+      const myPersistedId = sessionStorage.getItem('myPlayerId'); // [CORREÇÃO] Usa sessionStorage
 
       if (myPersistedId) {
         gameStateRef.transaction((curr) => {
@@ -1763,20 +1806,26 @@
       } else {
         findNewSlot();
       }
-    }
+    
+
+    // ////////////////////////////////////////////////////////////////////////////////
 
     function findNewSlot() {
-      gameStateRef.transaction((curr) => {
-        if (!curr || !curr.players) {
-          // Cria novo jogo
+      gameStateRef.transaction((currentState) => {
+        if (!currentState || !currentState.players) {
+          // Criação inicial da sala (JOGADOR 1)
+          // [MANTIDO] As novas features (Deck Config, Asilo)
           const defaultConfig = createDefaultDeckConfig();
-          return {
-            deck: createDeck(defaultConfig),
+          let newDeck = createDeck(defaultConfig); 
+
+          let initialState = {
+            deck: newDeck,
             grave: [],
             freeCards: [],
             asylumScore: 0,
             deckConfig: defaultConfig,
             players: {
+              // [MANTIDO] Religiões alternadas e score 2
               1: { hand: [], score: 2, online: true, religion: 'catolico' },
               2: { hand: [], score: 2, online: false, religion: 'protestante' },
               3: { hand: [], score: 2, online: false, religion: 'catolico' },
@@ -1787,42 +1836,167 @@
               8: { hand: [], score: 2, online: false, religion: 'protestante' },
             }
           };
+          myPlayerId = 1;
+          sessionStorage.setItem('myPlayerId', 1); // [CORREÇÃO] sessionStorage
+          return initialState;
         }
-        // Busca slot vazio
+
+        // Busca um slot vazio (online: false)
         for (let i = 1; i <= 8; i++) {
-          if (!curr.players[i].online) {
-            curr.players[i].online = true;
-            curr.players[i].score = 2;
-            curr.players[i].hand = [];
-            curr.players[i].religion = (i % 2 === 1) ? 'catolico' : 'protestante';
+          if (!currentState.players[i] || !currentState.players[i].online) {
+            
+            // Inicializa o objeto se não existir
+            currentState.players[i] = currentState.players[i] || {};
+            
+            // Ocupa o slot
+            currentState.players[i].online = true;
+            
+            // Reseta ou mantém dados (Lógica para garantir estado limpo ao entrar novo)
+            currentState.players[i].score = 2;
+            currentState.players[i].hand = [];
+            currentState.players[i].religion = (i % 2 === 1) ? 'catolico' : 'protestante';
+            
             myPlayerId = i;
-            localStorage.setItem('myPlayerId', i);
-            return curr;
+            sessionStorage.setItem('myPlayerId', i); // [CORREÇÃO] sessionStorage
+            return currentState;
           }
         }
-        return; // Cheio
-      }, (err, committed) => {
+
+        // Sala cheia
+        return;
+      }, (error, committed, snapshot) => {
         if (committed) {
-           // Caso especial: se criou o jogo agora, myPlayerId é 1 mas não foi setado no loop
-           if (!myPlayerId) { myPlayerId = 1; localStorage.setItem('myPlayerId', 1); }
-           console.log(`Entrei: Jogador ${myPlayerId}`);
-           setupDisconnectHandler(myPlayerId);
-        } else if (!err) {
-           alert("Sala cheia!");
+          console.log(`Entrei com sucesso: Jogador ${myPlayerId}`);
+          setupDisconnectHandler(myPlayerId);
+        } else if (error) {
+          console.error("Erro na transação:", error);
+          alert("Erro de conexão ao entrar na sala. Tente novamente.");
+        } else {
+          alert("Sala cheia! (Máx 8 jogadores)");
+          document.body.innerHTML = "<h1>Sala cheia. Tente novamente mais tarde.</h1>";
+        }
+      });
+    }
+
+    // ////////////////////////////////////////////////////////////////////////////////
+
+
+
+    // Handler para quando o jogador fechar a aba
+    function setupDisconnectHandler(pid) {
+      const playerRef = db.ref(`gameState/players/${pid}`);
+      playerRef.onDisconnect().update({
+        online: false
+      });
+    }
+
+
+    // [NOVO] Função de Auto-Scroll para facilitar o drag-and-drop
+    function setupAutoScroll() {
+      const threshold = 80; // Pixels da borda para ativar o scroll
+      const speed = 15;      // Velocidade de rolagem
+
+      window.addEventListener('dragover', (e) => {
+        // A posição Y do cursor/dedo
+        const y = e.clientY;
+        const viewportHeight = window.innerHeight;
+
+        // Se estiver perto do topo -> Rola para cima
+        if (y < threshold) {
+          window.scrollBy(0, -speed);
+        }
+        // Se estiver perto do fundo -> Rola para baixo
+        else if (y > (viewportHeight - threshold)) {
+          window.scrollBy(0, speed);
+        }
+      });
+    }
+
+    // =======================================================
+    // === 7. O "CORAÇÃO" DO JOGO (O Listener Principal) ===
+    // =======================================================
+
+    function findNewSlot() {
+      gameStateRef.transaction((currentState) => {
+        if (!currentState || !currentState.players) {
+          // Criação inicial da sala (JOGADOR 1)
+          // [MANTIDO] As novas features (Deck Config, Asilo)
+          const defaultConfig = createDefaultDeckConfig();
+          let newDeck = createDeck(defaultConfig); 
+
+          let initialState = {
+            deck: newDeck,
+            grave: [],
+            freeCards: [],
+            asylumScore: 0,
+            deckConfig: defaultConfig,
+            players: {
+              // [MANTIDO] Religiões alternadas
+              1: { hand: [], score: 2, online: true, religion: 'catolico' },
+              2: { hand: [], score: 2, online: false, religion: 'protestante' },
+              3: { hand: [], score: 2, online: false, religion: 'catolico' },
+              4: { hand: [], score: 2, online: false, religion: 'protestante' },
+              5: { hand: [], score: 2, online: false, religion: 'catolico' },
+              6: { hand: [], score: 2, online: false, religion: 'protestante' },
+              7: { hand: [], score: 2, online: false, religion: 'catolico' },
+              8: { hand: [], score: 2, online: false, religion: 'protestante' },
+            }
+          };
+          myPlayerId = 1;
+          sessionStorage.setItem('myPlayerId', 1); // [CORREÇÃO] sessionStorage
+          return initialState;
+        }
+
+        // Busca um slot vazio (online: false) - Lógica simples do arquivo antigo
+        for (let i = 1; i <= 8; i++) {
+          // Se o slot não existe OU está offline
+          if (!currentState.players[i] || !currentState.players[i].online) {
+            
+            // Inicializa o objeto se não existir
+            currentState.players[i] = currentState.players[i] || {};
+            
+            // Ocupa o slot
+            currentState.players[i].online = true;
+            
+            // Reseta ou mantém dados (Lógica para garantir estado limpo ao entrar novo)
+            currentState.players[i].score = 2;
+            currentState.players[i].hand = [];
+            currentState.players[i].religion = (i % 2 === 1) ? 'catolico' : 'protestante';
+            
+            myPlayerId = i;
+            sessionStorage.setItem('myPlayerId', i); // [CORREÇÃO] sessionStorage
+            return currentState;
+          }
+        }
+
+        // Sala cheia
+        return;
+      }, (error, committed, snapshot) => {
+        if (committed) {
+          console.log(`Entrei com sucesso: Jogador ${myPlayerId}`);
+          setupDisconnectHandler(myPlayerId);
+        } else if (error) {
+          console.error("Erro na transação:", error);
+          alert("Erro de conexão ao entrar na sala. Tente novamente.");
+        } else {
+          alert("Sala cheia! (Máx 8 jogadores)");
+          document.body.innerHTML = "<h1>Sala cheia. Tente novamente mais tarde.</h1>";
         }
       });
     }
 
     function initializeGame() {
-      const persistedId = localStorage.getItem('myPlayerId');
-      if (persistedId) myPlayerId = parseInt(persistedId);
+      const persistedId = sessionStorage.getItem('myPlayerId'); // [CORREÇÃO] sessionStorage
+      if (persistedId) {
+        myPlayerId = parseInt(persistedId);
+      }
 
       if (!firebaseConfig.apiKey) return;
 
       gameStateRef.on('value', (snapshot) => {
         const state = snapshot.val();
         if (state) {
-          // [NOVO] Sincroniza SOM
+          // Mantém a lógica de som
           if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
              lastSoundTimestamp = state.lastSFX.timestamp;
              playSound(state.lastSFX.id);
@@ -1839,8 +2013,8 @@
       setupAutoScroll();
     }
 
+    // Inicia o jogo!
     initializeGame();
-
 
   </script>
 </body>
