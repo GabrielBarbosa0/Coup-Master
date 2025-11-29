@@ -753,7 +753,10 @@
       width: 100%;
       height: 100%;
       border-radius: 25px;
-      object-fit: cover;
+      /* MUDANÇA AQUI: 'contain' garante que a imagem inteira apareça na melhor qualidade possível */
+      object-fit: contain; 
+      /* Opcional: ajuda a suavizar em alguns navegadores se a imagem for muito pequena */
+      image-rendering: -webkit-optimize-contrast;
     }
 
     /* === [NOVO] ESTILOS DO MODAL DE CONFIGURAÇÃO === */
@@ -1720,44 +1723,76 @@
       // === FIM DA LÓGICA DE MÚSICA ===
 
 
-      // LÓGICA DO MODAL DE INFO
+     // === LÓGICA DO MODAL DE INFO (COM 3 FASES) ===
       const infoBtn = document.getElementById('infoBtn');
       const infoModal = document.getElementById('infoModal');
       const closeModalBtn = document.getElementById('closeModalBtn');
-      const flipCard = document.querySelector('.flip-card'); // [NOVO] Referência à carta
+      const flipCard = document.querySelector('.flip-card');
+      
+      // Referências às imagens dentro do card
+      const frontImg = flipCard ? flipCard.querySelector('.flip-card-front img') : null;
+      const backImg = flipCard ? flipCard.querySelector('.flip-card-back img') : null;
 
-      if (infoBtn && infoModal && closeModalBtn) {
+      // Lista das 3 imagens (Ciclo: Base -> DLC -> Turno)
+      const ruleImages = [
+        'img/front-actions.png', // 1. Ações Base (Início)
+        'img/dlc-actions.png',   // 2. Ações DLC (Adicione esta imagem na pasta img/)
+        'img/back-actions.png'   // 3. Ações Turno
+      ];
+
+      let currentRuleIndex = 0; 
+
+      if (infoBtn && infoModal && closeModalBtn && flipCard) {
         
-        // Abrir Modal
+        // Ao abrir, reseta para o estado inicial
         infoBtn.onclick = () => {
           playSound('click');
           infoModal.style.display = 'flex';
+          
+          // Reseta a carta para a posição inicial e imagem 1
+          currentRuleIndex = 0;
+          flipCard.classList.remove('is-flipped');
+          frontImg.src = ruleImages[0];
+          backImg.src = ruleImages[1]; // Já prepara a imagem 2 no verso
         };
 
-        // Fechar Modal (Botão X)
-        closeModalBtn.onclick = () => {
-          playSound('click');
-          infoModal.style.display = 'none';
-          // [OPCIONAL] Reseta a carta para frente quando fecha
-          if (flipCard) flipCard.classList.remove('is-flipped');
-        };
-
-        // Fechar Modal (Clicar fora)
-        infoModal.onclick = (e) => {
-          if (e.target === infoModal) {
+        // Função para fechar o modal
+        const closeModal = () => {
+            playSound('click');
             infoModal.style.display = 'none';
-            // [OPCIONAL] Reseta a carta para frente quando fecha
-            if (flipCard) flipCard.classList.remove('is-flipped');
-          }
+        };
+        
+        closeModalBtn.onclick = closeModal;
+        
+        // Fecha ao clicar no fundo escuro
+        infoModal.onclick = (e) => {
+          if (e.target === infoModal) closeModal();
         };
 
-        // [NOVO] Lógica de Girar a Carta ao Clicar
-        if (flipCard) {
-            flipCard.onclick = () => {
-                playSound('card-slide'); // Adiciona um som legal ao girar
-                flipCard.classList.toggle('is-flipped'); // Alterna o giro
-            };
-        }
+        // Lógica de Girar e Trocar Imagem (Ciclo Infinito)
+        flipCard.onclick = () => {
+            playSound('card-slide');
+            
+            // 1. Gira a carta
+            flipCard.classList.toggle('is-flipped');
+            
+            // 2. Avança o índice para a próxima imagem da lista
+            currentRuleIndex = (currentRuleIndex + 1) % ruleImages.length;
+            
+            // 3. Troca a imagem que está ESCONDIDA (atrás) no meio da animação
+            // Espera 500ms (metade do tempo da transição CSS de 1s)
+            setTimeout(() => {
+                const nextImageIndex = (currentRuleIndex + 1) % ruleImages.length;
+                
+                if (flipCard.classList.contains('is-flipped')) {
+                    // Se estamos vendo o Verso, trocamos a Frente (que está escondida)
+                    frontImg.src = ruleImages[nextImageIndex];
+                } else {
+                    // Se estamos vendo a Frente, trocamos o Verso (que está escondido)
+                    backImg.src = ruleImages[nextImageIndex];
+                }
+            }, 500);
+        };
       }
 
       // [NOVO] LÓGICA DO CONTADOR DO ASILO
