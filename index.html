@@ -1480,7 +1480,7 @@
     function kickPlayer(pid) {
       if (!confirm(`Tem certeza que deseja remover o Jogador ${pid}?`)) return;
       if (pid === myPlayerId) {
-        sessionStorage.removeItem('myPlayerId');
+        localStorage.removeItem('myPlayerId');
         myPlayerId = null;
         alert('Você foi removido da sala e seu slot está liberado.');
       }
@@ -1739,7 +1739,7 @@
     // =======================================================
 
     function findAndOccupySlot() {
-      const myPersistedId = sessionStorage.getItem('myPlayerId'); // SessionStorage!
+      const myPersistedId = localStorage.getItem('myPlayerId'); // <--- VOLTOU PARA LOCALSTORAGE
 
       if (myPersistedId) {
         gameStateRef.transaction((curr) => {
@@ -1750,7 +1750,7 @@
             myPlayerId = pid;
             return curr;
           }
-          sessionStorage.removeItem('myPlayerId');
+          localStorage.removeItem('myPlayerId'); // <--- VOLTOU PARA LOCALSTORAGE
           return;
         }, (err, committed) => {
           if (committed) {
@@ -1796,7 +1796,7 @@
             curr.players[i].hand = [];
             curr.players[i].religion = (i % 2 === 1) ? 'catolico' : 'protestante';
             myPlayerId = i;
-            sessionStorage.setItem('myPlayerId', i);
+            localStorage.setItem('myPlayerId', i);
             return curr;
           }
         }
@@ -1804,7 +1804,7 @@
       }, (err, committed) => {
         if (committed) {
            // Caso especial: se criou o jogo agora, myPlayerId é 1 mas não foi setado no loop
-           if (!myPlayerId) { myPlayerId = 1; sessionStorage.setItem('myPlayerId', 1); }
+           if (!myPlayerId) { myPlayerId = 1; localStorage.setItem('myPlayerId', 1); }
            console.log(`Entrei: Jogador ${myPlayerId}`);
            setupDisconnectHandler(myPlayerId);
         } else if (!err) {
@@ -1814,7 +1814,7 @@
     }
 
     function initializeGame() {
-      const persistedId = sessionStorage.getItem('myPlayerId');
+      const persistedId = localStorage.getItem('myPlayerId');
       if (persistedId) myPlayerId = parseInt(persistedId);
 
       if (!firebaseConfig.apiKey) return;
