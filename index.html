@@ -15,6 +15,807 @@
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
 
 
+  <style>
+    :root {
+      --bg: #171d26;
+      --panel: #232a33;
+      --accent: #1e90ff;
+      --card-radius: 10px;
+      --dotted: 3px dotted rgba(255, 255, 255, 0.12);
+      --text: #e6eef6;
+      --muted: rgba(230, 238, 246, 0.25);
+    }
+
+
+    * {
+      font-family: "Cinzel", serif !important;
+
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: #14171e;
+      color: var(--text);
+    }
+
+
+    .container {
+      max-width: 1100px;
+      margin: 18px auto;
+      padding: 12px;
+    }
+
+    header {
+      border-radius: 18px;
+      border: 3px dashed rgba(255, 255, 255, 0.12);
+      padding: 26px 18px;
+      text-align: center;
+      background: #232a33;
+      color: #ffffff;
+      margin-bottom: 18px;
+      font-family: "Orbitron", sans-serif;
+    }
+
+
+
+    header h1 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: #444;
+    }
+
+    .resetBtn,
+    .infoBtn,
+    .shuffleBtn,
+    .configBtn,
+    .musicBtn {
+      /* Adicionado configBtn */
+      width: 36px;
+      height: 36px;
+    }
+
+    .shuffleBtn {
+      display: none !important;
+      /* Oculta o botão de embaralhar */
+    }
+
+
+    .infoBtn img,
+    .configBtn img,
+    .musicBtn img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+
+    /* [NOVO] Estilo visual para quando a música estiver desligada */
+    .musicBtn.muted {
+      opacity: 0.4;
+      /* Fica "apagado" */
+      filter: grayscale(100%);
+      /* Fica cinza */
+    }
+
+
+    /* [NOVO] Estilo do Slider de Volume */
+    #volumeSlider {
+      width: 60px;
+      /* Largura compacta */
+      height: 6px;
+      background: #232a33;
+      border-radius: 5px;
+      outline: none;
+      opacity: 0.7;
+      transition: opacity .2s;
+      cursor: pointer;
+      align-self: center;
+      /* Centraliza verticalmente na barra */
+      accent-color: #1e90ff;
+      /* Cor azul do tema para a "bolinha" do slider */
+    }
+
+    #volumeSlider:hover {
+      opacity: 1;
+    }
+
+
+    /* Board */
+    .board {
+      background: var(--bg);
+      border-radius: 14px;
+      border: 3px dashed rgba(255, 255, 255, 0.12);
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(10, 10, 12, 0.08);
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .room {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* [CORREÇÃO] Aplicando o estilo também ao .resetBtn */
+    .controls button,
+    .resetBtn {
+      padding: 8px;
+      /* Padronizado */
+      border-radius: 8px;
+      border: 0;
+      background: var(--panel);
+      color: white;
+      cursor: pointer;
+      /* Adicionado para centralizar os SVGs */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Central area layout (NOVO) */
+    .center-area {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      /* Espaço entre a linha dos players e a linha da mesa */
+    }
+
+    /* (NOVO) Container para os 3 jogadores no topo */
+    .player-hands-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    /* [CORREÇÃO] Container inferior com 3 colunas */
+    .bottom-table-container {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      /* Cemitério (2) | Asilo (1) | Deck (1) */
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    /* Player areas labels (AJUSTADO) */
+    .player-area {
+      border-radius: 10px;
+      border: 3px dashed #ffffff0f;
+      padding: 8px;
+      min-height: 140px;
+      display: flex;
+      /* Esta linha já existe */
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+    }
+
+    /* Esconde todos os jogadores por padrão para evitar o "flash" */
+    .player-hands-container>.player-area {
+      display: none;
+    }
+
+
+    /* === [CORREÇÃO] ESTILO DO BOTÃO DE REMOVER === */
+    .points {
+      /* [CORREÇÃO] Layout centralizado */
+      display: flex;
+      align-items: center;
+      /* gap: 4px; <-- REMOVIDO CONFORME SOLICITADO */
+      margin-top: 4px;
+      /* Espaçamento */
+      margin-bottom: 8px;
+      /* Espaçamento */
+      justify-content: center;
+    }
+
+    .remove-player {
+      /* [CORREÇÃO] Botão Kickar agora é separado */
+      position: absolute;
+      right: 8px;
+      /* Alinhado à DIREITA */
+      top: 8px;
+
+      background: #ff3b3b;
+      width: 12px;
+      height: 12px;
+      color: white;
+      font-size: 0;
+      line-height: 0;
+      border-radius: 50%;
+      border: 1px solid white;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .remove-player:hover {
+      background: #ff5555;
+    }
+
+    /* === FIM NOVO ESTILO === */
+
+    /* === [NOVO] ESTILO PARA RELIGIÃO === */
+    .religion-status {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: white;
+      margin-bottom: 8px;
+      /* Ajusta espaço */
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid #ffffff4d;
+    }
+
+    .religion-status.catolico {
+      background-color: #3b5998;
+      /* Azul */
+    }
+
+    .religion-status.protestante {
+      background-color: #f0943e;
+      /* Laranja */
+    }
+
+    /* === FIM NOVO ESTILO === */
+
+
+    .player-title {
+      font-weight: 600;
+      margin-bottom: 0px;
+      color: var(--muted);
+      /* margin-top: 10px; [NOVO] Empurra o nome para baixo */
+    }
+
+    .player-area.local-player .player-title {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* Deck area (AJUSTADO) */
+    .deck-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 3px dashed #1e90ff;
+      background: var(--panel);
+      /* min-height: 200px; */
+    }
+
+    /* === [NOVO] ESTILO PARA ÁREA DO ASILO === */
+    .asylum-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 3px dashed #f0943e80;
+      /* Borda laranja */
+      background: var(--panel);
+      /* min-height: 200px; */
+      text-align: center;
+    }
+
+    .asylum-area .muted {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .asylum-image {
+      width: 76px;
+      height: 76px;
+      background-image: url('img/asilo.png');
+      /* Caminho da imagem */
+      background-size: cover;
+      background-position: center;
+      border-radius: 10px;
+    }
+
+    .asylum-points {
+      display: flex;
+      /* gap: 6px; */
+      align-items: center;
+    }
+
+    .asylum-points button {
+      background: #f6c204;
+      color: #000;
+      border: 0;
+      cursor: pointer;
+
+      /* === [CORREÇÃO] Círculo Perfeito === */
+      width: 22px;
+      /* Mesmo tamanho dos botões de jogador */
+      height: 22px;
+      border-radius: 50%;
+      /* Garante um círculo perfeito */
+
+      /* Centralização do + e - */
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-size: 16px;
+    }
+
+    .asylum-points .score {
+      min-width: 28px;
+      text-align: center;
+      color: #fff;
+    }
+
+    /* === FIM NOVO ESTILO === */
+
+
+    .deck {
+      width: 76px;
+      height: 110px;
+      border-radius: 10px;
+      cursor: pointer;
+
+      /* [NOVO] Aplicando a imagem de verso no Deck */
+      background-image: url('./img/back.png');
+      background-size: cover;
+      background-position: center;
+
+      /* border: #1e90ff 3px solid; */
+
+      /* Esconde o texto "Deck" que estava lá antes */
+      text-indent: -9999px;
+      overflow: hidden;
+    }
+
+    .pile-info {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* Free area below (AJUSTADO) */
+    .free-area {
+      border-radius: 12px;
+      border: 3px dashed #ffffff1f;
+      padding: 18px;
+      min-height: 200px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: flex-start;
+      background: linear-gradient(180deg, #0000000d, #00000005);
+      text-align: center;
+
+      /* [NOVO] Necessário para posicionar a caveira no fundo */
+      position: relative;
+      z-index: 1;
+      overflow: hidden; /* Garante que a imagem não saia das bordas arredondadas */
+    }
+
+    /* [NOVO] Caveira de fundo semitransparente */
+    .free-area::before {
+      content: "";
+      background-image: url('img/skull.svg'); /* Caminho da sua imagem */
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 30%; /* Ajuste o tamanho da caveira aqui (ex: 100px ou 30%) */
+      opacity: 0.03; /* Ajuste a transparência (0.1 é bem fraco, 1.0 é total) */
+      
+      /* Posicionamento absoluto para cobrir a área */
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1; /* Fica atrás das cartas e do texto */
+      pointer-events: none; /* Garante que não atrapalhe os cliques */
+    }
+
+
+    /* Cards */
+    .card {
+      width: 92px;
+      height: 128px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      cursor: grab;
+      user-select: none;
+      /* [NOVO] Estilos para a imagem de fundo */
+      background-size: cover;
+      /* Ajusta a imagem para cobrir o elemento */
+      background-position: center;
+      /* Centraliza a imagem */
+      background-repeat: no-repeat;
+      /* Evita repetição */
+      display: block;
+      /* Garante que a div se comporta como um bloco para a imagem */
+      text-indent: -9999px;
+      /* Esconde o texto para leitores de tela */
+      overflow: hidden;
+      /* Garante que o texto escondido não afete o layout */
+    }
+
+
+
+    .card:active {
+      cursor: grabbing;
+    }
+
+    .card.small {
+      width: 74px;
+      height: 108px
+    }
+
+
+    .card:active {
+      cursor: grabbing;
+    }
+
+
+    .card.back {
+      background-image: url('./img/back.png');
+      color: transparent
+    }
+
+    .card .label {
+      padding: 6px;
+      text-align: center;
+      color: #0b0b0b
+    }
+
+    /* Hand layout */
+    .player-hand {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      /* [CORREÇÃO] MUDADO de 'nowrap' para 'wrap' */
+      padding: 6px;
+    }
+
+
+    /* [CORREÇÃO] Aplicando o Grid de 3 colunas no seletor correto */
+    .player-stack {
+      display: grid;
+      grid-template-columns: repeat(3, auto);
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+      padding: 6px;
+      width: 100%;
+    }
+
+    /* Points controls */
+    /* [CORRIGIDO] Estilo dos botões + e - */
+    .points .plus,
+    .points .minus {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 0;
+      background: #f6c204;
+      color: #000;
+      font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+      cursor: pointer;
+
+      /* Centralização do + e - */
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-size: 16px;
+    }
+
+    .points .score {
+      min-width: 28px;
+      text-align: center;
+      color: #fff;
+    }
+
+    /* small labels */
+    .muted {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    /* small helpers */
+    .slot {
+      width: 96px;
+      height: 136px;
+      border-radius: 10px;
+      border: 2px dashed rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .slot.small {
+      width: 76px;
+      height: 110px
+    }
+
+    /* Responsive adjustments */
+    @media (max-width:1024px) {
+      .container {
+        padding: 8px
+      }
+
+      header h1 {
+        font-size: 28px
+      }
+
+      .player-hands-container {
+        grid-template-columns: repeat(2, 1fr);
+        /* 2x2 grid para tablets */
+      }
+
+      /* [CORREÇÃO] Responsividade do grid inferior */
+      .bottom-table-container {
+        grid-template-columns: 1fr;
+        /* Stacka área livre, asilo e deck */
+      }
+
+      .deck {
+        width: 76px;
+        height: 110px
+      }
+
+      .card {
+        width: 72px;
+        height: 100px
+      }
+
+      .slot {
+        width: 76px;
+        height: 110px
+      }
+
+      .player-hand {
+        gap: 8px
+      }
+
+      .card.small {
+        width: 72px;
+        height: 107px
+      }
+
+      .free-area {
+        min-height: 120px
+      }
+    }
+
+    @media (max-width:520px) {
+      .center-area {
+        gap: 8px;
+      }
+
+      .player-hands-container {
+        grid-template-columns: 1fr;
+        /* Stacka os 4 players */
+        gap: 8px;
+      }
+
+      .bottom-table-container {
+        grid-template-columns: 1fr;
+        /* Stacka área livre, asilo e deck */
+        gap: 8px;
+      }
+
+      .card {
+        width: 58px;
+        height: 84px
+      }
+
+      .slot {
+        width: 58px;
+        height: 84px
+      }
+
+      .player-area {
+        padding: 6px;
+        min-height: 110px;
+      }
+
+      .points {
+        right: 4px;
+        top: 4px
+      }
+
+      .remove-player {
+        right: 4px;
+        /* Garante que ele fique à direita no mobile */
+        top: 4px;
+      }
+    }
+
+    /* === ESTILOS DO MODAL E FLIP-CARD === */
+    .modal-overlay {
+      display: none;
+      /* Escondido por padrão */
+      position: fixed;
+      /* Cobre a tela inteira */
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      /* Fundo escuro */
+
+      /* Para centralizar o conteúdo */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      position: relative;
+      padding: 20px;
+      background: var(--panel);
+      border-radius: 10px;
+    }
+
+    .modal-actions-and-rules {
+      position: relative;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+
+
+    .close-btn {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      z-index: 1001;
+      color: #fff;
+      background: #ff3b3b;
+      border: 2px solid white;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      line-height: 30px;
+      /* Alinha o 'X' verticalmente */
+      text-align: center;
+      /* Alinha o 'X' horizontalmente */
+    }
+
+    .close-btn:hover {
+      background: #ff5555;
+    }
+
+    /* --- Estilos do Flip-Card --- */
+    
+    /* [NOVO] A carta só gira se tiver a classe 'is-flipped' */
+    .flip-card.is-flipped .flip-card-inner {
+      transform: rotateY(-180deg);
+    }
+
+    .flip-horizontal-left .flip-card-back {
+      transform: rotateY(-180deg);
+    }
+
+    .flip-card {
+      background-color: transparent;
+      width: 300px;
+      height: 450px;
+      perspective: 1000px;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 1s;
+      transform-style: preserve-3d;
+    }
+
+    .flip-card-front,
+    .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+    }
+
+    .flip-card-front img,
+    .flip-card-back img {
+      width: 100%;
+      height: 100%;
+      border-radius: 25px;
+      object-fit: cover;
+    }
+
+    /* === [NOVO] ESTILOS DO MODAL DE CONFIGURAÇÃO === */
+    .card-config-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .card-config-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid var(--bg);
+    }
+
+    .card-config-item label {
+      font-size: 18px;
+      color: var(--text);
+    }
+
+    .card-config-item input {
+      width: 60px;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid var(--accent);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .card-config-item input:disabled {
+      background: #555;
+      color: #999;
+      border-color: #555;
+    }
+
+    /* Estilo para o novo botão Aplicar */
+    #applyDeckConfigBtn {
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+      background: #00ff73;
+      /* Verde neon */
+      color: #111;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    #applyDeckConfigBtn:disabled {
+      background: #555;
+      color: #999;
+    }
+
+    /* === FIM DOS NOVOS ESTILOS === */
+  </style>
 </head>
 
 <body>
