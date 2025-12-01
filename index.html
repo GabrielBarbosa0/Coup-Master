@@ -1114,6 +1114,7 @@
   <audio id="audio-coin" src="audio/coin.mp3"></audio>
   <audio id="audio-paper" src="audio/paper.mp3"></audio>
   <audio id="audio-card-place" src="audio/card-place.mp3"></audio>
+  <audio id="audio-impact" src="audio/impact.mp3"></audio>
   <audio id="audio-card-slide" src="audio/card-slide.mp3"></audio>
   <audio id="audio-shuffle" src="audio/shuffle.mp3"></audio>
   <audio id="audio-click" src="audio/click.mp3"></audio>
@@ -1566,6 +1567,9 @@
       if (!confirm(`Tem certeza que deseja remover o Jogador ${pid}?`)) {
         return;
       }
+
+      // [NOVO] Toca o som para TODOS
+      triggerSound('audio-impact');
 
       // 1. Remove a persistência local (se for o próprio jogador)
       if (pid === myPlayerId) {
