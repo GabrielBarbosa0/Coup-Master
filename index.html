@@ -1119,6 +1119,7 @@
   <audio id="audio-card-slide" src="audio/card-slide.mp3"></audio>
   <audio id="audio-shuffle" src="audio/shuffle.mp3"></audio>
   <audio id="audio-click" src="audio/click.mp3"></audio>
+  <audio id="audio-air-woosh" src="audio/air-woosh.mp3"></audio>
 
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -1816,7 +1817,7 @@
 
         // Lógica de Girar e Trocar Imagem (Ciclo Infinito)
         flipCard.onclick = () => {
-            playSound('card-slide');
+            playSound('audio-air-woosh');
             
             // 1. Gira a carta
             flipCard.classList.toggle('is-flipped');
