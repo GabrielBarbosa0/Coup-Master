@@ -1521,12 +1521,10 @@
     }
 
     function moveCard(cardId, targetLocation, targetPlayerId = null) {
-      // Sons globais dependendo de onde soltou
-      if (targetLocation === 'free') triggerSound('card-place'); // Cemitério
-      if (targetLocation === 'deck') triggerSound('shuffle');    // Devolver pro Deck
-
-      // [NOVO] Som ao arrastar carta para um jogador (do cemitério ou de outro player)
-      if (targetLocation === 'player') triggerSound('card-slide');
+      // [CORREÇÃO] Sons para todas as ações de arrastar
+      if (targetLocation === 'player') triggerSound('card-slide'); // <--- FALTAVA ESTE (Mover para mão)
+      if (targetLocation === 'free') triggerSound('card-place');   // Mover para cemitério
+      if (targetLocation === 'deck') triggerSound('shuffle');      // Mover para deck
 
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
@@ -1623,6 +1621,7 @@
     // [CORREÇÃO] resetTable agora aceita um argumento
     function resetTable(newConfig = null) {
       console.log("Resetando a mesa...");
+      triggerSound('audio-8-bit-start'); // <--- ADICIONE ESTA LINHA NO INÍCIO
 
       // Se uma nova config foi passada (pelo botão Aplicar), usa ela.
       // Se não (pelo botão Resetar), usa a que está salva.
