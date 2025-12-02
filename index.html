@@ -1151,21 +1151,6 @@
         </div>
 
         <div class="setting-row">
-            <label for="sfxVolumeSlider">Efeitos:</label>
-            <input type="range" id="sfxVolumeSlider" min="0" max="1" step="0.01" value="1" style="width: 100%;">
-        </div>
-
-        <div class="setting-row">
-            <label>Cemitério:</label>
-            <button id="toggleCemeterySettingsBtn" class="icon-btn" title="Mostrar/Ocultar Cemitério">
-                <img src="img/visibility.svg" alt="Ver" style="width: 24px; height: 24px;">
-                <span style="margin-left: 8px;">Visualizar</span>
-            </button>
-        </div>
-
-        
-
-        <div class="setting-row">
             <label>Interface:</label>
             <button id="toggleHeaderBtn" class="icon-btn" title="Mostrar/Ocultar Título">
                 <img src="img/visibility.svg" alt="Ver" style="width: 24px; height: 24px;">
@@ -1231,12 +1216,11 @@
     const gameStateRef = db.ref('gameState');
 
 
-    // [ATUALIZADO] Função de Tocar Som com Volume
+    // [NOVO] FUNÇÃO DE TOCAR SOM
     function playSound(id) {
       const sound = document.getElementById('audio-' + id);
       if (sound) {
-        sound.volume = sfxVolume; // Aplica o volume configurado
-        sound.currentTime = 0;
+        sound.currentTime = 0; // Reinicia o som se já estiver tocando (para cliques rápidos)
         sound.play().catch(e => console.log("Erro ao tocar som:", e));
       }
     }
@@ -1838,8 +1822,6 @@
         };
       }
 
-      
-
       // 3. MENU DE CONFIGURAÇÕES (Engrenagem)
       const settingsBtn = document.getElementById('settingsBtn');
       const settingsModal = document.getElementById('settingsModal');
@@ -1882,37 +1864,6 @@
                   header.style.display = 'none';
                   toggleHeaderBtn.querySelector('img').src = 'img/visibility_off.svg';
                   toggleHeaderBtn.style.opacity = '0.6';
-              }
-          };
-      }
-
-      // ... (lógica existente do menu de configurações) ...
-
-      // [NOVO] Lógica do Slider de Efeitos Sonoros (SFX)
-      const sfxSlider = document.getElementById('sfxVolumeSlider');
-      if (sfxSlider) {
-          sfxSlider.value = sfxVolume; // Sincroniza visualmente
-          sfxSlider.addEventListener('input', (e) => {
-              sfxVolume = e.target.value; // Atualiza a variável global
-          });
-      }
-
-      // [NOVO] Lógica de Ocultar/Mostrar Cemitério (Via Menu)
-      const toggleCemeteryBtn = document.getElementById('toggleCemeterySettingsBtn');
-      const freeAreaEl = document.getElementById('freeArea');
-      
-      if (toggleCemeteryBtn && freeAreaEl) {
-          toggleCemeteryBtn.onclick = () => {
-              playSound('click');
-              // Verifica se está visível (se display for vazio ou flex)
-              if (freeAreaEl.style.display === 'none') {
-                  freeAreaEl.style.display = 'flex'; // Mostra
-                  toggleCemeteryBtn.querySelector('img').src = 'img/visibility.svg';
-                  toggleCemeteryBtn.style.opacity = '1';
-              } else {
-                  freeAreaEl.style.display = 'none'; // Oculta
-                  toggleCemeteryBtn.querySelector('img').src = 'img/visibility_off.svg';
-                  toggleCemeteryBtn.style.opacity = '0.6';
               }
           };
       }
@@ -2028,9 +1979,6 @@
           document.getElementById('asylum-plus').onclick = () => updateAsylumScore(1);
           document.getElementById('asylum-minus').onclick = () => updateAsylumScore(-1);
       }
-
-
-      
     }
 
     
