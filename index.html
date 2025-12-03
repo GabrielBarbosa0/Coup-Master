@@ -873,45 +873,6 @@
     }
 
     /* === FIM DOS NOVOS ESTILOS === */
-
-    /* === [NOVO] BOTÃO FLUTUANTE DE DESCARTE (CEMITÉRIO) === */
-#floatingGraveyardBtn {
-    display: none; /* Escondido por padrão */
-    position: fixed;
-    bottom: 200px; 
-    right: 15px; /* Define a distância da borda direita */
-    left: auto; /* Garante que ele não seja puxado para a esquerda */
-    z-index: 100;
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    background-color: #ff3b3b; /* Vermelho padrão (fundo) */
-    /* border: 3px solid white; */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-    transition: background-color 0.2s, transform 0.2s;
-    cursor: grab;
-}
-#floatingGraveyardBtn img {
-    width: 60%;
-    filter: invert(1); /* Deixa o SVG branco */
-}
-
-/* Feedback Visual na Carta (Destaque) */
-.card.dragging-to-grave {
-    border: 3px solid #00ff73 !important; /* Borda verde neon na carta arrastada */
-    box-shadow: 0 0 10px #00ff73;
-    opacity: 0.9;
-}
-
-/* Mostrar APENAS em Mobile (telas menores que 768px) */
-@media (max-width: 768px) {
-    #floatingGraveyardBtn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-}
-
   </style>
 </head>
 
@@ -1207,11 +1168,6 @@
     </div>
   </div>
 
-
-  <button id="floatingGraveyardBtn" title="Mover para o Cemitério">
-    <img src="img/skull.svg" alt="Cemitério"></button>
-
-
   <audio id="bgmAudio" loop autoplay>
     <source src="audio/bgm.mp3" type="audio/mpeg">
   </audio>
@@ -1314,7 +1270,6 @@
     let localGameState = {};
     let myPlayerId = null;
     let isDrawingCard = false; // Trava para cliques rápidos no deck
-    let currentlyDraggedCardId = null; // <-- ADICIONE ESTA VARIÁVEL
 
     // Referências do DOM
     const deckCountEl = document.getElementById('deck-count');
@@ -2152,63 +2107,6 @@
       });
     }
 
-    
-
-    // [NOVO] Função de Drop Rápido Mobile/Auto-Scroll
-    function setupMobileDragDrop() {
-        const floatBtn = document.getElementById('floatingGraveyardBtn');
-        
-        // 1. Rastrear qual carta está sendo arrastada
-        document.addEventListener('dragstart', (e) => {
-            const targetCard = e.target.closest('.card');
-            if (targetCard) {
-                currentlyDraggedCardId = targetCard.dataset.cardId;
-            } else {
-                currentlyDraggedCardId = null;
-            }
-        });
-
-        // 2. Feedback Visual e Drop Zone
-        document.addEventListener('dragover', (e) => {
-            const isDraggingCard = currentlyDraggedCardId && floatBtn;
-            if (!isDraggingCard) return;
-
-            // Verifica se o cursor está sobre o botão flutuante
-            const isOverButton = e.target === floatBtn || floatBtn.contains(e.target);
-            
-            const cardElement = document.querySelector(`.card[data-card-id="${currentlyDraggedCardId}"]`);
-
-            if (isOverButton) {
-                e.preventDefault(); // Essencial para permitir o drop
-                floatBtn.style.backgroundColor = '#00cc55'; /* Verde */
-                if (cardElement) cardElement.classList.add('dragging-to-grave');
-            } else {
-                floatBtn.style.backgroundColor = '#ff3b3b'; /* Vermelho */
-                if (cardElement) cardElement.classList.remove('dragging-to-grave');
-            }
-        });
-        
-        // 3. Drop Action (Quando solta a carta sobre o botão)
-        floatBtn.addEventListener('drop', (e) => {
-            if (currentlyDraggedCardId) {
-                e.preventDefault();
-                // Move a carta para a área 'free' (cemitério)
-                moveCard(currentlyDraggedCardId, 'free'); 
-            }
-        });
-
-        // 4. Limpeza de Estados (dragend/dragcancel)
-        const cleanup = () => {
-            const cardElement = document.querySelector(`.card[data-card-id="${currentlyDraggedCardId}"]`);
-            if (cardElement) cardElement.classList.remove('dragging-to-grave');
-            if (floatBtn) floatBtn.style.backgroundColor = '#ff3b3b';
-            currentlyDraggedCardId = null;
-        };
-
-        document.addEventListener('dragend', cleanup);
-        document.addEventListener('dragleave', cleanup);
-    }
-
     // =======================================================
     // === 7. O "CORAÇÃO" DO JOGO (O Listener Principal) ===
     // =======================================================
@@ -2241,8 +2139,6 @@
       setupUI();
       setupDropzones();
       setupAutoScroll();
-
-      setupMobileDragDrop(); // <--- ADICIONE ESTA LINHA
     }
 
     // Inicia o jogo!
