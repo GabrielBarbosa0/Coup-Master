@@ -55,6 +55,9 @@
       background: #232a33;
       color: #ffffff;
       margin-bottom: 18px;
+
+      /* [NOVO] Inicia OCULTO por padrão */
+      display: none;
     }
 
 
@@ -1854,6 +1857,13 @@
       // 3.2 Toggle Header (Olhinho)
       if (toggleHeaderBtn) {
           const header = document.querySelector('header');
+
+          // [NOVO] Define o estado inicial do botão para "header oculto"
+          // Isso é necessário porque definimos display: none; no CSS.
+          toggleHeaderBtn.querySelector('img').src = 'img/visibility_off.svg';
+          toggleHeaderBtn.style.opacity = '0.6';
+          // [FIM NOVO]
+
           toggleHeaderBtn.onclick = () => {
               playSound('click');
               if (header.style.display === 'none') {
@@ -1866,6 +1876,7 @@
                   toggleHeaderBtn.style.opacity = '0.6';
               }
           };
+
       }
 
       // 3.3 Abrir Configuração de Deck (Botão dentro do menu)
