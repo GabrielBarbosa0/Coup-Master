@@ -984,6 +984,13 @@
             border-radius: 6px;             /* Bordas ligeiramente menos arredondadas */
         }
 
+        /* Ajusta o grid das cartas para centralizar */
+        body.compact-mode .player-stack {
+            grid-template-columns: repeat(auto-fit, 40px) !important; /* Mude de auto-fill para auto-fit se necessário, ou mantenha fixo */
+            justify-content: center !important; /* <--- O SEGREDO: Centraliza o grid */
+            gap: 2px !important;
+        }
+
 
         /* 8. Reduz o texto do Cemitério (e outros textos auxiliares) */
         body.compact-mode .free-area .muted {
