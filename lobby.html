@@ -38,16 +38,49 @@
             margin: 0;
             text-align: center;
         }
+
+        
+        body {
+        /* ... outras propriedades ... */
+
+        /* 1. Ativa o modelo Flexbox no corpo */
+        display: flex;
+        
+        /* 2. Centraliza o conteúdo horizontalmente */
+        align-items: center; 
+        
+        /* 3. Centraliza o conteúdo verticalmente */
+        justify-content: center;
+        
+        /* 4. Garante que o body ocupe toda a altura da tela */
+        min-height: 100vh;
+        
+        /* ... outras propriedades ... */
+    }
+
+    .lobby-box {
+        /* ... outras propriedades ... */
+
+        /* Garante que ocupe uma largura máxima em desktop, mas seja responsiva no celular */
+        max-width: 400px;
+        width: 90%; 
+        
+        /* Se você quiser garantir que as margens automáticas ajudem, embora o flexbox já resolva: */
+        margin: 0 auto; 
+        
+        /* ... outras propriedades ... */
+        }
+
+
         .lobby-box {
             background: var(--panel);
             padding: 26px 40px 0px 40px;
             border-radius: 18px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
             max-width: 400px;
-            /* width: 90%; */
-            /* margin: 10px; */
             margin: auto;
         }
+
         h1 {
             font-size: 1.8rem;
             color: var(--text);
