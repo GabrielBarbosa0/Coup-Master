@@ -901,6 +901,145 @@
       color: #999;
     }
 
+    /* === MODO COMPACTO (MOBILE) === */
+    
+    /* Só aplica se a tela for pequena E tiver a classe compact-mode */
+    @media (max-width: 520px) {
+        
+        /* 1. Transforma a lista de jogadores em 2 colunas */
+        body.compact-mode .player-hands-container {
+            grid-template-columns: 1fr 1fr !important; /* Força 2 colunas */
+            gap: 4px;
+        }     
+
+        /* 2. Reduz o tamanho da área do jogador */
+        body.compact-mode .player-area {
+            min-height: 80px; /* Bem menor */
+            padding: 4px;
+        }
+
+        /* ... dentro de @media (max-width: 520px) ... */
+
+        /* 3. Reduz textos (ATUALIZADO PARA FICAR MENOR) */
+        body.compact-mode .player-title {
+            font-size: 8px !important; /* Reduzido para 8px */
+            line-height: 10px;         /* Altura de linha compacta */
+            margin-bottom: 0 !important;
+            white-space: nowrap;       /* Evita que o nome quebre linha */
+            overflow: hidden;          /* Corta nomes muito longos */
+            text-overflow: ellipsis;   /* Adiciona "..." se cortar */
+            max-width: 60px;           /* Limita a largura do nome */
+        }
+        
+        /* 4. REDUZ AS CARTAS EM ~40% (aprox 50% visualmente na área) */
+        body.compact-mode .card, 
+        body.compact-mode .slot {
+            width: 40px !important;  /* Era ~58px */
+            height: 56px !important; /* Era ~84px */
+        }
+        
+        /* Ajusta o grid interno das cartas na mão */
+        body.compact-mode .player-stack {
+            grid-template-columns: repeat(auto-fill, 40px); /* Ajusta pro novo tamanho */
+            gap: 2px;
+        }
+        
+        /* 5. Ajustes nos botões de ação (kick, pontos) */
+        body.compact-mode .remove-player {
+            width: 10px; height: 10px; top: 2px; right: 2px;
+        }
+        body.compact-mode .points .plus, 
+        body.compact-mode .points .minus {
+            width: 16px; height: 16px; font-size: 12px;
+        }
+
+        /* 6. Ajusta a área inferior (Deck e Asilo) para caber melhor */
+        body.compact-mode .asylum-area, 
+        body.compact-mode .deck-area,
+        body.compact-mode .free-area {
+            padding: 8px;
+        }
+        body.compact-mode .deck {
+            width: 46px; height: 68px; /* Deck um pouco menor também */
+        }
+
+        /* ... dentro de @media (max-width: 520px) ... */
+
+        /* 7. Reduz o Avatar em 50% (de 32px para 16px) */
+        body.compact-mode .player-avatar {
+            width: 16px !important;
+            height: 16px !important;
+            border-width: 1px !important; /* Borda mais fina para acompanhar */
+        }
+
+        /* Ajusta o container do cabeçalho para ficar mais juntinho */
+        body.compact-mode .player-header {
+            gap: 4px !important; /* Menos espaço entre foto e nome */
+            margin-bottom: 0 !important;
+        }
+
+        /* ... dentro de @media (max-width: 520px) ... */
+
+        /* 8. Reduz o texto do Cemitério (e outros textos auxiliares) */
+        body.compact-mode .free-area .muted {
+            font-size: 8px !important; /* Texto bem pequeno */
+            line-height: 10px;         /* Altura da linha ajustada */
+            margin-bottom: 0 !important;
+        }
+
+        /* ... dentro de @media (max-width: 520px) ... */
+
+        /* 9. Compacta o Wrapper dos Decks (Asilo e Deck) */
+        body.compact-mode .decks-wrapper {
+            gap: 4px !important;       /* Aproxima as duas caixas */
+            margin-top: 8px !important;
+        }
+
+        /* Reduz padding e espaçamento interno das caixas */
+        body.compact-mode .asylum-area,
+        body.compact-mode .deck-area {
+            padding: 4px !important;
+            gap: 4px !important;
+            border-width: 2px !important; /* Borda mais fina */
+        }
+
+        /* Reduz a Imagem do Asilo (de ~76px para 36px) */
+        body.compact-mode .asylum-image {
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: 6px !important;
+        }
+
+        /* Reduz os Botões do Asilo (+ e -) */
+        body.compact-mode .asylum-points button {
+            width: 16px !important;
+            height: 16px !important;
+            font-size: 10px !important;
+        }
+
+        /* Reduz textos informativos ("Asilo", "Cartas no deck") */
+        body.compact-mode .asylum-area .muted,
+        body.compact-mode .pile-info {
+            font-size: 8px !important;
+            margin: 0 !important;
+            line-height: 10px;
+        }
+
+        /* Ajuste específico para o contador do deck */
+        body.compact-mode #deck-count {
+            font-size: 10px !important;
+        }
+
+        /* ... dentro de @media (max-width: 520px) ... */
+
+        /* 10. Compacta a área do Cemitério */
+        body.compact-mode .free-area {
+            min-height: 60px !important; /* Reduz de 140px para 60px */
+            padding: 4px !important;     /* Menos espaçamento interno */
+            gap: 2px !important;         /* Cartas mais coladas umas nas outras */
+        }
+    }
+
     /* === FIM DOS NOVOS ESTILOS === */
   </style>
 </head>
@@ -1184,6 +1323,14 @@
             <button id="toggleHeaderBtn" class="icon-btn" title="Mostrar/Ocultar Título">
                 <img src="img/visibility.svg" alt="Ver" style="width: 24px; height: 24px;">
                 <span style="margin-left: 8px;">Título do Jogo</span>
+            </button>
+        </div>
+
+        <div class="setting-row">
+            <label>Modo Compacto:</label>
+            <button id="toggleCompactBtn" class="icon-btn" title="Ativar/Desativar Modo Compacto">
+                <img src="img/grid_view.svg" alt="Compacto" style="width: 24px; height: 24px;">
+                <span style="margin-left: 8px;">Desativado</span>
             </button>
         </div>
 
@@ -1910,6 +2057,42 @@
         else if (y > (viewportHeight - threshold)) window.scrollBy(0, speed);
       });
     }
+
+    // [NOVO] Lógica do Modo Compacto
+      const toggleCompactBtn = document.getElementById('toggleCompactBtn');
+      
+      // Função auxiliar para aplicar o modo
+      const applyCompactMode = (isCompact) => {
+          const body = document.body;
+          const img = toggleCompactBtn.querySelector('img');
+          const span = toggleCompactBtn.querySelector('span');
+
+          if (isCompact) {
+              body.classList.add('compact-mode');
+              span.textContent = "Ativado";
+              toggleCompactBtn.style.background = "#1e90ff"; // Azul para indicar ativo
+              // Se tiver ícone de grid/lista, pode trocar aqui
+          } else {
+              body.classList.remove('compact-mode');
+              span.textContent = "Desativado";
+              toggleCompactBtn.style.background = "#232a33"; // Cor padrão
+          }
+          // Salva na memória do navegador (localStorage é melhor aqui que session)
+          localStorage.setItem('compactMode', isCompact);
+      };
+
+      if (toggleCompactBtn) {
+          // 1. Ao carregar, verifica se já estava ativo antes
+          const savedMode = localStorage.getItem('compactMode') === 'true';
+          applyCompactMode(savedMode);
+
+          // 2. Ao clicar
+          toggleCompactBtn.onclick = () => {
+              playSound('click');
+              const isCurrentlyCompact = document.body.classList.contains('compact-mode');
+              applyCompactMode(!isCurrentlyCompact); // Inverte
+          };
+      }
 
     // =======================================================
     // === 7. LÓGICA DE CONEXÃO INTELIGENTE (UID) ===
