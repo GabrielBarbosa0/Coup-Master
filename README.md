@@ -1,4 +1,4 @@
-# Coup Master - Protótipo Online
+# Coup Master - Protótipo Online v0.0.1
 
 Este é um protótipo funcional e multiplayer (até 8 jogadores) do jogo de tabuleiro "Coup", incluindo a expansão "A Reforma". O projeto é 100% estático (HTML, CSS, JavaScript) e utiliza o Firebase Realtime Database para sincronizar o estado do jogo entre todos os jogadores em tempo real.
 
