@@ -50,7 +50,7 @@
     header {
       border-radius: 18px;
       border: 3px dashed rgba(255, 255, 255, 0.12);
-      padding: 26px 18px;
+      padding: 10px 18px;
       text-align: center;
       background: #232a33;
       color: #ffffff;
@@ -72,6 +72,26 @@
       margin: 6px 0 0;
       color: #444;
     }
+
+
+    /* === ESTILOS DO CABEÇALHO DE CÓDIGO === */
+    header {
+        cursor: pointer; /* Indica que é clicável */
+        user-select: none; /* Evita selecionar o texto arrastando */
+        transition: all 0.2s ease;
+    }
+    
+    header:active {
+        transform: scale(0.98); /* Efeito de clique */
+    }
+
+    /* Classe que será adicionada via JS quando copiar */
+    header.copied {
+        background-color: #00ff73 !important; /* Fundo Verde Neon */
+        color: #14171e !important; /* Texto Escuro */
+        border-color: #00ff73 !important;
+    }
+
 
     .resetBtn,
     .infoBtn,
@@ -1051,13 +1071,31 @@
     }
 
     /* === FIM DOS NOVOS ESTILOS === */
+
+    /* Estilo padrão do subtítulo */
+    .copy-instruction {
+        font-size: 10px;
+        margin: 0;
+        opacity: 0.6; /* Começa meio transparente e cinza claro (do tema) */
+        letter-spacing: 1px;
+        transition: opacity 0.2s, color 0.2s;
+    }
+
+    /* QUANDO COPIADO (Fundo Verde): */
+    header.copied .copy-instruction {
+        opacity: 1 !important;           /* Remove transparência */
+        font-weight: bold;               /* Destaca o texto */
+        color: #14171e !important;       /* [CORRIGIDO] Força a cor escura exata */
+    }
+    
   </style>
 </head>
 
 <body>
   <div class="container">
-    <header>
-      <h1>Coup Master</h1>
+    <header id="roomHeader" title="Clique para copiar o código">
+      <h1 style="font-size: 24px;">SALA: <span id="roomCodeDisplay">...</span></h1>
+      <p class="copy-instruction" style="font-size: 10px; margin: 0; opacity: 0.6; letter-spacing: 1px; color: #fff;">(CLIQUE PARA COPIAR)</p>
     </header>
 
     <div class="board">
@@ -1355,9 +1393,9 @@
 
         <div class="setting-row">
             <label>Interface:</label>
-            <button id="toggleHeaderBtn" class="icon-btn" title="Mostrar/Ocultar Título">
+            <button id="toggleHeaderBtn" class="icon-btn" title="Mostrar/Ocultar Código da Sala">
                 <img src="img/visibility.svg" alt="Ver" style="width: 24px; height: 24px;">
-                <span style="margin-left: 8px;">Título do Jogo</span>
+                <span style="margin-left: 8px;">Código da Sala</span>
             </button>
         </div>
 
@@ -2115,6 +2153,42 @@
           // Salva na memória do navegador (localStorage é melhor aqui que session)
           localStorage.setItem('compactMode', isCompact);
       };
+
+      // [NOVO] Configuração do Header de Código da Sala
+      const roomHeader = document.getElementById('roomHeader');
+      const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+      
+      // 1. Exibe o código atual na tela
+      if (roomCodeDisplay && roomCode) {
+          roomCodeDisplay.textContent = roomCode;
+      }
+
+      // 2. Evento de Clique para Copiar
+      if (roomHeader) {
+          roomHeader.onclick = () => {
+              // Copia para a área de transferência
+              navigator.clipboard.writeText(roomCode).then(() => {
+                  
+                  // Feedback Sonoro
+                  playSound('card-slide'); // Ou outro som de confirmação
+                  
+                  // Feedback Visual (Piscar Verde)
+                  roomHeader.classList.add('copied');
+                  const originalText = roomHeader.querySelector('p').textContent;
+                  roomHeader.querySelector('p').textContent = "CÓDIGO COPIADO!";
+                  
+                  // Remove o feedback após 1 segundo
+                  setTimeout(() => {
+                      roomHeader.classList.remove('copied');
+                      roomHeader.querySelector('p').textContent = originalText;
+                  }, 1200);
+                  
+              }).catch(err => {
+                  console.error('Erro ao copiar:', err);
+                  alert("Código da sala: " + roomCode); // Fallback caso o clipboard falhe
+              });
+          };
+      }
 
       if (toggleCompactBtn) {
           // 1. Ao carregar, verifica se já estava ativo antes
