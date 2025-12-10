@@ -1162,6 +1162,31 @@
             <div class="player-stack hand" data-hand></div>
           </div>
         </div>
+
+        <div class="player-area" id="player-9" data-player="9">
+            <button class="remove-player" data-pid="9" title="Remover Jogador"></button>
+            <div class="player-title">Jogador 9</div>
+            <div class="points">
+              <button class="minus">-</button>
+              <div class="score" data-score="0">0</div>
+              <button class="plus">+</button>
+            </div>
+            <div class="religion-status" data-pid="9">Católico</div>
+            <div class="player-stack hand" data-hand></div>
+          </div>
+
+          <div class="player-area" id="player-10" data-player="10">
+            <button class="remove-player" data-pid="10" title="Remover Jogador"></button>
+            <div class="player-title">Jogador 10</div>
+            <div class="points">
+              <button class="minus">-</button>
+              <div class="score" data-score="0">0</div>
+              <button class="plus">+</button>
+            </div>
+            <div class="religion-status" data-pid="10">Protestante</div>
+            <div class="player-stack hand" data-hand></div>
+          </div>
+
         <div class="bottom-table-container">
 
           <div class="free-area" id="freeArea" data-area="free">
@@ -1524,7 +1549,7 @@
       card = state.grave?.find(c => c.id === id);
       if (card) return card;
 
-      for (let p = 1; p <= 8; p++) {
+      for (let p = 1; p <= 10; p++) {
         card = state.players?.[p]?.hand?.find(c => c.id === id);
         if (card) return card;
       }
@@ -1538,7 +1563,7 @@
       if (state.grave) state.grave = state.grave.filter(c => c.id !== cardId);
 
       if (state.players) {
-        for (let p = 1; p <= 8; p++) {
+        for (let p = 1; p <= 10; p++) {
           if (state.players[p]?.hand) {
             state.players[p].hand = state.players[p].hand.filter(c => c.id !== cardId);
           }
@@ -1597,7 +1622,7 @@
 
       clearDOM();
 
-      for (let pid = 1; pid <= 8; pid++) {
+      for (let pid = 1; pid <= 10; pid++) {
 
         const playerEl = document.getElementById(`player-${pid}`);
         if (!playerEl) continue;
@@ -1853,7 +1878,7 @@
       let newPlayersState = {};
       
       // Mantém os jogadores e seus UIDs/Nomes, só reseta o jogo
-      for(let i=1; i<=8; i++) {
+      for(let i=1; i<=10; i++) {
           newPlayersState[i] = {
               online: currentPlayers[i]?.online || false,
               uid: currentPlayers[i]?.uid || null,
@@ -2115,7 +2140,7 @@
           };
 
           // Inicializa os 8 slots vazios
-          for(let i=1; i<=8; i++) {
+          for(let i=1; i<=10; i++) {
               initialState.players[i] = {
                   online: false, 
                   hand: [], 
@@ -2140,7 +2165,7 @@
         // 2. Se a sala existe, procura meu lugar
         
         // A. Tenta RECONECTAR (Procura meu UID)
-        for (let i = 1; i <= 8; i++) {
+        for (let i = 1; i <= 10; i++) {
             if (currentState.players[i] && currentState.players[i].uid === currentUser.uid) {
                 currentState.players[i].online = true; // Estou de volta!
                 currentState.players[i].name = currentUser.name; 
@@ -2151,7 +2176,7 @@
         }
 
         // B. Se não achou, procura slot VAZIO (Sem UID)
-        for (let i = 1; i <= 8; i++) {
+        for (let i = 1; i <= 10; i++) {
             if (!currentState.players[i].uid) { // Slot sem dono
                 currentState.players[i].uid = currentUser.uid;
                 currentState.players[i].name = currentUser.name;
