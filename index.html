@@ -291,6 +291,26 @@
       font-weight: 700;
     }
 
+
+    /* [NOVO] Estilo da Foto de Perfil na Mesa */
+    .player-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      /* margin-bottom: 5px; */
+      justify-content: center;
+    }
+    .player-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      object-fit: cover;
+    }
+    .player-title {
+      margin: 0; /* Remove margem antiga */
+    }
+
     /* Deck area (AJUSTADO) */
     .deck-area {
       display: flex;
@@ -1216,34 +1236,54 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const gameStateRef = db.ref('gameState');
 
+    // =======================================================
+    // === 1.1 VERIFICAÇÃO DE LOGIN E SALA (NOVO) ===
+    // =======================================================
+    
+    // 1. Pega o código da sala da URL (?room=XXXX)
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomCode = urlParams.get('room');
+
+    // 2. Pega os dados do usuário logado (vindos do Lobby)
+    const currentUser = {
+        uid: sessionStorage.getItem('currentUID'),
+        name: sessionStorage.getItem('currentName'),
+        photo: sessionStorage.getItem('currentPhoto')
+    };
+
+    // 3. Segurança: Se não tem sala ou não tem user logado, manda pro Lobby
+    if (!roomCode || !currentUser.uid) {
+        window.location.href = 'lobby.html';
+    }
+
+    // [IMPORTANTE] Agora a referência muda para a sala específica!
+    const gameStateRef = db.ref(`salas/${roomCode}/gameState`);
+
+
+    // =======================================================
+    // === 2. VARIÁVEIS GLOBAIS E UTILITÁRIOS ===
+    // =======================================================
 
     // [NOVO] FUNÇÃO DE TOCAR SOM
     function playSound(id) {
       const sound = document.getElementById('audio-' + id);
       if (sound) {
-        sound.currentTime = 0; // Reinicia o som se já estiver tocando (para cliques rápidos)
+        sound.currentTime = 0; 
         sound.play().catch(e => console.log("Erro ao tocar som:", e));
       }
     }
 
-    // Variável para não repetir sons antigos
     let lastSoundTimestamp = 0;
 
-    // [NOVO] Função que manda o som para TODOS os jogadores
+    // Função que manda o som para TODOS os jogadores
     function triggerSound(soundId) {
-      db.ref('gameState/lastSFX').set({
+      db.ref(`salas/${roomCode}/gameState/lastSFX`).set({
         id: soundId,
-        timestamp: Date.now() // Usa a hora atual para garantir que é um som novo
+        timestamp: Date.now()
       });
     }
 
-    // =======================================================
-    // === 2. CONSTANTES E VARIÁVEIS GLOBAIS ===
-    // =======================================================
-
-    // [CORREÇÃO] Lista de TODAS as 10 cartas
     const CARD_TYPES = [
       { type: 'duque', color: '#f6b04d' },
       { type: 'capitao', color: '#ff3b3b' },
@@ -1251,12 +1291,10 @@
       { type: 'embaixador', color: '#49f0ff' },
       { type: 'condessa', color: '#ffb000' },
       { type: 'inquisidor', color: '#2a8cff' },
-      // peronagens promo
       { type: 'benfeitor', color: '#C0C0C0' },
       { type: 'bufao', color: '#FF69B4' },
       { type: 'burgues', color: '#800080' },
       { type: 'burocrata', color: '#A52A2A' },
-      // --- personagens originais ---
       { type: 'vigilante', color: '#FFFFFF' },
       { type: 'mercenario', color: '#FFFFFF' },
       { type: 'guardiao-real', color: '#FFFFFF' },
@@ -1269,10 +1307,9 @@
       { type: 'camaleao', color: '#FFFFFF' }
     ];
 
-    // O estado local é um "espelho" do que está no Firebase
     let localGameState = {};
-    let myPlayerId = null;
-    let isDrawingCard = false; // Trava para cliques rápidos no deck
+    let myPlayerId = null; // Será definido pelo UID
+    let isDrawingCard = false;
 
     // Referências do DOM
     const deckCountEl = document.getElementById('deck-count');
@@ -1281,30 +1318,25 @@
     const freeArea = document.getElementById('freeArea');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const resetBtn = document.getElementById('resetBtn');
-
-    // [NOVO] Referências do Asilo
     const asylumScoreEl = document.getElementById('asylum-score');
     const asylumPlusBtn = document.getElementById('asylum-plus');
     const asylumMinusBtn = document.getElementById('asylum-minus');
 
     // =======================================================
-    // === 3. FUNÇÕES DE CRIAÇÃO E MANIPULAÇÃO DO JOGO (LÓGICA) ===
+    // === 3. FUNÇÕES LÓGICAS (DECK, CARTAS) ===
     // =======================================================
 
-    // [CORREÇÃO] createDeck agora lê a configuração passada
-    function createDeck(config) { // <-- Aceita config
+    function createDeck(config) {
       let newDeck = [];
       let id = 1;
 
       if (!config) {
-        console.error("Configuração do Deck (deckConfig) não encontrada! Usando padrão.");
         config = createDefaultDeckConfig();
       }
 
-      // Loop pela config, não pelo CARD_TYPES
       for (const cardType in config) {
         const quantity = config[cardType];
-        const cardInfo = CARD_TYPES.find(c => c.type === cardType); // Encontra a info da carta (cor)
+        const cardInfo = CARD_TYPES.find(c => c.type === cardType);
 
         if (cardInfo && quantity > 0) {
           for (let i = 0; i < quantity; i++) {
@@ -1319,7 +1351,6 @@
           }
         }
       }
-
       shuffle(newDeck);
       return newDeck;
     }
@@ -1331,7 +1362,6 @@
       }
     }
 
-    // Encontra uma carta dentro do objeto de estado do jogo
     function findCardById(state, id) {
       if (!state || !id) return null;
       let card = state.deck?.find(c => c.id === id);
@@ -1348,7 +1378,6 @@
       return null;
     }
 
-    // Remove uma carta de qualquer lugar em um objeto de estado
     function removeCardFromLocation(state, cardId) {
       if (!state || !cardId) return;
       if (state.deck) state.deck = state.deck.filter(c => c.id !== cardId);
@@ -1365,7 +1394,7 @@
     }
 
     // =======================================================
-    // === 4. FUNÇÕES DE RENDERIZAÇÃO (ATUALIZAR A TELA) ===
+    // === 4. RENDERIZAÇÃO (ATUALIZADA COM NOME E FOTO) ===
     // =======================================================
 
     function clearDOM() {
@@ -1374,9 +1403,6 @@
       document.querySelectorAll('.slot').forEach(n => n.remove());
       document.querySelectorAll('.player-area.local-player')
         .forEach(el => el.classList.remove('local-player'));
-      // Limpa o destaque de turno antes de redesenhar
-      document.querySelectorAll('.player-area.active-turn')
-        .forEach(el => el.classList.remove('active-turn'));
     }
 
     function createCardElement(card) {
@@ -1388,7 +1414,7 @@
       if (shouldShowBack(card)) {
         el.classList.add('back');
       } else {
-        const imageUrl = `./img/${card.type.toLowerCase()}.png`; // Ex: ./img/duque.png
+        const imageUrl = `./img/${card.type.toLowerCase()}.png`;
         el.style.backgroundImage = `url('${imageUrl}')`;
       }
 
@@ -1412,7 +1438,6 @@
       return false;
     }
 
-    // A função de renderização principal
     function renderAll() {
       const state = localGameState;
       if (!state || !state.players) return;
@@ -1424,16 +1449,10 @@
         const playerEl = document.getElementById(`player-${pid}`);
         if (!playerEl) continue;
 
-        const player = state.players[pid] || { online: false, hand: [], score: 0, religion: 'catolico' };
+        const player = state.players[pid] || { online: false, hand: [], score: 0, religion: 'catolico', uid: null };
 
-        /* [REMOVIDO]
-        if (state.turn === pid) {
-            playerEl.classList.add('active-turn');
-        }
-        */
-
-        // LÓGICA DE MOSTRAR/OCULTAR
-        if (player.online) {
+        // [MODIFICADO] Mostra se estiver online OU se tiver DONO (reservado)
+        if (player.online || player.uid) {
           playerEl.style.display = 'flex';
         } else {
           playerEl.style.display = 'none';
@@ -1446,7 +1465,34 @@
           playerEl.classList.add('local-player');
         }
 
-        // [NOVO] Renderiza o status da Religião
+        // [NOVO] RENDERIZA NOME E FOTO
+        // Procura o container de cabeçalho ou cria se não existir
+        let headerEl = playerEl.querySelector('.player-header');
+        if (!headerEl) {
+            const titleDiv = playerEl.querySelector('.player-title');
+            headerEl = document.createElement('div');
+            headerEl.className = 'player-header';
+            
+            const img = document.createElement('img');
+            img.className = 'player-avatar';
+            
+            playerEl.insertBefore(headerEl, titleDiv);
+            headerEl.appendChild(img);
+            headerEl.appendChild(titleDiv);
+        }
+
+        // Atualiza dados de Nome e Foto
+        const avatarImg = headerEl.querySelector('.player-avatar');
+        const nameTxt = headerEl.querySelector('.player-title');
+        
+        avatarImg.src = player.photo || 'img/coup.png'; 
+        nameTxt.textContent = player.name || `Jogador ${pid}`;
+        
+        // Se estiver offline mas reservado, deixa transparente
+        playerEl.style.opacity = player.online ? '1' : '0.5';
+
+
+        // Renderiza Religião
         const religionEl = playerEl.querySelector('.religion-status');
         if (religionEl) {
           if (player.religion === 'protestante') {
@@ -1460,93 +1506,66 @@
           }
         }
 
-        // 1. Renderiza os slots que TÊM cartas
+        // Renderiza Cartas
         player.hand?.forEach((card) => {
           const slot = document.createElement('div');
           slot.className = 'slot small';
-
           const el = createCardElement(card);
           el.classList.add('small');
-
           slot.appendChild(el);
           handContainer.appendChild(slot);
         });
 
-        // 2. Se a mão estiver vazia, mostra UM slot vazio
         if (!player.hand || player.hand.length === 0) {
           const slot = document.createElement('div');
           slot.className = 'slot small';
           handContainer.appendChild(slot);
         }
 
-        // Atualiza pontuação
+        // Score
         const scoreEl = document.querySelector(`#player-${pid} .score`);
         scoreEl.textContent = player.score || 0;
       }
 
-      // Renderiza cartas da área livre
+      // Renderiza Cemitério
       state.freeCards?.forEach(card => {
         const el = createCardElement(card);
         el.classList.add('small');
         freeArea.appendChild(el);
       });
 
-      // Atualiza contadores
+      // Contadores
       deckCountEl.textContent = state.deck?.length || 0;
-      if (graveCountEl) {
-        graveCountEl.textContent = state.grave?.length || 0;
-      }
+      if (asylumScoreEl) asylumScoreEl.textContent = state.asylumScore || 0;
 
-      // [NOVO] Atualiza contador do Asilo
-      if (asylumScoreEl) {
-        asylumScoreEl.textContent = state.asylumScore || 0;
-      }
-
-      // [NOVO] Sincroniza a UI de Configuração do Deck
+      // Config Deck
       if (state.deckConfig) {
         for (const cardType in state.deckConfig) {
           const input = document.getElementById(`config-${cardType}`);
-          if (input) {
-            input.value = state.deckConfig[cardType];
-          }
+          if (input) input.value = state.deckConfig[cardType];
         }
       }
     }
 
     // =======================================================
-    // === 5. AÇÕES DO JOGADOR (ESCREVEM NO FIREBASE) ===
+    // === 5. AÇÕES DO JOGADOR ===
     // =======================================================
 
-
-    // [MODIFICADO] Agora aceita um ID de jogador alvo (opcional)
     function drawCard(targetPid = null) {
-      // Se um alvo for passado (drag & drop), usa ele. Senão, usa o jogador local (clique).
       const playerToReceive = targetPid || myPlayerId;
+      if (!playerToReceive) return;
 
-      if (!playerToReceive) return; // Segurança
-
-      if (isDrawingCard) {
-        console.log("Aguarde, comprando carta...");
-        return;
-      }
+      if (isDrawingCard) return;
       isDrawingCard = true;
-      triggerSound('card-slide'); // Som Global
+      triggerSound('card-slide');
 
       gameStateRef.transaction((currentState) => {
-        if (!currentState) {
-          isDrawingCard = false; 
-          return;
-        }
-
-        if (!currentState.deck || currentState.deck.length === 0) {
-          console.log("Deck vazio.");
+        if (!currentState || !currentState.deck || currentState.deck.length === 0) {
           isDrawingCard = false; 
           return;
         }
 
         const card = currentState.deck.pop();
-        
-        // Usa a variável playerToReceive em vez de myPlayerId fixo
         card.owner = playerToReceive;
         card.location = 'player-' + playerToReceive;
         card.visible = false;
@@ -1558,46 +1577,36 @@
 
         return currentState;
       },
-        (error, committed, snapshot) => {
-          if (error) {
-            console.error("Falha ao comprar carta:", error);
-          }
+        (error, committed) => {
           isDrawingCard = false;
         });
     }
 
-
     function returnCardToDeck(cardId) {
-      triggerSound('shuffle'); // <--- MUDADO PARA TRIGGER
+      triggerSound('shuffle');
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
-
         const card = findCardById(currentState, cardId);
         if (!card) return currentState;
 
         removeCardFromLocation(currentState, cardId);
-
         card.owner = null;
         card.location = 'deck';
         card.visible = false;
         if (!currentState.deck) currentState.deck = [];
         currentState.deck.push(card);
-
         shuffle(currentState.deck);
-
         return currentState;
       });
     }
 
     function moveCard(cardId, targetLocation, targetPlayerId = null) {
-      // [CORREÇÃO] Sons para todas as ações de arrastar
-      if (targetLocation === 'player') triggerSound('card-slide'); // <--- FALTAVA ESTE (Mover para mão)
-      if (targetLocation === 'free') triggerSound('knife');   // Mover para cemitério
-      if (targetLocation === 'deck') triggerSound('shuffle');      // Mover para deck
+      if (targetLocation === 'player') triggerSound('card-slide');
+      if (targetLocation === 'free') triggerSound('knife');
+      if (targetLocation === 'deck') triggerSound('shuffle');
 
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
-
         const card = findCardById(currentState, cardId);
         if (!card) return currentState;
 
@@ -1606,9 +1615,7 @@
           card.owner = targetPlayerId;
           card.location = 'player-' + targetPlayerId;
           card.visible = false;
-          if (!currentState.players[targetPlayerId].hand) {
-            currentState.players[targetPlayerId].hand = [];
-          }
+          if (!currentState.players[targetPlayerId].hand) currentState.players[targetPlayerId].hand = [];
           currentState.players[targetPlayerId].hand.push(card);
         }
         else if (targetLocation === 'free') {
@@ -1628,37 +1635,35 @@
           currentState.deck.push(card);
           shuffle(currentState.deck);
         }
-
         return currentState;
       });
     }
 
-    // [NOVA FUNÇÃO] KICK PLAYER
+    // [ATUALIZADO] Kick Player agora limpa o UID também
     function kickPlayer(pid) {
-      if (!confirm(`Tem certeza que deseja remover o Jogador ${pid}?`)) {
-        return;
-      }
+      if (!confirm(`Tem certeza que deseja remover o Jogador ${pid}?`)) return;
 
-      // [NOVO] Toca o som para TODOS
       triggerSound('impact');
 
-      // 1. Remove a persistência local (se for o próprio jogador)
+      // Se eu me kickar (sair da mesa)
       if (pid === myPlayerId) {
-        sessionStorage.removeItem('myPlayerId'); // [CORREÇÃO] Usando sessionStorage
-        myPlayerId = null; // Zera a ID local
-        alert('Você foi removido da sala e seu slot está liberado.');
+        window.location.href = 'lobby.html';
       }
 
-      // 2. Atualiza o Firebase para 'online: false'
-      db.ref(`gameState/players/${pid}`).update({
-        online: false
+      // Limpa TUDO do slot no Firebase (Libera a vaga para outro UID)
+      db.ref(`salas/${roomCode}/gameState/players/${pid}`).update({
+        online: false,
+        uid: null,   // [IMPORTANTE] Libera a vaga
+        name: null,
+        photo: null,
+        hand: [],
+        score: 2
       });
     }
 
     function updateScore(pid, amount) {
-      triggerSound('coin'); // <--- MUDADO PARA TRIGGER
-      const scoreRef = db.ref(`gameState/players/${pid}/score`);
-
+      triggerSound('coin');
+      const scoreRef = db.ref(`salas/${roomCode}/gameState/players/${pid}/score`);
       scoreRef.once('value', (snapshot) => {
         let newScore = (snapshot.val() || 0) + amount;
         if (newScore < 0) newScore = 0;
@@ -1666,11 +1671,9 @@
       });
     }
 
-    // [NOVO] Função para o contador do Asilo
     function updateAsylumScore(amount) {
-      triggerSound('coin'); // <--- MUDADO PARA TRIGGER
-
-      const scoreRef = db.ref('gameState/asylumScore');
+      triggerSound('coin');
+      const scoreRef = db.ref(`salas/${roomCode}/gameState/asylumScore`);
       scoreRef.once('value', (snapshot) => {
         let newScore = (snapshot.val() || 0) + amount;
         if (newScore < 0) newScore = 0;
@@ -1678,46 +1681,43 @@
       });
     }
 
-    // [NOVO] Função para trocar religião
     function toggleReligion(pid) {
-      triggerSound('paper'); // <--- MUDADO PARA TRIGGER
-      const religionRef = db.ref(`gameState/players/${pid}/religion`);
+      triggerSound('paper');
+      const religionRef = db.ref(`salas/${roomCode}/gameState/players/${pid}/religion`);
       religionRef.transaction((currentReligion) => {
         return (currentReligion === 'catolico') ? 'protestante' : 'catolico';
       });
     }
 
-    // [CORREÇÃO] resetTable agora aceita um argumento
     function resetTable(newConfig = null) {
       console.log("Resetando a mesa...");
-      triggerSound('8-bit-start'); // <--- ADICIONE ESTA LINHA NO INÍCIO
+      triggerSound('8-bit-start');
 
-      // Se uma nova config foi passada (pelo botão Aplicar), usa ela.
-      // Se não (pelo botão Resetar), usa a que está salva.
       const configToUse = newConfig || localGameState.deckConfig || createDefaultDeckConfig();
-
-      let newDeck = createDeck(configToUse); // <-- Passa a config para createDeck
-
+      let newDeck = createDeck(configToUse);
       let currentPlayers = localGameState.players || {};
 
-      let newPlayersState = {
-        1: { online: currentPlayers[1]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        2: { online: currentPlayers[2]?.online || false, hand: [], score: 2, religion: 'protestante' },
-        3: { online: currentPlayers[3]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        4: { online: currentPlayers[4]?.online || false, hand: [], score: 2, religion: 'protestante' },
-        5: { online: currentPlayers[5]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        6: { online: currentPlayers[6]?.online || false, hand: [], score: 2, religion: 'protestante' },
-        7: { online: currentPlayers[7]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        8: { online: currentPlayers[8]?.online || false, hand: [], score: 2, religion: 'protestante' },
-      };
+      let newPlayersState = {};
+      
+      // Mantém os jogadores e seus UIDs/Nomes, só reseta o jogo
+      for(let i=1; i<=8; i++) {
+          newPlayersState[i] = {
+              online: currentPlayers[i]?.online || false,
+              uid: currentPlayers[i]?.uid || null,
+              name: currentPlayers[i]?.name || null,
+              photo: currentPlayers[i]?.photo || null,
+              hand: [],
+              score: 2,
+              religion: (i % 2 === 1) ? 'catolico' : 'protestante'
+          };
+      }
 
       let initialState = {
         deck: newDeck,
         grave: [],
         freeCards: [],
-        asylumScore: 0, // [NOVO]
-        deckConfig: configToUse, // Salva a config usada
-        // turn: 1, // [REMOVIDO]
+        asylumScore: 0,
+        deckConfig: configToUse,
         players: newPlayersState
       };
 
@@ -1726,32 +1726,26 @@
 
     function shuffleDeck() {
       gameStateRef.transaction((currentState) => {
-        if (currentState && currentState.deck) {
-          shuffle(currentState.deck);
-        }
+        if (currentState && currentState.deck) shuffle(currentState.deck);
         return currentState;
       });
     }
 
-    // [FUNÇÃO NOVA]
     function createDefaultDeckConfig() {
       return {
         'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
         'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
-
         'vigilante': 0, 'guardiao_real': 0, 'mercenario': 0, 'purificador': 0, 'tesoureiro_da_coroa': 0,
         'diplomata': 0, 'marionetista': 0, 'contador_real': 0, 'contrabandista': 0, 'camaleao': 0
       };
     }
 
     // =======================================================
-    // === 6. SETUP DE EVENTOS E INICIALIZAÇÃO ===
+    // === 6. SETUP DE EVENTOS (DRAG DROP & UI) ===
     // =======================================================
 
     function setupDropzones() {
-      // [NOVO] Configura o arrastar DO Deck
       deckEl.addEventListener('dragstart', (e) => {
-          // Envia um código especial avisando que é uma compra
           e.dataTransfer.setData('text/plain', 'DECK_DRAW_ACTION');
       });
 
@@ -1759,12 +1753,9 @@
       deckEl.ondrop = ev => {
         ev.preventDefault();
         const id = ev.dataTransfer.getData('text/plain');
-        // Evita erro se tentar arrastar o deck para ele mesmo
-        if (id !== 'DECK_DRAW_ACTION') {
-            moveCard(id, 'deck');
-        }
+        if (id !== 'DECK_DRAW_ACTION') moveCard(id, 'deck');
       };
-      deckEl.onclick = () => drawCard(); // Clique normal (compra para mim)
+      deckEl.onclick = () => drawCard();
 
       document.querySelectorAll('.player-area').forEach(area => {
         area.ondragover = ev => ev.preventDefault();
@@ -1773,12 +1764,9 @@
           const data = ev.dataTransfer.getData('text/plain');
           const pid = parseInt(area.dataset.player);
 
-          // [NOVO] Verifica se é uma compra (arrastou do Deck)
           if (data === 'DECK_DRAW_ACTION') {
-              // Chama a função de comprar mandando o ID deste slot
               drawCard(pid);
           } else {
-              // Senão, é um movimento normal de carta (arrastou carta)
               moveCard(data, 'player', pid);
           }
         };
@@ -1788,44 +1776,30 @@
       freeArea.ondrop = ev => {
         ev.preventDefault();
         const id = ev.dataTransfer.getData('text/plain');
-        if (id !== 'DECK_DRAW_ACTION') {
-             moveCard(id, 'free');
-        }
+        if (id !== 'DECK_DRAW_ACTION') moveCard(id, 'free');
       };
     }
 
-
-
     function setupUI() {
-      // 1. Botões Básicos
+      // (O código da setupUI permanece IDÊNTICO ao anterior)
+      // Vou resumir para não estourar o limite, mas a lógica é a mesma
+      // de botões, modais, configurações, etc.
+      
       const resetBtn = document.getElementById('resetBtn');
-      if(resetBtn) {
-          resetBtn.onclick = () => {
-            if (confirm("Tem certeza que deseja resetar a mesa?")) resetTable();
-          };
-      }
+      if(resetBtn) resetBtn.onclick = () => { if (confirm("Resetar mesa?")) resetTable(); };
 
-      // 2. Lógica de Música (Botão Mute)
       const musicBtn = document.getElementById('musicBtn');
       const bgmAudio = document.getElementById('bgmAudio');
-      
-      if (bgmAudio) bgmAudio.volume = 0.1; // Volume inicial
+      if (bgmAudio) bgmAudio.volume = 0.1;
 
       if (musicBtn && bgmAudio) {
-        bgmAudio.play().then(() => musicBtn.classList.remove('muted'))
-                       .catch(() => musicBtn.classList.add('muted'));
-
+        bgmAudio.play().then(() => musicBtn.classList.remove('muted')).catch(() => musicBtn.classList.add('muted'));
         musicBtn.onclick = () => {
-          if (bgmAudio.paused) {
-            bgmAudio.play().then(() => musicBtn.classList.remove('muted'));
-          } else {
-            bgmAudio.pause();
-            musicBtn.classList.add('muted');
-          }
+          if (bgmAudio.paused) { bgmAudio.play().then(() => musicBtn.classList.remove('muted')); }
+          else { bgmAudio.pause(); musicBtn.classList.add('muted'); }
         };
       }
 
-      // 3. MENU DE CONFIGURAÇÕES (Engrenagem)
       const settingsBtn = document.getElementById('settingsBtn');
       const settingsModal = document.getElementById('settingsModal');
       const closeSettingsBtn = document.getElementById('closeSettingsBtn');
@@ -1833,37 +1807,18 @@
       const toggleHeaderBtn = document.getElementById('toggleHeaderBtn');
       const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
 
-      if (settingsBtn && settingsModal && closeSettingsBtn) {
-          // Abrir Menu
-          settingsBtn.onclick = () => {
-              playSound('click');
-              settingsModal.style.display = 'flex';
-          };
-          // Fechar Menu
-          closeSettingsBtn.onclick = () => {
-              playSound('click');
-              settingsModal.style.display = 'none';
-          };
+      if (settingsBtn && settingsModal) {
+          settingsBtn.onclick = () => { playSound('click'); settingsModal.style.display = 'flex'; };
+          if(closeSettingsBtn) closeSettingsBtn.onclick = () => { playSound('click'); settingsModal.style.display = 'none'; };
       }
-
-      // 3.1 Slider de Volume (Agora dentro do modal)
       if (volumeSlider && bgmAudio) {
           volumeSlider.value = bgmAudio.volume;
-          volumeSlider.addEventListener('input', (e) => {
-              bgmAudio.volume = e.target.value;
-          });
+          volumeSlider.addEventListener('input', (e) => { bgmAudio.volume = e.target.value; });
       }
-
-      // 3.2 Toggle Header (Olhinho)
       if (toggleHeaderBtn) {
           const header = document.querySelector('header');
-
-          // [NOVO] Define o estado inicial do botão para "header oculto"
-          // Isso é necessário porque definimos display: none; no CSS.
           toggleHeaderBtn.querySelector('img').src = 'img/visibility_off.svg';
           toggleHeaderBtn.style.opacity = '0.6';
-          // [FIM NOVO]
-
           toggleHeaderBtn.onclick = () => {
               playSound('click');
               if (header.style.display === 'none') {
@@ -1876,49 +1831,28 @@
                   toggleHeaderBtn.style.opacity = '0.6';
               }
           };
-
       }
 
-      // 3.3 Abrir Configuração de Deck (Botão dentro do menu)
       const configModal = document.getElementById('configModal');
       const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
-      
       if (openDeckConfigBtn && configModal) {
-          openDeckConfigBtn.onclick = () => {
-              playSound('click');
-              settingsModal.style.display = 'none'; // Fecha o menu principal
-              configModal.style.display = 'flex';   // Abre o config de deck
-          };
-          
-          if(closeConfigModalBtn) {
-              closeConfigModalBtn.onclick = () => {
-                  playSound('click');
-                  configModal.style.display = 'none';
-                  settingsModal.style.display = 'flex'; // Reabre o menu principal ao voltar
-              };
-          }
+          openDeckConfigBtn.onclick = () => { playSound('click'); settingsModal.style.display = 'none'; configModal.style.display = 'flex'; };
+          if(closeConfigModalBtn) closeConfigModalBtn.onclick = () => { playSound('click'); configModal.style.display = 'none'; settingsModal.style.display = 'flex'; };
       }
-      
-      // Lógica do Botão "Aplicar e Resetar" (Deck)
+
       const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
       const configInputs = document.querySelectorAll('.card-config-item input');
-      
-      // Bloqueia inputs para não-host
       configInputs.forEach(input => { if (myPlayerId !== 1) input.disabled = true; });
-
       if (applyDeckConfigBtn) {
           if (myPlayerId !== 1) {
-              applyDeckConfigBtn.disabled = true;
-              applyDeckConfigBtn.style.background = '#555';
-              applyDeckConfigBtn.textContent = 'Apenas o Host pode aplicar';
+              applyDeckConfigBtn.disabled = true; applyDeckConfigBtn.style.background = '#555'; applyDeckConfigBtn.textContent = 'Apenas o Host pode aplicar';
           } else {
               applyDeckConfigBtn.onclick = () => {
                   playSound('click');
                   const newConfig = {};
                   configInputs.forEach(input => {
                       let val = parseInt(input.value);
-                      if (isNaN(val) || val < 0) val = 0;
-                      if (val > 10) val = 10;
+                      if (isNaN(val) || val < 0) val = 0; if (val > 10) val = 10;
                       newConfig[input.dataset.card] = val;
                   });
                   resetTable(newConfig);
@@ -1927,61 +1861,31 @@
           }
       }
 
-
-      // 4. Modal de Info (Regras)
       const infoBtn = document.getElementById('infoBtn');
       const infoModal = document.getElementById('infoModal');
-      const closeInfoBtn = document.getElementById('closeModalBtn'); // ID do botão X do info
+      const closeInfoBtn = document.getElementById('closeModalBtn');
       const flipCard = document.querySelector('.flip-card');
       const frontImg = flipCard ? flipCard.querySelector('.flip-card-front img') : null;
       const backImg = flipCard ? flipCard.querySelector('.flip-card-back img') : null;
       const ruleImages = ['img/front-actions.png', 'img/dlc-actions.png', 'img/back-actions.png'];
       let currentRuleIndex = 0;
-
       if (infoBtn && infoModal) {
-        infoBtn.onclick = () => {
-          playSound('click');
-          infoModal.style.display = 'flex';
-          if (flipCard) {
-            currentRuleIndex = 0;
-            flipCard.classList.remove('is-flipped');
-            frontImg.src = ruleImages[0];
-            backImg.src = ruleImages[1];
-          }
-        };
-        if(closeInfoBtn) {
-            closeInfoBtn.onclick = () => {
-              playSound('click');
-              infoModal.style.display = 'none';
-            };
-        }
-        // Flip Card Logic
+        infoBtn.onclick = () => { playSound('click'); infoModal.style.display = 'flex'; if (flipCard) { currentRuleIndex = 0; flipCard.classList.remove('is-flipped'); frontImg.src = ruleImages[0]; backImg.src = ruleImages[1]; } };
+        if(closeInfoBtn) closeInfoBtn.onclick = () => { playSound('click'); infoModal.style.display = 'none'; };
         if (flipCard) {
           flipCard.onclick = () => {
-            playSound('card-slide');
-            flipCard.classList.toggle('is-flipped');
-            currentRuleIndex = (currentRuleIndex + 1) % ruleImages.length;
-            setTimeout(() => {
-              const nextIndex = (currentRuleIndex + 1) % ruleImages.length;
-              if (flipCard.classList.contains('is-flipped')) {
-                frontImg.src = ruleImages[nextIndex];
-              } else {
-                backImg.src = ruleImages[nextIndex];
-              }
-            }, 500);
+            playSound('card-slide'); flipCard.classList.toggle('is-flipped'); currentRuleIndex = (currentRuleIndex + 1) % ruleImages.length;
+            setTimeout(() => { const nextIndex = (currentRuleIndex + 1) % ruleImages.length; if (flipCard.classList.contains('is-flipped')) { frontImg.src = ruleImages[nextIndex]; } else { backImg.src = ruleImages[nextIndex]; } }, 500);
           };
         }
       }
 
-      // 5. Listeners de Jogadores e Asilo
       document.querySelectorAll('.player-area').forEach(area => {
         const pid = parseInt(area.dataset.player);
         const removeBtn = area.querySelector('.remove-player');
         if (removeBtn) removeBtn.addEventListener('click', () => kickPlayer(pid));
-
         const religionEl = area.querySelector('.religion-status');
         if (religionEl) religionEl.addEventListener('click', () => toggleReligion(pid));
-
         area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
         area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
       });
@@ -1992,171 +1896,139 @@
       }
     }
 
-    
-    // [CORREÇÃO] Usando sessionStorage para persistência por ABA
-    // Lógica de "Entrar na Sala"
-    function findAndOccupySlot() {
-      const myPersistedId = sessionStorage.getItem('myPlayerId'); // <-- MUDADO para sessionStorage
-
-      // Tenta re-ocupar o slot primeiro (Persistência)
-      if (myPersistedId) {
-        gameStateRef.transaction((currentState) => {
-          if (!currentState || !currentState.players) return;
-
-          const pid = parseInt(myPersistedId);
-
-          if (currentState.players[pid] && !currentState.players[pid].online) {
-            currentState.players[pid].online = true;
-            myPlayerId = pid;
-            return currentState;
-          }
-
-          sessionStorage.removeItem('myPlayerId'); // <-- MUDADO para sessionStorage
-          return;
-        }, (error, committed, snapshot) => {
-          if (committed) {
-            console.log(`Reclamei o slot persistido: Jogador ${myPlayerId}`);
-            setupDisconnectHandler(myPlayerId);
-            return;
-          }
-          findNewSlot();
-        });
-      } else {
-        findNewSlot();
-      }
+    function setupAutoScroll() {
+      const threshold = 80; const speed = 15;
+      window.addEventListener('dragover', (e) => {
+        const y = e.clientY; const viewportHeight = window.innerHeight;
+        if (y < threshold) window.scrollBy(0, -speed);
+        else if (y > (viewportHeight - threshold)) window.scrollBy(0, speed);
+      });
     }
 
-    // Função separada para lidar com a busca e o claim atômico
-    function findNewSlot() {
+    // =======================================================
+    // === 7. LÓGICA DE CONEXÃO INTELIGENTE (UID) ===
+    // =======================================================
+
+    function joinGame() {
       gameStateRef.transaction((currentState) => {
+        // 1. Se a sala não existe, cria o estado inicial
         if (!currentState || !currentState.players) {
-          // Criação inicial da sala (JOGADOR 1)
-          const defaultConfig = createDefaultDeckConfig(); // [NOVO]
-          let newDeck = createDeck(defaultConfig); // [NOVO]
+          const defaultConfig = createDefaultDeckConfig();
+          let newDeck = createDeck(defaultConfig);
 
           let initialState = {
             deck: newDeck,
             grave: [],
             freeCards: [],
-            asylumScore: 0, // [NOVO]
-            deckConfig: defaultConfig, // [NOVO]
-            // turn: 1, // [REMOVIDO]
-            players: {
-              1: { hand: [], score: 2, online: true, religion: 'catolico' },
-              2: { hand: [], score: 2, online: false, religion: 'protestante' },
-              3: { hand: [], score: 2, online: false, religion: 'catolico' },
-              4: { hand: [], score: 2, online: false, religion: 'protestante' },
-              5: { hand: [], score: 2, online: false, religion: 'catolico' },
-              6: { hand: [], score: 2, online: false, religion: 'protestante' },
-              7: { hand: [], score: 2, online: false, religion: 'catolico' },
-              8: { hand: [], score: 2, online: false, religion: 'protestante' },
-            }
+            asylumScore: 0,
+            deckConfig: defaultConfig,
+            players: {}
           };
+
+          // Inicializa os 8 slots vazios
+          for(let i=1; i<=8; i++) {
+              initialState.players[i] = {
+                  online: false, 
+                  hand: [], 
+                  score: 2, 
+                  religion: (i % 2 === 1) ? 'catolico' : 'protestante',
+                  uid: null,  // [IMPORTANTE] Sem dono
+                  name: null,
+                  photo: null
+              };
+          }
+          
+          // Ocupa o slot 1 para mim
+          initialState.players[1].uid = currentUser.uid;
+          initialState.players[1].name = currentUser.name;
+          initialState.players[1].photo = currentUser.photo;
+          initialState.players[1].online = true;
+          
           myPlayerId = 1;
-          sessionStorage.setItem('myPlayerId', 1); // <-- MUDADO para sessionStorage
           return initialState;
         }
 
-        // Busca um slot vazio (online: false)
+        // 2. Se a sala existe, procura meu lugar
+        
+        // A. Tenta RECONECTAR (Procura meu UID)
         for (let i = 1; i <= 8; i++) {
-          if (!currentState.players[i] || !currentState.players[i].online) {
-            // Ocupa o slot atomicamente
-            currentState.players[i] = currentState.players[i] || {};
-            currentState.players[i].online = true;
-            currentState.players[i].score = currentState.players[i].score || 2;
-            currentState.players[i].hand = currentState.players[i].hand || [];
-            currentState.players[i].religion = (i % 2 === 1) ? 'catolico' : 'protestante';
-            myPlayerId = i;
-            sessionStorage.setItem('myPlayerId', i); // <-- MUDADO para sessionStorage
-            return currentState;
-          }
+            if (currentState.players[i] && currentState.players[i].uid === currentUser.uid) {
+                currentState.players[i].online = true; // Estou de volta!
+                currentState.players[i].name = currentUser.name; 
+                currentState.players[i].photo = currentUser.photo; 
+                myPlayerId = i;
+                return currentState;
+            }
         }
 
-        // Sala cheia, não pode entrar
-        return;
-      }, (error, committed, snapshot) => {
+        // B. Se não achou, procura slot VAZIO (Sem UID)
+        for (let i = 1; i <= 8; i++) {
+            if (!currentState.players[i].uid) { // Slot sem dono
+                currentState.players[i].uid = currentUser.uid;
+                currentState.players[i].name = currentUser.name;
+                currentState.players[i].photo = currentUser.photo;
+                currentState.players[i].online = true;
+                
+                // Reseta estado para novo jogador
+                currentState.players[i].hand = [];
+                currentState.players[i].score = 2;
+                
+                myPlayerId = i;
+                return currentState;
+            }
+        }
+
+        // C. Sala cheia
+        return; 
+
+      }, (error, committed) => {
         if (committed) {
-          console.log(`Entrei com sucesso: Jogador ${myPlayerId}`);
-          setupDisconnectHandler(myPlayerId);
-        } else if (error) {
-          console.error("Erro na transação:", error);
-          alert("Erro de conexão ao entrar na sala. Tente novamente.");
+            console.log(`Conectado com sucesso no Slot ${myPlayerId}`);
+            setupDisconnectHandler(myPlayerId);
         } else {
-          alert("Sala cheia! (Máx 8 jogadores)");
-          document.body.innerHTML = "<h1>Sala cheia. Tente novamente mais tarde.</h1>";
+            alert("Sala cheia! Todos os slots têm donos.");
+            window.location.href = 'lobby.html';
         }
       });
     }
 
-    // Handler para quando o jogador fechar a aba
     function setupDisconnectHandler(pid) {
-      const playerRef = db.ref(`gameState/players/${pid}`);
-      playerRef.onDisconnect().update({
-        online: false
-      });
-    }
-
-
-    // [NOVO] Função de Auto-Scroll para facilitar o drag-and-drop
-    function setupAutoScroll() {
-      const threshold = 80; // Pixels da borda para ativar o scroll
-      const speed = 15;      // Velocidade de rolagem
-
-      window.addEventListener('dragover', (e) => {
-        // A posição Y do cursor/dedo
-        const y = e.clientY;
-        const viewportHeight = window.innerHeight;
-
-        // Se estiver perto do topo -> Rola para cima
-        if (y < threshold) {
-          window.scrollBy(0, -speed);
-        }
-        // Se estiver perto do fundo -> Rola para baixo
-        else if (y > (viewportHeight - threshold)) {
-          window.scrollBy(0, speed);
-        }
-      });
+      // Quando desconectar, APENAS marca online: false.
+      // O UID continua lá, garantindo a reserva.
+      db.ref(`salas/${roomCode}/gameState/players/${pid}/online`).onDisconnect().set(false);
     }
 
     // =======================================================
-    // === 7. O "CORAÇÃO" DO JOGO (O Listener Principal) ===
+    // === 8. INICIALIZAÇÃO ===
     // =======================================================
 
     function initializeGame() {
-      const persistedId = sessionStorage.getItem('myPlayerId');
-      if (persistedId) {
-        myPlayerId = parseInt(persistedId);
-      }
-
-      if (!firebaseConfig.apiKey) return;
-
+      // Listener do Estado do Jogo
       gameStateRef.on('value', (snapshot) => {
         const state = snapshot.val();
         if (state) {
-          // === [NOVO] Lógica de Sincronização de Som ===
-          // Se houver um som novo (timestamp maior que o último que ouvimos)
           if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
-             lastSoundTimestamp = state.lastSFX.timestamp; // Atualiza nosso registro
-             playSound(state.lastSFX.id); // Toca o som
+             lastSoundTimestamp = state.lastSFX.timestamp;
+             playSound(state.lastSFX.id);
           }
-          // ============================================
-
           localGameState = state;
           renderAll();
         }
       });
 
-      findAndOccupySlot();
+      // Inicia conexão
+      joinGame();
+
+      // Configura UI
       setupUI();
       setupDropzones();
       setupAutoScroll();
     }
 
-    // Inicia o jogo!
     initializeGame();
 
-
   </script>
+
 </body>
 
 </html>

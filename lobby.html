@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Coup Master - Lobby</title>
+    <link rel="shortcut icon" href="img/coup.png" type="image/x-icon">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <style>
+        :root {
+            --bg: #14171e;
+            --panel: #232a33;
+            --accent: #1e90ff;
+            --text: #e6eef6;
+        }
+
+        *{
+            font-family: "Cinzel", serif;
+        }
+
+        body {
+            font-family: "Cinzel", serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .lobby-box {
+            background: var(--panel);
+            padding: 40px;
+            border-radius: 18px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            max-width: 400px;
+            width: 90%;
+        }
+        h1 {
+            color: var(--accent);
+            margin-bottom: 30px;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background 0.2s;
+            width: 100%;
+        }
+        #google-login-btn {
+            background: #4285F4;
+            color: white;
+        }
+        #google-login-btn:hover {
+            background: #357ae8;
+        }
+        .room-actions button {
+            background: #00ff73;
+            color: #111;
+            font-weight: bold;
+        }
+        .room-actions button:hover {
+            background: #00e668;
+        }
+        input {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--accent);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 16px;
+        }
+        #user-info {
+            margin-bottom: 20px;
+            display: none; /* Escondido até o login */
+        }
+        #user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-right: 10px;
+            border: 2px solid var(--accent);
+        }
+        /* CORREÇÃO: ID adicionado no HTML para corresponder ao JS */
+        #room-actions {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+            margin-top: 20px;
+            display: none; /* Escondido até o login */
+        }
+        .muted {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lobby-box">
+        <h1>Coup Master</h1>
+
+        <div id="user-info">
+            <img id="user-photo" src="" alt="Foto">
+            Bem-vindo, <span id="user-name"></span>!
+            <button id="logout-btn" style="background: #ff3b3b; color: white;">Sair</button>
+        </div>
+
+        <button id="google-login-btn">
+            Entrar com Google
+        </button>
+
+        <div id="room-actions" class="room-actions">
+            <h2>Sala</h2>
+            <input type="text" id="room-code-input" placeholder="Código da Sala (Ex: XJ94)">
+            <button id="join-room-btn">Entrar na Sala</button>
+            <button id="create-room-btn">Criar Nova Sala</button>
+            <p class="muted">O código da sala será gerado automaticamente.</p>
+        </div>
+
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQwhYeLEvJW4p9Ml4pKjmr520CeKnZa60",
+            authDomain: "coup-master.firebaseapp.com",
+            databaseURL: "https://coup-master-default-rtdb.firebaseio.com",
+            projectId: "coup-master",
+            storageBucket: "coup-master.firebasestorage.app",
+            messagingSenderId: "876117110623",
+            appId: "1:876117110623:web:b957a148f9f60a51b550ea",
+            measurementId: "G-2BQR65QP2Z"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+        
+        // DOM Elements
+        const loginBtn = document.getElementById('google-login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userInfoDiv = document.getElementById('user-info');
+        const userNameSpan = document.getElementById('user-name');
+        const userPhotoImg = document.getElementById('user-photo');
+        
+        // O JS busca por ID, agora o HTML tem o ID correto
+        const roomActionsDiv = document.getElementById('room-actions');
+        
+        const roomCodeInput = document.getElementById('room-code-input');
+        const joinRoomBtn = document.getElementById('join-room-btn');
+        const createRoomBtn = document.getElementById('create-room-btn');
+
+
+        // ===================================
+        // FUNÇÕES DE AUTENTICAÇÃO
+        // ===================================
+
+        // 1. Login com Google
+        loginBtn.onclick = () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => {
+                alert("Erro ao fazer login: " + error.message);
+            });
+        };
+
+        // 2. Logout
+        logoutBtn.onclick = () => {
+            auth.signOut();
+        };
+
+        // 3. Gerenciamento de Estado de Login (COM FALLBACK SEGURO)
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // Logado
+                if(loginBtn) loginBtn.style.display = 'none';
+                if(userInfoDiv) userInfoDiv.style.display = 'block';
+                if(roomActionsDiv) roomActionsDiv.style.display = 'block';
+
+                // Tenta pegar o nome ou email
+                let safeName = user.displayName;
+                if (!safeName && user.email) {
+                    safeName = user.email.split('@')[0];
+                } else if (!safeName) {
+                    safeName = "Convidado";
+                }
+                
+                // Tenta pegar a foto ou usa padrão
+                const safePhoto = user.photoURL || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+
+                if(userNameSpan) userNameSpan.textContent = safeName;
+                if(userPhotoImg) userPhotoImg.src = safePhoto;
+
+                // Salva na sessão
+                sessionStorage.setItem('currentUID', user.uid); 
+                sessionStorage.setItem('currentName', safeName);
+                sessionStorage.setItem('currentPhoto', safePhoto);
+
+            } else {
+                // Deslogado
+                if(loginBtn) loginBtn.style.display = 'block';
+                if(userInfoDiv) userInfoDiv.style.display = 'none';
+                if(roomActionsDiv) roomActionsDiv.style.display = 'none';
+
+                sessionStorage.removeItem('currentUID');
+                sessionStorage.removeItem('currentName');
+                sessionStorage.removeItem('currentPhoto');
+            }
+        });
+
+
+        // ===================================
+        // FUNÇÕES DE SALA (LOBBY)
+        // ===================================
+
+        // Gera código aleatório de 4 letras/números
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 6).toUpperCase();
+        }
+
+        // 1. Entrar em Sala Existente
+        if (joinRoomBtn) {
+            joinRoomBtn.onclick = () => {
+                const code = roomCodeInput.value.trim().toUpperCase();
+                if (code.length !== 4) {
+                    alert("O código da sala deve ter 4 caracteres.");
+                    return;
+                }
+
+                db.ref(`salas/${code}`).once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        // Sala existe, redireciona para o jogo
+                        window.location.href = `index.html?room=${code}`;
+                    } else {
+                        alert(`A sala "${code}" não existe. Verifique o código.`);
+                    }
+                });
+            };
+        }
+
+        // 2. Criar Nova Sala
+        if (createRoomBtn) {
+            createRoomBtn.onclick = () => {
+                const newCode = generateRoomCode();
+                
+                db.ref(`salas/${newCode}`).once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        createRoomBtn.onclick(); // Tenta outro código se existir
+                        return;
+                    }
+
+                    // Cria a sala vazia no Firebase
+                    db.ref(`salas/${newCode}/gameState`).set({
+                        status: 'waiting',
+                        createdAt: firebase.database.ServerValue.TIMESTAMP
+                    }).then(() => {
+                        window.location.href = `index.html?room=${newCode}`;
+                    }).catch(error => {
+                        alert("Erro ao criar sala: " + error.message);
+                    });
+                });
+            };
+        }
+
+    </script>
+</body>
+</html>
