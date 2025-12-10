@@ -918,7 +918,6 @@
             padding: 4px;
         }
 
-        /* ... dentro de @media (max-width: 520px) ... */
 
         /* 3. Reduz textos (ATUALIZADO PARA FICAR MENOR) */
         body.compact-mode .player-title {
@@ -963,7 +962,6 @@
             width: 46px; height: 68px; /* Deck um pouco menor também */
         }
 
-        /* ... dentro de @media (max-width: 520px) ... */
 
         /* 7. Reduz o Avatar em 50% (de 32px para 16px) */
         body.compact-mode .player-avatar {
@@ -978,7 +976,14 @@
             margin-bottom: 0 !important;
         }
 
-        /* ... dentro de @media (max-width: 520px) ... */
+        /* REDUZ TAMANHO DOS BOTÕES DE RELIGIÃO */
+        body.compact-mode .religion-status {
+            font-size: 10px !important;      /* Reduzido para 8px */
+            padding: 4px 5px !important;    /* Padding interno mais apertado */
+            line-height: 11px;               /* Ajuste de altura de linha */
+            border-radius: 6px;             /* Bordas ligeiramente menos arredondadas */
+        }
+
 
         /* 8. Reduz o texto do Cemitério (e outros textos auxiliares) */
         body.compact-mode .free-area .muted {
@@ -987,7 +992,6 @@
             margin-bottom: 0 !important;
         }
 
-        /* ... dentro de @media (max-width: 520px) ... */
 
         /* 9. Compacta o Wrapper dos Decks (Asilo e Deck) */
         body.compact-mode .decks-wrapper {
@@ -1030,7 +1034,6 @@
             font-size: 10px !important;
         }
 
-        /* ... dentro de @media (max-width: 520px) ... */
 
         /* 10. Compacta a área do Cemitério */
         body.compact-mode .free-area {
