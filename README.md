@@ -1,4 +1,4 @@
-# Coup Master - Multiplayer Online v0.2.0
+# Coup Master - Multiplayer Online v0.2.1
 
 ![Status](https://img.shields.io/badge/Status-Em_Desenvolvimento-yellow) ![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Database-orange)
 
