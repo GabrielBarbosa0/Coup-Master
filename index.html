@@ -2322,6 +2322,13 @@
       });
     }
 
+    // [CORREÇÃO] Esta função estava faltando!
+    function setupDisconnectHandler(pid) {
+      // Quando desconectar, APENAS marca online: false.
+      // O UID continua lá, garantindo a reserva.
+      db.ref(`salas/${roomCode}/gameState/players/${pid}/online`).onDisconnect().set(false);
+    }
+
     // =======================================================
     // === 8. INICIALIZAÇÃO ===
     // =======================================================
