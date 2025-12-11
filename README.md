@@ -94,24 +94,20 @@ const firebaseConfig = {
 };
 
 
-### 🎮 Como Jogar
-Login: Acesse o site e faça login com sua conta Google.
+## 🎮 Como Jogar
 
-Lobby:
+1. **Login:** Acesse o site e faça login com sua conta Google.
+2. **Lobby:**
+   * Clique em **"Criar Nova Sala"** para ser o Host.
+   * Ou digite o código que seu amigo mandou e clique em **"Entrar na Sala"**.
+3. **Na Mesa:**
+   * **Host:** Vá nas configurações (⚙️) -> "Configurar Baralho" -> Defina as cartas -> "Aplicar e Resetar".
+   * **Jogadores:** Cliquem no Deck para comprar cartas.
+   * Usem os botões **+** e **-** para gerenciar moedas e vidas.
+   * Arraste cartas para o "Cemitério" quando perder uma vida.
 
-Clique em "Criar Nova Sala" para ser o Host.
+---
 
-Ou digite o código que seu amigo mandou e clique em "Entrar na Sala".
+## 📄 Licença
 
-Na Mesa:
-
-Host: Vá nas configurações (⚙️) -> "Configurar Baralho" -> Defina as cartas -> "Aplicar e Resetar".
-
-Jogadores: Cliquem no Deck para comprar cartas.
-
-Usem os botões + e - para gerenciar moedas e vidas.
-
-Arraste cartas para o "Cemitério" quando perder uma vida.
-
-📄 Licença
-Este projeto é de código aberto sob a licença MIT. Sinta-se livre para contribuir!
+Este projeto é de código aberto sob a licença [MIT](LICENSE). Sinta-se livre para contribuir!
