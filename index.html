@@ -54,10 +54,11 @@
       text-align: center;
       background: #232a33;
       color: #ffffff;
-      margin-bottom: 18px;
+      margin-bottom: 8px;
 
-      /* [NOVO] Inicia OCULTO por padrão */
-      display: none;
+      /* [ALTERAÇÃO] Remova ou comente esta linha para iniciar VISÍVEL */
+      /* display: none; */ 
+      display: block;
     }
 
 
@@ -1094,7 +1095,7 @@
 <body>
   <div class="container">
     <header id="roomHeader" title="Clique para copiar o código">
-      <h1 style="font-size: 24px;">SALA: <span id="roomCodeDisplay">...</span></h1>
+      <h1 style="font-size: 20px;">SALA: <span id="roomCodeDisplay">...</span></h1>
       <p class="copy-instruction" style="font-size: 10px; margin: 0; opacity: 0.6; letter-spacing: 1px; color: #fff;">(CLIQUE PARA COPIAR)</p>
     </header>
 
@@ -2041,24 +2042,28 @@
           volumeSlider.value = bgmAudio.volume;
           volumeSlider.addEventListener('input', (e) => { bgmAudio.volume = e.target.value; });
       }
+      // 3.2 Toggle Header (Olhinho)
       if (toggleHeaderBtn) {
           const header = document.querySelector('header');
-          toggleHeaderBtn.querySelector('img').src = 'img/visibility_off.svg';
-          toggleHeaderBtn.style.opacity = '0.6';
+
+          // [ALTERADO] Define o estado inicial para "VISÍVEL"
+          toggleHeaderBtn.querySelector('img').src = 'img/visibility.svg'; // Olho aberto
+          toggleHeaderBtn.style.opacity = '1'; // Aceso
+          
           toggleHeaderBtn.onclick = () => {
               playSound('click');
-              if (header.style.display === 'none') {
-                  header.style.display = 'block';
-                  toggleHeaderBtn.querySelector('img').src = 'img/visibility.svg';
-                  toggleHeaderBtn.style.opacity = '1';
-              } else {
+              // Lógica invertida: Se não tiver display none (está visível), então esconde.
+              if (header.style.display !== 'none') {
                   header.style.display = 'none';
                   toggleHeaderBtn.querySelector('img').src = 'img/visibility_off.svg';
                   toggleHeaderBtn.style.opacity = '0.6';
+              } else {
+                  header.style.display = 'block';
+                  toggleHeaderBtn.querySelector('img').src = 'img/visibility.svg';
+                  toggleHeaderBtn.style.opacity = '1';
               }
           };
       }
-
       const configModal = document.getElementById('configModal');
       const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
       if (openDeckConfigBtn && configModal) {
@@ -2191,15 +2196,19 @@
       }
 
       if (toggleCompactBtn) {
-          // 1. Ao carregar, verifica se já estava ativo antes
-          const savedMode = localStorage.getItem('compactMode') === 'true';
-          applyCompactMode(savedMode);
+          // 1. Ao carregar, verifica se já estava salvo. 
+          // Se for NULO (primeira vez), define como TRUE (Ativado por padrão).
+          // Se não for nulo, respeita o que o usuário escolheu antes ('true' ou 'false').
+          const storageValue = localStorage.getItem('compactMode');
+          const shouldBeCompact = storageValue === null ? true : (storageValue === 'true');
+          
+          applyCompactMode(shouldBeCompact);
 
-          // 2. Ao clicar
+          // 2. Ao clicar (mantém igual)
           toggleCompactBtn.onclick = () => {
               playSound('click');
               const isCurrentlyCompact = document.body.classList.contains('compact-mode');
-              applyCompactMode(!isCurrentlyCompact); // Inverte
+              applyCompactMode(!isCurrentlyCompact); 
           };
       }
 

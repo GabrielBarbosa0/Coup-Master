@@ -15,7 +15,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-
     <style>
         :root {
             --bg: #14171e;
@@ -24,77 +23,147 @@
             --text: #e6eef6;
         }
 
-        /* 1. CORREÇÃO CRÍTICA: box-sizing */
+        /* 1. Reset Global */
         * {
             font-family: "Cinzel", serif;
             box-sizing: border-box;
-            /* Garante que padding não aumente a largura total */
         }
 
         body {
             background: var(--bg);
             color: var(--text);
-
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-
-            /* 2. CORREÇÃO: dvh para mobile (ignora barra de endereço) */
             min-height: 100vh;
-            min-height: 100dvh;
-
+            min-height: 100dvh; /* Mobile fix */
             margin: 0;
             text-align: center;
-
-            /* 3. Evita scroll lateral acidental */
             overflow-x: hidden;
         }
 
         .lobby-box {
             background: var(--panel);
-            padding: 26px 30px 26px 40px;
-            /* Ajustei o padding inferior para ficar simétrico */
+            padding: 26px 30px 26px 30px;
             border-radius: 18px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-
-            /* 4. CORREÇÃO: Largura responsiva sem estourar */
             width: 90%;
-            /* Ocupa 90% da tela em celulares */
             max-width: 400px;
-            /* Trava em 400px no PC */
-
-            /* Removemos a margin externa pois o Flexbox do body já centraliza */
             margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Garante que tudo dentro fique centralizado */
         }
 
         h1 {
             font-size: 1.8rem;
             color: var(--text);
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             margin-top: 0;
-            /* Boa prática resetar margin-top */
+            width: 100%;
         }
 
+        /* === ESTILO DO BOTÃO GOOGLE (CORRIGIDO) === */
+        #google-login-btn {
+            background: #4285F4;
+            color: white;
+            margin-bottom: 26px;
+            
+            /* Flexbox Mágico para Centralizar */
+            display: flex;
+            align-items: center;     /* Centro Vertical */
+            justify-content: center; /* Centro Horizontal */
+            gap: 12px;               /* Espaço entre ícone e texto */
+            
+            height: 50px; 
+            padding: 0 20px;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        #google-login-btn:hover {
+            background: #357ae8;
+        }
+
+        /* Classe para o ícone do Google */
+        .google-icon {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            padding: 2px;
+            display: block; 
+            box-sizing: content-box;
+        }
+
+        /* === ESTILO DO USUÁRIO === */
+        #user-info {
+            margin-bottom: 20px;
+            display: none; 
+            /* Quando visível via JS, o flex é aplicado na regra abaixo */
+            width: 100%;
+        }
+
+        /* Força Flex quando estiver visível */
+        #user-info[style*="display: block"] {
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #user-info img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .welcome-text {
+            display: block;
+            margin: 5px 0 15px 0;
+            font-size: 16px;
+            color: var(--text);
+            text-transform: uppercase;
+            line-height: 1.4;
+        }
+        
+        #user-name {
+            color: var(--accent);
+            font-weight: bold;
+            display: inline-block; /* Mantém junto */
+        }
+
+        /* Botão Sair/Genérico */
         button {
             padding: 12px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            margin-top: 10px;
+            margin-top: 5px;
             transition: background 0.2s;
             width: 100%;
         }
 
-        #google-login-btn {
-            background: #4285F4;
-            color: white;
-            margin-bottom: 26px;
-        }
-
-        #google-login-btn:hover {
-            background: #357ae8;
+        /* === AÇÕES DE SALA === */
+        #room-actions {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 10px;
+            padding-top: 20px;
+            display: none;
+            width: 100%;
         }
 
         .room-actions button {
@@ -109,7 +178,6 @@
         }
 
         input {
-            /* 5. CORREÇÃO: Simplificado graças ao box-sizing */
             width: 100%;
             padding: 12px;
             margin-bottom: 15px;
@@ -119,72 +187,22 @@
             color: var(--text);
             font-size: 16px;
             outline: none;
-            /* Remove borda azul padrão do navegador */
+            text-align: center; /* Código centralizado fica melhor */
+            text-transform: uppercase;
         }
 
         input:focus {
             border-color: #fff;
-            /* Feedback visual ao clicar */
-        }
-
-        #user-info {
-            margin-bottom: 20px;
-            display: none;
-            font-size: 14px;
-            /* Alinha texto e imagem verticalmente */
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        /* Regra para quando o display: flex for ativado via JS no user-info */
-        #user-info[style*="display: block"] {
-            display: flex !important;
-            flex-direction: column;
-        }
-
-        #user-info img {
-            width: 60px;
-            /* Aumentei um pouco para destaque */
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            /* Garante que a foto não estique */
-            border: 2px solid var(--accent);
-            /* margin-bottom: 10px; */
-        }
-
-        /* Adicione isso ao seu <style> */
-        
-        .welcome-text {
-            font-size: 18px;
-            margin: 10px 0; /* Espaço entre a foto e o botão */
-            color: var(--text);
-        }
-
-        #user-name {
-            color: var(--accent); /* Deixa o nome azul */
-            font-weight: bold;
-            /* text-transform: uppercase; Deixa o nome em MAIÚSCULO, opcional */
-        }
-
-        #room-actions {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            /* padding-top: 20px; */
-            margin-top: 20px;
-            display: none;
-            width: 100%;
-            /* Garante alinhamento */
         }
 
         .muted {
             color: rgba(255, 255, 255, 0.5);
-            font-size: 12px;
-            /* Reduzi levemente */
-            margin-top: 10px;
+            font-size: 10px;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
     </style>
-
 </head>
 
 <body>
@@ -192,26 +210,27 @@
     <div class="lobby-box">
         <h1>Coup Master</h1>
 
-        <div id="user-info">
-            <img id="user-photo" src="" alt="Foto">
-
-            <div class="welcome-text">
-                Bem-vindo, <span id="user-name"></span>!
-            </div>
-
-            <button id="logout-btn" style="background: #ff3b3b; color: white;">Sair</button>
-        </div>
-
         <button id="google-login-btn">
-            Entrar com Google
+            <img src="img/google.svg" alt="G" class="google-icon">
+            <span>ENTRAR COM GOOGLE</span>
         </button>
 
+        <div id="user-info">
+            <img id="user-photo" src="" alt="Foto">
+            
+            <div class="welcome-text">
+                BEM-VINDO,<br> <span id="user-name"></span>!
+            </div>
+
+            <button id="logout-btn" style="background: #ff3b3b; color: white; font-weight: bold;">SAIR</button>
+        </div>
+
         <div id="room-actions" class="room-actions">
-            <h2>Sala</h2>
-            <input type="text" id="room-code-input" placeholder="Código da Sala (Ex: XJ94)">
-            <button id="join-room-btn">Entrar na Sala</button>
-            <button id="create-room-btn">Criar Nova Sala</button>
-            <p class="muted">O código da sala será gerado automaticamente.</p>
+            <h2 style="margin-top: 0; font-size: 1.2rem; margin-bottom: 15px;">SALA</h2>
+            <input type="text" id="room-code-input" placeholder="CÓDIGO (EX: XJ94)">
+            <button id="join-room-btn">ENTRAR NA SALA</button>
+            <button id="create-room-btn">CRIAR NOVA SALA</button>
+            <p class="muted">O código será gerado automaticamente.</p>
         </div>
 
     </div>
@@ -238,10 +257,7 @@
         const userInfoDiv = document.getElementById('user-info');
         const userNameSpan = document.getElementById('user-name');
         const userPhotoImg = document.getElementById('user-photo');
-
-        // O JS busca por ID, agora o HTML tem o ID correto
         const roomActionsDiv = document.getElementById('room-actions');
-
         const roomCodeInput = document.getElementById('room-code-input');
         const joinRoomBtn = document.getElementById('join-room-btn');
         const createRoomBtn = document.getElementById('create-room-btn');
@@ -251,7 +267,6 @@
         // FUNÇÕES DE AUTENTICAÇÃO
         // ===================================
 
-        // 1. Login com Google
         loginBtn.onclick = () => {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider).catch(error => {
@@ -259,20 +274,17 @@
             });
         };
 
-        // 2. Logout
         logoutBtn.onclick = () => {
             auth.signOut();
         };
 
-        // 3. Gerenciamento de Estado de Login (COM FALLBACK SEGURO)
         auth.onAuthStateChanged(user => {
             if (user) {
                 // Logado
                 if (loginBtn) loginBtn.style.display = 'none';
-                if (userInfoDiv) userInfoDiv.style.display = 'block';
+                if (userInfoDiv) userInfoDiv.style.display = 'block'; // Ativa o Flexbox via CSS
                 if (roomActionsDiv) roomActionsDiv.style.display = 'block';
 
-                // Tenta pegar o nome ou email
                 let safeName = user.displayName;
                 if (!safeName && user.email) {
                     safeName = user.email.split('@')[0];
@@ -280,20 +292,18 @@
                     safeName = "Convidado";
                 }
 
-                // Tenta pegar a foto ou usa padrão
                 const safePhoto = user.photoURL || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
 
                 if (userNameSpan) userNameSpan.textContent = safeName;
                 if (userPhotoImg) userPhotoImg.src = safePhoto;
 
-                // Salva na sessão
                 sessionStorage.setItem('currentUID', user.uid);
                 sessionStorage.setItem('currentName', safeName);
                 sessionStorage.setItem('currentPhoto', safePhoto);
 
             } else {
                 // Deslogado
-                if (loginBtn) loginBtn.style.display = 'block';
+                if (loginBtn) loginBtn.style.display = 'flex'; // Importante para o botão Google
                 if (userInfoDiv) userInfoDiv.style.display = 'none';
                 if (roomActionsDiv) roomActionsDiv.style.display = 'none';
 
@@ -303,17 +313,14 @@
             }
         });
 
-
         // ===================================
-        // FUNÇÕES DE SALA (LOBBY)
+        // FUNÇÕES DE SALA
         // ===================================
 
-        // Gera código aleatório de 4 letras/números
         function generateRoomCode() {
             return Math.random().toString(36).substring(2, 6).toUpperCase();
         }
 
-        // 1. Entrar em Sala Existente
         if (joinRoomBtn) {
             joinRoomBtn.onclick = () => {
                 const code = roomCodeInput.value.trim().toUpperCase();
@@ -321,30 +328,24 @@
                     alert("O código da sala deve ter 4 caracteres.");
                     return;
                 }
-
                 db.ref(`salas/${code}`).once('value', (snapshot) => {
                     if (snapshot.exists()) {
-                        // Sala existe, redireciona para o jogo
                         window.location.href = `index.html?room=${code}`;
                     } else {
-                        alert(`A sala "${code}" não existe. Verifique o código.`);
+                        alert(`A sala "${code}" não existe.`);
                     }
                 });
             };
         }
 
-        // 2. Criar Nova Sala
         if (createRoomBtn) {
             createRoomBtn.onclick = () => {
                 const newCode = generateRoomCode();
-
                 db.ref(`salas/${newCode}`).once('value', (snapshot) => {
                     if (snapshot.exists()) {
-                        createRoomBtn.onclick(); // Tenta outro código se existir
+                        createRoomBtn.onclick();
                         return;
                     }
-
-                    // Cria a sala vazia no Firebase
                     db.ref(`salas/${newCode}/gameState`).set({
                         status: 'waiting',
                         createdAt: firebase.database.ServerValue.TIMESTAMP
@@ -356,8 +357,6 @@
                 });
             };
         }
-
     </script>
 </body>
-
 </html>
