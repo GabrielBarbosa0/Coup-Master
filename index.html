@@ -2330,10 +2330,11 @@
     }
 
     // =======================================================
-    // === 8. INICIALIZAÇÃO ===
+    // === 8. INICIALIZAÇÃO SEGURA (Fix Permission Denied) ===
     // =======================================================
 
     function initializeGame() {
+      // (Seu código initializeGame continua igual, não precisa mexer nele)
       // Listener do Estado do Jogo
       gameStateRef.on('value', (snapshot) => {
         const state = snapshot.val();
@@ -2347,16 +2348,22 @@
         }
       });
 
-      // Inicia conexão
       joinGame();
-
-      // Configura UI
       setupUI();
       setupDropzones();
       setupAutoScroll();
     }
 
-    initializeGame();
+    // [CORREÇÃO] Só inicia o jogo quando o Firebase Auth confirmar o login
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            console.log("Login confirmado. Iniciando jogo...");
+            initializeGame();
+        } else {
+            console.log("Usuário não logado. Redirecionando...");
+            window.location.href = 'lobby.html';
+        }
+    });
 
   </script>
 
