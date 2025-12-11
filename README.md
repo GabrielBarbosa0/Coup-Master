@@ -1,83 +1,117 @@
-# Coup Master - Protótipo Online v0.0.1
+# Coup Master - Multiplayer Online v0.2.0
 
-Este é um protótipo funcional e multiplayer (até 8 jogadores) do jogo de tabuleiro "Coup", incluindo a expansão "A Reforma". O projeto é 100% estático (HTML, CSS, JavaScript) e utiliza o Firebase Realtime Database para sincronizar o estado do jogo entre todos os jogadores em tempo real.
+![Status](https://img.shields.io/badge/Status-Em_Desenvolvimento-yellow) ![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Database-orange)
 
-O foco deste protótipo é fornecer uma "sandbox" (caixa de areia) para os jogadores, onde as regras (como pagar moedas, virar cartas, ou mudar de religião) são aplicadas manualmente pelos próprios jogadores, permitindo uma jogabilidade flexível.
+Uma versão web, multiplayer e **sandbox** do famoso jogo de tabuleiro "Coup" (incluindo a expansão "A Reforma").
 
-![Interface do Jogo](img/game-screenshot.png)
-*(Substitua esta linha por um link de uma captura de tela do seu jogo)*
+Diferente de versões automatizadas, o **Coup Master** foca na liberdade: os jogadores aplicam as regras, movem moedas e trocam cartas manualmente, simulando a experiência real de uma mesa de jogo, mas com a conveniência da sincronização online e organização de salas.
 
----
-
-## ✨ Funcionalidades
-
-* **Multiplayer em Tempo Real (Até 8 Jogadores):** A sala é criada dinamicamente e os slots de jogador aparecem apenas quando novos jogadores entram.
-* **Persistência de Sessão (por Aba):** Utiliza `sessionStorage` para que um jogador possa recarregar a página (F5) e reconectar-se ao seu slot, sem conflitos entre abas.
-* **Sincronização com Firebase:** O estado do jogo (cartas na mão, moedas, religião, jogadores online) é sincronizado em tempo real para todos os clientes.
-* **Expansão "A Reforma":**
-    * **Asilo:** Área do Asilo com contador de moedas manual (`+`/`-`).
-    * **Religião:** Cada jogador possui um status (Católico/Protestante) que pode ser alternado com um clique.
-* **Baralho Configurável (Host):** O Jogador 1 (Host) pode definir quantas cópias de cada carta (base e expansão) estarão no baralho através de um modal de configuração (ícone de engrenagem).
-* **Gestão da Sala:** Cada slot de jogador (quando online) possui um botão (`❌`) para remoção manual.
-* **Interações Manuais:** O jogo funciona como uma "sandbox" onde os jogadores aplicam as regras, movem suas moedas (`+`/`-`) e gerem o Asilo.
-* **Layout Responsivo:** A interface se adapta de um grid 4x2 no desktop para um layout empilhado em dispositivos móveis.
-* **Ajuda Interativa:** Um modal "flip-card" exibe as ações de personagens e regras básicas.
+![Interface do Lobby](img/image_47cdfb.png)
+*(Tela de Login e Lobby)*
 
 ---
 
-## 🚀 Tecnologias Utilizadas
+## ✨ Novas Funcionalidades (v0.2.0)
 
-* **Frontend:** HTML5, CSS3 (Flexbox/Grid), JavaScript (ES6+)
-* **Backend & Database:** Firebase (Realtime Database)
-* **Hospedagem:** Otimizado para GitHub Pages
+### 🔐 Autenticação e Identidade
+* **Login com Google:** Integração segura via Firebase Authentication.
+* **Perfis Reais:** O jogo exibe automaticamente o Nome e a Foto do perfil Google do jogador na mesa.
+* **Segurança de Slot:** Se você cair (internet/F5), seu lugar fica reservado pelo seu ID único (UID). Ninguém pode roubar sua cadeira enquanto você reconecta.
 
----
+### 🏠 Sistema de Salas (Lobby)
+* **Salas Privadas:** Crie salas com códigos únicos de 4 dígitos (ex: `XJ94`).
+* **Convite Fácil:** Clique no código da sala no topo da tela para copiá-lo automaticamente e enviar aos amigos.
+* **Capacidade Expandida:** Suporte para até **10 Jogadores** simultâneos.
 
-## ⚙️ Como Rodar (Instalação)
+### 📱 Experiência Mobile (Modo Compacto)
+* **Layout Responsivo:** O jogo detecta dispositivos móveis automaticamente.
+* **Modo Compacto:** Uma opção nas configurações que reduz a escala de cartas, avatares e textos em 50% e organiza a mesa em 2 colunas. Isso permite visualizar 10 jogadores na tela do celular sem rolagem excessiva.
 
-Este projeto é estático, mas **requer o Firebase** para funcionar.
-
-1.  **Clone o Repositório:**
-    ```bash
-    git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/seu-usuario/seu-repositorio.git)
-    ```
-
-2.  **Crie um Projeto no Firebase:**
-    * Vá até o [console do Firebase](https://console.firebase.google.com/).
-    * Crie um novo projeto.
-    * Adicione um novo "Aplicativo Web" (clicando no ícone `</>`).
-    * Copie o objeto `firebaseConfig` que será fornecido.
-
-3.  **Configure o Realtime Database:**
-    * No menu do Firebase, vá em **Build > Realtime Database**.
-    * Crie um banco de dados.
-    * **IMPORTANTE:** Vá para a aba **"Regras" (Rules)** e inicie em **modo de teste** (`test mode`) para permitir leitura e escrita.
-        ```json
-        {
-          "rules": {
-            ".read": true,
-            ".write": true
-          }
-        }
-        ```
-
-4.  **Configure o `index.html`:**
-    * Abra o arquivo `index.html`.
-    * Encontre o comentário `// 1. INICIALIZAÇÃO E CONFIGURAÇÃO DO FIREBASE`.
-    * Cole o seu objeto `firebaseConfig` no local indicado.
-
-5.  **Estrutura de Imagens (Obrigatório):**
-    * O `index.html` espera uma pasta `/img/` no mesmo nível.
-    * Certifique-se de que esta pasta contém todas as imagens de cartas (`duque.png`, `inquisidor.png`, etc.), o verso da carta (`back.png`), a imagem do asilo (`asilo.png`), os ícones dos botões (`cached.svg`, `info.svg`, `settings_account.svg`, etc.) e as imagens do modal de ações (`front-actions.jpg`, `back-actions.jpg`).
-
-6.  **Hospede o Projeto:**
-    * Envie seus arquivos (com o `firebaseConfig` preenchido e a pasta `img/`) para o seu repositório do GitHub.
-    * Ative o **GitHub Pages** nas configurações do seu repositório.
-
-Pronto! Qualquer pessoa que acessar o link entrará na mesma sala de jogo.
+### ⚙️ Funcionalidades de Jogo
+* **Sandbox Total:** Adicione/remova moedas, mude de religião (Católico/Protestante) e gerencie o Asilo manualmente.
+* **Deck Configurável:** O Host (Jogador 1) pode configurar a quantidade exata de cada personagem no baralho.
+* **Feedback Visual/Sonoro:** Sons para ações (moedas, cartas) e animações de feedback.
 
 ---
 
-## 📄 Licença
+## 🚀 Tecnologias
 
-Este projeto é distribuído sob a licença MIT.
+* **Frontend:** HTML5, CSS3 (Flexbox/Grid), JavaScript Puro (Vanilla JS).
+* **Backend (Serverless):** Firebase Realtime Database.
+* **Auth:** Firebase Authentication (Google Provider).
+
+---
+
+## 🛠️ Instalação e Configuração
+
+Este projeto requer configuração do Firebase para funcionar (especialmente o Login).
+
+### 1. Clone o Projeto
+```bash
+git clone [https://github.com/seu-usuario/coup-master.git](https://github.com/seu-usuario/coup-master.git)
+2. Crie o Projeto no Firebase
+Acesse Firebase Console.
+
+Crie um novo projeto.
+
+Adicione um App Web (</>) e copie as credenciais (firebaseConfig).
+
+3. Configure a Autenticação (IMPORTANTE)
+Para o login funcionar, você precisa ativar o Google e autorizar seu domínio:
+
+No console do Firebase, vá em Criação (Build) > Authentication.
+
+Na aba Sign-in method, ative o provedor Google.
+
+Na aba Settings (Configurações), vá em Authorized domains (Domínios autorizados).
+
+Adicione o domínio do seu site (ex: seunome.github.io) e também 127.0.0.1 (para testes locais).
+
+4. Configure o Banco de Dados
+Vá em Realtime Database e crie o banco.
+
+Na aba Regras, defina como público (para teste) ou configure regras de segurança:
+
+JSON
+
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+5. Atualize o Código
+Abra os arquivos index.html e lobby.html. Procure pela constante firebaseConfig e substitua pelos seus dados:
+
+JavaScript
+
+const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "seu-projeto.firebaseapp.com",
+    databaseURL: "[https://seu-projeto-default-rtdb.firebaseio.com](https://seu-projeto-default-rtdb.firebaseio.com)",
+    projectId: "seu-projeto",
+    storageBucket: "seu-projeto.appspot.com",
+    messagingSenderId: "...",
+    appId: "..."
+};
+🎮 Como Jogar
+Login: Acesse o site e faça login com sua conta Google.
+
+Lobby:
+
+Clique em "Criar Nova Sala" para ser o Host.
+
+Ou digite o código que seu amigo mandou e clique em "Entrar na Sala".
+
+Na Mesa:
+
+Host: Vá nas configurações (⚙️) -> "Configurar Baralho" -> Defina as cartas -> "Aplicar e Resetar".
+
+Jogadores: Cliquem no Deck para comprar cartas.
+
+Usem os botões + e - para gerenciar moedas e vidas.
+
+Arraste cartas para o "Cemitério" quando perder uma vida.
+
+📄 Licença
+Este projeto é de código aberto sob a licença MIT. Sinta-se livre para contribuir!
