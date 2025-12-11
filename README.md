@@ -47,40 +47,38 @@ Diferente de versões automatizadas, o **Coup Master** foca na liberdade: os jog
 Este projeto requer configuração do Firebase para funcionar (especialmente o Login).
 
 ### 1. Clone o Projeto
+
 ```bash
 git clone [https://github.com/seu-usuario/coup-master.git](https://github.com/seu-usuario/coup-master.git)
-2. Crie o Projeto no Firebase
-Acesse Firebase Console.
+```
 
-Crie um novo projeto.
+### 2. Crie o Projeto no Firebase
+1. Acesse o [Firebase Console](https://console.firebase.google.com/).
+2. Crie um novo projeto.
+3. Adicione um **App Web** (`</>`) e copie as credenciais (`firebaseConfig`).
 
-Adicione um App Web (</>) e copie as credenciais (firebaseConfig).
-
-3. Configure a Autenticação (IMPORTANTE)
+### 3. Configure a Autenticação (IMPORTANTE)
 Para o login funcionar, você precisa ativar o Google e autorizar seu domínio:
 
-No console do Firebase, vá em Criação (Build) > Authentication.
+1. No console do Firebase, vá em **Criação (Build) > Authentication**.
+2. Na aba **Sign-in method**, ative o provedor **Google**.
+3. Na aba **Settings (Configurações)**, vá em **Authorized domains** (Domínios autorizados).
+4. Adicione o domínio do seu site (ex: `seunome.github.io`) e também `127.0.0.1` (para testes locais).
 
-Na aba Sign-in method, ative o provedor Google.
+### 4. Configure o Banco de Dados
+1. Vá em **Realtime Database** e crie o banco.
+2. Na aba **Regras**, defina como público (para teste) ou configure regras de segurança:
 
-Na aba Settings (Configurações), vá em Authorized domains (Domínios autorizados).
-
-Adicione o domínio do seu site (ex: seunome.github.io) e também 127.0.0.1 (para testes locais).
-
-4. Configure o Banco de Dados
-Vá em Realtime Database e crie o banco.
-
-Na aba Regras, defina como público (para teste) ou configure regras de segurança:
-
-JSON
-
+```json
 {
   "rules": {
     ".read": true,
     ".write": true
   }
 }
-5. Atualize o Código
+```
+
+### 5. Atualize o Código
 Abra os arquivos index.html e lobby.html. Procure pela constante firebaseConfig e substitua pelos seus dados:
 
 JavaScript
@@ -94,7 +92,9 @@ const firebaseConfig = {
     messagingSenderId: "...",
     appId: "..."
 };
-🎮 Como Jogar
+
+
+### 🎮 Como Jogar
 Login: Acesse o site e faça login com sua conta Google.
 
 Lobby:
