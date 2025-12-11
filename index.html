@@ -1093,6 +1093,16 @@
 </head>
 
 <body>
+
+  <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #14171e; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+      <div style="width: 40px; height: 40px; border: 4px solid #232a33; border-top: 4px solid #1e90ff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+      <h2 style="font-family: 'Cinzel', serif;">Conectando à Sala...</h2>
+  </div>
+
+  <style>
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+
   <div class="container">
     <header id="roomHeader" title="Clique para copiar o código">
       <h1 style="font-size: 20px;">SALA: <span id="roomCodeDisplay">...</span></h1>
@@ -2217,6 +2227,10 @@
     // =======================================================
 
     function joinGame() {
+      // [NOVO] Garante que o loading esteja visível ao iniciar a tentativa
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
       gameStateRef.transaction((currentState) => {
         // 1. Se a sala não existe, cria o estado inicial
         if (!currentState || !currentState.players) {
@@ -2232,14 +2246,14 @@
             players: {}
           };
 
-          // Inicializa os 8 slots vazios
+          // Inicializa os 10 slots vazios
           for(let i=1; i<=10; i++) {
               initialState.players[i] = {
                   online: false, 
                   hand: [], 
                   score: 2, 
                   religion: (i % 2 === 1) ? 'catolico' : 'protestante',
-                  uid: null,  // [IMPORTANTE] Sem dono
+                  uid: null,  
                   name: null,
                   photo: null
               };
@@ -2260,7 +2274,7 @@
         // A. Tenta RECONECTAR (Procura meu UID)
         for (let i = 1; i <= 10; i++) {
             if (currentState.players[i] && currentState.players[i].uid === currentUser.uid) {
-                currentState.players[i].online = true; // Estou de volta!
+                currentState.players[i].online = true; 
                 currentState.players[i].name = currentUser.name; 
                 currentState.players[i].photo = currentUser.photo; 
                 myPlayerId = i;
@@ -2288,21 +2302,24 @@
         // C. Sala cheia
         return; 
 
-      }, (error, committed) => {
+      }, (error, committed, snapshot) => {
         if (committed) {
             console.log(`Conectado com sucesso no Slot ${myPlayerId}`);
             setupDisconnectHandler(myPlayerId);
+            
+            // [NOVO] REMOVE O LOADING APENAS AGORA
+            // Isso impede que o jogador clique antes de estar 100% conectado
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
+
+        } else if (error) {
+            console.error("Erro na transação:", error);
+            alert("Erro de conexão. Tentando novamente...");
+            window.location.reload(); // Recarrega se der erro técnico
         } else {
             alert("Sala cheia! Todos os slots têm donos.");
             window.location.href = 'lobby.html';
         }
       });
-    }
-
-    function setupDisconnectHandler(pid) {
-      // Quando desconectar, APENAS marca online: false.
-      // O UID continua lá, garantindo a reserva.
-      db.ref(`salas/${roomCode}/gameState/players/${pid}/online`).onDisconnect().set(false);
     }
 
     // =======================================================
