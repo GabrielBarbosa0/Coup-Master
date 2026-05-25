@@ -1070,8 +1070,7 @@ body.hide-religion .decks-wrapper {
 
 /* Container do Modal de Feedback */
 #feedbackModal .modal-actions-and-rules {
-    background: #171d26;
-    /* Fundo para combinar com o Tally Dark */
+    background: #171d26 !important; /* Fundo para combinar com o Tally Dark */
     border: 2px solid var(--accent);
     border-radius: 15px;
     padding: 0;
@@ -1090,6 +1089,7 @@ body.hide-religion .decks-wrapper {
     border-radius: 13px;
     /* Um pouco menor que o container para encaixar */
     display: block;
+    background-color: #14171e !important; /* Blindagem contra o fundo branco */
 }
 
 /* Botão de Fechar flutuando fora (Igual às cartas de regra) */
