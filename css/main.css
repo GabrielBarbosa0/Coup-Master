@@ -420,8 +420,8 @@ header p {
 .fullscreenBtn,
 .spectatorBtn {
     /* Adicionado aqui */
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
 }
 
 /* Adicione também para a imagem interna preencher o botão */
@@ -582,7 +582,7 @@ header p {
 
 .controls {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     align-items: center;
 }
 
@@ -1819,8 +1819,8 @@ body.hide-religion .decks-wrapper {
     .infoBtn,
     .configBtn,
     .spectatorBtn {
-        width: 32px !important;
-        height: 32px !important;
+        width: 29px !important;
+        height: 29px !important;
         padding: 8px !important;
         border-radius: 6px !important;
     }
@@ -1841,7 +1841,7 @@ body.hide-religion .decks-wrapper {
 
     /* Reduz o espaçamento entre os botões */
     .controls {
-        gap: 6px !important;
+        gap: 4px !important;
     }
 
     .setting-row {

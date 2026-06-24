@@ -123,11 +123,11 @@ com foco em escalabilidade e consistência de estado.
 
 O projeto segue uma arquitetura modular com separação clara de responsabilidades:
 
-- **firebase.js** → Inicialização e infraestrutura (Auth + Database)
+- **js/firebase/firebase.js** → Inicialização e infraestrutura (Auth + Database)
 - **rules.js** → Constantes e manipulação estrutural do baralho
 - **gameState.js** → Gerenciamento de estado e transações Firebase
-- **ui.js** → Renderização da interface e interações
-- **lobby.js** → Autenticação e gerenciamento de salas
+- **board-renderer.js** → Renderização da interface e interações
+- **lobby-manager.js** → Autenticação, criação e gerenciamento de salas
 
 Essa divisão garante escalabilidade, manutenibilidade e separação entre lógica de domínio e camada de apresentação.
 
@@ -161,15 +161,16 @@ Coup-Master/
 │   ├── lobby.css               # Design da interface do menu e salas
 │   └── main.css                # Layout do tabuleiro 2D e responsividade mobile
 ├── 📂 js/                      # Núcleo lógico do ecossistema JavaScript
-│   ├── 📂 core/                # Scripts de infraestrutura e regras globais
-│   │   ├── firebase.js         # Inicialização e conexões com o banco de dados
+│   ├── 📂 core/                # Estado do jogo e regras globais
 │   │   ├── gameState.js        # Sincronização do estado da partida em tempo real
 │   │   └── rules.js            # Definição matemática de cartas e baralhos
+│   ├── 📂 firebase/            # Infraestrutura Firebase
+│   │   └── firebase.js         # Inicialização e conexões com o banco de dados
 │   ├── 📂 gamemode/            # Lógicas específicas por modo de jogo
 │   │   └── 📂 casual/          # Scripts dedicados à mesa clássica casual
 │   │       └── board-renderer.js # Manipulador do DOM e renderizador do tabuleiro 2D
-│   ├── auth-manager.js         # Gerenciamento de sessão e Google OAuth 2.0
-│   └── lobby-manager.js        # Fluxo de criação, faxina e entrada de salas
+│   └── 📂 lobby/
+│       └── lobby-manager.js    # Fluxo de criação, faxina e entrada de salas
 ├── 📄 index.html               # Tabuleiro principal do jogo em modo normal 2D
 ├── 📄 lobby.html               # Menu inicial de entrada e autenticação de usuários
 └── 📄 README.md                # Documentação técnica do projeto
@@ -180,6 +181,7 @@ Coup-Master/
 
 * **`assets/img/cards/`**: Organizado estrategicamente em subpastas (`base`, `promo`, `dlc1`, `dlc2`) para permitir que o motor do jogo (`board-renderer.js`) monte dinamicamente as URLs das texturas com base no tipo e na expansão configurada nos presets de baralho.
 * **`js/core/`**: Funciona como o motor lógico invisível do jogo. O `gameState.js` escuta e injeta alterações diretamente no Firebase, garantindo que o jogo funcione como um sandbox em tempo real.
+* **`js/firebase/`**: Centraliza a inicialização do Firebase e expõe `window.db` e `window.auth` para os demais scripts.
 * **`js/gamemode/casual/`**: Concentra a engine visual da mesa bidimensional através do script `board-renderer.js`, responsável por manipular o DOM de forma reativa conforme as atualizações da partida.
 * **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
 
@@ -261,7 +263,7 @@ Isso garante que apenas usuários autenticados possam acessar as salas.
 ### 5️⃣ Vincule o Código ao Firebase
 
 Atualize as credenciais no seu projeto  
-(ex: `js/firebase.js`):
+(ex: `js/firebase/firebase.js`):
 
 ```javascript
 const firebaseConfig = {

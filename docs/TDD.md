@@ -84,7 +84,7 @@ Os scripts sao carregados como arquivos globais com `defer`. Eles dependem da or
 Ordem no tabuleiro:
 
 1. Firebase CDN: `firebase-app.js`, `firebase-auth.js`, `firebase-database.js`.
-2. `js/core/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
+2. `js/firebase/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
 3. `js/core/rules.js`: define tipos de carta e utilitarios globais.
 4. `js/core/gameState.js`: conecta sala, Firebase, estado e mutacoes.
 5. `js/gamemode/casual/board-renderer.js`: renderiza DOM e configura interacoes.
@@ -92,7 +92,7 @@ Ordem no tabuleiro:
 Ordem no lobby:
 
 1. Firebase CDN.
-2. `js/core/firebase.js`.
+2. `js/firebase/firebase.js`.
 3. `js/lobby/lobby-manager.js`.
 
 ## 4. Estrutura do Repositorio
@@ -122,9 +122,10 @@ Coup-Master/
     TDD.md
   js/
     core/
-      firebase.js
       gameState.js
       rules.js
+    firebase/
+      firebase.js
     gamemode/
       casual/
         board-renderer.js
@@ -182,7 +183,7 @@ Nao ha `package.json`. Portanto, nao ha scripts oficiais de:
 A verificacao local atualmente possivel sem adicionar tooling e:
 
 ```powershell
-node --check js\core\firebase.js
+node --check js\firebase\firebase.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
@@ -263,7 +264,7 @@ Pontos tecnicos importantes:
 
 ## 7. Scripts Globais e Contratos entre Arquivos
 
-### 7.1 `js/core/firebase.js`
+### 7.1 `js/firebase/firebase.js`
 
 Responsabilidades:
 
@@ -1241,6 +1242,7 @@ Arquivos usados:
 - `alternative-rules2.png`
 - `alternative-rules3.png`
 - `alternative-rules4.png`
+- `alternative-rules5.png`
 
 `calculateRuleImages()` escolhe quais cartas de regra mostrar com base em `deckConfig`.
 
@@ -1505,7 +1507,7 @@ Ha varios `console.log`, `console.warn` e `console.error` operacionais. Eles aju
 Como nao ha suite automatizada, a validacao atual minima e:
 
 ```powershell
-node --check js\core\firebase.js
+node --check js\firebase\firebase.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
@@ -1694,7 +1696,7 @@ Estas invariantes devem ser preservadas:
 |---|---|---|
 | `index.html` | Estrutura do tabuleiro, modais, audio e scripts | Alto: ids sao contrato com JS |
 | `lobby.html` | Login e entrada/criacao de salas | Medio |
-| `js/core/firebase.js` | Inicializacao Firebase global | Alto: ordem e config |
+| `js/firebase/firebase.js` | Inicializacao Firebase global | Alto: ordem e config |
 | `js/core/rules.js` | Tipos de cartas e utilitarios de deck | Alto: fonte de verdade parcial |
 | `js/core/gameState.js` | Mutacoes e sincronizacao Firebase | Muito alto |
 | `js/lobby/lobby-manager.js` | Auth/lobby/salas/limpeza | Alto |
@@ -1772,7 +1774,7 @@ Custos:
 Validar sintaxe JS:
 
 ```powershell
-node --check js\core\firebase.js
+node --check js\firebase\firebase.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js

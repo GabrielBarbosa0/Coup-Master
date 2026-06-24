@@ -13,7 +13,7 @@ Pontos de entrada:
 
 Scripts principais:
 
-- `js/core/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
+- `js/firebase/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
 - `js/core/rules.js`: tipos de carta, criacao de deck e utilitarios.
 - `js/core/gameState.js`: conexao com sala, mutacoes e listeners do Firebase.
 - `js/lobby/lobby-manager.js`: auth/lobby/salas/limpeza.
@@ -36,7 +36,7 @@ Leia `docs/TDD.md` antes de fazer mudancas estruturais.
 Depois de alterar JavaScript, rode:
 
 ```powershell
-node --check js\core\firebase.js
+node --check js\firebase\firebase.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
@@ -53,7 +53,7 @@ Abra `http://localhost:8000/lobby.html`. Login Google local depende dos dominios
 
 ## Firebase
 
-As chaves Web em `js/core/firebase.js` sao identificadores publicos. A seguranca real depende das Firebase Security Rules.
+As chaves Web em `js/firebase/firebase.js` sao identificadores publicos. A seguranca real depende das Firebase Security Rules.
 
 Cuidados:
 

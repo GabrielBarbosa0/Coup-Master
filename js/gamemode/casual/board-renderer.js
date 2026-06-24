@@ -446,8 +446,8 @@ function renderAll() {
     const isProtestante = player.religion === 'protestante';
     // Utiliza os novos caminhos da estrutura de pastas refatorada 
     const iconPath = isProtestante
-      ? 'assets/img/cards/religion/protestante.png'
-      : 'assets/img/cards/religion/catolico.png';
+      ? 'assets/img/cards/religion/protestante-quadrado.png'
+      : 'assets/img/cards/religion/catolico-quadrado.png';
 
     religionIcon.src = iconPath;
     religionIcon.alt = player.religion;
@@ -1075,7 +1075,8 @@ function setupUI() {
     'assets/img/guides/alternative-rules1.png',
     'assets/img/guides/alternative-rules2.png',
     'assets/img/guides/alternative-rules3.png',
-    'assets/img/guides/alternative-rules4.png'
+    'assets/img/guides/alternative-rules4.png',
+    'assets/img/guides/alternative-rules5.png'
   ];
 
   let currentAltIndex = 0;
