@@ -54,13 +54,20 @@
 
     <div class="board">
       <div class="top-row">
-        <div class="room muted">
+        <div class="room muted room-controls">
+          <button id="leaveRoomBtn" class="leaveRoomBtn" title="Sair da Sala">
+            <img src="assets/img/icons/logout.svg" alt="Sair">
+          </button>
           <button id="resetBtn" class="resetBtn" title="Resetar Mesa"><img src="assets/img/icons/cached.svg"
               alt=""></button>
         </div>
         <div class="controls">
           <button id="musicBtn" class="musicBtn" title="Música de Fundo"><img src="assets/img/icons/music_note.svg"
               alt="Música"></button>
+
+          <button id="openFeedbackBtn" class="feedbackBtn" title="Enviar Feedback / Bug">
+            <img src="assets/img/icons/feedback.svg" alt="Feedback">
+          </button>
 
           <button id="altRulesBtn" class="altRulesBtn" title="Regras Alternativas">
             <img src="assets/img/icons/parchment.svg" alt="Regras Alternativas"></button>
@@ -439,13 +446,6 @@
 
       <div class="settings-container">
 
-        <div class="setting-row" style="justify-content: center; margin-top: 10px;">
-          <button id="openFeedbackBtn" class="settings-action-btn"
-            style="background: #00FF73; border: 1px solid rgba(255, 255, 255, 0.1); color: #000;">
-            Enviar Feedback / Bug
-          </button>
-        </div>
-
         <div class="setting-row">
           <label for="volumeSlider">Música:</label>
           <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.1" style="width: 100%;">
@@ -479,58 +479,6 @@
           <button id="openDeckConfigBtn"
             style="background: #1e90ff; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;">
             Configurar Baralho
-          </button>
-        </div>
-
-        <!-- <hr style="border: 0; border-top: 1px solid var(--muted); margin: 10px 0;"> -->
-
-        <h2>Gráficos e Efeitos</h2>
-
-
-        <div class="setting-row">
-          <label>Fundo Animado:</label>
-          <button id="toggleVideoBgBtn" class="icon-btn">
-            <img src="assets/img/icons/eye.svg" alt="">
-            <span style="margin-left: 4px;">Ativado</span>
-          </button>
-        </div>
-
-        <div class="setting-row">
-          <label>Transparência:</label>
-          <button id="toggleTransparentBtn" class="icon-btn">
-            <img src="assets/img/icons/eye.svg" alt="">
-            <span style="margin-left: 4px;">Desativado</span>
-          </button>
-        </div>
-
-        <div class="setting-row">
-          <label>Parallax (PC):</label>
-          <button id="toggleParallaxBtn" class="icon-btn" title="Ativar/Desativar Parallax">
-            <img src="assets/img/icons/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
-            <span style="margin-left: 4px;">Ativado</span>
-          </button>
-        </div>
-
-        <div class="setting-row">
-          <span>Efeito (VHS):</span>
-          <button id="toggleVhsBtn" class="icon-btn">
-            <img src="assets/img/icons/eye.svg" alt="">
-            <span style="margin-left: 4px;">Ativado</span>
-          </button>
-        </div>
-
-        <div class="setting-row">
-          <label>Flutuação:</label>
-          <button id="toggleWaveBtn" class="icon-btn" title="Ativar/Desativar Flutuação">
-            <img src="assets/img/icons/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
-            <span style="margin-left: 4px;">Ativado</span>
-          </button>
-        </div>
-
-        <div class="setting-row" style="justify-content: center; margin-top: 10px;">
-          <button id="leaveRoomBtn"
-            style="background: #ff3b3b; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;">
-            Sair da Sala
           </button>
         </div>
 
@@ -722,15 +670,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Vídeo de Fundo Animado -->
-  <video id="bg-video" autoplay muted loop playsinline class="video-background">
-    <source src="assets/video/background-smoke.mp4" type="video/mp4">
-  </video>
-
-  <!-- Efeitos de Vinheta e VHS -->
-  <div class="crt-overlay"></div>
-  <!-- <div class="vignette"></div> Desativado para ajustes-->
 
   <!-- Trilha Sonora -->
   <audio id="bgmAudio" loop autoplay>

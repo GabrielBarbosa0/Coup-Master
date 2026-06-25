@@ -90,7 +90,7 @@ body {
     background: var(--bg);
     color: var(--text);
     scroll-behavior: smooth;
-    /* Previne que o Parallax ou animações criem barras horizontais fantasmas */
+    /* Previne que animações criem barras horizontais fantasmas */
     position: relative;
     /* --- OCULTAR BARRA (Firefox e Edge antigo) --- */
     scrollbar-width: none;
@@ -141,158 +141,6 @@ body::-webkit-scrollbar {
 }
 
 
-.board {
-    will-change: transform;
-    /* Otimização de GPU */
-    transition: none;
-    /* O JS cuidará da suavidade, não precisamos de transition aqui */
-}
-
-
-/* =======================================================
-   === SIMULAÇÃO DE MONITOR CRT (TEXTURAS) ===
-   ======================================================= */
-
-/* Escondido por padrão */
-.crt-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    /* Camada de Scanlines e Grille (sem curvatura) */
-    background:
-        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
-        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-    background-size: 100% 3px, 3px 100%;
-    z-index: 10000;
-    pointer-events: none;
-}
-
-/* Cintilação (Flicker) */
-@keyframes flicker {
-    0% {
-        opacity: 0.98;
-    }
-
-    5% {
-        opacity: 0.96;
-    }
-
-    10% {
-        opacity: 0.99;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-.crt-overlay::before {
-    content: " ";
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    background: rgba(18, 16, 16, 0.02);
-    animation: flicker 0.1s infinite;
-}
-
-/* =======================================================
-   === APLICAÇÃO CONDICIONAL (MODO VHS ATIVO) ===
-   ======================================================= */
-
-body.vhs-enabled .crt-overlay {
-    display: block;
-}
-
-body.vhs-enabled .container {
-    /* Aplica apenas o filtro de cor e ruído, sem o rotateX/perspective */
-    filter: url(#vhs-filter);
-    transition: none !important;
-}
-
-/* O fundo fica mais escuro para destacar o "brilho" do CRT */
-body.vhs-enabled {
-    background-color: #050505;
-}
-
-
-/* =======================================================
-   === Vídeo de Fundo Dinâmico ===
-   ======================================================= */
-
-/* Estilo Base do Vídeo de Fundo */
-.video-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    /* Garante que o vídeo preencha a tela sem distorcer */
-    z-index: 0;
-    /* Acima do fundo do body, mas abaixo do conteúdo */
-    opacity: 0.3;
-    /* Deixa o efeito sutil */
-    pointer-events: none;
-    display: none;
-    /* Escondido por padrão, ativado pelo JS */
-}
-
-/* Ativação via classe condicional no body */
-body.video-bg-enabled .video-background {
-    display: block;
-}
-
-/* Ajuste crítico no container para que ele fique por cima do vídeo */
-.container {
-    position: relative;
-    z-index: 1;
-}
-
-
-
-/* =======================================================
-   === MODO TRANSPARENTE (OVERRIDE) ===
-   ======================================================= */
-
-/* Remove fundos e bordas quando a classe está ativa no body */
-body.transparent-mode header {
-    background: transparent !important;
-}
-
-body.transparent-mode .board {
-    background: transparent !important;
-    box-shadow: none !important;
-}
-
-body.transparent-mode .asylum-area,
-body.transparent-mode .deck-area {
-    background: transparent !important;
-}
-
-/* --- A NOVIDADE: Ícones da Top-Row no Modo Transparente --- */
-body.transparent-mode .controls button,
-body.transparent-mode .resetBtn {
-    background-color: transparent !important;
-    border: 2px solid #ffffff0f !important;
-    backdrop-filter: blur(4px);
-    /* Opcional: efeito de vidro fosco no vídeo */
-}
-
-/* Efeito de hover exclusivo para o modo transparente */
-body.transparent-mode .controls button:hover,
-body.transparent-mode .resetBtn:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
-}
-
-
-
 /* ////////////////////////////////////////////////////// */
 
 p {
@@ -312,8 +160,6 @@ h2 {
     position: relative;
     z-index: 1;
     min-height: 100%;
-    position: relative;
-    z-index: 1;
     display: flex;
     flex-direction: column;
     transition: max-width 0.3s ease;
@@ -412,10 +258,12 @@ header p {
        ======================================================= */
 
 .resetBtn,
+.leaveRoomBtn,
 .infoBtn,
 .shuffleBtn,
 .configBtn,
 .musicBtn,
+.feedbackBtn,
 .altRulesBtn,
 .fullscreenBtn,
 .spectatorBtn {
@@ -537,23 +385,6 @@ header p {
     filter: brightness(1.1);
 }
 
-/* Estilo Ghost para o botão de saída */
-
-/* #leaveRoomBtn {
-    background: transparent !important;
-    border: 1px solid #ff3b3b !important;
-    color: #ff3b3b !important;
-    margin-top: 30px;
-    transition: all 0.2s ease;
-}
-
-#leaveRoomBtn:hover {
-    background: #ff3b3b !important;
-    color: white !important;
-    box-shadow: 0 0 15px rgba(255, 59, 59, 0.3);
-} */
-
-
 /* =======================================================
        === ESTRUTURA DO TABULEIRO (BOARD LAYOUT) ===
        ======================================================= */
@@ -586,7 +417,14 @@ header p {
     align-items: center;
 }
 
+.room-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 .controls button,
+.leaveRoomBtn,
 .resetBtn {
     padding: 8px;
     border-radius: 8px;
@@ -601,6 +439,7 @@ header p {
 
 /* Seleciona todos os botões dentro de .controls e o botão Reset */
 .controls button,
+.leaveRoomBtn,
 .resetBtn {
     transition: transform 0.2s ease, background-color 0.2s ease;
     /* Transição suave para escala e cor */
@@ -608,6 +447,7 @@ header p {
 
 /* Aplica o efeito de hover e foco (acessibilidade) a todos os botões do cabeçalho */
 .controls button:hover,
+.leaveRoomBtn:hover,
 .resetBtn:hover {
     transform: scale(1.15) translateY(-2px);
     /* Efeito de zoom e leve subida */
@@ -617,6 +457,7 @@ header p {
 
 /* Garante que as imagens dentro dos botões sigam o estilo branco */
 .controls button img,
+.leaveRoomBtn img,
 .resetBtn img {
     width: 20px;
     /* Padronização de tamanho */
@@ -970,12 +811,8 @@ body.hide-religion .decks-wrapper {
     transform-style: preserve-3d;
     /* CRÍTICO: Habilita a profundidade real para o efeito Balatro */
 
-    /* --- Sistema de Onda (Flutuação) --- */
-    --y-offset: 0px;
-    /* Variável controlada pelo sistema senoidal no ui.js */
-
     /* IMPORTANTE: Sem o !important para permitir que o JS aplique a rotação no hover */
-    transform: translateY(var(--y-offset));
+    transform: none;
 }
 
 .card:active {
@@ -1766,8 +1603,10 @@ body.hide-religion .decks-wrapper {
 
     /* Ajusta o tamanho dos botões de controle e o Reset */
     .controls button,
+    .leaveRoomBtn,
     .resetBtn,
     .musicBtn,
+    .feedbackBtn,
     .altRulesBtn,
     .fullscreenBtn,
     .infoBtn,
@@ -1781,6 +1620,7 @@ body.hide-religion .decks-wrapper {
 
     /* Ajusta o tamanho das imagens/ícones dentro dos botões */
     .controls button img,
+    .leaveRoomBtn img,
     .resetBtn img,
     .altRulesBtn img {
         width: 16px !important;
@@ -1812,8 +1652,10 @@ body.hide-religion .decks-wrapper {
 
     /* Ajusta o tamanho dos botões de controle e o Reset */
     .controls button,
+    .leaveRoomBtn,
     .resetBtn,
     .musicBtn,
+    .feedbackBtn,
     .altRulesBtn,
     .fullscreenBtn,
     .infoBtn,
@@ -1827,6 +1669,7 @@ body.hide-religion .decks-wrapper {
 
     /* Ajusta o tamanho das imagens/ícones dentro dos botões */
     .controls button img,
+    .leaveRoomBtn img,
     .resetBtn img,
     .altRulesBtn img {
         width: 16px !important;
@@ -1896,10 +1739,12 @@ body.hide-religion .decks-wrapper {
     }
 
     .resetBtn,
+    .leaveRoomBtn,
     .infoBtn,
     .shuffleBtn,
     .configBtn,
     .musicBtn,
+    .feedbackBtn,
     .altRulesBtn,
     .fullscreenBtn,
     .spectatorBtn {
