@@ -159,7 +159,6 @@ Coup-Master/
 │   │   ├── 📂 icons/           # Ícones SVG e UI do tabuleiro
 │   │   └── 📂 logo/            # Identidade visual e favicons do projeto
 │   ├── 📂 sounds/              # Trilha sonora (bgm) e efeitos sonoros (vfx)
-│   └── 📂 video/               # Elementos de vídeo de fundo (background-smoke)
 ├── 📂 css/                     # Estilização e folhas de estilo
 │   ├── lobby.css               # Design da interface do menu e salas
 │   └── main.css                # Layout do tabuleiro 2D e responsividade mobile

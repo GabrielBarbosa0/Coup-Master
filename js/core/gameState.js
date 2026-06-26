@@ -16,6 +16,8 @@ const currentUser = {
 
 // 3. Validação de Segurança: Redireciona se os dados obrigatórios estiverem ausentes
 if (!roomCode || !currentUser.uid) {
+  const loadingMessage = document.getElementById('game-loading-message');
+  if (loadingMessage) loadingMessage.textContent = 'Retornando ao lobby...';
   window.location.href = 'lobby.html';
 }
 
@@ -293,7 +295,7 @@ function returnCardToDeck(cardId) {
 
 /**
  * MOVIMENTAÇÃO DE CARTAS
- * Função genérica para mover cartas entre mãos de jogadores, deck ou área livre (cemitério).
+ * Função genérica para mover cartas entre mãos de jogadores, deck ou cemitério.
  */
 function moveCard(cardId, targetLocation, targetPlayerId = null) {
   updateRoomActivity();
@@ -342,7 +344,7 @@ function moveCard(cardId, targetLocation, targetPlayerId = null) {
 
 /**
  * REVELAR CARTA DO TOPO (BURN)
- * Retira a carta do topo do deck e a move diretamente para a área livre, revelando-a.
+ * Retira a carta do topo do deck e a move diretamente para o cemitério, revelando-a.
  */
 function burnTopCard() {
   triggerSound('card-slide');

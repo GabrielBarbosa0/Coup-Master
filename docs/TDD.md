@@ -91,7 +91,7 @@ Ordem no tabuleiro:
 
 1. Firebase CDN: `firebase-app.js`, `firebase-auth.js`, `firebase-database.js`.
 2. `js/firebase/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
-3. `js/pwa.js`: registra o service worker quando o navegador oferece suporte.
+3. `js/pwa/pwa.js`: registra o service worker quando o navegador oferece suporte.
 4. `js/core/rules.js`: define tipos de carta e utilitarios globais.
 5. `js/core/gameState.js`: conecta sala, Firebase, estado e mutacoes.
 6. `js/gamemode/casual/board-renderer.js`: renderiza DOM e configura interacoes.
@@ -100,14 +100,14 @@ Ordem no lobby:
 
 1. Firebase CDN.
 2. `js/firebase/firebase.js`.
-3. `js/pwa.js`.
+3. `js/pwa/pwa.js`.
 4. `js/lobby/lobby-manager.js`.
 
 Ordem no login:
 
 1. Firebase CDN.
 2. `js/firebase/firebase.js`.
-3. `js/pwa.js`.
+3. `js/pwa/pwa.js`.
 4. `js/login/login-manager.js`.
 
 ## 4. Estrutura do Repositorio
@@ -129,7 +129,6 @@ Coup-Master/
     sounds/
       soundtrack/
       vfx/
-    video/
   css/
     lobby.css
     main.css
@@ -148,7 +147,8 @@ Coup-Master/
         board-renderer.js
     lobby/
       lobby-manager.js
-    pwa.js
+    pwa/
+      pwa.js
   marketing/
     banners/
     screenshots/
@@ -218,7 +218,7 @@ Todos os arquivos JS passavam em `node --check` no momento desta analise.
 O projeto agora possui uma camada PWA sem alterar sua arquitetura estatica:
 
 - `manifest.webmanifest`: define nome, descricao, `start_url` para `login.html`, `scope` relativo, `display: standalone`, cores de tema e icones 192x192/512x512.
-- `js/pwa.js`: registra `sw.js` apos o carregamento da pagina, somente quando `navigator.serviceWorker` existe.
+- `js/pwa/pwa.js`: registra `sw.js` apos o carregamento da pagina, somente quando `navigator.serviceWorker` existe.
 - `sw.js`: cria cache versionado do shell principal, HTMLs, CSS, JS local, fontes e icones criticos.
 - `index.html`, `login.html` e `lobby.html`: expõem manifesto, `theme-color`, metatags mobile/apple e registrador PWA.
 
@@ -244,8 +244,8 @@ Responsabilidades:
 - Renderiza botoes de autenticacao: Google e visitante anonimo.
 - Renderiza botao de instalacao PWA quando o navegador dispara `beforeinstallprompt`.
 - Renderiza modal de erro.
-- Renderiza video de fundo `assets/video/background-smoke.mp4`.
-- Carrega `firebase.js`, `pwa.js` e `login-manager.js`.
+- Renderiza loader simplificado com fundo solido e card central.
+- Carrega `firebase.js`, `pwa/pwa.js` e `login-manager.js`.
 - Persiste `currentUID`, `currentName`, `currentPhoto` e `currentIsAnonymous` em `sessionStorage`.
 - Redireciona usuario autenticado para `lobby.html`.
 
@@ -275,8 +275,8 @@ Responsabilidades:
 - Renderiza bloco de usuario logado.
 - Renderiza input de codigo de sala e botoes de entrar/criar sala.
 - Renderiza modal de erro.
-- Renderiza video de fundo `assets/video/background-smoke.mp4`.
-- Carrega `firebase.js`, `pwa.js` e `lobby-manager.js`.
+- Renderiza loader simplificado com fundo solido e card central.
+- Carrega `firebase.js`, `pwa/pwa.js` e `lobby-manager.js`.
 - Renderiza loader de fontes.
 
 Fluxo de UI:
@@ -309,7 +309,7 @@ Responsabilidades:
 - Define tabuleiro com 10 areas fixas de jogadores.
 - Define area central: cemiterio/free area, asilo, deck e contador.
 - Define modais de regras, regras alternativas, preview de carta, configuracao de deck, configuracoes gerais, reset, feedback, espectador, kick, sala cheia, tutorial, acoes rapidas e duelo.
-- Define video de fundo.
+- Define loading overlay simplificado da mesa.
 - Define audios de musica e efeitos.
 - Carrega Firebase e scripts do jogo.
 
@@ -494,7 +494,7 @@ Responsabilidades:
 - Gerenciar quick actions.
 - Gerenciar preview de cartas.
 - Gerenciar preset de deck.
-- Gerenciar efeitos visuais: Balatro/tilt, flutuacao, parallax, VHS, video background, transparencia.
+- Gerenciar efeitos visuais restantes, como Balatro/tilt, e preferencias locais de UI.
 
 Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
 
@@ -708,7 +708,6 @@ Usado para preferencias visuais locais:
 - `waveEnabled`
 - `parallaxEnabled`
 - `vhsEnabled`
-- `videoBgEnabled`
 - `transparentModeEnabled`
 
 Essas preferencias nao sao sincronizadas entre jogadores.
@@ -1199,17 +1198,9 @@ Preferencia:
 
 - `vhsEnabled`.
 
-### 14.5 Video Background
+### 14.5 Loading e fundo simplificado
 
-`applyVideoBgState(isEnabled)` adiciona/remove classe `video-bg-enabled`.
-
-Preferencia:
-
-- `videoBgEnabled`.
-
-Observacao:
-
-O handler de clique de `toggleVideoBgBtn` e atribuido duas vezes no arquivo. A segunda atribuicao sobrescreve a primeira, entao o comportamento final funciona, mas a duplicidade aumenta ruido de manutencao.
+O video de fundo foi removido. `login.html`, `lobby.html` e `index.html` usam fundo solido escuro e loaders com card central, titulo `Coup Master` e mensagem contextual.
 
 ### 14.6 Modo Transparente
 
@@ -1221,7 +1212,7 @@ Preferencia:
 
 Observacao:
 
-Assim como video background, o handler de clique de `toggleTransparentBtn` e atribuido duas vezes.
+O handler de clique de `toggleTransparentBtn` e atribuido duas vezes.
 
 ## 15. CSS e Design System Atual
 
@@ -1239,7 +1230,7 @@ Responsavel pela tela de jogo:
 - configuracao de deck;
 - settings;
 - botoes;
-- efeitos VHS/video/transparencia;
+- efeitos visuais restantes;
 - responsividade;
 - contador de deck;
 - imagens de cartas e areas.
@@ -1248,8 +1239,7 @@ Tamanho atual: aproximadamente 1730 linhas.
 
 Pontos importantes:
 
-- Ha `@font-face` para `Tilda Script`, mas o caminho em `main.css` esta como `..assets/...`, sem barra. O correto seria `../assets/...`.
-- Referencia fallback `.woff`, mas o repositorio tem `.woff2`, `.otf` e `.ttf`; nao foi encontrado `.woff`.
+- Ha `@font-face` para `Tilda Script` com `woff2` e fallback `otf`.
 - Muitos estilos inline existem no HTML, especialmente em modais e botoes.
 
 ### 15.2 `css/lobby.css`
@@ -1257,7 +1247,7 @@ Pontos importantes:
 Responsavel pela tela de lobby:
 
 - layout central;
-- video background;
+- fundo solido simplificado;
 - loader;
 - botao Google;
 - dados do usuario;
@@ -1324,7 +1314,6 @@ Usados para botoes, Google login, bots, religiao, configuracoes, visibilidade, t
 Maiores arquivos no estado analisado:
 
 - `assets/sounds/soundtrack/bgm.mp3`: aproximadamente 40 MB.
-- `assets/video/background-smoke.mp4`: aproximadamente 24,5 MB.
 - `marketing/screenshots/game-preview.gif`: aproximadamente 20 MB.
 
 Impacto:
@@ -1497,8 +1486,7 @@ Principais gargalos provaveis:
 Recomendacoes:
 
 - Comprimir `bgm.mp3` ou trocar por versao mais curta/loopada.
-- Comprimir/otimizar `background-smoke.mp4`.
-- Carregar video/audio sob preferencia ou apos interacao.
+- Carregar audio sob preferencia ou apos interacao.
 - Avaliar lazy loading de guias e imagens grandes.
 - Reduzir animacoes em mobile por padrao.
 - Usar transacoes menores/listeners por area se o volume crescer.

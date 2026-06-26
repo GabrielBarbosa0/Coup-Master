@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coup-master-pwa-v8';
+const CACHE_NAME = 'coup-master-pwa-v17';
 
 const APP_SHELL = [
   './',
@@ -6,9 +6,10 @@ const APP_SHELL = [
   './lobby.html',
   './index.html',
   './manifest.webmanifest',
+  './css/loading.css',
   './css/lobby.css',
   './css/main.css',
-  './js/pwa.js',
+  './js/pwa/pwa.js',
   './js/firebase/firebase.js',
   './js/login/login-manager.js',
   './js/core/rules.js',

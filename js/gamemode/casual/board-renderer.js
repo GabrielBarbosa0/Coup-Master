@@ -6,7 +6,7 @@
 const deckCountEl = document.getElementById('deck-count');
 const graveCountEl = document.getElementById('grave-count');
 const deckEl = document.getElementById('deck');
-const freeArea = document.getElementById('freeArea');
+const graveyardArea = document.getElementById('graveyardArea');
 const shuffleBtn = document.getElementById('shuffleBtn');
 const resetBtn = document.getElementById('resetBtn');
 const asylumScoreEl = document.getElementById('asylum-score');
@@ -28,8 +28,8 @@ function clearDOM() {
   // Limpa o conteúdo das mãos de todos os jogadores
   document.querySelectorAll('[data-hand]').forEach(h => h.innerHTML = '');
 
-  // Remove cartas espalhadas na área livre (cemitério)
-  freeArea.querySelectorAll('.card').forEach(n => n.remove());
+  // Remove cartas espalhadas no cemitério
+  graveyardArea.querySelectorAll('.card').forEach(n => n.remove());
 
   // Remove slots vazios remanescentes
   document.querySelectorAll('.slot').forEach(n => n.remove());
@@ -132,7 +132,7 @@ function shouldShowBack(card) {
   // Cartas no deck sempre mostram o verso
   if (card.location === 'deck') return true;
 
-  // Cartas na área livre (reveladas) sempre mostram a frente
+  // Cartas no cemitério (reveladas) sempre mostram a frente
   if (card.location === 'free') return false;
 
   // Lógica para cartas em posse de jogadores
@@ -174,6 +174,110 @@ function getCardFolder(type) {
   return 'base'; // Fallback padrão
 }
 
+const CARD_DISPLAY_NAMES = {
+  duque: 'Duque',
+  capitao: 'Capitão',
+  assassino: 'Assassino',
+  embaixador: 'Embaixador',
+  condessa: 'Condessa',
+  inquisidor: 'Inquisidor',
+  benfeitor: 'Benfeitor',
+  bufao: 'Bufão',
+  burgues: 'Burguês',
+  burocrata: 'Burocrata',
+  vigilante: 'Vigilante',
+  mercenario: 'Mercenário',
+  bispo: 'Bispo',
+  tesoureiro: 'Tesoureiro',
+  diplomata: 'Diplomata',
+  marionetista: 'Marionetista',
+  camaleao: 'Camaleão',
+  pistoleiro: 'Pistoleiro',
+  magnata: 'Magnata',
+  estrategista: 'Estrategista',
+  ladrao: 'Ladrão',
+  vigarista: 'Vigarista',
+  xerife: 'Xerife'
+};
+
+function getCardDisplayName(type) {
+  if (!type) return 'Carta';
+
+  const normalizedType = String(type).toLowerCase();
+  return CARD_DISPLAY_NAMES[normalizedType] || normalizedType.charAt(0).toUpperCase() + normalizedType.slice(1);
+}
+
+let cardTooltipEl = null;
+
+function getCardTooltipElement() {
+  if (!cardTooltipEl) {
+    cardTooltipEl = document.createElement('div');
+    cardTooltipEl.id = 'cardTooltip';
+    cardTooltipEl.className = 'card-tooltip';
+    document.body.appendChild(cardTooltipEl);
+  }
+
+  return cardTooltipEl;
+}
+
+function positionCardTooltip(event) {
+  const tooltip = getCardTooltipElement();
+  const offset = 14;
+  const rect = tooltip.getBoundingClientRect();
+  let left = event.clientX + offset;
+  let top = event.clientY + offset;
+
+  if (left + rect.width > window.innerWidth - 8) {
+    left = event.clientX - rect.width - offset;
+  }
+
+  if (top + rect.height > window.innerHeight - 8) {
+    top = event.clientY - rect.height - offset;
+  }
+
+  tooltip.style.left = `${Math.max(8, left)}px`;
+  tooltip.style.top = `${Math.max(8, top)}px`;
+}
+
+function showCardTooltip(event, label) {
+  const tooltip = getCardTooltipElement();
+  tooltip.textContent = label;
+  tooltip.classList.add('is-visible');
+  positionCardTooltip(event);
+}
+
+function hideCardTooltip() {
+  if (cardTooltipEl) {
+    cardTooltipEl.classList.remove('is-visible');
+  }
+}
+
+function attachElementTooltip(element, label) {
+  if (!element || !label) return;
+  element.dataset.cardLabel = label;
+  element.setAttribute('aria-label', label);
+
+  if (element.dataset.tooltipBound === 'true') return;
+  element.dataset.tooltipBound = 'true';
+
+  element.addEventListener('mouseenter', (event) => {
+    showCardTooltip(event, label);
+  });
+
+  element.addEventListener('mousemove', (event) => {
+    if (cardTooltipEl?.classList.contains('is-visible')) {
+      positionCardTooltip(event);
+    }
+  });
+
+  element.addEventListener('mouseleave', hideCardTooltip);
+}
+
+function attachCardTooltip(element, card) {
+  const label = shouldShowBack(card) ? 'Carta oculta' : getCardDisplayName(card.type);
+  attachElementTooltip(element, label);
+}
+
 
 /**
  * CRIAÇÃO DE ELEMENTO DE CARTA (ATUALIZADA PARA NOVAS PASTAS)
@@ -199,6 +303,7 @@ function createCardElement(card) {
 
   // --- EVENTOS DE ARRASTAR (DRAG & DROP) ---
   el.addEventListener('dragstart', (ev) => {
+    hideCardTooltip();
     ev.dataTransfer.setData('text/plain', card.id);
     ev.dataTransfer.effectAllowed = "move";
     el.classList.add('lifting');
@@ -212,6 +317,7 @@ function createCardElement(card) {
   el.addEventListener('dragend', () => {
     el.classList.remove('lifting');
     el.classList.remove('is-dragging');
+    hideCardTooltip();
   });
 
   // --- INTERAÇÕES ADICIONAIS ---
@@ -220,6 +326,7 @@ function createCardElement(card) {
   });
 
   attachBalatroEffect(el);
+  attachCardTooltip(el, card);
 
   return el;
 }
@@ -497,7 +604,7 @@ function renderAll() {
   state.freeCards?.forEach(card => {
     const el = createCardElement(card);
     el.classList.add('small');
-    freeArea.appendChild(el);
+    graveyardArea.appendChild(el);
   });
 
   if (deckCountEl) deckCountEl.textContent = state.deck?.length || 0;
@@ -511,13 +618,14 @@ function renderAll() {
 
 /**
  * CONFIGURAÇÃO DE ZONAS DE DEPÓSITO (DROPZONES)
- * Define como o Deck, as Áreas de Jogadores e o Cemitério (Free Area) reagem ao 
+ * Define como o Deck, as áreas de jogadores e o cemitério reagem ao
  * arrasto e soltura de cartas ou ações de compra.
  */
 function setupDropzones() {
   // --- CONFIGURAÇÃO DO DECK (BARALHO) ---
   // Inicia a ação de compra ao arrastar o Deck
   deckEl.addEventListener('dragstart', (e) => {
+    hideCardTooltip();
     e.dataTransfer.setData('text/plain', 'DECK_DRAW_ACTION');
   });
 
@@ -550,9 +658,9 @@ function setupDropzones() {
     };
   });
 
-  // --- CONFIGURAÇÃO DA ÁREA LIVRE (CEMITÉRIO/TABULEIRO) ---
-  freeArea.ondragover = ev => ev.preventDefault();
-  freeArea.ondrop = ev => {
+  // --- CONFIGURAÇÃO DO CEMITÉRIO ---
+  graveyardArea.ondragover = ev => ev.preventDefault();
+  graveyardArea.ondrop = ev => {
     ev.preventDefault();
     const data = ev.dataTransfer.getData('text/plain');
 
@@ -731,7 +839,12 @@ function setupUI() {
   // Atalho de Gesto: Saque rápido do Asilo via clique duplo na imagem
   const asylumArea = document.getElementById('asylumArea');
   if (asylumArea) {
+    const asylumImageWrapper = asylumArea.querySelector('.asylum-image-wrapper');
     const asylumImage = asylumArea.querySelector('.asylum-image-wrapper img');
+    if (asylumImageWrapper) {
+      attachElementTooltip(asylumImageWrapper, 'Asilo');
+    }
+
     if (asylumImage) {
       asylumImage.ondblclick = () => {
         withdrawAsylumCoins(); // Função no gameState.js
@@ -875,6 +988,7 @@ function setupUI() {
   // Configuração de Efeitos Balatro no Deck Central
   const deckContainer = document.getElementById('deck');
   attachBalatroEffect(deckContainer, true);
+  attachElementTooltip(deckContainer, 'Baralho');
 
 
   // --- 5. CONFIGURAÇÃO DE BARALHO (HOST APENAS) ---

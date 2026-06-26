@@ -105,7 +105,7 @@ function shuffle(array) {
 
 /**
  * LOCALIZAR CARTA POR ID
- * Varre recursivamente o estado do jogo (Deck, Área Livre, Cemitério e Mãos)
+ * Varre recursivamente o estado do jogo (Deck, Cemitério e Mãos)
  * para encontrar o objeto da carta correspondente ao ID.
  */
 function findCardById(state, id) {

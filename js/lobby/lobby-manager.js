@@ -19,12 +19,37 @@ const createRoomBtn = document.getElementById('create-room-btn');
  * @param {string} message - A mensagem de erro a ser exibida.
  */
 function showError(message) {
+    hideLoader();
     const modal = document.getElementById('errorModal');
     const text = document.getElementById('errorModalText');
     if (modal && text) {
         text.innerText = message;
         modal.style.display = 'flex';
     }
+}
+
+function setLoaderMessage(message) {
+    const loaderMessage = document.getElementById('loader-message');
+    if (loaderMessage) loaderMessage.textContent = message;
+}
+
+function showLoader(message) {
+    const loader = document.getElementById('font-loader');
+    if (message) setLoaderMessage(message);
+    if (loader) {
+        loader.classList.remove('hidden');
+        loader.style.display = 'flex';
+    }
+}
+
+function hideLoader() {
+    const loader = document.getElementById('font-loader');
+    if (loader) loader.style.display = 'none';
+}
+
+function waitForFonts() {
+    if (document.fonts) return document.fonts.ready.catch(() => null);
+    return new Promise(resolve => setTimeout(resolve, 1000));
 }
 
 // Configuração do evento de fechamento do modal de erro
@@ -45,6 +70,7 @@ if (closeErrorBtn) {
  */
 if (logoutBtn) {
     logoutBtn.onclick = () => {
+        showLoader('Retornando ao login...');
         auth.signOut().finally(() => {
             window.location.href = 'login.html';
         });
@@ -95,12 +121,14 @@ auth.onAuthStateChanged(user => {
         if (userPhotoImg) userPhotoImg.src = safePhoto;
 
         cleanupOldRooms();
+        waitForFonts().then(hideLoader);
 
     } else {
         sessionStorage.removeItem('currentUID');
         sessionStorage.removeItem('currentName');
         sessionStorage.removeItem('currentPhoto');
         sessionStorage.removeItem('currentIsAnonymous');
+        showLoader('Retornando ao login...');
         window.location.href = 'login.html';
     }
 });
@@ -120,6 +148,11 @@ function generateRoomCode() {
  * Lógica para entrar em uma sala existente.
  */
 if (joinRoomBtn) {
+    joinRoomBtn.addEventListener('click', () => {
+        const code = roomCodeInput.value.trim().toUpperCase();
+        if (code.length === 4) showLoader('Verificando sala...');
+    }, true);
+
     joinRoomBtn.onclick = () => {
         const code = roomCodeInput.value.trim().toUpperCase();
         if (code.length !== 4) {
@@ -129,6 +162,7 @@ if (joinRoomBtn) {
         // Verifica existência da sala no Firebase antes de redirecionar
         db.ref(`salas/${code}`).once('value', (snapshot) => {
             if (snapshot.exists()) {
+                showLoader('Carregando mesa...');
                 window.location.href = `index.html?room=${code}`;
             } else {
                 showError(`A sala "${code}" não existe.`);
@@ -143,6 +177,7 @@ if (joinRoomBtn) {
 // [lobby.js]
 if (createRoomBtn) {
     createRoomBtn.onclick = () => {
+        showLoader('Criando sala...');
         const newCode = generateRoomCode();
         const currentUID = sessionStorage.getItem('currentUID'); //
 
@@ -162,6 +197,7 @@ if (createRoomBtn) {
             };
 
             db.ref(`salas/${newCode}`).set(initialData).then(() => {
+                showLoader('Carregando mesa...');
                 window.location.href = `index.html?room=${newCode}`;
             }).catch(error => {
                 showError("Erro ao criar sala: " + error.message);
@@ -179,6 +215,9 @@ if (createRoomBtn) {
  * estejam prontas antes de remover a tela de carregamento.
  */
 document.addEventListener("DOMContentLoaded", () => {
+    setLoaderMessage('Carregando lobby...');
+    return;
+
     const loader = document.getElementById('font-loader');
 
     const hideLoader = () => {

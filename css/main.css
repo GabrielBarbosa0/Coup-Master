@@ -4,8 +4,8 @@
 
 @font-face {
     font-family: 'Tilda Script';
-    src: url('..assets/fonts/tilda-script-bold.woff2') format('woff2'),
-        url('..assets/fonts/tilda-script-bold.woff') format('woff');
+    src: url('../assets/fonts/tilda-script-bold.woff2') format('woff2'),
+        url('../assets/fonts/tilda-script-bold.otf') format('opentype');
     font-weight: bold;
     font-style: normal;
     font-display: swap;
@@ -557,7 +557,7 @@ header p {
        ======================================================= */
 
 
-.free-area.has-cards .muted {
+.graveyard-area.has-cards .muted {
     display: none !important;
 }
 
@@ -650,8 +650,8 @@ header p {
     color: #fff;
 }
 
-/* Cemitério (Free Area) */
-.free-area {
+/* Graveyard */
+.graveyard-area {
     border-radius: 10px;
     border: 2px solid #ffffff1f;
     padding: 18px;
@@ -668,7 +668,7 @@ header p {
     overflow: hidden;
 }
 
-.free-area::before {
+.graveyard-area::before {
     content: "";
     background-image: url('../assets/img/icons/skull.svg');
     background-repeat: no-repeat;
@@ -786,7 +786,7 @@ body.hide-religion .decks-wrapper {
 /* Garante que o container tenha perspectiva */
 .player-stack,
 .deck-area,
-.free-area {
+.graveyard-area {
     perspective: 1000px;
 }
 
@@ -804,6 +804,35 @@ body.hide-religion .decks-wrapper {
     padding: 6px;
     text-align: center;
     color: #0b0b0b
+}
+
+.card-tooltip {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 10000;
+    max-width: min(220px, calc(100vw - 16px));
+    padding: 8px 12px;
+    color: #e6eef6;
+    background: #232a33;
+    border: 2px solid rgba(230, 238, 246, 0.7);
+    border-radius: 8px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.08s ease, transform 0.08s ease;
+}
+
+.card-tooltip.is-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .player-hand {
@@ -1552,7 +1581,7 @@ body.hide-religion .decks-wrapper {
     }
 
     /* Cemitério */
-    .free-area {
+    .graveyard-area {
         min-height: 70px;
         padding: 4px;
         gap: 2px;
@@ -1560,7 +1589,7 @@ body.hide-religion .decks-wrapper {
         align-items: center;
     }
 
-    .free-area .muted,
+    .graveyard-area .muted,
     .asylum-area .muted,
     .pile-info {
         font-size: 8px;
@@ -1801,13 +1830,13 @@ body.hide-religion .decks-wrapper {
     }
 
     /* Cemitério */
-    .free-area {
+    .graveyard-area {
         min-height: 110px;
         align-content: center;
         justify-content: center;
     }
 
-    .free-area::before {
+    .graveyard-area::before {
         background-size: 14%;
     }
 
@@ -1904,6 +1933,30 @@ body.hide-religion .decks-wrapper {
     height: 20px !important;
 }
 
+#settingsModal .settings-control-btn {
+    --settings-control-width: 132px;
+    width: var(--settings-control-width);
+    min-width: var(--settings-control-width);
+    max-width: var(--settings-control-width);
+    min-height: 46px;
+    padding: 8px 12px;
+    gap: 8px;
+    justify-content: center;
+    flex: 0 0 var(--settings-control-width);
+    box-sizing: border-box;
+}
+
+#settingsModal .settings-control-btn img {
+    flex: 0 0 auto;
+}
+
+#settingsModal .settings-control-btn span {
+    min-width: 52px;
+    margin: 0;
+    text-align: left;
+    line-height: 1;
+}
+
 #openDeckConfigBtn {
     min-height: 36px;
     font-size: 14px;
@@ -1934,6 +1987,17 @@ body.hide-religion .decks-wrapper {
     #settingsModal .icon-btn img {
         width: 18px !important;
         height: 18px !important;
+    }
+
+    #settingsModal .settings-control-btn {
+        --settings-control-width: 104px;
+        min-height: 40px;
+        padding: 7px 8px;
+        gap: 6px;
+    }
+
+    #settingsModal .settings-control-btn span {
+        min-width: 44px;
     }
 
     #openDeckConfigBtn {

@@ -551,7 +551,7 @@ Como o jogo depende do Firebase para multiplayer, offline completo nao e objetiv
 
 A implementacao atual usa:
 
-- `js/pwa.js` para registrar o service worker;
+- `js/pwa/pwa.js` para registrar o service worker;
 - `sw.js` para cache versionado;
 - network-first em navegacoes;
 - stale-while-revalidate em assets locais;

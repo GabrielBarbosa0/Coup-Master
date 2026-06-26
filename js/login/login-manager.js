@@ -13,12 +13,37 @@ function updateInstallButtonVisibility() {
 }
 
 function showError(message) {
+    hideLoader();
     const modal = document.getElementById('errorModal');
     const text = document.getElementById('errorModalText');
     if (modal && text) {
         text.innerText = message;
         modal.style.display = 'flex';
     }
+}
+
+function setLoaderMessage(message) {
+    const loaderMessage = document.getElementById('loader-message');
+    if (loaderMessage) loaderMessage.textContent = message;
+}
+
+function showLoader(message) {
+    const loader = document.getElementById('font-loader');
+    if (message) setLoaderMessage(message);
+    if (loader) {
+        loader.classList.remove('hidden');
+        loader.style.display = 'flex';
+    }
+}
+
+function hideLoader() {
+    const loader = document.getElementById('font-loader');
+    if (loader) loader.style.display = 'none';
+}
+
+function waitForFonts() {
+    if (document.fonts) return document.fonts.ready.catch(() => null);
+    return new Promise(resolve => setTimeout(resolve, 1000));
 }
 
 function getUserDisplayData(user) {
@@ -56,6 +81,7 @@ if (closeErrorBtn) {
 
 if (googleLoginBtn) {
     googleLoginBtn.onclick = () => {
+        showLoader('Entrando com Google...');
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider).catch(error => {
             showError("Erro ao fazer login com Google: " + error.message);
@@ -65,6 +91,7 @@ if (googleLoginBtn) {
 
 if (anonymousLoginBtn) {
     anonymousLoginBtn.onclick = () => {
+        showLoader('Entrando como visitante...');
         auth.signInAnonymously().catch(error => {
             showError("Erro ao entrar como visitante: " + error.message);
         });
@@ -102,26 +129,16 @@ auth.onAuthStateChanged(user => {
         sessionStorage.removeItem('currentName');
         sessionStorage.removeItem('currentPhoto');
         sessionStorage.removeItem('currentIsAnonymous');
+        waitForFonts().then(hideLoader);
         return;
     }
 
     persistUserSession(user);
+    showLoader('Carregando lobby...');
     window.location.href = 'lobby.html';
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    const loader = document.getElementById('font-loader');
     updateInstallButtonVisibility();
-
-    const hideLoader = () => {
-        if (loader) loader.style.display = 'none';
-    };
-
-    if (document.fonts) {
-        document.fonts.ready.then(hideLoader);
-    } else {
-        setTimeout(hideLoader, 1000);
-    }
-
-    setTimeout(hideLoader, 3000);
+    setLoaderMessage('Carregando recursos...');
 });

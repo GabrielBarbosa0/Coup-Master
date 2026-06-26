@@ -41,7 +41,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <link rel="stylesheet" href="css/lobby.css?v=login-split">
+    <link rel="stylesheet" href="css/lobby.css?v=loading-ready">
+    <link rel="stylesheet" href="css/loading.css?v=standard-loading">
 </head>
 
 <body class="login-page">
@@ -76,24 +77,13 @@
         </div>
     </div>
 
-    <video id="bg-video" autoplay muted loop playsinline class="video-background">
-        <source src="assets/video/background-smoke.mp4" type="video/mp4">
-    </video>
-
     <div class="vignette"></div>
 
+
     <script src="js/firebase/firebase.js" defer></script>
-    <script src="js/pwa.js" defer></script>
+    <script src="js/pwa/pwa.js" defer></script>
     <script src="js/login/login-manager.js" defer></script>
 
 </body>
-
-<div id="font-loader" class="loader-overlay">
-    <div class="loader-content">
-        <h1>Coup Master</h1>
-        <p>Carregando recursos...</p>
-        <div class="spinner"></div>
-    </div>
-</div>
 
 </html>
