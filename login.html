@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <meta name="color-scheme" content="dark">
+
+    <title>Login | Coup Master - Jogue Coup Online com Amigos</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
+    <link rel="shortcut icon" href="assets/img/logo/favicon-coup-master.png" type="image/x-icon">
+    <link rel="apple-touch-icon" href="assets/img/logo/coup-master-192x192.png">
+
+    <link rel="canonical" href="https://gabrielbarbosa0.github.io/Coup-Master/login.html" />
+
+    <meta name="description"
+        content="Faça login no Coup Master com Google ou entre como visitante para jogar Coup online com amigos.">
+    <meta name="keywords"
+        content="coup online, login coup master, jogar coup com amigos, coup multiplayer, coup visitante">
+    <meta name="author" content="Gabriel Barbosa">
+    <meta name="theme-color" content="#14171e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Coup Master">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gabrielbarbosa0.github.io/Coup-Master/login.html">
+    <meta property="og:title" content="Entrar no Coup Master">
+    <meta property="og:description" content="Entre com Google ou como visitante para jogar Coup online.">
+    <meta property="og:image" content="https://gabrielbarbosa0.github.io/Coup-Master/assets/img/logo/ico-coup-master.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
+    <link rel="preload" href="assets/fonts/tilda-script-bold.woff2" as="font" type="font/woff2" crossorigin>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <link rel="stylesheet" href="css/lobby.css?v=login-split">
+</head>
+
+<body class="login-page">
+
+    <main class="lobby-box auth-box">
+        <h1>Coup Master</h1>
+        <p class="auth-subtitle">Entre para criar ou acessar uma sala.</p>
+
+        <div class="auth-actions">
+            <button id="google-login-btn" class="auth-btn google-auth-btn">
+                <img src="assets/img/icons/google.svg" alt="G" class="google-icon">
+                <span>Entrar com Google</span>
+            </button>
+
+            <button id="anonymous-login-btn" class="auth-btn anonymous-auth-btn">
+                <span>Entrar como visitante</span>
+            </button>
+
+            <button id="installPwaBtn" class="auth-btn install-auth-btn" hidden>
+                <span>Instalar Coup Master</span>
+            </button>
+        </div>
+    </main>
+
+    <div id="errorModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content"
+            style="max-width: 300px; text-align: center; background: var(--panel); border: 1px solid #ffffff1a;">
+            <h2 style="margin-top: 0; color: #ffffff;">Atenção</h2>
+            <p id="errorModalText" style="margin-bottom: 25px; font-size: 14px; color: #e6eef6cc;">Erro ao fazer login.</p>
+            <button id="closeErrorModalBtn"
+                style="background: #1e90ff; color: white; border: 0; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; font-family: 'Cinzel', serif;">OK</button>
+        </div>
+    </div>
+
+    <video id="bg-video" autoplay muted loop playsinline class="video-background">
+        <source src="assets/video/background-smoke.mp4" type="video/mp4">
+    </video>
+
+    <div class="vignette"></div>
+
+    <script src="js/firebase/firebase.js" defer></script>
+    <script src="js/pwa.js" defer></script>
+    <script src="js/login/login-manager.js" defer></script>
+
+</body>
+
+<div id="font-loader" class="loader-overlay">
+    <div class="loader-content">
+        <h1>Coup Master</h1>
+        <p>Carregando recursos...</p>
+        <div class="spinner"></div>
+    </div>
+</div>
+
+</html>

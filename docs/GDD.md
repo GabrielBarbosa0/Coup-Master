@@ -8,7 +8,7 @@ Game Design Document adaptado para o projeto atual `Coup-Master`, a versao web 2
 | Documento | Game Design Document |
 | Status | Beta web funcional |
 | Plataforma alvo atual | Google Chrome desktop |
-| Plataforma alvo futura | PWA instalavel via Chrome |
+| Plataforma alvo atual | PWA instalavel via Chrome |
 | Stack principal | HTML, CSS, JavaScript vanilla |
 | Backend atual | Firebase Auth + Firebase Realtime Database |
 | Interacao principal | Drag and drop 2D de cartas |
@@ -30,7 +30,7 @@ O Coup Master 3D, de outro repositorio, serve como referencia de longo prazo par
 - Uma aplicacao web estatica hospedavel em GitHub Pages.
 - Um jogo sandbox multiplayer em tempo real.
 - Uma experiencia feita primeiro para Google Chrome.
-- Um projeto em transicao para uma base mais limpa, modular e preparada para PWA.
+- Um projeto em transicao para uma base mais limpa, modular e ja preparado como PWA instalavel.
 
 ### 2.2 O Que Este Projeto Nao E
 
@@ -60,7 +60,7 @@ O Coup Master 3D, de outro repositorio, serve como referencia de longo prazo par
 O jogador deve conseguir:
 
 1. Abrir o lobby.
-2. Fazer login com Google.
+2. Fazer login com Google ou entrar como visitante.
 3. Criar uma sala privada ou entrar por codigo.
 4. Copiar/compartilhar o codigo da sala.
 5. Ver os jogadores conectados.
@@ -124,7 +124,8 @@ Transformar o projeto em PWA e uma prioridade futura, mas e importante entender 
 
 O produto atual tem duas paginas principais:
 
-- `lobby.html`: login, criacao e entrada em salas.
+- `login.html`: autenticacao com Google ou visitante.
+- `lobby.html`: perfil autenticado, criacao e entrada em salas.
 - `index.html`: mesa de jogo.
 
 Nao existe tela de sala de espera separada. Criar ou entrar em uma sala leva o usuario diretamente ao tabuleiro.
@@ -519,21 +520,20 @@ Transformar Coup Master em PWA tem como objetivo:
 - padronizar experiencia quando instalado via Chrome;
 - preparar uma experiencia mais proxima de app.
 
-### 14.2 Escopo PWA Desejado
+### 14.2 Escopo PWA Implementado
 
-Componentes futuros:
+Componentes atuais:
 
 - `manifest.webmanifest`;
 - icones em tamanhos adequados;
 - `theme_color`;
 - `background_color`;
 - `display: standalone`;
-- `start_url` apontando para lobby;
+- `start_url` apontando para login;
 - service worker;
 - cache de shell principal;
 - cache de assets criticos;
-- fallback offline para tela informativa;
-- prompt/indicacao discreta de instalacao.
+- fallback de navegacao para o lobby em cache.
 
 ### 14.3 O Que O PWA Nao Deve Prometer
 
@@ -548,6 +548,14 @@ O PWA nao deve prometer:
 ### 14.4 Estrategia Offline
 
 Como o jogo depende do Firebase para multiplayer, offline completo nao e objetivo.
+
+A implementacao atual usa:
+
+- `js/pwa.js` para registrar o service worker;
+- `sw.js` para cache versionado;
+- network-first em navegacoes;
+- stale-while-revalidate em assets locais;
+- nenhuma interceptacao de requisicoes externas do Firebase.
 
 Offline aceitavel:
 
@@ -639,12 +647,12 @@ Objetivo: tornar o app instalavel e mais robusto para usuarios recorrentes.
 
 Tarefas:
 
-- Criar manifest.
-- Criar service worker.
-- Definir estrategia de cache.
-- Gerar icones corretos.
+- Criar manifest. Concluido.
+- Criar service worker. Concluido.
+- Definir estrategia de cache. Concluido.
+- Gerar icones corretos. Concluido com assets 192x192 e 512x512 existentes.
 - Testar instalacao via Chrome desktop e Android.
-- Definir tela/fallback offline.
+- Definir tela/fallback offline dedicada, se necessario.
 - Revisar paths para GitHub Pages.
 
 ### 15.6 Fase 6 - Interacao Avancada
@@ -719,7 +727,7 @@ Nao implementar agora, exceto se for pedido explicitamente:
 - Host consegue configurar deck sem quebrar partida.
 - Mesa com 6 a 10 jogadores continua legivel.
 - Jogadores entendem onde comprar, mover e revelar cartas.
-- PWA instalado abre direto no lobby.
+- PWA instalado abre direto no login.
 
 ### 18.2 Tecnicas
 

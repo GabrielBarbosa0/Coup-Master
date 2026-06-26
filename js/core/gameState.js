@@ -10,7 +10,8 @@ const roomCode = urlParams.get('room');
 const currentUser = {
   uid: sessionStorage.getItem('currentUID'),
   name: sessionStorage.getItem('currentName'),
-  photo: sessionStorage.getItem('currentPhoto')
+  photo: sessionStorage.getItem('currentPhoto'),
+  isAnonymous: sessionStorage.getItem('currentIsAnonymous') === 'true'
 };
 
 // 3. Validação de Segurança: Redireciona se os dados obrigatórios estiverem ausentes
@@ -537,9 +538,36 @@ function setupDisconnectHandler(pid) {
  * Gerencia a entrada do usuário em um slot vago ou a reentrada em um slot já ocupado por ele.
  */
 
+function getNextVisitorName(players) {
+  const usedNumbers = new Set();
+
+  Object.values(players || {}).forEach((player) => {
+    const match = String(player?.name || '').match(/^Visitante\s+(\d+)$/);
+    if (match) usedNumbers.add(Number(match[1]));
+  });
+
+  let nextNumber = 1;
+  while (usedNumbers.has(nextNumber)) {
+    nextNumber++;
+  }
+
+  return `Visitante ${nextNumber}`;
+}
+
+function getPlayerDisplayName(players, existingPlayer = null) {
+  if (!currentUser.isAnonymous) return currentUser.name;
+
+  if (existingPlayer?.name && /^Visitante\s+\d+$/.test(existingPlayer.name)) {
+    return existingPlayer.name;
+  }
+
+  return getNextVisitorName(players);
+}
+
 function joinGame() {
   const loadingOverlay = document.getElementById('loadingOverlay');
   if (loadingOverlay) loadingOverlay.style.display = 'flex';
+  let assignedPlayerName = currentUser.name;
 
   gameStateRef.transaction((currentState) => {
     // Inicialização de sala nova
@@ -565,8 +593,9 @@ function joinGame() {
       }
 
       // O criador da sala ocupa sempre o Slot 1 inicialmente
+      assignedPlayerName = getPlayerDisplayName(initialState.players);
       initialState.players[1].uid = currentUser.uid;
-      initialState.players[1].name = currentUser.name;
+      initialState.players[1].name = assignedPlayerName;
       initialState.players[1].photo = currentUser.photo;
       initialState.players[1].online = true;
 
@@ -577,8 +606,9 @@ function joinGame() {
     // Lógica de reentrada
     for (let i = 1; i <= 10; i++) {
       if (currentState.players[i] && currentState.players[i].uid === currentUser.uid) {
+        assignedPlayerName = getPlayerDisplayName(currentState.players, currentState.players[i]);
         currentState.players[i].online = true;
-        currentState.players[i].name = currentUser.name;
+        currentState.players[i].name = assignedPlayerName;
         currentState.players[i].photo = currentUser.photo;
         myPlayerId = i;
         return currentState;
@@ -588,8 +618,9 @@ function joinGame() {
     // Ocupação de novo slot disponível
     for (let i = 1; i <= 10; i++) {
       if (!currentState.players[i].uid) {
+        assignedPlayerName = getPlayerDisplayName(currentState.players);
         currentState.players[i].uid = currentUser.uid;
-        currentState.players[i].name = currentUser.name;
+        currentState.players[i].name = assignedPlayerName;
         currentState.players[i].photo = currentUser.photo;
         currentState.players[i].online = true;
         currentState.players[i].hand = [];
@@ -606,6 +637,8 @@ function joinGame() {
     if (loadingOverlay) loadingOverlay.style.display = 'none';
 
     if (committed && myPlayerId) {
+      currentUser.name = assignedPlayerName;
+      sessionStorage.setItem('currentName', assignedPlayerName);
       console.log(`✅ Conectado no Slot ${myPlayerId}`);
 
       // 2. Aciona o som global de entrada para todos os jogadores na sala

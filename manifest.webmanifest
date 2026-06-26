@@ -1,0 +1,26 @@
+{
+  "name": "Coup Master",
+  "short_name": "Coup Master",
+  "description": "Jogue Coup online com amigos em uma mesa multiplayer no navegador.",
+  "lang": "pt-BR",
+  "start_url": "./login.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#14171e",
+  "theme_color": "#14171e",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "assets/img/logo/coup-master-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/img/logo/coup-master-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

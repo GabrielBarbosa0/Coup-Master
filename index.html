@@ -6,8 +6,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
   <title>Coup Master | Jogue Coup Online com os Amigos</title>
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
   <link rel="shortcut icon" href="assets/img/logo/favicon-coup-master.png" type="image/x-icon">
+  <link rel="apple-touch-icon" href="assets/img/logo/coup-master-192x192.png">
 
   <link rel="canonical" href="https://gabrielbarbosa0.github.io/Coup-Master/" />
 
@@ -16,6 +18,11 @@
   <meta name="keywords"
     content="coup online, jogar coup, jogo de blefe, coup multiplayer, coup browser, coup master, coup dlc, coup gratis, coup free">
   <meta name="author" content="Gabriel Barbosa">
+  <meta name="theme-color" content="#14171e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Coup Master">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gabrielbarbosa0.github.io/Coup-Master/">
@@ -32,7 +39,7 @@
 
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/main.css?v=settings-responsive">
 </head>
 
 <body>
@@ -217,8 +224,6 @@
         <div class="bottom-table-container">
 
           <div class="free-area" id="freeArea" data-area="free">
-            <div class="muted" style="width:100%;">Cemitério — arraste cartas aqui para torná-las visíveis a todos
-            </div>
           </div>
 
           <div class="decks-wrapper">
@@ -311,9 +316,7 @@
           <button type="button" class="preset-btn" onclick="applyDeckPreset('base_promo')">Base + Promo</button>
           <button type="button" class="preset-btn" onclick="applyDeckPreset('base_dlc1')">Base + DLC 1</button>
           <button type="button" class="preset-btn" onclick="applyDeckPreset('base_dlc2')">Base + DLC 2</button>
-          <button type="button" class="preset-btn" onclick="applyDeckPreset('duel')">Duelo</button>
           <button type="button" class="preset-btn" onclick="applyDeckPreset('test')">Modo Teste</button>
-          <button type="button" class="preset-btn" onclick="applyDeckPreset('caos')">Todas</button>
           <button type="button" class="preset-btn" onclick="applyDeckPreset('clear')">Zerar Tudo</button>
         </div>
 
@@ -440,7 +443,7 @@
   </div>
 
   <div id="settingsModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
+    <div class="modal-content standard-modal-content">
       <button id="closeSettingsBtn" class="close-btn">&times;</button>
       <h2>Configurações</h2>
 
@@ -456,7 +459,7 @@
           <input type="range" id="effectsVolumeSlider" min="0" max="1" step="0.01" value="1" style="width: 100%;">
         </div>
 
-        <div class="setting-row">
+        <!-- <div class="setting-row">
           <label>Código da Sala:</label>
           <button id="toggleHeaderBtn" class="icon-btn" title="Mostrar/Ocultar Código da Sala">
             <img src="assets/img/icons/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
@@ -478,7 +481,7 @@
             <img src="assets/img/icons/robot.svg" alt="Bot" style="width: 24px; height: 24px;">
             <span style="margin-left: 2px;">+1</span>
           </button>
-        </div>
+        </div> -->
 
         <div class="setting-row" style="justify-content: center; margin-top: 20px;">
           <button id="openDeckConfigBtn"
@@ -515,7 +518,7 @@
   </div>
 
   <div id="spectateRequestModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="text-align: center; max-width: 320px;">
+    <div class="modal-content standard-modal-content" style="text-align: center;">
       <h2 class="config-title">Pedido de Espectador</h2>
       <p id="spectateRequestText" class="config-p-title"
         style="font-size: 14px; opacity: 0.7; margin-bottom: 20px; margin-top: 20px;">
@@ -531,7 +534,7 @@
   </div>
 
   <div id="waitSpectateModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="text-align: center; max-width: 320px;">
+    <div class="modal-content standard-modal-content" style="text-align: center;">
       <h2 class="config-title">Solicitação Enviada!</h2>
       <div class="spinner" style="margin: 20px auto; width: 30px; height: 30px;"></div>
       <p class="config-p-title" style="font-size: 14px; opacity: 0.7; margin-bottom: 25px;">
@@ -543,7 +546,7 @@
   </div>
 
   <div id="kickPlayerModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="text-align: center; max-width: 300px;">
+    <div class="modal-content standard-modal-content" style="text-align: center;">
       <h2 class="config-title">Remover Jogador?</h2>
       <p id="kickPlayerText" class="config-p-title"
         style="font-size: 14px; opacity: 0.7; margin-bottom: 20px; margin-top: 20px;">
@@ -571,7 +574,7 @@
 
 
   <div id="spectatorModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 320px; text-align: center;">
+    <div class="modal-content standard-modal-content" style="text-align: center;">
       <button id="closeSpectatorModalBtn" class="close-btn">&times;</button>
       <h2 style="margin-bottom: 10px;">Modo Espectador</h2>
       <p class="muted" style="margin-bottom: 20px;">Escolha um jogador para assistir:</p>
@@ -582,7 +585,7 @@
 
 
   <div id="tutorialModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 380px; text-align: left;">
+    <div class="modal-content standard-modal-content" style="text-align: left;">
       <button id="closeTutorialBtn" class="close-btn">&times;</button>
       <h2 class="config-title" style="text-align: center; margin-bottom: 20px;">Comandos do Mestre</h2>
 
@@ -629,7 +632,7 @@
   </div>
 
   <div id="quickActionsModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 380px; text-align: center;">
+    <div class="modal-content standard-modal-content" style="text-align: center;">
       <button id="closeQuickActionsBtn" class="close-btn">&times;</button>
       <h2 id="quickActionsTitle" style="font-size: 18px; margin-bottom: 15px;">Ações Contra...</h2>
 
@@ -702,6 +705,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <script src="js/firebase/firebase.js" defer></script>
+  <script src="js/pwa.js" defer></script>
   <script src="js/core/rules.js" defer></script>
   <script src="js/core/gameState.js" defer></script>
   <script src="js/gamemode/casual/board-renderer.js" defer></script>

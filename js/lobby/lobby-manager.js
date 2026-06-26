@@ -1,7 +1,6 @@
 // =======================================================
 // === ELEMENTOS DO DOM (REFERÊNCIAS) ===
 // =======================================================
-const loginBtn = document.getElementById('google-login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const userInfoDiv = document.getElementById('user-info');
 const userNameSpan = document.getElementById('user-name');
@@ -42,24 +41,41 @@ if (closeErrorBtn) {
 // =======================================================
 
 /**
- * Gerencia o fluxo de Login via Google Popup.
- */
-if (loginBtn) {
-    loginBtn.onclick = () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(error => {
-            showError("Erro ao fazer login: " + error.message);
-        });
-    };
-}
-
-/**
  * Realiza o Logout do usuário atual.
  */
 if (logoutBtn) {
     logoutBtn.onclick = () => {
-        auth.signOut();
+        auth.signOut().finally(() => {
+            window.location.href = 'login.html';
+        });
     };
+}
+
+function getUserDisplayData(user) {
+    let safeName = user.displayName;
+
+    if (!safeName && user.email) {
+        safeName = user.email.split('@')[0];
+    } else if (!safeName && user.isAnonymous) {
+        safeName = "Visitante";
+    } else if (!safeName) {
+        safeName = "Visitante";
+    }
+
+    const safePhoto = user.photoURL || "assets/img/icons/ghost.svg";
+
+    return { safeName, safePhoto };
+}
+
+function persistUserSession(user) {
+    const { safeName, safePhoto } = getUserDisplayData(user);
+
+    sessionStorage.setItem('currentUID', user.uid);
+    sessionStorage.setItem('currentName', safeName);
+    sessionStorage.setItem('currentPhoto', safePhoto);
+    sessionStorage.setItem('currentIsAnonymous', user.isAnonymous ? 'true' : 'false');
+
+    return { safeName, safePhoto };
 }
 
 /**
@@ -69,38 +85,23 @@ if (logoutBtn) {
 auth.onAuthStateChanged(user => {
     if (user) {
         // Usuário está Logado: Ajusta visibilidade da interface
-        if (loginBtn) loginBtn.style.display = 'none';
         if (userInfoDiv) userInfoDiv.style.display = 'block';
         if (roomActionsDiv) roomActionsDiv.style.display = 'block';
 
-        // Tratamento de nome (DisplayName > Email > Convidado)
-        let safeName = user.displayName;
-        if (!safeName && user.email) {
-            safeName = user.email.split('@')[0];
-        } else if (!safeName) {
-            safeName = "Convidado";
-        }
-
-        const safePhoto = user.photoURL || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+        const { safeName, safePhoto } = persistUserSession(user);
 
         // Renderiza dados do perfil
         if (userNameSpan) userNameSpan.textContent = safeName;
         if (userPhotoImg) userPhotoImg.src = safePhoto;
 
-        // Persiste dados para uso em outras páginas (ex: index.html)
-        sessionStorage.setItem('currentUID', user.uid);
-        sessionStorage.setItem('currentName', safeName);
-        sessionStorage.setItem('currentPhoto', safePhoto);
+        cleanupOldRooms();
 
     } else {
-        // Usuário está Deslogado: Reseta interface e limpa sessão
-        if (loginBtn) loginBtn.style.display = 'flex';
-        if (userInfoDiv) userInfoDiv.style.display = 'none';
-        if (roomActionsDiv) roomActionsDiv.style.display = 'none';
-
         sessionStorage.removeItem('currentUID');
         sessionStorage.removeItem('currentName');
         sessionStorage.removeItem('currentPhoto');
+        sessionStorage.removeItem('currentIsAnonymous');
+        window.location.href = 'login.html';
     }
 });
 
@@ -263,5 +264,3 @@ function cleanupOldRooms() {
     });
 }
 
-// Executa a faxina automaticamente ao entrar no Lobby
-cleanupOldRooms();

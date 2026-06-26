@@ -30,8 +30,11 @@ com foco em escalabilidade e consistência de estado.
 
 - Ambiente: Produção (GitHub Pages)
 - Banco de Dados: Firebase Realtime Database
-- Autenticação: Google OAuth 2.0
+- Autenticação: Google OAuth 2.0 e visitante anônimo
 - Sincronização: Event-driven via listeners em tempo real
+- PWA: manifest + service worker para instalação e cache de assets locais
+
+> O PWA melhora instalação, abertura em modo standalone e cache do shell. O multiplayer continua exigindo conexão com Firebase.
 
 ---
 
@@ -82,7 +85,7 @@ com foco em escalabilidade e consistência de estado.
 ## 🚀 Funcionalidades Principais
 
 * **Sandbox Total:** Gestão manual de moedas, vidas, trocas de cartas e o prêmio do Asilo.
-* **Login com Google:** Identificação automática com Nome e Foto via Firebase Auth.
+* **Login com Google ou visitante:** Identificação automática com Nome/Foto via Google ou UID anônimo temporário pelo Firebase Auth.
 * **Persistência de Slot:** Reconexão inteligente que reserva seu lugar na mesa através do seu UID único.
 * **Deck Configurável:** O Host possui controle total sobre a quantidade de cada personagem (incluindo cartas de DLC's).
 * **Suporte para 10 Jogadores:** Layout otimizado para partidas grandes, inclusive em dispositivos móveis.
@@ -103,14 +106,14 @@ com foco em escalabilidade e consistência de estado.
 - **Frontend:** HTML5, CSS3 (Flexbox/Grid), Vanilla JavaScript (ES Modules)
 - **Arquitetura:** Modular com separação de responsabilidades
 - **Backend (BaaS):** Firebase Realtime Database
-- **Autenticação:** Firebase Authentication (Google Provider)
+- **Autenticação:** Firebase Authentication (Google Provider + Anonymous Provider)
 - **Hospedagem:** GitHub Pages
 
 ---
 
 ## 🎮 Como Jogar
 
-1. **Acesso:** Faça login com sua conta Google no Lobby.
+1. **Acesso:** Faça login com sua conta Google ou entre como visitante.
 2. **Salas:** Crie uma nova sala como Host ou entre em uma existente usando o código de 4 dígitos.
 3. **Mesa:**
    * **Host:** Configure o baralho no menu de engrenagem (⚙️) antes de iniciar.
@@ -172,7 +175,8 @@ Coup-Master/
 │   └── 📂 lobby/
 │       └── lobby-manager.js    # Fluxo de criação, faxina e entrada de salas
 ├── 📄 index.html               # Tabuleiro principal do jogo em modo normal 2D
-├── 📄 lobby.html               # Menu inicial de entrada e autenticação de usuários
+├── 📄 login.html               # Tela de autenticação Google/visitante
+├── 📄 lobby.html               # Perfil autenticado, criação e entrada em salas
 └── 📄 README.md                # Documentação técnica do projeto
 
 ```
@@ -204,7 +208,7 @@ Para que o login e a reserva de slots funcionem:
 
 1. No Firebase Console, vá em **Build > Authentication**
 2. Acesse a aba **Sign-in method**
-3. Ative o provedor **Google**
+3. Ative os provedores **Google** e **Anônimo**
 4. Vá em **Settings > Authorized domains**
 5. Adicione:
    - `seu-usuario.github.io`

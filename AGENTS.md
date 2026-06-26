@@ -8,15 +8,17 @@ Coup Master e um app estatico de jogo multiplayer online em beta. Ele usa HTML, 
 
 Pontos de entrada:
 
-- `lobby.html`: login, criacao e entrada em salas.
+- `login.html`: autenticacao com Google ou visitante anonimo.
+- `lobby.html`: perfil autenticado, criacao e entrada em salas.
 - `index.html`: tabuleiro principal.
 
 Scripts principais:
 
 - `js/firebase/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
+- `js/login/login-manager.js`: login Google/anonimo e persistencia de sessao local.
 - `js/core/rules.js`: tipos de carta, criacao de deck e utilitarios.
 - `js/core/gameState.js`: conexao com sala, mutacoes e listeners do Firebase.
-- `js/lobby/lobby-manager.js`: auth/lobby/salas/limpeza.
+- `js/lobby/lobby-manager.js`: lobby/salas/logout/limpeza.
 - `js/gamemode/casual/board-renderer.js`: renderizacao, DOM, modais, drag/drop, presets e efeitos visuais.
 
 Leia `docs/TDD.md` antes de fazer mudancas estruturais.
@@ -49,7 +51,7 @@ Para testar localmente, use servidor estatico:
 python -m http.server 8000
 ```
 
-Abra `http://localhost:8000/lobby.html`. Login Google local depende dos dominios autorizados no Firebase.
+Abra `http://localhost:8000/login.html`. Login Google local depende dos dominios autorizados no Firebase; login anonimo depende do provedor Anonimo ativo no Firebase Auth.
 
 ## Firebase
 

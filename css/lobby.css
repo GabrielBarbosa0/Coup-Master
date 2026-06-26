@@ -494,6 +494,71 @@ h2 {
     box-sizing: content-box;
 }
 
+.auth-box {
+    gap: 12px;
+}
+
+.auth-subtitle {
+    margin: -8px 0 10px;
+    font-size: 13px;
+    color: rgba(230, 238, 246, 0.74);
+}
+
+.auth-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.auth-note {
+    max-width: 280px;
+    line-height: 1.4;
+}
+
+#google-login-btn,
+#anonymous-login-btn {
+    margin-bottom: 0;
+}
+
+.auth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    height: 50px;
+    padding: 0 20px;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    border-radius: 8px;
+}
+
+.anonymous-auth-btn {
+    background: #20242b;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.anonymous-auth-btn:hover {
+    background: #2c3540;
+}
+
+.install-auth-btn {
+    background: #20242b;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.install-auth-btn:hover {
+    background: #2c3540;
+}
+
+.install-auth-btn[hidden] {
+    display: none !important;
+}
+
 /* === ESTILO DO USUÁRIO === */
 #user-info {
     margin-bottom: 20px;

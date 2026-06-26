@@ -257,42 +257,9 @@ header p {
        === BOTÕES DE CONTROLE E SLIDER (UI SUPERIOR) ===
        ======================================================= */
 
-.resetBtn,
-.leaveRoomBtn,
-.infoBtn,
-.shuffleBtn,
-.configBtn,
-.musicBtn,
-.feedbackBtn,
-.altRulesBtn,
-.fullscreenBtn,
-.spectatorBtn {
-    /* Adicionado aqui */
-    width: 34px;
-    height: 34px;
-}
-
-/* Adicione também para a imagem interna preencher o botão */
-.altRulesBtn img {
-    width: 20px;
-    /* Tamanho padrão dos seus ícones de controle */
-    height: 20px;
-    display: block;
-    /* Mágica para deixar qualquer ícone preto em branco puro */
-    filter: brightness(0) invert(1);
-    transition: transform 0.2s ease;
-}
 
 .shuffleBtn {
     display: none !important;
-}
-
-.infoBtn img,
-.configBtn img,
-.musicBtn img {
-    width: 100%;
-    height: 100%;
-    display: block;
 }
 
 .musicBtn.muted {
@@ -326,21 +293,15 @@ header p {
     cursor: pointer;
 }
 
-.spectatorBtn img {
-    width: 100%;
-    height: 100%;
-    filter: brightness(0) invert(1);
-    /* Deixa o fantasma branco */
-    transition: transform 0.2s;
-}
-
-
 .spectator-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
     max-height: 300px;
     overflow-y: auto;
+    padding-right: 10px;
+    scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+    scrollbar-width: thin;
     text-align: center;
 }
 
@@ -402,6 +363,10 @@ header p {
 }
 
 .top-row {
+    --control-gap: 4px;
+    --control-button-size: 34px;
+    --control-icon-size: 20px;
+    --control-radius: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -413,23 +378,20 @@ header p {
     font-size: 14px;
 }
 
-.controls {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
+.controls,
 .room-controls {
     display: flex;
-    gap: 8px;
+    gap: 4px;
+    gap: var(--control-gap, 4px);
     align-items: center;
 }
 
 .controls button,
-.leaveRoomBtn,
-.resetBtn {
-    padding: 8px;
-    border-radius: 8px;
+.room-controls button {
+    width: var(--control-button-size);
+    height: var(--control-button-size);
+    padding: 0;
+    border-radius: var(--control-radius);
     border: 0;
     background: var(--panel);
     color: white;
@@ -441,16 +403,14 @@ header p {
 
 /* Seleciona todos os botões dentro de .controls e o botão Reset */
 .controls button,
-.leaveRoomBtn,
-.resetBtn {
+.room-controls button {
     transition: transform 0.2s ease, background-color 0.2s ease;
     /* Transição suave para escala e cor */
 }
 
 /* Aplica o efeito de hover e foco (acessibilidade) a todos os botões do cabeçalho */
 .controls button:hover,
-.leaveRoomBtn:hover,
-.resetBtn:hover {
+.room-controls button:hover {
     transform: scale(1.15) translateY(-2px);
     /* Efeito de zoom e leve subida */
     background-color: #2c3540;
@@ -459,14 +419,16 @@ header p {
 
 /* Garante que as imagens dentro dos botões sigam o estilo branco */
 .controls button img,
-.leaveRoomBtn img,
-.resetBtn img {
-    width: 20px;
+.room-controls button img {
+    width: var(--control-icon-size);
     /* Padronização de tamanho */
-    height: 20px;
+    height: var(--control-icon-size);
+    display: block;
+    object-fit: contain;
     filter: brightness(0) invert(1);
     /* Mantém ícones brancos */
     pointer-events: none;
+    transition: transform 0.2s ease;
     /* Evita que o ícone interfira no clique do botão */
 }
 
@@ -969,10 +931,12 @@ body.hide-religion .decks-wrapper {
 }
 
 
-#tutorialModal .modal-content {
+.standard-modal-content {
     width: 80%;
     max-width: 380px;
     padding: 25px 15px 15px 25px;
+    box-sizing: border-box;
+    margin: 0 auto;
 }
 
 
@@ -1009,6 +973,20 @@ body.hide-religion .decks-wrapper {
 }
 
 /* Título principal do modal */
+#settingsModal .standard-modal-content,
+#kickPlayerModal .standard-modal-content,
+#quickActionsModal .standard-modal-content,
+#spectatorModal .standard-modal-content,
+#spectateRequestModal .standard-modal-content,
+#waitSpectateModal .standard-modal-content,
+#tutorialModal .standard-modal-content {
+    width: 80%;
+    max-width: 380px;
+    padding: 25px 15px 15px 25px;
+    box-sizing: border-box;
+    margin: 0 auto;
+}
+
 #settingsModal h2 {
     margin-bottom: 0px;
     font-size: 24px;
@@ -1057,31 +1035,39 @@ body.hide-religion .decks-wrapper {
 
 
 .deck-presets-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-    padding: 10px;
-    background: #ffffff0d;
-    border-radius: 8px;
+    margin-bottom: 28px;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
 }
 
 .preset-btn {
-    background: #171d26;
+    width: 100%;
+    min-height: 40px;
+    background: #20242b;
     color: #f8fafc;
-    border: 1px solid var(--accent);
-    padding: 8px 12px;
-    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 8px 10px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-family: "Cinzel", serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: center;
+    text-transform: none;
+    white-space: nowrap;
     transition: all 0.2s ease;
 }
 
 .preset-btn:hover {
-    background: #00bfff;
-    border-color: #00bfff;
-    color: #000;
-    box-shadow: 0 0 10px rgba(0, 191, 255, 0.4);
+    background: #2c3540;
+    border-color: var(--accent);
+    color: #f8fafc;
+    box-shadow: 0 0 10px rgba(30, 144, 255, 0.25);
 }
 
 
@@ -1345,16 +1331,19 @@ body.hide-religion .decks-wrapper {
 }
 
 /* Barra de Rolagem Customizada para a Lista */
-.card-config-list::-webkit-scrollbar {
+.card-config-list::-webkit-scrollbar,
+.spectator-list::-webkit-scrollbar {
     width: 6px;
 }
 
-.card-config-list::-webkit-scrollbar-track {
+.card-config-list::-webkit-scrollbar-track,
+.spectator-list::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
 }
 
-.card-config-list::-webkit-scrollbar-thumb {
+.card-config-list::-webkit-scrollbar-thumb,
+.spectator-list::-webkit-scrollbar-thumb {
     background: var(--accent);
     border-radius: 10px;
 }
@@ -1604,42 +1593,16 @@ body.hide-religion .decks-wrapper {
         gap: 4px;
     }
 
-    /* Ajusta o tamanho dos botões de controle e o Reset */
-    .controls button,
-    .leaveRoomBtn,
-    .resetBtn,
-    .musicBtn,
-    .feedbackBtn,
-    .altRulesBtn,
-    .fullscreenBtn,
-    .infoBtn,
-    .configBtn,
-    .spectatorBtn {
-        width: 28px !important;
-        height: 28px !important;
-        padding: 6px !important;
-        border-radius: 6px !important;
-    }
-
-    /* Ajusta o tamanho das imagens/ícones dentro dos botões */
-    .controls button img,
-    .leaveRoomBtn img,
-    .resetBtn img,
-    .altRulesBtn img {
-        width: 16px !important;
-        height: 16px !important;
-
+    .top-row {
+        --control-button-size: 28px;
+        --control-icon-size: 16px;
+        --control-radius: 6px;
     }
 
     /* Ajuste específico para o slider de volume não quebrar o layout */
     #volumeSlider,
     #effectsVolumeSlider {
         width: 40px !important;
-    }
-
-    /* Reduz o espaçamento entre os botões */
-    .controls {
-        gap: 6px !important;
     }
 
     .setting-row {
@@ -1654,42 +1617,16 @@ body.hide-religion .decks-wrapper {
         gap: 4px;
     }
 
-    /* Ajusta o tamanho dos botões de controle e o Reset */
-    .controls button,
-    .leaveRoomBtn,
-    .resetBtn,
-    .musicBtn,
-    .feedbackBtn,
-    .altRulesBtn,
-    .fullscreenBtn,
-    .infoBtn,
-    .configBtn,
-    .spectatorBtn {
-        width: 29px !important;
-        height: 29px !important;
-        padding: 8px !important;
-        border-radius: 6px !important;
-    }
-
-    /* Ajusta o tamanho das imagens/ícones dentro dos botões */
-    .controls button img,
-    .leaveRoomBtn img,
-    .resetBtn img,
-    .altRulesBtn img {
-        width: 16px !important;
-        height: 16px !important;
-
+    .top-row {
+        --control-button-size: 29px;
+        --control-icon-size: 16px;
+        --control-radius: 6px;
     }
 
     /* Ajuste específico para o slider de volume não quebrar o layout */
     #volumeSlider,
     #effectsVolumeSlider {
         width: 40px !important;
-    }
-
-    /* Reduz o espaçamento entre os botões */
-    .controls {
-        gap: 4px !important;
     }
 
     .setting-row {
@@ -1707,6 +1644,12 @@ body.hide-religion .decks-wrapper {
         grid-template-columns: repeat(3, 1fr);
         gap: 4px;
     }
+
+    .top-row {
+        --control-button-size: 30px;
+        --control-icon-size: 17px;
+        --control-radius: 7px;
+    }
 }
 
 /* Laptop Pequeno / Telas Médias (769px - 1200px) */
@@ -1714,6 +1657,12 @@ body.hide-religion .decks-wrapper {
     .player-hands-container {
         grid-template-columns: repeat(4, 1fr);
         gap: 4px;
+    }
+
+    .top-row {
+        --control-button-size: 30px;
+        --control-icon-size: 17px;
+        --control-radius: 7px;
     }
 
     .bottom-table-container {
@@ -1743,19 +1692,6 @@ body.hide-religion .decks-wrapper {
         letter-spacing: 1px;
     }
 
-    .resetBtn,
-    .leaveRoomBtn,
-    .infoBtn,
-    .shuffleBtn,
-    .configBtn,
-    .musicBtn,
-    .feedbackBtn,
-    .altRulesBtn,
-    .fullscreenBtn,
-    .spectatorBtn {
-        width: 30px;
-        height: 30px;
-    }
 }
 
 
@@ -1909,5 +1845,98 @@ body.hide-religion .decks-wrapper {
         display: grid;
         transition: grid-template-columns 0.3s ease;
         /* Suaviza a mudança de layout */
+    }
+}
+
+/* =======================================================
+   === AJUSTES RESPONSIVOS DO MODAL DE CONFIGURACOES ===
+   ======================================================= */
+
+#settingsModal .standard-modal-content {
+    width: min(380px, calc(100vw - 28px));
+    max-width: 380px;
+    max-height: calc(100dvh - 28px);
+    padding: 25px 15px 15px 25px;
+}
+
+#settingsModal .settings-container {
+    width: 100%;
+    min-width: 0;
+    max-height: min(65vh, calc(100dvh - 140px));
+    gap: 12px;
+    padding: 10px 6px 10px 0;
+}
+
+#settingsModal h2 {
+    margin: 0;
+    font-size: clamp(22px, 7vw, 24px);
+    line-height: 1.15;
+}
+
+#settingsModal .setting-row {
+    gap: 12px;
+    min-width: 0;
+    font-size: 14px;
+}
+
+#settingsModal .setting-row label {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+#settingsModal #volumeSlider,
+#settingsModal #effectsVolumeSlider {
+    flex: 1 1 auto;
+    width: 100% !important;
+    min-width: 0;
+}
+
+#settingsModal .icon-btn {
+    min-width: 78px;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 10px;
+    font-size: 14px;
+}
+
+#settingsModal .icon-btn img {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+#openDeckConfigBtn {
+    min-height: 36px;
+    font-size: 14px;
+}
+
+@media (max-width: 360px) {
+    #settingsModal .standard-modal-content {
+        width: min(380px, calc(100vw - 24px));
+        padding: 20px 10px 12px 16px;
+    }
+
+    #settingsModal .settings-container {
+        gap: 10px;
+        padding-right: 4px;
+    }
+
+    #settingsModal .setting-row {
+        gap: 8px;
+        font-size: 12px;
+    }
+
+    #settingsModal .icon-btn {
+        min-width: 70px;
+        padding: 7px 8px;
+        font-size: 12px;
+    }
+
+    #settingsModal .icon-btn img {
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    #openDeckConfigBtn {
+        font-size: 12px;
     }
 }

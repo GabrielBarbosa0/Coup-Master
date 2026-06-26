@@ -9,6 +9,7 @@ Disallow: /.git/
 
 # Permite a indexação das páginas principais e imagens
 Allow: /index.html
+Allow: /login.html
 Allow: /lobby.html
 Allow: /img/
 

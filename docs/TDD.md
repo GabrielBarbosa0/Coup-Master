@@ -14,7 +14,7 @@ O projeto e um aplicativo estatico hospedavel em GitHub Pages. Nao existe etapa 
 
 O backend efetivo e o Firebase:
 
-- Firebase Authentication com Google Provider identifica os usuarios.
+- Firebase Authentication com Google Provider ou login anonimo identifica os usuarios.
 - Firebase Realtime Database guarda salas, estado da partida, jogadores, cartas, notificacoes e eventos de som.
 - As regras de seguranca do Firebase sao uma dependencia critica do produto, mas atualmente aparecem apenas no README, nao como arquivo versionado de infraestrutura.
 
@@ -29,6 +29,7 @@ Permitir que grupos joguem Coup online em uma sala privada, com sincronizacao em
 ### 2.2 Objetivos Secundarios
 
 - Permitir login com Google.
+- Permitir login anonimo como visitante.
 - Permitir criacao e entrada em salas por codigo curto.
 - Preservar slot de jogador por UID.
 - Sincronizar mao, deck, cemiterio, moedas, religiao, asilo, bots e estado de conexao.
@@ -61,22 +62,27 @@ Tambem nao ha, no estado atual:
 ```mermaid
 flowchart LR
   Browser["Browser do jogador"] --> Pages["GitHub Pages / arquivos estaticos"]
-  Browser --> Auth["Firebase Auth (Google)"]
+  Browser --> Auth["Firebase Auth (Google/Anonimo)"]
   Browser --> RTDB["Firebase Realtime Database"]
 
+  Pages --> Login["login.html + login-manager.js"]
   Pages --> Lobby["lobby.html + lobby-manager.js"]
   Pages --> Game["index.html + gameState.js + board-renderer.js"]
 
-  Auth --> Session["sessionStorage: UID, nome, foto"]
+  Auth --> Session["sessionStorage: UID, nome, foto, anonimo"]
+  Login --> Auth
+  Login --> Session
+  Lobby --> Session
   Session --> Game
   RTDB --> State["salas/{roomCode}/gameState"]
   State --> Game
   Game --> State
 ```
 
-O frontend tem duas paginas principais:
+O frontend tem tres paginas principais:
 
-- `lobby.html`: tela de login, criacao e entrada em salas.
+- `login.html`: tela dedicada de autenticacao com Google ou visitante anonimo.
+- `lobby.html`: perfil autenticado, criacao e entrada em salas.
 - `index.html`: tabuleiro principal da partida.
 
 Os scripts sao carregados como arquivos globais com `defer`. Eles dependem da ordem no HTML, nao de imports ES Modules.
@@ -85,15 +91,24 @@ Ordem no tabuleiro:
 
 1. Firebase CDN: `firebase-app.js`, `firebase-auth.js`, `firebase-database.js`.
 2. `js/firebase/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
-3. `js/core/rules.js`: define tipos de carta e utilitarios globais.
-4. `js/core/gameState.js`: conecta sala, Firebase, estado e mutacoes.
-5. `js/gamemode/casual/board-renderer.js`: renderiza DOM e configura interacoes.
+3. `js/pwa.js`: registra o service worker quando o navegador oferece suporte.
+4. `js/core/rules.js`: define tipos de carta e utilitarios globais.
+5. `js/core/gameState.js`: conecta sala, Firebase, estado e mutacoes.
+6. `js/gamemode/casual/board-renderer.js`: renderiza DOM e configura interacoes.
 
 Ordem no lobby:
 
 1. Firebase CDN.
 2. `js/firebase/firebase.js`.
-3. `js/lobby/lobby-manager.js`.
+3. `js/pwa.js`.
+4. `js/lobby/lobby-manager.js`.
+
+Ordem no login:
+
+1. Firebase CDN.
+2. `js/firebase/firebase.js`.
+3. `js/pwa.js`.
+4. `js/login/login-manager.js`.
 
 ## 4. Estrutura do Repositorio
 
@@ -126,20 +141,26 @@ Coup-Master/
       rules.js
     firebase/
       firebase.js
+    login/
+      login-manager.js
     gamemode/
       casual/
         board-renderer.js
     lobby/
       lobby-manager.js
+    pwa.js
   marketing/
     banners/
     screenshots/
   AGENTS.md
   README.md
   index.html
+  login.html
   lobby.html
+  manifest.webmanifest
   robots.txt
   sitemap.xml
+  sw.js
   limpeza.json
 ```
 
@@ -192,9 +213,56 @@ node --check js\gamemode\casual\board-renderer.js
 
 Todos os arquivos JS passavam em `node --check` no momento desta analise.
 
+### 5.5 PWA
+
+O projeto agora possui uma camada PWA sem alterar sua arquitetura estatica:
+
+- `manifest.webmanifest`: define nome, descricao, `start_url` para `login.html`, `scope` relativo, `display: standalone`, cores de tema e icones 192x192/512x512.
+- `js/pwa.js`: registra `sw.js` apos o carregamento da pagina, somente quando `navigator.serviceWorker` existe.
+- `sw.js`: cria cache versionado do shell principal, HTMLs, CSS, JS local, fontes e icones criticos.
+- `index.html`, `login.html` e `lobby.html`: expõem manifesto, `theme-color`, metatags mobile/apple e registrador PWA.
+
+Estrategia do service worker:
+
+- navegacoes usam network-first com fallback para `login.html` em cache;
+- assets locais usam stale-while-revalidate;
+- requisicoes externas, incluindo Firebase CDN/Auth/Realtime Database, nao sao interceptadas;
+- multiplayer offline nao e objetivo, pois salas, autenticacao e sincronizacao dependem de rede e Firebase.
+
 ## 6. Pontos de Entrada HTML
 
-### 6.1 `lobby.html`
+### 6.1 `login.html`
+
+Responsabilidades:
+
+- Define metadados SEO/Open Graph da tela de entrada.
+- Carrega favicon/logo, manifesto PWA e metatags mobile.
+- Carrega Google Font `Cinzel`.
+- Precarrega `assets/fonts/tilda-script-bold.woff2`.
+- Carrega SDK Firebase v8.
+- Carrega `css/lobby.css`.
+- Renderiza botoes de autenticacao: Google e visitante anonimo.
+- Renderiza botao de instalacao PWA quando o navegador dispara `beforeinstallprompt`.
+- Renderiza modal de erro.
+- Renderiza video de fundo `assets/video/background-smoke.mp4`.
+- Carrega `firebase.js`, `pwa.js` e `login-manager.js`.
+- Persiste `currentUID`, `currentName`, `currentPhoto` e `currentIsAnonymous` em `sessionStorage`.
+- Redireciona usuario autenticado para `lobby.html`.
+
+Fluxo de UI:
+
+1. Usuario abre login.
+2. Firebase inicializa.
+3. `login-manager.js` observa `auth.onAuthStateChanged`.
+4. Usuario escolhe "Entrar com Google" ou "Entrar como visitante".
+5. Google usa `signInWithPopup(new firebase.auth.GoogleAuthProvider())`.
+6. Visitante usa `auth.signInAnonymously()`.
+7. Apos autenticar, dados seguros de exibicao sao gravados no `sessionStorage` e a tela redireciona para `lobby.html`.
+8. O botao "Instalar Coup Master" fica oculto quando o PWA ja esta instalado ou quando o navegador ainda nao disponibilizou o prompt de instalacao.
+
+Observacao: o nome base do visitante e `Visitante`. Ao entrar em uma sala, `gameState.js` atribui nomes sequenciais por sala, como `Visitante 1`, `Visitante 2` e assim por diante.
+
+### 6.2 `lobby.html`
 
 Responsabilidades:
 
@@ -204,21 +272,20 @@ Responsabilidades:
 - Precarrega `assets/fonts/tilda-script-bold.woff2`.
 - Carrega SDK Firebase v8.
 - Carrega `css/lobby.css`.
-- Renderiza tela de login.
 - Renderiza bloco de usuario logado.
 - Renderiza input de codigo de sala e botoes de entrar/criar sala.
 - Renderiza modal de erro.
 - Renderiza video de fundo `assets/video/background-smoke.mp4`.
-- Carrega `firebase.js` e `lobby-manager.js`.
+- Carrega `firebase.js`, `pwa.js` e `lobby-manager.js`.
 - Renderiza loader de fontes.
 
 Fluxo de UI:
 
-1. Usuario abre lobby.
+1. Usuario autenticado abre lobby.
 2. Firebase inicializa.
 3. `lobby-manager.js` observa `auth.onAuthStateChanged`.
-4. Se nao logado, mostra botao "ENTRAR COM GOOGLE".
-5. Ao logar, mostra foto, nome, botao sair e acoes de sala.
+4. Se nao logado, redireciona para `login.html`.
+5. Se logado, mostra foto, nome, botao sair e acoes de sala.
 6. Criar sala gera codigo aleatorio de 4 caracteres.
 7. Entrar sala valida existencia no Realtime Database.
 
@@ -228,7 +295,7 @@ Pontos tecnicos importantes:
 - O loader `font-loader` aparece depois do `</body>`, o que e HTML invalido, embora o navegador costume corrigir.
 - Ha uma referencia comentada a `img/info.svg`; como esta comentada, nao afeta runtime, mas a pasta `img/` nao existe.
 
-### 6.2 `index.html`
+### 6.3 `index.html`
 
 Responsabilidades:
 
