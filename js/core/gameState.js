@@ -133,6 +133,28 @@ function withdrawAsylumCoins() {
 // === UTILITÁRIOS GLOBAIS DE ÁUDIO E SFX ===
 // =======================================================
 
+const DEFAULT_SFX_VOLUME = 1;
+
+function normalizeVolume(value, fallback = DEFAULT_SFX_VOLUME) {
+  const volume = Number(value);
+  if (!Number.isFinite(volume)) return fallback;
+  return Math.max(0, Math.min(1, volume));
+}
+
+window.sfxVolume = normalizeVolume(localStorage.getItem('sfxVolume'));
+
+function setSfxVolume(value) {
+  const normalizedVolume = normalizeVolume(value);
+  window.sfxVolume = normalizedVolume;
+  localStorage.setItem('sfxVolume', String(normalizedVolume));
+
+  document.querySelectorAll('audio[id^="audio-"]').forEach((audio) => {
+    audio.volume = normalizedVolume;
+  });
+
+  return normalizedVolume;
+}
+
 /**
  * REPRODUÇÃO LOCAL
  * Executa um arquivo de áudio presente no DOM baseado no ID fornecido.
@@ -140,6 +162,7 @@ function withdrawAsylumCoins() {
 function playSound(id) {
   const sound = document.getElementById('audio-' + id);
   if (sound) {
+    sound.volume = normalizeVolume(window.sfxVolume);
     sound.currentTime = 0;
     sound.play().catch(e => console.log("Erro ao tocar som:", e));
   }

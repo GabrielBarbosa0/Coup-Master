@@ -690,6 +690,7 @@ function setupUI() {
   const musicBtn = document.getElementById('musicBtn');
   const bgmAudio = document.getElementById('bgmAudio');
   const volumeSlider = document.getElementById('volumeSlider');
+  const effectsVolumeSlider = document.getElementById('effectsVolumeSlider');
 
   if (bgmAudio) bgmAudio.volume = 0.1;
 
@@ -712,6 +713,15 @@ function setupUI() {
     volumeSlider.value = bgmAudio.volume;
     volumeSlider.addEventListener('input', (e) => {
       bgmAudio.volume = e.target.value;
+    });
+  }
+
+  if (effectsVolumeSlider && typeof setSfxVolume === 'function') {
+    const currentSfxVolume = setSfxVolume(window.sfxVolume);
+    effectsVolumeSlider.value = currentSfxVolume;
+
+    effectsVolumeSlider.addEventListener('input', (e) => {
+      setSfxVolume(e.target.value);
     });
   }
 

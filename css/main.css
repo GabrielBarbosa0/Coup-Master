@@ -301,7 +301,8 @@ header p {
 }
 
 /* Slider de Volume */
-#volumeSlider {
+#volumeSlider,
+#effectsVolumeSlider {
     width: 60px;
     height: 6px;
     background: #232a33;
@@ -314,7 +315,8 @@ header p {
     accent-color: #1e90ff;
 }
 
-#volumeSlider:hover {
+#volumeSlider:hover,
+#effectsVolumeSlider:hover {
     opacity: 1;
 }
 
@@ -1218,7 +1220,8 @@ body.hide-religion .decks-wrapper {
     background: #2c3540;
 }
 
-#volumeSlider {
+#volumeSlider,
+#effectsVolumeSlider {
     accent-color: #1e90ff;
     flex-grow: 1;
     cursor: pointer;
@@ -1629,7 +1632,8 @@ body.hide-religion .decks-wrapper {
     }
 
     /* Ajuste específico para o slider de volume não quebrar o layout */
-    #volumeSlider {
+    #volumeSlider,
+    #effectsVolumeSlider {
         width: 40px !important;
     }
 
@@ -1678,7 +1682,8 @@ body.hide-religion .decks-wrapper {
     }
 
     /* Ajuste específico para o slider de volume não quebrar o layout */
-    #volumeSlider {
+    #volumeSlider,
+    #effectsVolumeSlider {
         width: 40px !important;
     }
 
