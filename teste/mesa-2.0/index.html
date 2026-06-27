@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Mesa de Jogo 2.0 | Coup Master</title>
+  <link rel="icon" href="../../assets/img/logo/favicon-coup-master.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="prototype-scroll">
+    <main class="game-table" aria-label="Protótipo da Mesa de Jogo 2.0">
+      <header class="table-toolbar">
+        <div class="toolbar-group room-actions" aria-label="Ações da sala">
+          <button class="toolbar-btn toolbar-btn-danger" type="button" data-action="leave-room" title="Sair da sala">
+            <img src="../../assets/img/icons/logout.svg" alt="">
+          </button>
+          <button class="toolbar-btn toolbar-btn-warning" type="button" data-action="reset-table" title="Resetar mesa">
+            <img src="../../assets/img/icons/cached.svg" alt="">
+          </button>
+        </div>
+
+        <div class="toolbar-group game-controls" aria-label="Controles da mesa">
+          <button class="toolbar-btn" type="button" data-action="toggle-music" title="Mutar música" aria-pressed="false">
+            <img src="../../assets/img/icons/music_note.svg" alt="">
+          </button>
+          <button class="toolbar-btn" type="button" data-action="feedback" title="Enviar feedback">
+            <img src="../../assets/img/icons/feedback.svg" alt="">
+          </button>
+          <button class="toolbar-btn" type="button" data-action="rules" title="Regras alternativas">
+            <img src="../../assets/img/icons/parchment.svg" alt="">
+          </button>
+          <button class="toolbar-btn" type="button" data-action="spectator" title="Modo espectador">
+            <img src="../../assets/img/icons/ghost.svg" alt="">
+          </button>
+          <button class="toolbar-btn" type="button" data-action="fullscreen" title="Tela cheia">
+            <img src="../../assets/img/icons/fullscreen.svg" alt="">
+          </button>
+          <button class="toolbar-btn" type="button" data-action="actions" title="Ações dos personagens">
+            <img src="../../assets/img/icons/info.svg" alt="">
+          </button>
+          <button class="toolbar-btn" type="button" data-action="settings" title="Configurações">
+            <img src="../../assets/img/icons/settings.svg" alt="">
+          </button>
+        </div>
+      </header>
+
+      <button id="openChatBtn" class="floating-chat-btn" type="button" title="Abrir chat" aria-label="Abrir chat da sala">
+        <img src="../../assets/img/icons/chat.svg" alt="">
+      </button>
+
+      <section class="player-row player-row-top" aria-label="Jogadores 1 a 4">
+        <article class="player-seat is-local" data-player="1">
+          <div class="player-identity">
+            <img class="player-avatar" src="../../assets/img/logo/favicon-coup-master.png" alt="Avatar do Visitante">
+            <strong class="player-name">Visitante 1</strong>
+            <img class="religion-badge" src="../../assets/img/cards/religion/catolico-quadrado.png" alt="Católico" title="Católico">
+          </div>
+          <div class="coin-counter" aria-label="Moedas do Visitante 1">
+            <button type="button" data-coin-action="decrease" aria-label="Remover moeda">−</button>
+            <span class="coin-value">2</span>
+            <button type="button" data-coin-action="increase" aria-label="Adicionar moeda">+</button>
+          </div>
+          <div class="player-hand" aria-label="Mão do Visitante 1">
+            <img class="card" src="../../assets/img/cards/base/duque.png" alt="Duque">
+            <img class="card" src="../../assets/img/cards/base/condessa.png" alt="Condessa">
+          </div>
+        </article>
+
+        <article class="player-seat" data-player="2">
+          <div class="player-identity">
+            <img class="player-avatar" src="../../assets/img/icons/robot.svg" alt="Avatar do Bot 1">
+            <strong class="player-name">Bot 1</strong>
+            <img class="religion-badge" src="../../assets/img/cards/religion/protestante-quadrado.png" alt="Protestante" title="Protestante">
+          </div>
+          <div class="coin-counter" aria-label="Moedas do Bot 1">
+            <button type="button" data-coin-action="decrease" aria-label="Remover moeda">−</button>
+            <span class="coin-value">2</span>
+            <button type="button" data-coin-action="increase" aria-label="Adicionar moeda">+</button>
+          </div>
+          <div class="player-hand" aria-label="Mão oculta do Bot 1">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+          </div>
+        </article>
+
+        <article class="player-seat" data-player="3">
+          <div class="player-identity">
+            <img class="player-avatar" src="../../assets/img/icons/robot.svg" alt="Avatar do Bot 2">
+            <strong class="player-name">Bot 2</strong>
+            <img class="religion-badge" src="../../assets/img/cards/religion/catolico-quadrado.png" alt="Católico" title="Católico">
+          </div>
+          <div class="coin-counter" aria-label="Moedas do Bot 2">
+            <button type="button" data-coin-action="decrease" aria-label="Remover moeda">−</button>
+            <span class="coin-value">2</span>
+            <button type="button" data-coin-action="increase" aria-label="Adicionar moeda">+</button>
+          </div>
+          <div class="player-hand" aria-label="Mão oculta do Bot 2">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+          </div>
+        </article>
+
+        <article class="player-seat" data-player="4">
+          <div class="player-identity">
+            <img class="player-avatar" src="../../assets/img/icons/robot.svg" alt="Avatar do Bot 3">
+            <strong class="player-name">Bot 3</strong>
+            <img class="religion-badge" src="../../assets/img/cards/religion/protestante-quadrado.png" alt="Protestante" title="Protestante">
+          </div>
+          <div class="coin-counter" aria-label="Moedas do Bot 3">
+            <button type="button" data-coin-action="decrease" aria-label="Remover moeda">−</button>
+            <span class="coin-value">2</span>
+            <button type="button" data-coin-action="increase" aria-label="Adicionar moeda">+</button>
+          </div>
+          <div class="player-hand" aria-label="Mão oculta do Bot 3">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+          </div>
+        </article>
+      </section>
+
+      <section class="table-center" aria-label="Áreas centrais da mesa">
+        <article class="special-zone asylum-zone">
+          <h2>Asilo</h2>
+          <img class="asylum-image" src="../../assets/img/cards/religion/asilo.png" alt="Asilo">
+          <div class="coin-counter asylum-counter" aria-label="Moedas do Asilo">
+            <button type="button" data-asylum-action="decrease" aria-label="Remover moeda do Asilo">−</button>
+            <span id="asylumValue" class="coin-value">9</span>
+            <button type="button" data-asylum-action="increase" aria-label="Adicionar moeda ao Asilo">+</button>
+          </div>
+        </article>
+
+        <article class="graveyard-zone">
+          <header class="zone-header">
+            <div>
+              <span class="zone-kicker">Cartas reveladas</span>
+              <h2>Cemitério</h2>
+            </div>
+            <span class="zone-count"><strong id="graveyardCount">8</strong> cartas</span>
+          </header>
+          <div class="graveyard-cards" aria-label="Cartas no cemitério">
+            <img class="graveyard-card" src="../../assets/img/cards/base/capitao.png" alt="Capitão">
+            <img class="graveyard-card" src="../../assets/img/cards/base/assassino.png" alt="Assassino">
+            <img class="graveyard-card" src="../../assets/img/cards/base/embaixador.png" alt="Embaixador">
+            <img class="graveyard-card" src="../../assets/img/cards/base/condessa.png" alt="Condessa">
+            <img class="graveyard-card" src="../../assets/img/cards/base/duque.png" alt="Duque">
+            <img class="graveyard-card" src="../../assets/img/cards/base/inquisidor.png" alt="Inquisidor">
+            <img class="graveyard-card" src="../../assets/img/cards/promo/bufao.png" alt="Bufão">
+            <img class="graveyard-card" src="../../assets/img/cards/dlc1/bispo.png" alt="Bispo">
+          </div>
+        </article>
+
+        <article class="special-zone deck-zone">
+          <h2>Baralho</h2>
+          <button id="deckPile" class="deck-pile" type="button" title="Comprar uma carta" aria-label="Comprar uma carta do baralho">
+            <img src="../../assets/img/cards/base/back.png" alt="Verso da carta">
+          </button>
+          <span class="deck-total"><strong id="deckCount">18</strong> cartas</span>
+        </article>
+      </section>
+
+      <section class="player-row player-row-bottom" aria-label="Jogadores 5 a 8">
+        <article class="player-seat" data-player="5">
+          <div class="player-identity">
+            <img class="player-avatar" src="../../assets/img/icons/robot.svg" alt="Avatar do Bot 4">
+            <strong class="player-name">Bot 4</strong>
+            <img class="religion-badge" src="../../assets/img/cards/religion/catolico-quadrado.png" alt="Católico" title="Católico">
+          </div>
+          <div class="coin-counter" aria-label="Moedas do Bot 4">
+            <button type="button" data-coin-action="decrease" aria-label="Remover moeda">−</button>
+            <span class="coin-value">2</span>
+            <button type="button" data-coin-action="increase" aria-label="Adicionar moeda">+</button>
+          </div>
+          <div class="player-hand" aria-label="Mão oculta do Bot 4">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+          </div>
+        </article>
+
+        <article class="player-seat" data-player="6">
+          <div class="player-identity">
+            <img class="player-avatar" src="../../assets/img/icons/robot.svg" alt="Avatar do Bot 5">
+            <strong class="player-name">Bot 5</strong>
+            <img class="religion-badge" src="../../assets/img/cards/religion/protestante-quadrado.png" alt="Protestante" title="Protestante">
+          </div>
+          <div class="coin-counter" aria-label="Moedas do Bot 5">
+            <button type="button" data-coin-action="decrease" aria-label="Remover moeda">−</button>
+            <span class="coin-value">2</span>
+            <button type="button" data-coin-action="increase" aria-label="Adicionar moeda">+</button>
+          </div>
+          <div class="player-hand" aria-label="Mão oculta do Bot 5">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+          </div>
+        </article>
+
+        <article class="player-seat" data-player="7">
+          <div class="player-identity">
+            <img class="player-avatar" src="../../assets/img/icons/robot.svg" alt="Avatar do Bot 6">
+            <strong class="player-name">Bot 6</strong>
+            <img class="religion-badge" src="../../assets/img/cards/religion/catolico-quadrado.png" alt="Católico" title="Católico">
+          </div>
+          <div class="coin-counter" aria-label="Moedas do Bot 6">
+            <button type="button" data-coin-action="decrease" aria-label="Remover moeda">−</button>
+            <span class="coin-value">2</span>
+            <button type="button" data-coin-action="increase" aria-label="Adicionar moeda">+</button>
+          </div>
+          <div class="player-hand" aria-label="Mão oculta do Bot 6">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+          </div>
+        </article>
+
+        <article class="player-seat" data-player="8">
+          <div class="player-identity">
+            <img class="player-avatar" src="../../assets/img/icons/robot.svg" alt="Avatar do Bot 7">
+            <strong class="player-name">Bot 7</strong>
+            <img class="religion-badge" src="../../assets/img/cards/religion/protestante-quadrado.png" alt="Protestante" title="Protestante">
+          </div>
+          <div class="coin-counter" aria-label="Moedas do Bot 7">
+            <button type="button" data-coin-action="decrease" aria-label="Remover moeda">−</button>
+            <span class="coin-value">2</span>
+            <button type="button" data-coin-action="increase" aria-label="Adicionar moeda">+</button>
+          </div>
+          <div class="player-hand" aria-label="Mão oculta do Bot 7">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+            <img class="card" src="../../assets/img/cards/base/back.png" alt="Carta oculta">
+          </div>
+        </article>
+      </section>
+
+      <footer class="table-status" aria-label="Status da sala">
+        <button id="roomCodeBtn" class="status-room" type="button" title="Copiar código da sala">
+          Sala: <strong>J92A</strong>
+        </button>
+        <span>Baralho: <strong data-status="deck">18</strong></span>
+        <span>Cemitério: <strong data-status="graveyard">8</strong></span>
+        <span>Asilo: <strong data-status="asylum">9</strong></span>
+      </footer>
+
+      <section id="chatPanel" class="chat-panel" aria-labelledby="chatTitle" hidden>
+        <button id="closeChatBtn" class="close-chat-btn" type="button" aria-label="Fechar chat">×</button>
+        <h2 id="chatTitle">Chat</h2>
+        <p>Converse com a sala.</p>
+        <div id="chatMessages" class="chat-messages" aria-live="polite">
+          <span class="empty-chat">Nenhuma mensagem ainda.</span>
+        </div>
+        <form id="chatForm" class="chat-form">
+          <input id="chatInput" type="text" maxlength="120" placeholder="Mensagem" aria-label="Mensagem">
+          <button type="submit">Enviar</button>
+        </form>
+      </section>
+
+      <div id="prototypeToast" class="prototype-toast" role="status" aria-live="polite" hidden></div>
+    </main>
+  </div>
+
+  <script src="prototype.js"></script>
+</body>
+
+</html>
