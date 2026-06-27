@@ -365,7 +365,7 @@ function renderAll() {
   if (container) {
     // Conta jogadores ativos (online ou bots)
     let activeCount = 0;
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= MAX_PLAYERS; i++) {
       const p = state.players[i];
       if (p && (p.online || p.uid)) activeCount++;
     }
@@ -446,7 +446,7 @@ function renderAll() {
       playSound('click');
       spectatorList.innerHTML = '';
 
-      for (let i = 1; i <= 10; i++) {
+      for (let i = 1; i <= MAX_PLAYERS; i++) {
         const p = state.players[i];
         // Só lista jogadores que possuem UID e não são o próprio usuário
         if (p && p.uid && i !== myPlayerId) {
@@ -486,10 +486,10 @@ function renderAll() {
 
 
 
-  // --- 2. RENDERIZAÇÃO DOS SLOTS DE JOGADORES (1 a 10) ---
+  // --- 2. RENDERIZAÇÃO DOS SLOTS DE JOGADORES ---
 
 
-  for (let pid = 1; pid <= 10; pid++) {
+  for (let pid = 1; pid <= MAX_PLAYERS; pid++) {
     const playerEl = document.getElementById(`player-${pid}`);
     if (!playerEl) continue;
 

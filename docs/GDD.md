@@ -132,7 +132,7 @@ Nao existe tela de sala de espera separada. Criar ou entrar em uma sala leva o u
 
 ### 6.2 Jogadores
 
-O jogo suporta ate 10 slots de jogador.
+O jogo suporta ate 8 slots de jogador.
 
 Cada slot exibe:
 
@@ -188,7 +188,7 @@ A mesa atual e uma interface 2D com:
 - modais de apoio;
 - configuracoes visuais.
 
-O layout deve privilegiar legibilidade em partidas grandes. Com ate 10 jogadores, a mesa precisa evitar sobreposicao e manter cartas reconheciveis.
+O layout deve privilegiar legibilidade em partidas grandes. Com ate 8 jogadores, a mesa precisa evitar sobreposicao e manter cartas reconheciveis.
 
 ### 7.2 Cartas
 
@@ -725,7 +725,7 @@ Nao implementar agora, exceto se for pedido explicitamente:
 
 - Jogador consegue criar sala e jogar sem orientacao tecnica.
 - Host consegue configurar deck sem quebrar partida.
-- Mesa com 6 a 10 jogadores continua legivel.
+- Mesa com 6 a 8 jogadores continua legivel.
 - Jogadores entendem onde comprar, mover e revelar cartas.
 - PWA instalado abre direto no login.
 

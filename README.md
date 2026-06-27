@@ -89,7 +89,7 @@ com foco em escalabilidade e consistência de estado.
 * **Login com Google ou visitante:** Identificação automática com Nome/Foto via Google ou UID anônimo temporário pelo Firebase Auth.
 * **Persistência de Slot:** Reconexão inteligente que reserva seu lugar na mesa através do seu UID único.
 * **Deck Configurável:** O Host possui controle total sobre a quantidade de cada personagem (incluindo cartas de DLC's).
-* **Suporte para 10 Jogadores:** Layout otimizado para partidas grandes, inclusive em dispositivos móveis.
+* **Suporte para 8 Jogadores:** Layout otimizado para partidas grandes, inclusive em dispositivos móveis.
 * **Modo Espectador Fantasma:** Permite que jogadores com zero cartas na mão solicitem visão da mão de outros jogadores ativos.
 * **Sistema de Notificações em Tempo Real:** Mecânica de "aceitar ou negar" para solicitações de espectador e alertas de interação.
 * **Identidade Religiosa Visual:** Exibição de ícones de escudo (`shield-cross.svg` e `shield-sword.svg`) e cores dinâmicas para as facções Católica e Protestante.

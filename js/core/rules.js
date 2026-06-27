@@ -2,6 +2,8 @@
 // === DEFINIÇÕES E TIPOS DE CARTAS (rules.js) ===
 // =======================================================
 
+const MAX_PLAYERS = 8;
+
 /**
  * LISTA MESTRE DE PERSONAGENS
  * Define todos os tipos de cartas disponíveis no jogo, incluindo expansões
@@ -121,8 +123,8 @@ function findCardById(state, id) {
   card = state.grave?.find(c => c.id === id);
   if (card) return card;
 
-  // Busca na mão de cada um dos 10 jogadores
-  for (let p = 1; p <= 10; p++) {
+  // Busca na mão de cada jogador da sala
+  for (let p = 1; p <= MAX_PLAYERS; p++) {
     card = state.players?.[p]?.hand?.find(c => c.id === id);
     if (card) return card;
   }
@@ -145,7 +147,7 @@ function removeCardFromLocation(state, cardId) {
 
   // Limpa mãos dos jogadores
   if (state.players) {
-    for (let p = 1; p <= 10; p++) {
+    for (let p = 1; p <= MAX_PLAYERS; p++) {
       if (state.players[p]?.hand) {
         state.players[p].hand = state.players[p].hand.filter(c => c.id !== cardId);
       }

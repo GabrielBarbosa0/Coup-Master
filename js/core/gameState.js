@@ -209,7 +209,7 @@ function resetTable(newConfig = null) {
   let currentPlayers = localGameState.players || {};
   let newPlayersState = {};
 
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= MAX_PLAYERS; i++) {
     newPlayersState[i] = {
       online: currentPlayers[i]?.online || false,
       uid: currentPlayers[i]?.uid || null,
@@ -425,8 +425,8 @@ function addBot() {
   playSound('click');
   let botSlot = null;
 
-  // Percorre os 10 slots para encontrar um espaço disponível
-  for (let i = 1; i <= 10; i++) {
+  // Percorre os slots para encontrar um espaço disponível
+  for (let i = 1; i <= MAX_PLAYERS; i++) {
     const p = localGameState.players[i];
     if (!p.uid && !p.online) {
       botSlot = i;
@@ -437,7 +437,7 @@ function addBot() {
   if (botSlot) {
     // Define o nome sequencial (BOT 1, BOT 2, etc.)
     let botCount = 0;
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= MAX_PLAYERS; i++) {
       if (localGameState.players[i].name && localGameState.players[i].name.startsWith('BOT')) {
         botCount++;
       }
@@ -586,7 +586,7 @@ function joinGame() {
         players: {}
       };
 
-      for (let i = 1; i <= 10; i++) {
+      for (let i = 1; i <= MAX_PLAYERS; i++) {
         initialState.players[i] = {
           online: false, hand: [], score: 2,
           religion: (i % 2 === 1) ? 'catolico' : 'protestante',
@@ -606,7 +606,7 @@ function joinGame() {
     }
 
     // Lógica de reentrada
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= MAX_PLAYERS; i++) {
       if (currentState.players[i] && currentState.players[i].uid === currentUser.uid) {
         assignedPlayerName = getPlayerDisplayName(currentState.players, currentState.players[i]);
         currentState.players[i].online = true;
@@ -618,7 +618,7 @@ function joinGame() {
     }
 
     // Ocupação de novo slot disponível
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= MAX_PLAYERS; i++) {
       if (!currentState.players[i].uid) {
         assignedPlayerName = getPlayerDisplayName(currentState.players);
         currentState.players[i].uid = currentUser.uid;

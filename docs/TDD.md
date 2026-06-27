@@ -306,7 +306,7 @@ Responsabilidades:
 - Carrega `css/main.css`.
 - Define loading overlay inicial.
 - Define header da sala com codigo copiavel.
-- Define tabuleiro com 10 areas fixas de jogadores.
+- Define tabuleiro com 8 areas fixas de jogadores.
 - Define area central: cemiterio/free area, asilo, deck e contador.
 - Define modais de regras, regras alternativas, preview de carta, configuracao de deck, configuracoes gerais, reset, feedback, espectador, kick, sala cheia, tutorial, acoes rapidas e duelo.
 - Define loading overlay simplificado da mesa.
@@ -588,7 +588,7 @@ Array de cartas visiveis no centro/cemiterio.
 
 ### 8.4 `gameState.players`
 
-Objeto com chaves numericas de `1` a `10`.
+Objeto com chaves numericas de `1` a `8`.
 
 ```json
 {
@@ -761,7 +761,7 @@ sequenceDiagram
 
   G->>DB: transaction(salas/{code}/gameState)
   alt sem players
-    G->>DB: cria deck, players 1..10, ocupa slot 1
+    G->>DB: cria deck, players 1..8, ocupa slot 1
   else UID ja existe
     G->>DB: marca slot como online e atualiza nome/foto
   else slot vazio existe
@@ -994,7 +994,6 @@ Responsabilidades:
    - 4 jogadores: 2 colunas.
    - 5-6 jogadores: 3 colunas.
    - 7-8 jogadores: 4 colunas.
-   - 9-10 jogadores: 5 colunas.
 4. Aplicar travas visuais de admin:
    - reset;
    - adicionar bot;
@@ -1002,7 +1001,7 @@ Responsabilidades:
    - botao de aplicar deck.
 5. Configurar modal de espectador.
 6. Limpar DOM dinamico.
-7. Iterar slots 1 a 10.
+7. Iterar slots 1 a 8.
 8. Mostrar/ocultar slots vazios.
 9. Marcar jogador local.
 10. Mostrar botao de kick para host.
@@ -1731,7 +1730,7 @@ Checklist:
 
 Estas invariantes devem ser preservadas:
 
-- Uma sala deve ter no maximo 10 slots.
+- Uma sala deve ter no maximo 8 slots.
 - Cada slot deve ter no maximo um `uid`.
 - Um usuario real deve reentrar no mesmo slot se seu UID ja existir.
 - Carta deve existir em apenas um lugar por vez:

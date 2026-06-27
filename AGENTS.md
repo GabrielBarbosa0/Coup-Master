@@ -69,7 +69,7 @@ Cuidados:
 
 Preserve:
 
-- 10 slots maximos por sala.
+- 8 slots maximos por sala.
 - UID real reentra no mesmo slot.
 - Carta existe em apenas um lugar: `deck`, `freeCards` ou `players[n].hand`.
 - Carta no deck: `owner = null`, `visible = false`, `location = "deck"`.
