@@ -36,6 +36,7 @@ Permitir que grupos joguem Coup online em uma sala privada, com sincronizacao em
 - Permitir host/admin com controles privilegiados.
 - Permitir configuracao de deck com jogo base, cartas promocionais e DLCs.
 - Permitir modo espectador fantasma mediante autorizacao.
+- Permitir chat textual em tempo real com mensagens rapidas.
 - Oferecer ajudas visuais de regras e cartas de referencia.
 - Entregar experiencia visual expressiva com fundo animado, efeito VHS, parallax e animacao de cartas.
 - Rodar diretamente em navegador sem instalacao.
@@ -47,7 +48,6 @@ O codigo atual nao tenta automatizar integralmente as regras oficiais de Coup. O
 Tambem nao ha, no estado atual:
 
 - matchmaking publico;
-- chat interno;
 - turn manager;
 - historico completo de eventos;
 - replay;

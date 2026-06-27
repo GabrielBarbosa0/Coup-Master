@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coup-master-pwa-v17';
+const CACHE_NAME = 'coup-master-pwa-v21';
 
 const APP_SHELL = [
   './',
@@ -7,6 +7,7 @@ const APP_SHELL = [
   './index.html',
   './manifest.webmanifest',
   './css/loading.css',
+  './css/chat.css',
   './css/lobby.css',
   './css/main.css',
   './js/pwa/pwa.js',
@@ -22,6 +23,7 @@ const APP_SHELL = [
   './assets/img/icons/google.svg',
   './assets/img/icons/logout.svg',
   './assets/img/icons/cached.svg',
+  './assets/img/icons/chat.svg',
   './assets/img/icons/music_note.svg',
   './assets/img/icons/feedback.svg',
   './assets/img/icons/parchment.svg',

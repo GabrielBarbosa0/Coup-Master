@@ -40,6 +40,7 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
   <link rel="stylesheet" href="css/main.css?v=graveyard-area">
+  <link rel="stylesheet" href="css/chat.css?v=room-chat-visibility">
   <link rel="stylesheet" href="css/loading.css?v=standard-loading">
 </head>
 
@@ -51,6 +52,12 @@
       <p id="game-loading-message">Carregando mesa...</p>
     </div>
   </div>
+
+  <aside class="floating-chat-actions" aria-label="Chat da sala">
+    <button id="chatBtn" class="floating-chat-btn" type="button" title="Chat" aria-label="Abrir chat da sala">
+      <img src="assets/img/icons/chat.svg" alt="">
+    </button>
+  </aside>
 
   <div class="container">
     <header id="roomHeader" title="Clique para copiar o código">
@@ -300,6 +307,22 @@
           <div class="flip-card-back" style="background-image: url('./assets/img/cards/base/back.png')"></div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div id="chatModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content chat-modal-content">
+      <button id="closeChatBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+      <h2>Chat</h2>
+      <p id="chatStatusText" class="muted chat-status-text">Converse com a sala.</p>
+
+      <div id="chatMessagesList" class="chat-messages-list" aria-live="polite"></div>
+      <div id="chatQuickMessages" class="chat-quick-messages" aria-label="Mensagens rápidas"></div>
+
+      <form id="chatForm" class="chat-form">
+        <input id="chatInput" type="text" maxlength="240" autocomplete="off" placeholder="Mensagem">
+        <button id="sendChatBtn" class="settings-action-btn" type="submit">Enviar</button>
+      </form>
     </div>
   </div>
 

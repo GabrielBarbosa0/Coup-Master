@@ -32,6 +32,7 @@ com foco em escalabilidade e consistência de estado.
 - Banco de Dados: Firebase Realtime Database
 - Autenticação: Google OAuth 2.0 e visitante anônimo
 - Sincronização: Event-driven via listeners em tempo real
+- Chat: mensagens em tempo real da sala com atalhos rápidos
 - PWA: manifest + service worker para instalação e cache de assets locais
 
 > O PWA melhora instalação, abertura em modo standalone e cache do shell. O multiplayer continua exigindo conexão com Firebase.

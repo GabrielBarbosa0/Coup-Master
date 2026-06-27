@@ -13,6 +13,24 @@ const asylumScoreEl = document.getElementById('asylum-score');
 const asylumPlusBtn = document.getElementById('asylum-plus');
 const asylumMinusBtn = document.getElementById('asylum-minus');
 
+const CHAT_MESSAGE_MAX_LENGTH = 240;
+const QUICK_CHAT_MESSAGES = [
+  'Sou o Duque',
+  'Sou o Capitão',
+  'Sou a Condessa',
+  'Taxar',
+  'Extorquir',
+  'Assassinar',
+  'Trocar',
+  'Investigar',
+  'Contesto',
+  'Bloqueio'
+];
+
+let chatMessages = [];
+let chatMessagesInitialized = false;
+let chatListenerReady = false;
+
 
 // =======================================================
 // === FUNÇÕES DE RENDERIZAÇÃO ===
@@ -732,6 +750,182 @@ function setupAutoScroll() {
   });
 }
 
+function formatChatTime(timestamp) {
+  if (!timestamp) return '--:--';
+
+  return new Date(timestamp).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function getChatAuthorName() {
+  const playerName = localGameState?.players?.[myPlayerId]?.name;
+  return playerName || currentUser?.name || 'Jogador';
+}
+
+function getChatMessagesRef() {
+  return db.ref(`salas/${roomCode}/chatMessages`);
+}
+
+function openChatModal() {
+  const chatModal = document.getElementById('chatModal');
+  const chatBtn = document.getElementById('chatBtn');
+  const chatInput = document.getElementById('chatInput');
+
+  if (typeof playSound === 'function') playSound('click');
+  if (chatModal) chatModal.style.display = 'flex';
+  if (chatBtn) {
+    chatBtn.classList.remove('chat-btn-has-unread');
+    chatBtn.classList.add('is-chat-open');
+  }
+  window.setTimeout(() => chatInput?.focus(), 60);
+}
+
+function closeChatModal() {
+  const chatModal = document.getElementById('chatModal');
+  const chatBtn = document.getElementById('chatBtn');
+
+  if (typeof playSound === 'function') playSound('click');
+  if (chatModal) chatModal.style.display = 'none';
+  if (chatBtn) chatBtn.classList.remove('is-chat-open');
+}
+
+async function sendChatMessage({ text, type = 'text' }) {
+  const cleanText = String(text || '').trim().slice(0, CHAT_MESSAGE_MAX_LENGTH);
+  if (!cleanText || !roomCode || !currentUser?.uid) return;
+
+  const messageRef = getChatMessagesRef().push();
+  await messageRef.set({
+    id: messageRef.key,
+    type,
+    text: cleanText,
+    uid: currentUser.uid,
+    actorUid: currentUser.uid,
+    actorPid: myPlayerId || null,
+    displayName: getChatAuthorName(),
+    createdAt: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+function setChatMessages(messages = []) {
+  const previousCount = chatMessages.length;
+  chatMessages = messages.slice(-60);
+  renderChatMessages();
+
+  const chatModal = document.getElementById('chatModal');
+  const chatBtn = document.getElementById('chatBtn');
+  if (chatMessagesInitialized
+    && messages.length > previousCount
+    && chatModal?.style.display !== 'flex') {
+    chatBtn?.classList.add('chat-btn-has-unread');
+  }
+
+  chatMessagesInitialized = true;
+}
+
+function renderChatMessages() {
+  const chatMessagesList = document.getElementById('chatMessagesList');
+  if (!chatMessagesList) return;
+
+  chatMessagesList.innerHTML = '';
+  if (chatMessages.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'chat-empty-message';
+    empty.textContent = 'Nenhuma mensagem ainda.';
+    chatMessagesList.append(empty);
+    return;
+  }
+
+  chatMessages.forEach((message) => {
+    const item = document.createElement('article');
+    item.className = 'chat-message';
+    if (message.uid === currentUser?.uid || message.actorUid === currentUser?.uid) {
+      item.classList.add('is-own');
+    }
+    if (message.type === 'quick') {
+      item.classList.add('is-quick');
+    }
+
+    const meta = document.createElement('div');
+    meta.className = 'chat-message-meta';
+    meta.textContent = `${message.displayName || message.actorName || 'Jogador'} · ${formatChatTime(message.createdAt)}`;
+
+    const text = document.createElement('p');
+    text.className = 'chat-message-text';
+    text.textContent = message.text || '';
+
+    item.append(meta, text);
+    chatMessagesList.append(item);
+  });
+
+  chatMessagesList.scrollTop = chatMessagesList.scrollHeight;
+}
+
+function setupRoomChat() {
+  const chatBtn = document.getElementById('chatBtn');
+  const closeChatBtn = document.getElementById('closeChatBtn');
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  const chatQuickMessages = document.getElementById('chatQuickMessages');
+
+  if (chatBtn?.dataset.chatBound === 'true') return;
+  if (chatBtn) {
+    chatBtn.dataset.chatBound = 'true';
+    chatBtn.addEventListener('click', openChatModal);
+  }
+
+  if (closeChatBtn) {
+    closeChatBtn.addEventListener('click', closeChatModal);
+  }
+
+  if (chatForm) {
+    chatForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const text = chatInput?.value || '';
+      if (!text.trim()) return;
+
+      try {
+        if (chatInput) chatInput.value = '';
+        await sendChatMessage({ text, type: 'text' });
+      } catch (error) {
+        console.error('Erro ao enviar mensagem no chat:', error);
+      }
+    });
+  }
+
+  if (chatQuickMessages && chatQuickMessages.children.length === 0) {
+    QUICK_CHAT_MESSAGES.forEach((message) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'chat-quick-btn';
+      button.textContent = message;
+      button.addEventListener('click', () => {
+        sendChatMessage({ text: message, type: 'quick' })
+          .catch((error) => console.error('Erro ao enviar mensagem rápida:', error));
+      });
+      chatQuickMessages.append(button);
+    });
+  }
+
+  renderChatMessages();
+
+  if (!chatListenerReady && roomCode) {
+    chatListenerReady = true;
+    getChatMessagesRef().limitToLast(60).on('value', (snapshot) => {
+      const messages = [];
+      snapshot.forEach((childSnapshot) => {
+        const message = childSnapshot.val();
+        if (message?.text) {
+          messages.push({ ...message, id: message.id || childSnapshot.key });
+        }
+      });
+      messages.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      setChatMessages(messages);
+    });
+  }
+}
+
 
 
 
@@ -742,6 +936,7 @@ function setupAutoScroll() {
 function setupUI() {
 
   // --- 1. MODAIS DE AVISO E SISTEMA ---
+  setupRoomChat();
 
   // Gerenciamento do Modal de Sala Cheia (Aviso de limite de Bots)
   const fullRoomModal = document.getElementById('fullRoomModal');
