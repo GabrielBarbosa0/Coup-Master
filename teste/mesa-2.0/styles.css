@@ -5,14 +5,14 @@
   --panel-soft: #1c2530;
   --accent: #1e90ff;
   --accent-2: #ff7b00;
-  --danger: #e54d58;
-  --warning: #d9951d;
   --coin: #f6c204;
   --text: #e6eef6;
   --muted: #8b98a7;
   --line: rgba(230, 238, 246, 0.14);
   --seat-border: rgba(133, 154, 177, 0.25);
   --shadow: 0 10px 22px rgba(0, 0, 0, 0.3);
+  --card-width: clamp(48px, 4.2vw, 72px);
+  --card-radius: clamp(4px, 0.35vw, 6px);
 }
 
 * {
@@ -46,13 +46,11 @@ button {
   width: 100%;
   min-height: 100dvh;
   overflow: auto;
-  background-color: #0d1620;
-  background-image: url("../../assets/img/table/leather-blue.png");
-  background-position: center;
-  background-size: cover;
+  background: var(--bg);
 }
 
 .game-table {
+  --table-content-width: min(82vw, 1460px);
   position: relative;
   display: grid;
   grid-template-rows: auto minmax(188px, 1fr) minmax(205px, 1.1fr) minmax(188px, 1fr) auto;
@@ -63,7 +61,7 @@ button {
   height: 100dvh;
   padding: 14px 18px 12px;
   overflow: hidden;
-  background: rgba(7, 13, 21, 0.74);
+  background: var(--bg);
   border: 1px solid rgba(230, 238, 246, 0.12);
 }
 
@@ -80,11 +78,10 @@ button {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(17, 25, 35, 0.94);
-  box-shadow: var(--shadow);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .toolbar-btn {
@@ -94,32 +91,23 @@ button {
   width: 38px;
   height: 38px;
   padding: 0;
-  border: 1px solid rgba(230, 238, 246, 0.2);
+  border: 0;
   border-radius: 7px;
-  background: #334252;
+  background: var(--panel);
   cursor: pointer;
   transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
 }
 
 .toolbar-btn:hover,
 .toolbar-btn:focus-visible {
-  border-color: var(--accent);
-  background: #405369;
+  background: #2c3540;
   outline: 0;
   transform: translateY(-1px);
 }
 
 .toolbar-btn[aria-pressed="true"] {
-  border-color: var(--danger);
-  background: #5a2931;
-}
-
-.toolbar-btn-danger {
-  background: var(--danger);
-}
-
-.toolbar-btn-warning {
-  background: var(--warning);
+  opacity: 0.4;
+  filter: grayscale(100%);
 }
 
 .toolbar-btn img,
@@ -134,7 +122,7 @@ button {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  width: min(82vw, 1460px);
+  width: var(--table-content-width);
   min-width: 900px;
   margin: 0 auto;
 }
@@ -251,10 +239,10 @@ button {
 }
 
 .card {
-  width: clamp(48px, 4.2vw, 72px);
+  width: var(--card-width);
   aspect-ratio: 2 / 3;
   border: 2px solid #3b5998;
-  border-radius: 6px;
+  border-radius: var(--card-radius);
   background: #fff;
   box-shadow: 0 7px 12px rgba(0, 0, 0, 0.28);
   object-fit: cover;
@@ -275,7 +263,7 @@ button {
   display: grid;
   grid-template-columns: minmax(150px, 0.75fr) minmax(520px, 4fr) minmax(150px, 0.75fr);
   gap: 16px;
-  width: min(78vw, 1400px);
+  width: var(--table-content-width);
   min-width: 920px;
   margin: 0 auto;
 }
@@ -301,7 +289,7 @@ button {
 .graveyard-zone h2 {
   margin: 0;
   font-family: "Cinzel", Georgia, serif;
-  font-size: 14px;
+  font-size: 10px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -326,48 +314,26 @@ button {
 }
 
 .deck-pile {
-  position: relative;
-  width: 66px;
+  width: var(--card-width);
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
 }
 
-.deck-pile::before,
-.deck-pile::after {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border: 2px solid #3b5998;
-  border-radius: 6px;
-  background: #f6f8fb;
-  content: "";
-}
-
-.deck-pile::before {
-  transform: translate(7px, 4px);
-}
-
-.deck-pile::after {
-  transform: translate(4px, 2px);
-}
-
 .deck-pile img {
-  position: relative;
-  z-index: 2;
   display: block;
   width: 100%;
-  aspect-ratio: 2 / 3;
-  border: 2px solid #3b5998;
-  border-radius: 6px;
-  object-fit: cover;
 }
 
 .deck-pile:hover,
 .deck-pile:focus-visible {
   outline: 0;
-  transform: translateY(-3px);
+}
+
+.deck-pile:hover .deck-card,
+.deck-pile:focus-visible .deck-card {
+  transform: translateY(-5px);
 }
 
 .deck-total,
@@ -375,7 +341,7 @@ button {
 .zone-kicker {
   color: var(--muted);
   font-family: "Cinzel", Georgia, serif;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .graveyard-zone {
@@ -419,7 +385,7 @@ button {
   aspect-ratio: 2 / 3;
   margin-left: clamp(-25px, -1.7vw, -12px);
   border: 2px solid rgba(255, 255, 255, 0.34);
-  border-radius: 6px;
+  border-radius: var(--card-radius);
   background: #fff;
   box-shadow: 0 8px 14px rgba(0, 0, 0, 0.35);
   object-fit: cover;
@@ -456,18 +422,17 @@ button {
   width: 46px;
   height: 46px;
   padding: 0;
-  border: 1px solid rgba(230, 238, 246, 0.22);
+  border: 0;
   border-radius: 8px;
-  background: #334252;
-  box-shadow: var(--shadow);
+  background: var(--panel);
+  box-shadow: none;
   cursor: pointer;
   transform: translateY(-50%);
 }
 
 .floating-chat-btn:hover,
 .floating-chat-btn:focus-visible {
-  border-color: var(--accent);
-  background: #405369;
+  background: #2c3540;
   outline: 0;
 }
 
@@ -633,6 +598,8 @@ button {
 
 @media (max-width: 1200px) {
   .game-table {
+    --table-content-width: 84%;
+    --card-width: 52px;
     grid-template-rows: auto 176px 190px 176px auto;
     min-width: 920px;
     min-height: 700px;
@@ -640,14 +607,12 @@ button {
   }
 
   .player-row {
-    width: 84%;
     min-width: 760px;
     gap: 9px;
   }
 
   .table-center {
     grid-template-columns: 130px minmax(470px, 1fr) 130px;
-    width: 82%;
     min-width: 760px;
     gap: 10px;
   }
@@ -657,7 +622,7 @@ button {
   }
 
   .card {
-    width: 52px;
+    width: var(--card-width);
   }
 
   .graveyard-card {
@@ -665,10 +630,312 @@ button {
   }
 }
 
-@media (max-width: 700px) {
+@media (min-width: 701px) and (max-width: 1024px) {
+  .prototype-scroll {
+    overflow-x: hidden;
+  }
+
   .game-table {
-    min-width: 760px;
-    padding: 10px 12px;
+    --tablet-gap: 8px;
+    --card-width: clamp(44px, 6vw, 52px);
+    --tablet-control-size: clamp(32px, 3.5vw, 36px);
+    --tablet-control-icon-size: clamp(18px, 2vw, 20px);
+    --tablet-counter-size: clamp(18px, 2.1vw, 20px);
+    --tablet-asylum-size: clamp(50px, 6vw, 60px);
+    grid-template-rows: auto minmax(170px, auto) minmax(190px, auto) minmax(170px, auto) auto;
+    gap: var(--tablet-gap);
+    width: 100%;
+    min-width: 0;
+    min-height: 100dvh;
+    height: auto;
+    padding: 10px;
+    overflow: visible;
+  }
+
+  .table-toolbar,
+  .player-row,
+  .table-center {
+    width: 100%;
+    min-width: 0;
+    margin-inline: 0;
+  }
+
+  .table-toolbar {
+    min-height: var(--tablet-control-size);
+  }
+
+  .toolbar-group {
+    gap: 5px;
+  }
+
+  .toolbar-btn {
+    width: var(--tablet-control-size);
+    height: var(--tablet-control-size);
+    border-radius: 6px;
+  }
+
+  .toolbar-btn img {
+    width: var(--tablet-control-icon-size);
+    height: var(--tablet-control-icon-size);
+  }
+
+  .player-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--tablet-gap);
+  }
+
+  .table-center {
+    grid-template-columns: minmax(110px, 0.8fr) minmax(0, 3fr) minmax(110px, 0.8fr);
+    gap: var(--tablet-gap);
+  }
+
+  .player-seat {
+    padding: 8px 6px;
+  }
+
+  .player-identity {
+    grid-template-columns: 24px minmax(0, 1fr) 24px;
+    gap: 4px;
+  }
+
+  .player-avatar,
+  .religion-badge {
+    width: 24px;
+    height: 24px;
+  }
+
+  .player-name {
+    font-size: clamp(9px, 1.3vw, 12px);
+  }
+
+  .coin-counter {
+    gap: 8px;
+    margin-block: 5px;
+  }
+
+  .coin-counter button {
+    width: var(--tablet-counter-size);
+    height: var(--tablet-counter-size);
+    font-size: clamp(16px, 2vw, 18px);
+  }
+
+  .coin-value {
+    min-width: 16px;
+    font-size: clamp(15px, 1.8vw, 17px);
+  }
+
+  .player-hand {
+    min-height: 70px;
+  }
+
+  .graveyard-cards {
+    padding-inline: 10px;
+  }
+
+  .graveyard-card {
+    width: var(--card-width);
+    margin-left: -11px;
+    border-width: 1px;
+  }
+
+  .asylum-image {
+    width: var(--tablet-asylum-size);
+    height: var(--tablet-asylum-size);
+    border-radius: 6px;
+  }
+
+  .floating-chat-btn {
+    width: var(--tablet-control-size);
+    height: var(--tablet-control-size);
+    border-radius: 6px;
+  }
+
+  .floating-chat-btn img {
+    width: var(--tablet-control-icon-size);
+    height: var(--tablet-control-icon-size);
+  }
+}
+
+@media (max-width: 700px) {
+  .prototype-scroll {
+    overflow-x: hidden;
+  }
+
+  .game-table {
+    --mobile-gap: 5px;
+    --card-width: clamp(34px, 11.2vw, 45px);
+    --card-radius: clamp(3px, 0.93vw, 4px);
+    display: flex;
+    flex-direction: column;
+    gap: var(--mobile-gap);
+    width: 100%;
+    min-width: 0;
+    min-height: 100dvh;
+    height: auto;
+    padding: 8px;
+    overflow: visible;
+  }
+
+  .table-toolbar {
+    order: 1;
+    gap: 4px;
+    width: 100%;
+    min-height: 32px;
+  }
+
+  .room-actions,
+  .game-controls {
+    flex: 0 0 auto;
+  }
+
+  .player-row-top {
+    order: 2;
+  }
+
+  .player-row-bottom {
+    order: 3;
+  }
+
+  .table-center {
+    order: 4;
+    grid-template-areas:
+      "graveyard graveyard"
+      "asylum deck";
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--mobile-gap);
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .table-status {
+    position: static;
+    order: 5;
+    flex-wrap: wrap;
+    gap: 5px 9px;
+    max-width: 100%;
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+
+  .player-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--mobile-gap);
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .player-seat {
+    grid-template-rows: auto auto minmax(51px, 1fr);
+    min-height: 114px;
+    padding: 6px 4px 5px;
+    border-width: 1px;
+    box-shadow: none;
+  }
+
+  .player-seat.is-local {
+    box-shadow: inset 0 0 0 1px rgba(30, 144, 255, 0.2);
+  }
+
+  .player-seat.is-local::after {
+    top: 4px;
+    right: 4px;
+    padding: 2px 4px;
+    font-size: 6px;
+  }
+
+  .player-identity {
+    grid-template-columns: 24px minmax(0, 1fr) 24px;
+    gap: 4px;
+  }
+
+  .player-avatar,
+  .religion-badge {
+    width: 20px;
+    height: 20px;
+  }
+
+  .player-name {
+    font-size: clamp(8px, 2.7vw, 11px);
+  }
+
+  .coin-counter {
+    gap: 6px;
+    margin: 4px 0;
+  }
+
+  .coin-counter button {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+
+  .coin-value {
+    min-width: 14px;
+    font-size: 14px;
+  }
+
+  .player-hand {
+    min-height: 51px;
+  }
+
+  .card {
+    width: var(--card-width);
+    border-width: 1px;
+  }
+
+  .card + .card {
+    margin-left: -8px;
+  }
+
+  .graveyard-zone {
+    grid-area: graveyard;
+    min-height: 100px;
+    padding: 8px 10px;
+    box-shadow: none;
+  }
+
+  .asylum-zone {
+    grid-area: asylum;
+  }
+
+  .deck-zone {
+    grid-area: deck;
+  }
+
+  .special-zone {
+    min-height: 120px;
+    gap: 5px;
+    padding: 6.4px 8px;
+    box-shadow: none;
+  }
+
+  .special-zone h2,
+  .graveyard-zone h2 {
+    font-size: 8px;
+  }
+
+  .zone-kicker,
+  .deck-total {
+    font-size: 8px;
+  }
+
+  .asylum-image {
+    width: 44px;
+    height: 44px;
+  }
+
+  .graveyard-cards {
+    justify-content: center;
+    padding: 4px 5px 0;
+    overflow: hidden;
+  }
+
+  .graveyard-card {
+    width: clamp(32px, 10.4vw, 42px);
+    margin-left: clamp(-14px, -3.2vw, -8px);
+    border-width: 1px;
   }
 
   .game-controls {
@@ -676,24 +943,26 @@ button {
   }
 
   .toolbar-btn {
-    width: 34px;
-    height: 34px;
+    width: clamp(26px, 8vw, 32px);
+    height: clamp(26px, 8vw, 32px);
+    border-radius: 6px;
   }
 
   .toolbar-btn img {
-    width: 19px;
-    height: 19px;
+    width: clamp(15px, 4.6vw, 18px);
+    height: clamp(15px, 4.6vw, 18px);
   }
 
   .floating-chat-btn {
-    left: 8px;
-    width: 40px;
-    height: 40px;
+    left: 4px;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
   }
 
-  .table-status {
-    position: sticky;
-    left: 12px;
+  .floating-chat-btn img {
+    width: 19px;
+    height: 19px;
   }
 }
 

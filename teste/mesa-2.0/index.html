@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=table-alignment">
 </head>
 
 <body>
@@ -18,10 +18,10 @@
     <main class="game-table" aria-label="Protótipo da Mesa de Jogo 2.0">
       <header class="table-toolbar">
         <div class="toolbar-group room-actions" aria-label="Ações da sala">
-          <button class="toolbar-btn toolbar-btn-danger" type="button" data-action="leave-room" title="Sair da sala">
+          <button class="toolbar-btn" type="button" data-action="leave-room" title="Sair da sala">
             <img src="../../assets/img/icons/logout.svg" alt="">
           </button>
-          <button class="toolbar-btn toolbar-btn-warning" type="button" data-action="reset-table" title="Resetar mesa">
+          <button class="toolbar-btn" type="button" data-action="reset-table" title="Resetar mesa">
             <img src="../../assets/img/icons/cached.svg" alt="">
           </button>
         </div>
@@ -138,11 +138,6 @@
 
         <article class="graveyard-zone">
           <header class="zone-header">
-            <div>
-              <span class="zone-kicker">Cartas reveladas</span>
-              <h2>Cemitério</h2>
-            </div>
-            <span class="zone-count"><strong id="graveyardCount">8</strong> cartas</span>
           </header>
           <div class="graveyard-cards" aria-label="Cartas no cemitério">
             <img class="graveyard-card" src="../../assets/img/cards/base/capitao.png" alt="Capitão">
@@ -159,7 +154,7 @@
         <article class="special-zone deck-zone">
           <h2>Baralho</h2>
           <button id="deckPile" class="deck-pile" type="button" title="Comprar uma carta" aria-label="Comprar uma carta do baralho">
-            <img src="../../assets/img/cards/base/back.png" alt="Verso da carta">
+            <img class="card deck-card" src="../../assets/img/cards/base/back.png" alt="Verso da carta">
           </button>
           <span class="deck-total"><strong id="deckCount">18</strong> cartas</span>
         </article>
@@ -235,14 +230,14 @@
         </article>
       </section>
 
-      <footer class="table-status" aria-label="Status da sala">
+      <!-- <footer class="table-status" aria-label="Status da sala">
         <button id="roomCodeBtn" class="status-room" type="button" title="Copiar código da sala">
           Sala: <strong>J92A</strong>
         </button>
         <span>Baralho: <strong data-status="deck">18</strong></span>
         <span>Cemitério: <strong data-status="graveyard">8</strong></span>
         <span>Asilo: <strong data-status="asylum">9</strong></span>
-      </footer>
+      </footer> -->
 
       <section id="chatPanel" class="chat-panel" aria-labelledby="chatTitle" hidden>
         <button id="closeChatBtn" class="close-chat-btn" type="button" aria-label="Fechar chat">×</button>
@@ -261,7 +256,7 @@
     </main>
   </div>
 
-  <script src="prototype.js"></script>
+  <script src="prototype.js?v=mobile-layout"></script>
 </body>
 
 </html>

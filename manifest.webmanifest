@@ -1,7 +1,7 @@
 {
   "name": "Coup Master",
   "short_name": "Coup Master",
-  "description": "Jogue Coup online com amigos em uma mesa multiplayer no navegador.",
+  "description": "Jogue Coup Online com amigos direto no navegador.",
   "lang": "pt-BR",
   "start_url": "./login.html",
   "scope": "./",

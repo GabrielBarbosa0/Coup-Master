@@ -193,67 +193,6 @@ h2 {
 
 
 /* =======================================================
-       === 3. CABEÇALHO DA SALA (HEADER) ===
-       ======================================================= */
-header {
-    border-radius: 10px 10px 0px 0px;
-    border: 2px solid #ffffff1f;
-    padding: 10px 18px;
-    text-align: center;
-    background: var(--bg);
-    color: #ffffff;
-    display: block;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.2s ease;
-}
-
-header:active {
-    transform: scale(0.98);
-}
-
-/* Quando o código é copiado */
-header.copied {
-    /* Em vez de fundo verde sólido, usamos um brilho suave */
-    background-color: rgba(30, 144, 255, 0.05) !important;
-    border-color: var(--accent) !important;
-    /* Borda Verde Neon */
-    color: var(--accent) !important;
-    /* Texto Verde Neon */
-    box-shadow: 0 0 15px rgba(30, 144, 255, 0.3);
-    /* Glow opcional */
-}
-
-/* Garante que o H1 (o código) mude para a cor ativa */
-header.copied h1 {
-    color: var(--accent) !important;
-}
-
-/* Texto de instrução "CÓDIGO COPIADO!" */
-header.copied .copy-instruction {
-    opacity: 1 !important;
-    font-weight: bold;
-    /* Aqui garantimos que ele pegue a mesma cor do pai (o código) */
-    color: var(--accent) !important;
-    letter-spacing: 2px;
-    /* Um charme extra */
-}
-
-header h1 {
-    margin: 0;
-    font-size: 18px;
-    letter-spacing: 1px;
-}
-
-
-header p {
-    margin: 6px 0 0;
-    color: #444;
-}
-
-
-
-/* =======================================================
        === BOTÕES DE CONTROLE E SLIDER (UI SUPERIOR) ===
        ======================================================= */
 
@@ -355,11 +294,9 @@ header p {
 .board {
     background: var(--bg);
     border-radius: 0px 0px 10px 10px;
-    border-style: solid;
-    border-width: 0 2px 2px 2px;
-    border-color: rgba(255, 255, 255, 0.12);
+    border: 0;
     padding: 10px;
-    box-shadow: 0 8px 24px rgba(10, 10, 12, 0.08);
+    box-shadow: none;
 }
 
 .top-row {
@@ -442,14 +379,67 @@ header p {
 /* Container dos Jogadores */
 .player-hands-container {
     display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 18px;
 }
 
 /* Wrapper Asilo e Deck */
 .decks-wrapper {
     display: grid;
-    gap: 18px;
-    margin-top: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: min(100%, 280px);
+    margin: 0 auto;
+}
+
+.table-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: clamp(6px, 2vw, 13px);
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 6px 12px;
+    border: 1px solid rgba(230, 238, 246, 0.24);
+    border-radius: 7px;
+    background: rgba(17, 25, 35, 0.96);
+    box-shadow: 0 8px 24px rgba(10, 10, 12, 0.18);
+    color: var(--muted);
+    font-family: "Cinzel", Georgia, serif;
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.status-room {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    cursor: pointer;
+}
+
+.status-room:active {
+    transform: scale(0.98);
+}
+
+.status-room strong {
+    color: #f6c204;
+}
+
+.table-status span strong {
+    color: var(--text);
+}
+
+.table-status.copied {
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(30, 144, 255, 0.24);
+}
+
+.table-status.copied .status-room {
+    color: var(--accent);
 }
 
 
@@ -459,12 +449,52 @@ header p {
        === ÁREA DO JOGADOR (AVATAR, PONTOS, RELIGIÃO) ===
        ======================================================= */
 .player-area {
+    display: flex;
     border-radius: 10px;
     border: 2px solid #ffffff0f;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     position: relative;
+}
+
+.player-area.is-empty {
+    justify-content: center;
+    min-height: 110px;
+    border: 2px dashed rgba(230, 238, 246, 0.18);
+    background: rgba(255, 255, 255, 0.015);
+    color: var(--muted);
+}
+
+.player-area.is-empty .points,
+.player-area.is-empty .remove-player,
+.player-area.is-empty .religion-status,
+.player-area.is-empty .player-avatar,
+.player-area.is-empty .religion-badge {
+    display: none !important;
+}
+
+.player-area.is-empty .player-header {
+    justify-content: center;
+}
+
+.player-area.is-empty .player-title {
+    max-width: none;
+    color: var(--muted);
+    cursor: default !important;
+}
+
+.player-area.is-empty .player-stack {
+    min-height: 32px;
+    padding: 4px;
+}
+
+.empty-seat-label {
+    align-self: center;
+    color: rgba(230, 238, 246, 0.34);
+    font-size: 10px;
+    line-height: 1.3;
+    text-align: center;
 }
 
 
@@ -556,10 +586,6 @@ header p {
        === 7. ÁREAS ESPECIAIS (ASILO, DECK, CEMITÉRIO) ===
        ======================================================= */
 
-
-.graveyard-area.has-cards .muted {
-    display: none !important;
-}
 
 /* Deck Principal */
 .deck-area {
@@ -666,6 +692,18 @@ header p {
     position: relative;
     z-index: 1;
     overflow: hidden;
+}
+
+.graveyard-label {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    z-index: 2;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    pointer-events: none;
 }
 
 .graveyard-area::before {
@@ -1478,6 +1516,10 @@ body.hide-religion .decks-wrapper {
         padding: 4px;
     }
 
+    .player-area.is-empty {
+        min-height: 80px;
+    }
+
     .player-title {
         font-size: 10px !important;
         line-height: 10px;
@@ -1537,14 +1579,9 @@ body.hide-religion .decks-wrapper {
 
 
     /* Rodapé e Decks */
-    .bottom-table-container {
-        grid-template-columns: 1fr;
-        gap: 4px;
-    }
-
     .decks-wrapper {
         gap: 4px;
-        margin-top: 8px;
+        margin-top: 0;
         display: grid;
         grid-template-columns: 1fr 1fr;
         width: 100%;
@@ -1597,14 +1634,6 @@ body.hide-religion .decks-wrapper {
         margin: 0;
     }
 
-    /* Quando o cabeçalho é ocultado, o tabuleiro ganha bordas superiores e margem */
-    header[style*="display: none"]~.board,
-    header.hidden~.board {
-        margin-top: 1px !important;
-        border: 2px solid #ffffff1f;
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
-    }
 }
 
 
@@ -1613,10 +1642,6 @@ body.hide-religion .decks-wrapper {
 
 /* Telas Mínimas (< 292px) */
 @media (max-width: 292px) {
-    header h1 {
-        font-size: 20px;
-    }
-
     .player-hands-container {
         grid-template-columns: 1fr;
         gap: 4px;
@@ -1670,7 +1695,7 @@ body.hide-religion .decks-wrapper {
 /* Tablets e Celulares Grandes (480px - 768px) */
 @media (min-width: 480px) and (max-width: 768px) {
     .player-hands-container {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         gap: 4px;
     }
 
@@ -1694,13 +1719,6 @@ body.hide-religion .decks-wrapper {
         --control-radius: 7px;
     }
 
-    .bottom-table-container {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 4px;
-        align-items: stretch;
-    }
-
     .decks-wrapper {
         margin-top: 0px;
         display: grid;
@@ -1713,12 +1731,6 @@ body.hide-religion .decks-wrapper {
         display: flex;
         flex-direction: column;
         gap: 4px;
-    }
-
-    header h1 {
-        margin: 0;
-        font-size: 12px;
-        letter-spacing: 1px;
     }
 
 }
@@ -1740,36 +1752,15 @@ body.hide-religion .decks-wrapper {
         background: radial-gradient(circle, transparent 50%, rgba(0, 0, 0, 0.5) 100%);
     }
 
-    /* --- 1. ESTRUTURA GLOBAL E HEADER --- */
+    /* --- 1. ESTRUTURA GLOBAL --- */
     .container {
         max-width: 90vw;
         padding: 5px;
     }
 
-    #roomHeader {
-        margin-top: 24px !important;
-        padding: 6px 18px;
-    }
-
-    /* Regras de ajuste para quando o Header é ocultado */
-    header[style*="display: none"],
-    header.hidden {
-        margin-bottom: 0 !important;
-    }
-
-    /* Quando o cabeçalho é ocultado, o tabuleiro ganha bordas superiores e margem */
-    header[style*="display: none"]~.board,
-    header.hidden~.board {
-        margin-top: 20px !important;
-        border: 2px solid #ffffff1f;
-        /* Utiliza o azul #1e90ff definido no seu :root */
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
-    }
-
-    /* --- 2. GRID DE JOGADORES (5 COLUNAS) --- */
+    /* --- 2. GRID DE JOGADORES (4 COLUNAS) --- */
     .player-hands-container {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 8px;
     }
 
@@ -1820,13 +1811,6 @@ body.hide-religion .decks-wrapper {
     /* --- 5. ÁREA CENTRAL E TABULEIRO INFERIOR --- */
     .center-area {
         gap: 8px;
-    }
-
-    .bottom-table-container {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 10px;
-        align-items: stretch;
     }
 
     /* Cemitério */
@@ -1881,11 +1865,39 @@ body.hide-religion .decks-wrapper {
    === AJUSTES RESPONSIVOS DO MODAL DE CONFIGURACOES ===
    ======================================================= */
 
-#settingsModal .standard-modal-content {
+#settingsModal .standard-modal-content,
+#tutorialModal .standard-modal-content {
     width: min(380px, calc(100vw - 28px));
     max-width: 380px;
     max-height: calc(100dvh - 28px);
     padding: 25px 15px 15px 25px;
+}
+
+#tutorialModal .master-commands-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: min(58vh, 380px);
+    padding-right: 6px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-size: 14px;
+    scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+    scrollbar-width: thin;
+}
+
+#tutorialModal .master-commands-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+#tutorialModal .master-commands-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+#tutorialModal .master-commands-list::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
 }
 
 #settingsModal .settings-container {
@@ -1963,7 +1975,8 @@ body.hide-religion .decks-wrapper {
 }
 
 @media (max-width: 360px) {
-    #settingsModal .standard-modal-content {
+    #settingsModal .standard-modal-content,
+    #tutorialModal .standard-modal-content {
         width: min(380px, calc(100vw - 24px));
         padding: 20px 10px 12px 16px;
     }
@@ -2002,5 +2015,880 @@ body.hide-religion .decks-wrapper {
 
     #openDeckConfigBtn {
         font-size: 12px;
+    }
+}
+
+/* =======================================================
+   === MESA 2.0 - LAYOUT PRINCIPAL ===
+   ======================================================= */
+
+:root {
+    --panel-strong: #111923;
+    --panel-soft: #1c2530;
+    --coin: #f6c204;
+    --line: rgba(230, 238, 246, 0.14);
+    --seat-border: rgba(133, 154, 177, 0.25);
+    --table-shadow: 0 10px 22px rgba(0, 0, 0, 0.3);
+}
+
+.container.prototype-scroll {
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    background: var(--bg);
+}
+
+.game-table {
+    --table-content-width: min(82vw, 1460px);
+    --table-gap: 14px;
+    --card-width: clamp(48px, 4.2vw, 72px);
+    --card-radius: clamp(4px, 0.35vw, 6px);
+    position: relative;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: var(--table-gap);
+    width: 100%;
+    min-width: 1040px;
+    min-height: 760px;
+    height: 100dvh;
+    padding: 14px 18px 12px;
+    overflow: hidden;
+    border: 1px solid rgba(230, 238, 246, 0.12);
+    border-radius: 0;
+    background: var(--bg);
+    box-shadow: none;
+}
+
+.game-table .table-toolbar {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 46px;
+    margin: 0;
+}
+
+.game-table .toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.game-table .controls button,
+.game-table .room-controls button {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: var(--panel);
+}
+
+.game-table .controls button:hover,
+.game-table .room-controls button:hover,
+.game-table .controls button:focus-visible,
+.game-table .room-controls button:focus-visible {
+    background: #2c3540;
+    outline: 0;
+    transform: translateY(-1px);
+}
+
+.game-table .controls button img,
+.game-table .room-controls button img {
+    width: 22px;
+    height: 22px;
+}
+
+.game-table .center-area {
+    display: grid;
+    grid-template-areas:
+        "players-top players-top players-top"
+        "asylum graveyard deck"
+        "players-bottom players-bottom players-bottom"
+        "status status status";
+    grid-template-columns: minmax(150px, 0.75fr) minmax(520px, 4fr) minmax(150px, 0.75fr);
+    grid-template-rows: minmax(188px, 1fr) minmax(205px, 1.1fr) minmax(188px, 1fr) auto;
+    gap: var(--table-gap);
+    width: var(--table-content-width);
+    min-width: 920px;
+    min-height: 0;
+    margin: 0 auto;
+}
+
+.game-table .player-row-top {
+    grid-area: players-top;
+}
+
+.game-table .player-row-bottom {
+    grid-area: players-bottom;
+}
+
+.game-table .player-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--table-gap);
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+.game-table .decks-wrapper {
+    display: contents;
+}
+
+.game-table .asylum-area {
+    grid-area: asylum;
+}
+
+.game-table .graveyard-area {
+    grid-area: graveyard;
+}
+
+.game-table .deck-area {
+    grid-area: deck;
+}
+
+.game-table .table-status {
+    grid-area: status;
+}
+
+.game-table .player-area {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto minmax(78px, 1fr);
+    align-items: start;
+    justify-content: stretch;
+    min-width: 0;
+    min-height: 0;
+    padding: 12px 14px 10px;
+    overflow: visible;
+    border: 2px solid var(--seat-border);
+    border-radius: 8px;
+    background: rgba(17, 25, 35, 0.94);
+    box-shadow: var(--table-shadow);
+}
+
+.game-table .player-area.local-player {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.24), var(--table-shadow);
+}
+
+.game-table .religion-status {
+    display: none;
+}
+
+.game-table .player-header {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 28px;
+    align-items: center;
+    justify-content: stretch;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+}
+
+.game-table .player-avatar,
+.game-table .religion-badge {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    background: #fff;
+    object-fit: cover;
+}
+
+.game-table .religion-badge {
+    object-fit: contain;
+}
+
+.game-table .player-title {
+    max-width: none;
+    margin: 0;
+    overflow: hidden;
+    color: var(--text);
+    font-size: clamp(12px, 0.9vw, 15px);
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.game-table .points,
+.game-table .asylum-points {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 7px 0;
+}
+
+.game-table .points button,
+.game-table .asylum-points button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--coin);
+    color: #111;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.game-table .points button:hover,
+.game-table .asylum-points button:hover,
+.game-table .points button:focus-visible,
+.game-table .asylum-points button:focus-visible {
+    box-shadow: 0 0 0 3px rgba(246, 194, 4, 0.2);
+    outline: 0;
+}
+
+.game-table .score {
+    min-width: 18px;
+    color: var(--text);
+    font-size: 17px;
+    line-height: 1;
+    text-align: center;
+}
+
+.game-table .player-stack {
+    display: flex;
+    flex-wrap: nowrap !important;
+    align-items: end;
+    justify-content: center;
+    gap: 0;
+    min-width: 0;
+    min-height: 78px;
+    width: 100%;
+    padding: 2px 0 0;
+    overflow: visible;
+    perspective: 900px;
+}
+
+.game-table .slot {
+    position: relative;
+    z-index: 1;
+    display: block;
+    flex: 0 0 var(--card-width);
+    width: var(--card-width);
+    height: auto;
+    aspect-ratio: 2 / 3;
+    border-radius: var(--card-radius);
+    transition: z-index 0s 120ms;
+}
+
+.game-table .slot + .slot {
+    margin-left: var(--hand-overlap, -12px);
+}
+
+.game-table .slot.is-active-card {
+    z-index: 30;
+    transition-delay: 0s;
+}
+
+.game-table .card,
+.game-table .deck {
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    --card-scale: 1;
+    --card-lift: 0px;
+    --card-base-shift: 0px;
+    --card-base-rotation: 0deg;
+    width: var(--card-width);
+    height: auto;
+    aspect-ratio: 2 / 3;
+    border: 2px solid #3b5998;
+    border-radius: var(--card-radius);
+    background-color: #fff;
+    background-position: center;
+    background-size: cover;
+    box-shadow: 0 7px 12px rgba(0, 0, 0, 0.28);
+    transform: perspective(900px)
+        translateY(calc(var(--card-base-shift) + var(--card-lift)))
+        rotateZ(var(--card-base-rotation))
+        rotateX(var(--tilt-x))
+        rotateY(var(--tilt-y))
+        scale(var(--card-scale));
+    transform-style: preserve-3d;
+    transform-origin: center;
+    transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+    will-change: transform, box-shadow;
+}
+
+.game-table .card {
+    position: relative;
+    display: block;
+    overflow: hidden;
+}
+
+.game-table .balatro-effect.is-tilting {
+    --card-scale: 1.18;
+    --card-lift: -8px;
+    --card-base-shift: 0px;
+    --card-base-rotation: 0deg;
+    z-index: 40;
+    filter: brightness(1.05) saturate(1.08);
+    box-shadow:
+        var(--glow-x, 0) var(--glow-y, 0) 26px rgba(0, 191, 255, 0.34),
+        0 12px 24px rgba(0, 0, 0, 0.48);
+}
+
+.game-table .card.lifting {
+    transform: perspective(900px) translateY(-10px) rotateZ(5deg) scale(1.15) !important;
+}
+
+.game-table .card.is-dragging {
+    transform: perspective(900px) scale(0.9) !important;
+}
+
+.game-table .player-area.is-empty {
+    display: grid;
+    grid-template-rows: auto minmax(32px, 1fr);
+    place-items: center;
+    min-height: 0;
+    border: 2px dashed rgba(230, 238, 246, 0.18);
+    background: rgba(255, 255, 255, 0.015);
+    box-shadow: none;
+}
+
+.game-table .player-area.is-empty .player-header {
+    display: block;
+}
+
+.game-table .player-area.is-empty .player-title {
+    color: rgba(230, 238, 246, 0.34);
+}
+
+.game-table .player-area.is-empty .player-stack {
+    align-items: center;
+    min-height: 32px;
+}
+
+.game-table .empty-seat-label {
+    color: rgba(230, 238, 246, 0.28);
+    font-size: 10px;
+    line-height: 1.3;
+    text-align: center;
+}
+
+.game-table .special-zone,
+.game-table .graveyard-area,
+.game-table .asylum-area,
+.game-table .deck-area {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 8px;
+    background: rgba(28, 37, 48, 0.96);
+    box-shadow: var(--table-shadow);
+}
+
+.game-table .asylum-area,
+.game-table .deck-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+}
+
+.game-table .asylum-area {
+    border: 2px solid var(--accent2);
+}
+
+.game-table .deck-area {
+    border: 2px solid var(--accent);
+}
+
+.game-table .asylum-area .muted,
+.game-table .zone-title {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.game-table .asylum-image-wrapper,
+.game-table .asylum-image {
+    width: 72px;
+    height: 72px;
+    margin: 0;
+    border-radius: 7px;
+}
+
+.game-table .asylum-image {
+    object-fit: cover;
+}
+
+.game-table .asylum-points {
+    margin: 0;
+}
+
+.game-table .deck {
+    position: relative;
+    cursor: grab;
+    text-indent: -9999px;
+}
+
+.game-table .deck-total,
+.game-table #deck-count {
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+.game-table .deck-total strong,
+.game-table #deck-count {
+    color: var(--text);
+}
+
+.game-table .graveyard-area {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 16px 10px;
+    overflow: visible;
+    border: 2px solid rgba(133, 154, 177, 0.42);
+}
+
+.game-table .graveyard-cards {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 100%;
+    overflow: visible;
+    perspective: 900px;
+}
+
+.game-table .graveyard-label {
+    top: 10px;
+    left: 12px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.game-table .graveyard-area::before {
+    background-size: min(18%, 150px);
+    opacity: 0.025;
+}
+
+.game-table .graveyard-card {
+    --card-base-rotation: -3deg;
+    flex: 0 0 auto;
+    width: clamp(54px, 4.6vw, 80px);
+    margin-left: var(--graveyard-overlap, clamp(-25px, -1.7vw, -12px));
+    border-color: rgba(255, 255, 255, 0.34);
+}
+
+.game-table .graveyard-card:first-child {
+    margin-left: 0;
+}
+
+.game-table .graveyard-card:nth-of-type(even) {
+    --card-base-shift: 5px;
+    --card-base-rotation: 3deg;
+}
+
+.game-table .graveyard-card:nth-of-type(3n) {
+    --card-base-shift: -4px;
+    --card-base-rotation: -1deg;
+}
+
+.game-table .table-status {
+    z-index: 18;
+    gap: 13px;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 6px 12px;
+    border-radius: 7px;
+    background: rgba(17, 25, 35, 0.96);
+    color: var(--muted);
+    font-size: 12px;
+}
+
+body.hide-religion .game-table .center-area {
+    grid-template-areas:
+        "players-top players-top"
+        "graveyard deck"
+        "players-bottom players-bottom"
+        "status status";
+    grid-template-columns: minmax(520px, 4fr) minmax(150px, 0.75fr);
+}
+
+@media (max-width: 1200px) {
+    .game-table {
+        --table-content-width: 84%;
+        --table-gap: 10px;
+        --card-width: 52px;
+        min-width: 920px;
+        min-height: 700px;
+    }
+
+    .game-table .center-area {
+        grid-template-columns: 130px minmax(470px, 1fr) 130px;
+        grid-template-rows: 176px 190px 176px auto;
+        min-width: 760px;
+    }
+
+    .game-table .player-area {
+        padding: 10px;
+    }
+
+    .game-table .graveyard-card {
+        width: 58px;
+    }
+
+    body.hide-religion .game-table .center-area {
+        grid-template-columns: minmax(470px, 1fr) 130px;
+    }
+}
+
+@media (min-width: 701px) and (max-width: 1024px) {
+    .container.prototype-scroll {
+        overflow-x: hidden;
+    }
+
+    .game-table {
+        --table-content-width: 100%;
+        --table-gap: 8px;
+        --card-width: clamp(44px, 6vw, 52px);
+        --tablet-control-size: clamp(32px, 3.5vw, 36px);
+        --tablet-control-icon-size: clamp(18px, 2vw, 20px);
+        --tablet-counter-size: clamp(18px, 2.1vw, 20px);
+        --tablet-asylum-size: clamp(50px, 6vw, 60px);
+        width: 100%;
+        min-width: 0;
+        min-height: 100dvh;
+        height: auto;
+        padding: 10px;
+        overflow: visible;
+    }
+
+    .game-table .center-area {
+        grid-template-columns: minmax(110px, 0.8fr) minmax(0, 3fr) minmax(110px, 0.8fr);
+        grid-template-rows: minmax(170px, auto) minmax(190px, auto) minmax(170px, auto) auto;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .game-table .table-toolbar {
+        min-height: var(--tablet-control-size);
+    }
+
+    .game-table .toolbar-group {
+        gap: 5px;
+    }
+
+    .game-table .controls button,
+    .game-table .room-controls button {
+        width: var(--tablet-control-size);
+        height: var(--tablet-control-size);
+        border-radius: 6px;
+    }
+
+    .game-table .controls button img,
+    .game-table .room-controls button img {
+        width: var(--tablet-control-icon-size);
+        height: var(--tablet-control-icon-size);
+    }
+
+    .game-table .player-row {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .game-table .player-area {
+        padding: 8px 6px;
+    }
+
+    .game-table .player-header {
+        grid-template-columns: 24px minmax(0, 1fr) 24px;
+        gap: 4px;
+    }
+
+    .game-table .player-avatar,
+    .game-table .religion-badge {
+        width: 24px;
+        height: 24px;
+    }
+
+    .game-table .player-title {
+        font-size: clamp(9px, 1.3vw, 12px) !important;
+    }
+
+    .game-table .points,
+    .game-table .asylum-points {
+        gap: 8px;
+        margin-block: 5px;
+    }
+
+    .game-table .points button,
+    .game-table .asylum-points button {
+        width: var(--tablet-counter-size);
+        height: var(--tablet-counter-size);
+        font-size: clamp(16px, 2vw, 18px);
+    }
+
+    .game-table .score {
+        min-width: 16px;
+        font-size: clamp(15px, 1.8vw, 17px);
+    }
+
+    .game-table .player-stack {
+        min-height: 70px;
+    }
+
+    .game-table .graveyard-card {
+        width: var(--card-width);
+        margin-left: var(--graveyard-overlap, -11px);
+        border-width: 1px;
+    }
+
+    .game-table .asylum-image-wrapper,
+    .game-table .asylum-image {
+        width: var(--tablet-asylum-size);
+        height: var(--tablet-asylum-size);
+        border-radius: 6px;
+    }
+
+    body.hide-religion .game-table .center-area {
+        grid-template-columns: minmax(0, 3fr) minmax(110px, 0.8fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .container.prototype-scroll {
+        overflow-x: hidden;
+    }
+
+    .game-table {
+        --table-content-width: 100%;
+        --table-gap: 5px;
+        --card-width: clamp(34px, 11.2vw, 45px);
+        --card-radius: clamp(3px, 0.93vw, 4px);
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        min-width: 0;
+        min-height: 100dvh;
+        height: auto;
+        padding: 8px;
+        overflow: visible;
+    }
+
+    .game-table .table-toolbar {
+        flex: 0 0 auto;
+        gap: 4px;
+        width: 100%;
+        min-height: 32px;
+    }
+
+    .game-table .center-area {
+        display: flex;
+        flex-direction: column;
+        gap: var(--table-gap);
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+    }
+
+    .game-table .player-row-top {
+        order: 1;
+    }
+
+    .game-table .player-row-bottom {
+        order: 2;
+    }
+
+    .game-table .graveyard-area {
+        order: 3;
+    }
+
+    .game-table .decks-wrapper {
+        order: 4;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--table-gap);
+        width: 100%;
+        margin: 0;
+    }
+
+    .game-table .decks-wrapper > .asylum-area,
+    .game-table .decks-wrapper > .deck-area {
+        grid-area: auto;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .game-table .table-status {
+        order: 5;
+    }
+
+    .game-table .player-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--table-gap);
+    }
+
+    .game-table .player-area {
+        grid-template-rows: auto auto minmax(51px, 1fr);
+        min-height: 114px;
+        padding: 6px 4px 5px;
+        border-width: 1px;
+        box-shadow: none;
+    }
+
+    .game-table .player-header {
+        grid-template-columns: 20px minmax(0, 1fr) 20px;
+        gap: 4px;
+    }
+
+    .game-table .player-avatar,
+    .game-table .religion-badge {
+        width: 20px;
+        height: 20px;
+    }
+
+    .game-table .player-title {
+        font-size: clamp(8px, 2.7vw, 11px) !important;
+    }
+
+    .game-table .points,
+    .game-table .asylum-points {
+        gap: 6px;
+        margin: 4px 0;
+    }
+
+    .game-table .points button,
+    .game-table .asylum-points button {
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+    }
+
+    .game-table .score {
+        min-width: 14px;
+        font-size: 14px;
+    }
+
+    .game-table .player-stack {
+        min-height: 51px;
+    }
+
+    .game-table .slot + .slot {
+        margin-left: var(--hand-overlap, -8px);
+    }
+
+    .game-table .card,
+    .game-table .deck {
+        border-width: 1px;
+    }
+
+    .game-table .graveyard-area {
+        min-height: 100px;
+        padding: 8px 10px;
+        box-shadow: none;
+    }
+
+    .game-table .asylum-area,
+    .game-table .deck-area {
+        min-height: 120px;
+        gap: 5px;
+        padding: 6px 8px;
+        box-shadow: none;
+    }
+
+    .game-table .asylum-area .muted,
+    .game-table .zone-title,
+    .game-table .deck-total,
+    .game-table #deck-count {
+        font-size: 8px;
+    }
+
+    .game-table .asylum-image-wrapper,
+    .game-table .asylum-image {
+        width: 44px;
+        height: 44px;
+    }
+
+    .game-table .graveyard-card {
+        width: clamp(32px, 10.4vw, 42px);
+        margin-left: var(--graveyard-overlap, clamp(-14px, -3.2vw, -8px));
+        border-width: 1px;
+    }
+
+    .game-table .game-controls {
+        gap: 4px;
+    }
+
+    .game-table .controls button,
+    .game-table .room-controls button {
+        width: clamp(26px, 8vw, 32px);
+        height: clamp(26px, 8vw, 32px);
+        border-radius: 6px;
+    }
+
+    .game-table .controls button img,
+    .game-table .room-controls button img {
+        width: clamp(15px, 4.6vw, 18px);
+        height: clamp(15px, 4.6vw, 18px);
+    }
+
+    .game-table .table-status {
+        position: static;
+        flex-wrap: wrap;
+        gap: 5px 9px;
+        max-width: 100%;
+        padding: 5px 8px;
+        font-size: 9px;
+    }
+
+    body.hide-religion .game-table .center-area {
+        display: flex;
+    }
+
+    body.hide-religion .game-table .decks-wrapper {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (hover: none), (pointer: coarse) {
+    .game-table .balatro-effect {
+        --tilt-x: 0deg !important;
+        --tilt-y: 0deg !important;
+    }
+
+    .game-table .balatro-effect.is-tilting {
+        --card-scale: 1;
+        --card-lift: 0px;
+        filter: none;
+        box-shadow: 0 7px 12px rgba(0, 0, 0, 0.28);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .game-table *,
+    .game-table *::before,
+    .game-table *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
     }
 }

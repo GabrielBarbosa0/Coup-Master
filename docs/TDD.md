@@ -305,9 +305,14 @@ Responsabilidades:
 - Carrega Material Symbols.
 - Carrega `css/main.css`.
 - Define loading overlay inicial.
-- Define header da sala com codigo copiavel.
-- Define tabuleiro com 8 areas fixas de jogadores.
-- Define area central: cemiterio/free area, asilo, deck e contador.
+- Define toolbar superior com saida, reset e controles globais.
+- Define tabuleiro com 8 areas fixas de jogadores, sempre visiveis.
+- Usa a Mesa 2.0 como layout principal, preservando os ids consumidos pelo JavaScript legado.
+- Em desktop e tablet, organiza quatro jogadores, uma linha central com asilo/cemiterio/baralho, outros quatro jogadores e rodape de status.
+- Em mobile, organiza os oito slots em duas colunas, seguidos pelo cemiterio, asilo/baralho e rodape de status.
+- Representa lugares desocupados com estado visual `Vazio`.
+- Mantem cartas da mao sobrepostas e cartas do cemiterio anguladas para simular componentes fisicos.
+- Exibe o codigo da sala e os totais de baralho, cemiterio e asilo no rodape `.table-status`.
 - Define modais de regras, regras alternativas, preview de carta, configuracao de deck, configuracoes gerais, reset, feedback, espectador, kick, sala cheia, tutorial, acoes rapidas e duelo.
 - Define loading overlay simplificado da mesa.
 - Define audios de musica e efeitos.
@@ -325,9 +330,9 @@ Fluxo de UI:
 
 Pontos tecnicos importantes:
 
-- O elemento do contador de deck tem HTML invalido: `<span id="deck-count">` e fecha com `</div>`.
 - `og:image` aponta para `assets/img/ico-coup-master.png`, mas o arquivo real esta em `assets/img/logo/ico-coup-master.png`.
 - O HTML possui ids usados diretamente por JS global; renomear ids quebra comportamento.
+- A pasta `teste/mesa-2.0` permanece como referencia isolada; o runtime principal nao importa seus arquivos.
 
 ## 7. Scripts Globais e Contratos entre Arquivos
 
@@ -705,10 +710,7 @@ Risco:
 Usado para preferencias visuais locais:
 
 - `hideReligion`
-- `waveEnabled`
-- `parallaxEnabled`
-- `vhsEnabled`
-- `transparentModeEnabled`
+- `sfxVolume`
 
 Essas preferencias nao sao sincronizadas entre jogadores.
 
@@ -986,14 +988,8 @@ Existe `setupKickListener(pid)`, mas a chamada esta comentada. A expulsao ativa 
 Responsabilidades:
 
 1. Validar que existe `state.players`.
-2. Calcular quantidade de jogadores ativos.
-3. Ajustar grid em desktop:
-   - 1 jogador: 1 coluna.
-   - 2 jogadores: 2 colunas.
-   - 3 jogadores: 3 colunas.
-   - 4 jogadores: 2 colunas.
-   - 5-6 jogadores: 3 colunas.
-   - 7-8 jogadores: 4 colunas.
+2. Manter duas faixas fixas de quatro slots de jogador.
+3. Alternar cada slot entre os estados ocupado e `Vazio`.
 4. Aplicar travas visuais de admin:
    - reset;
    - adicionar bot;
@@ -1002,7 +998,7 @@ Responsabilidades:
 5. Configurar modal de espectador.
 6. Limpar DOM dinamico.
 7. Iterar slots 1 a 8.
-8. Mostrar/ocultar slots vazios.
+8. Manter slots vazios visiveis e sem aceitar cartas.
 9. Marcar jogador local.
 10. Mostrar botao de kick para host.
 11. Criar header dinamico do jogador se necessario.
@@ -1013,14 +1009,17 @@ Responsabilidades:
 16. Atualizar moedas.
 17. Aplicar destaque para alvo sendo espectado.
 18. Renderizar `freeCards`.
-19. Atualizar contador do deck e asilo.
+19. Atualizar os contadores locais do deck e do asilo.
+20. Sincronizar o rodape compacto com codigo da sala, cartas no baralho, cartas no cemiterio e moedas no asilo.
+
+O codigo da sala deixou de ocupar um cabecalho exclusivo. Ele fica permanentemente visivel no rodape `.table-status`, inspirado no prototipo `teste/mesa-2.0`, e continua copiavel pelo botao `#roomCodeBtn`.
 
 ### 11.2 Limpeza de DOM
 
 `clearDOM()`:
 
 - limpa todos os elementos `[data-hand]`;
-- remove `.card` dentro de `freeArea`;
+- remove `.card` dentro de `.graveyard-cards`;
 - remove todos os `.slot`;
 - remove classe `.local-player`.
 
@@ -1033,12 +1032,28 @@ Essa estrategia evita duplicacao visual, mas recria muitos elementos em cada upd
 - cria `div.card`;
 - seta `draggable = true`;
 - seta `dataset.cardId`;
-- calcula fase inicial de flutuacao por hash simples do ID;
 - escolhe frente/verso com `shouldShowBack`;
 - define `backgroundImage`;
 - adiciona listeners de dragstart/dragend;
 - adiciona duplo clique para devolver ao deck;
 - aplica efeito Balatro/tilt.
+
+#### 11.3.1 Leques adaptativos da mao e do cemiterio
+
+`calculateAdaptiveFanOverlap()` concentra a matematica compartilhada. `updateHandFanLayout()` e `updateGraveyardFanLayout()` aplicam o resultado em cada superficie:
+
+- mede a largura de layout da carta com `offsetWidth`, sem deixar a rotacao visual alterar o calculo;
+- mede a largura disponivel no slot do jogador ou no container `.graveyard-cards`;
+- mantem uma sobreposicao base de `12px` no desktop e `8px` no mobile;
+- usa no cemiterio uma base de `20px` no desktop e `10px` no mobile;
+- aumenta progressivamente a sobreposicao pela raiz quadrada da quantidade excedente;
+- calcula a sobreposicao minima necessaria para o leque caber no container;
+- preserva uma faixa visivel de pelo menos `max(3px, 5.5% da largura da carta)` para cada carta continuar acessivel;
+- grava o resultado negativo em `--hand-overlap` ou `--graveyard-overlap`;
+- mantem `flex-wrap: nowrap`, portanto as cartas nunca descem para outra linha;
+- recalcula imediatamente durante `renderAll()` e novamente em redimensionamentos via `requestAnimationFrame`;
+- conserva `.is-active-card` e o efeito Balatro, permitindo que qualquer carta do leque venha inteira para frente no hover.
+- preserva no cemiterio as rotacoes e deslocamentos alternados definidos por `nth-of-type`.
 
 ### 11.4 Visibilidade de Carta
 
@@ -1160,58 +1175,21 @@ O codigo chama `playSound('click')` em varios pontos, mas nao existe `<audio id=
 
 - adiciona classe `balatro-effect`;
 - no mousemove calcula inclinacao por posicao relativa;
-- aplica `perspective`, `rotateX`, `rotateY`, `scale` e `translateY`;
-- aplica `boxShadow`;
-- remove estilos inline ao sair.
+- grava `--tilt-x`, `--tilt-y`, `--glow-x` e `--glow-y` no elemento;
+- adiciona `.is-tilting` na carta e `.is-active-card` no slot pai;
+- deixa o CSS compor perspectiva, escala, elevacao, rotacao base e brilho azul;
+- eleva o `z-index` do slot ativo para a carta sobrepor as demais cartas da mao;
+- zera a rotacao decorativa do cemiterio durante o hover sem perder a posicao angulada em repouso;
+- remove classes e custom properties ao sair;
+- preserva transformacoes proprias de `lifting` e `is-dragging` durante drag and drop;
+- desativa inclinacao e escala em dispositivos de ponteiro coarse/touch;
+- respeita `prefers-reduced-motion`.
 
-### 14.2 Flutuacao de Cartas
-
-`updateCardFlotation()` roda continuamente com `requestAnimationFrame`.
-
-- Se `waveEnabled` estiver false, apenas agenda proximo frame.
-- Incrementa `animationTime`.
-- Itera `.card`.
-- Ignora cartas sendo arrastadas.
-- Calcula seno baseado no ID da carta.
-- Atualiza CSS custom property `--y-offset`.
-
-Preferencia:
-
-- `waveEnabled` em `localStorage`.
-
-### 14.3 Parallax
-
-`mousemove` atualiza alvo `targetX/targetY` apenas em telas >= 1200px.
-
-`updateParallax()` interpola posicao com smoothing e aplica `transform: translate(...)` em `.container` quando ativo.
-
-Preferencia:
-
-- `parallaxEnabled` em `localStorage`.
-
-### 14.4 VHS/CRT
-
-`applyVhsVisibility(isEnabled)` adiciona/remove classe `vhs-enabled` no body.
-
-Preferencia:
-
-- `vhsEnabled`.
-
-### 14.5 Loading e fundo simplificado
+### 14.2 Loading e fundo simplificado
 
 O video de fundo foi removido. `login.html`, `lobby.html` e `index.html` usam fundo solido escuro e loaders com card central, titulo `Coup Master` e mensagem contextual.
 
-### 14.6 Modo Transparente
-
-`applyTransparentMode(isEnabled)` adiciona/remove classe `transparent-mode`.
-
-Preferencia:
-
-- `transparentModeEnabled`.
-
-Observacao:
-
-O handler de clique de `toggleTransparentBtn` e atribuido duas vezes.
+Os modos transparente, VHS, parallax e flutuacao foram removidos do runtime.
 
 ## 15. CSS e Design System Atual
 
@@ -1224,6 +1202,7 @@ Responsavel pela tela de jogo:
 - esconder scrollbars;
 - layout principal;
 - tabuleiro e player grid;
+- layout principal Mesa 2.0 sob o escopo `.game-table`;
 - cartas, slots e deck;
 - modais;
 - configuracao de deck;
@@ -1234,12 +1213,18 @@ Responsavel pela tela de jogo:
 - contador de deck;
 - imagens de cartas e areas.
 
-Tamanho atual: aproximadamente 1730 linhas.
+Tamanho atual: aproximadamente 2900 linhas, incluindo estilos legados ainda necessarios aos modais e a camada nova da Mesa 2.0.
 
 Pontos importantes:
 
 - Ha `@font-face` para `Tilda Script` com `woff2` e fallback `otf`.
+- Configuracoes e Comandos do Mestre compartilham a largura responsiva de `standard-modal-content`.
 - Muitos estilos inline existem no HTML, especialmente em modais e botoes.
+- `.game-table` usa grid no desktop e tablet, e fluxo vertical no mobile.
+- O breakpoint mobile termina em `700px`; o intermediario cobre `701px` a `1024px`; acima disso vale o layout desktop, com compactacao adicional ate `1200px`.
+- As cartas usam `aspect-ratio: 2 / 3` e a custom property `--card-width`, compartilhada por mao e baralho.
+- O cemiterio renderiza em `.graveyard-cards`, com overlap e rotacoes alternadas.
+- No mobile, `decks-wrapper` volta a ser grid proprio e neutraliza os `grid-area` herdados do desktop.
 
 ### 15.2 `css/lobby.css`
 
@@ -1464,7 +1449,7 @@ Todo snapshot do `gameState` pode causar `renderAll()`. Isso e simples, mas:
 
 - recria cartas;
 - reanexa listeners;
-- recalcula grid;
+- atualiza o estado visual dos oito slots fixos;
 - atualiza DOM de todos os jogadores;
 - pode ser custoso em salas grandes, mobile ou com muitos eventos de audio/moeda.
 

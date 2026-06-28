@@ -5,8 +5,11 @@
 // Variáveis DOM
 const deckCountEl = document.getElementById('deck-count');
 const graveCountEl = document.getElementById('grave-count');
+const tableDeckCountEl = document.getElementById('table-deck-count');
+const tableAsylumScoreEl = document.getElementById('table-asylum-score');
 const deckEl = document.getElementById('deck');
 const graveyardArea = document.getElementById('graveyardArea');
+const graveyardCardsEl = graveyardArea?.querySelector('.graveyard-cards') || graveyardArea;
 const shuffleBtn = document.getElementById('shuffleBtn');
 const resetBtn = document.getElementById('resetBtn');
 const asylumScoreEl = document.getElementById('asylum-score');
@@ -30,6 +33,89 @@ const QUICK_CHAT_MESSAGES = [
 let chatMessages = [];
 let chatMessagesInitialized = false;
 let chatListenerReady = false;
+let cardFanLayoutFrame = null;
+
+function calculateAdaptiveFanOverlap(container, items, options) {
+  if (!container || items.length < 2) return null;
+
+  const cardWidth = items[0].offsetWidth || items[0].getBoundingClientRect().width;
+  const availableWidth = Math.max(cardWidth, container.clientWidth - 4);
+  if (!cardWidth || !availableWidth) return null;
+
+  const isMobile = window.matchMedia('(max-width: 700px)').matches;
+  const baseOverlap = isMobile ? options.baseMobile : options.baseDesktop;
+  const progressiveStep = isMobile ? options.progressiveMobile : options.progressiveDesktop;
+  const progressiveOverlap = Math.sqrt(Math.max(0, items.length - 3)) * progressiveStep;
+  const availableStep = (availableWidth - cardWidth) / (items.length - 1);
+  const requiredOverlap = cardWidth - availableStep;
+  const minimumReveal = Math.max(3, cardWidth * 0.055);
+  const maximumOverlap = cardWidth - minimumReveal;
+
+  return Math.min(
+    maximumOverlap,
+    Math.max(baseOverlap + progressiveOverlap, requiredOverlap, 0)
+  );
+}
+
+function updateHandFanLayout(handContainer) {
+  if (!handContainer) return;
+
+  const slots = Array.from(handContainer.children)
+    .filter((slot) => slot.classList.contains('slot') && slot.querySelector('.card'));
+  const cardCount = slots.length;
+
+  handContainer.dataset.cardCount = String(cardCount);
+
+  const overlap = calculateAdaptiveFanOverlap(handContainer, slots, {
+    baseDesktop: 12,
+    baseMobile: 8,
+    progressiveDesktop: 2,
+    progressiveMobile: 1.5
+  });
+
+  if (overlap === null) {
+    handContainer.style.removeProperty('--hand-overlap');
+    return;
+  }
+
+  handContainer.style.setProperty('--hand-overlap', `${-overlap.toFixed(2)}px`);
+}
+
+function updateGraveyardFanLayout() {
+  if (!graveyardCardsEl) return;
+
+  const cards = Array.from(graveyardCardsEl.querySelectorAll('.graveyard-card'));
+  graveyardCardsEl.dataset.cardCount = String(cards.length);
+
+  const overlap = calculateAdaptiveFanOverlap(graveyardCardsEl, cards, {
+    baseDesktop: 20,
+    baseMobile: 10,
+    progressiveDesktop: 2.5,
+    progressiveMobile: 1.5
+  });
+
+  if (overlap === null) {
+    graveyardCardsEl.style.removeProperty('--graveyard-overlap');
+    return;
+  }
+
+  graveyardCardsEl.style.setProperty('--graveyard-overlap', `${-overlap.toFixed(2)}px`);
+}
+
+function updateAllCardFans() {
+  document.querySelectorAll('.game-table [data-hand]').forEach(updateHandFanLayout);
+  updateGraveyardFanLayout();
+}
+
+function scheduleCardFanLayout() {
+  if (cardFanLayoutFrame !== null) cancelAnimationFrame(cardFanLayoutFrame);
+  cardFanLayoutFrame = requestAnimationFrame(() => {
+    cardFanLayoutFrame = null;
+    updateAllCardFans();
+  });
+}
+
+window.addEventListener('resize', scheduleCardFanLayout);
 
 
 // =======================================================
@@ -47,7 +133,7 @@ function clearDOM() {
   document.querySelectorAll('[data-hand]').forEach(h => h.innerHTML = '');
 
   // Remove cartas espalhadas no cemitério
-  graveyardArea.querySelectorAll('.card').forEach(n => n.remove());
+  graveyardCardsEl?.querySelectorAll('.card').forEach(n => n.remove());
 
   // Remove slots vazios remanescentes
   document.querySelectorAll('.slot').forEach(n => n.remove());
@@ -356,39 +442,44 @@ function createCardElement(card) {
  * Sincroniza o estado do Firebase com a interface e aplica permissões de Host (isAdmin).
  */
 
+function renderEmptyPlayerSlot(playerEl, pid) {
+  playerEl.style.removeProperty('display');
+  playerEl.classList.add('is-empty');
+  playerEl.setAttribute('aria-label', `Slot ${pid} vazio`);
+  playerEl.style.boxShadow = '';
+  playerEl.style.border = '';
+
+  const removeBtn = playerEl.querySelector('.remove-player');
+  if (removeBtn) removeBtn.style.display = 'none';
+
+  const title = playerEl.querySelector('.player-title');
+  if (title) {
+    title.textContent = 'Vazio';
+    title.style.cursor = 'default';
+    title.onclick = null;
+  }
+
+  const avatar = playerEl.querySelector('.player-avatar');
+  if (avatar) avatar.removeAttribute('src');
+
+  const religion = playerEl.querySelector('.religion-badge');
+  if (religion) religion.onclick = null;
+
+  const score = playerEl.querySelector('.score');
+  if (score) score.textContent = '0';
+
+  const hand = playerEl.querySelector('[data-hand]');
+  if (hand) {
+    const emptyLabel = document.createElement('div');
+    emptyLabel.className = 'empty-seat-label';
+    emptyLabel.textContent = 'Aguardando jogador';
+    hand.appendChild(emptyLabel);
+  }
+}
+
 function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
-
-  // --- LÓGICA DE GRADE DINÂMICA (APENAS DESKTOP) ---
-  const container = document.querySelector('.player-hands-container');
-  if (container) {
-    // Conta jogadores ativos (online ou bots)
-    let activeCount = 0;
-    for (let i = 1; i <= MAX_PLAYERS; i++) {
-      const p = state.players[i];
-      if (p && (p.online || p.uid)) activeCount++;
-    }
-
-    // Verifica se é Desktop (>= 1200px)
-    if (window.innerWidth >= 769) {
-      let cols = 5; // Padrão
-
-      if (activeCount === 1) cols = 1;
-      else if (activeCount === 2) cols = 2;
-      else if (activeCount === 3) cols = 3;
-      else if (activeCount === 4) cols = 2;
-      else if (activeCount === 5 || activeCount === 6) cols = 3;
-      else if (activeCount === 7 || activeCount === 8) cols = 4;
-      else cols = 5;
-
-      // Aplica a grade dinâmica no Desktop
-      container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    } else {
-      // No Mobile/Tablet, remove o estilo inline para usar as regras do CSS (@media)
-      container.style.gridTemplateColumns = '';
-    }
-  }
 
 
   // --- 1. TRAVAS DE ADMINISTRADOR (HOST) ---
@@ -493,15 +584,20 @@ function renderAll() {
     const playerEl = document.getElementById(`player-${pid}`);
     if (!playerEl) continue;
 
+    playerEl.classList.add('player-seat');
+
     const player = state.players[pid] || { online: false, hand: [], score: 0, religion: 'catolico', uid: null };
 
-    // Define se o slot do jogador deve estar visível ou oculto
-    if (player.online || player.uid) {
-      playerEl.style.display = 'flex';
-    } else {
-      playerEl.style.display = 'none';
+    const isOccupied = Boolean(player.online || player.uid);
+    playerEl.style.removeProperty('display');
+    playerEl.classList.toggle('is-empty', !isOccupied);
+
+    if (!isOccupied) {
+      renderEmptyPlayerSlot(playerEl, pid);
       continue;
     }
+
+    playerEl.setAttribute('aria-label', player.name || `Jogador ${pid}`);
 
     // --- 2.1 IDENTIFICAÇÃO E CONTROLE DE MODERAÇÃO ---
     if (pid === myPlayerId) {
@@ -520,7 +616,7 @@ function renderAll() {
     if (!headerEl) {
       const titleDiv = playerEl.querySelector('.player-title');
       headerEl = document.createElement('div');
-      headerEl.className = 'player-header';
+      headerEl.className = 'player-header player-identity';
 
       const img = document.createElement('img');
       img.className = 'player-avatar';
@@ -533,6 +629,9 @@ function renderAll() {
 
     const avatarImg = headerEl.querySelector('.player-avatar');
     const nameTxt = headerEl.querySelector('.player-title');
+
+    headerEl.classList.add('player-identity');
+    nameTxt?.classList.add('player-name');
 
     if (avatarImg) avatarImg.src = player.photo || 'img/coup.png';
 
@@ -591,6 +690,8 @@ function renderAll() {
         slot.className = 'slot small';
         handContainer.appendChild(slot);
       }
+
+      updateHandFanLayout(handContainer);
     }
 
     const scoreEl = playerEl.querySelector('.score');
@@ -605,6 +706,8 @@ function renderAll() {
       playerEl.style.border = "";
     }
   }
+
+  scheduleCardFanLayout();
 
 
   const closeQuickActionsBtn = document.getElementById('closeQuickActionsBtn');
@@ -621,12 +724,20 @@ function renderAll() {
   // Exibe as cartas que estão abertas no cemitério e atualiza contadores.
   state.freeCards?.forEach(card => {
     const el = createCardElement(card);
-    el.classList.add('small');
-    graveyardArea.appendChild(el);
+    el.classList.add('small', 'graveyard-card');
+    graveyardCardsEl?.appendChild(el);
   });
+  updateGraveyardFanLayout();
 
-  if (deckCountEl) deckCountEl.textContent = state.deck?.length || 0;
-  if (asylumScoreEl) asylumScoreEl.textContent = state.asylumScore || 0;
+  const deckCount = state.deck?.length || 0;
+  const graveyardCount = state.freeCards?.length || 0;
+  const asylumScore = state.asylumScore || 0;
+
+  if (deckCountEl) deckCountEl.textContent = deckCount;
+  if (graveCountEl) graveCountEl.textContent = graveyardCount;
+  if (tableDeckCountEl) tableDeckCountEl.textContent = deckCount;
+  if (asylumScoreEl) asylumScoreEl.textContent = asylumScore;
+  if (tableAsylumScoreEl) tableAsylumScoreEl.textContent = asylumScore;
 }
 
 
@@ -657,12 +768,22 @@ function setupDropzones() {
 
   // Clique simples no Deck compra uma carta para o jogador local
   deckEl.onclick = () => drawCard();
+  deckEl.onkeydown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      drawCard();
+    }
+  };
 
   // --- CONFIGURAÇÃO DAS ÁREAS DOS JOGADORES ---
   document.querySelectorAll('.player-area').forEach(area => {
-    area.ondragover = ev => ev.preventDefault();
+    area.ondragover = ev => {
+      if (!area.classList.contains('is-empty')) ev.preventDefault();
+    };
     area.ondrop = ev => {
       ev.preventDefault();
+      if (area.classList.contains('is-empty')) return;
+
       const data = ev.dataTransfer.getData('text/plain');
       const pid = parseInt(area.dataset.player);
 
@@ -706,27 +827,26 @@ function attachBalatroEffect(element, isDeck = false) {
 
   element.addEventListener('mousemove', (e) => {
     const rect = element.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
+    const normalizedX = (e.clientX - rect.left) / rect.width - 0.5;
+    const normalizedY = (e.clientY - rect.top) / rect.height - 0.5;
+    const rotateX = normalizedY * -18;
+    const rotateY = normalizedX * 18;
 
-    // Sensibilidade da inclinação
-    const sensitivity = 2; // Aumente para suavizar, diminua para intensificar
-    const rotateX = -(y - centerY) / sensitivity;
-    const rotateY = (x - centerX) / sensitivity;
-
-    // A mágica: perspective + rotação
-    element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.3)`;
-
-    // Brilho azul neon para as cartas e deck
-    element.style.boxShadow = `${-rotateY * 0.5}px ${rotateX * 0.5}px 40px rgba(0, 191, 255, 0.4)`;
+    element.style.setProperty('--tilt-x', `${rotateX.toFixed(2)}deg`);
+    element.style.setProperty('--tilt-y', `${rotateY.toFixed(2)}deg`);
+    element.style.setProperty('--glow-x', `${(-normalizedX * 14).toFixed(2)}px`);
+    element.style.setProperty('--glow-y', `${(-normalizedY * 14).toFixed(2)}px`);
+    element.classList.add('is-tilting');
+    element.closest('.slot')?.classList.add('is-active-card');
   });
 
   element.addEventListener('mouseleave', () => {
-    // Ao sair, remove o estilo inline para o CSS reassumir a flutuação
-    element.style.removeProperty('transform');
-    element.style.removeProperty('box-shadow');
+    element.classList.remove('is-tilting');
+    element.closest('.slot')?.classList.remove('is-active-card');
+    element.style.removeProperty('--tilt-x');
+    element.style.removeProperty('--tilt-y');
+    element.style.removeProperty('--glow-x');
+    element.style.removeProperty('--glow-y');
   });
 }
 
@@ -1158,28 +1278,6 @@ function setupUI() {
     }
   }
 
-  // Controle de Visibilidade do Header (Código da Sala)
-  const toggleHeaderBtn = document.getElementById('toggleHeaderBtn');
-  if (toggleHeaderBtn) {
-    const header = document.querySelector('header');
-    const spanText = toggleHeaderBtn.querySelector('span');
-
-    toggleHeaderBtn.onclick = () => {
-      playSound('click');
-      if (header.style.display !== 'none') {
-        header.style.display = 'none';
-        toggleHeaderBtn.querySelector('img').src = 'assets/img/icons/visibility_off.svg';
-        toggleHeaderBtn.style.opacity = '0.6';
-        if (spanText) spanText.textContent = "Oculto";
-      } else {
-        header.style.display = 'block';
-        toggleHeaderBtn.querySelector('img').src = 'assets/img/icons/eye.svg';
-        toggleHeaderBtn.style.opacity = '1';
-        if (spanText) spanText.textContent = "Visível";
-      }
-    };
-  }
-
   // Configuração de Efeitos Balatro no Deck Central
   const deckContainer = document.getElementById('deck');
   attachBalatroEffect(deckContainer, true);
@@ -1456,6 +1554,7 @@ function setupUI() {
  * de copiar para a área de transferência ao clicar.
  */
 const roomHeader = document.getElementById('roomHeader');
+const roomCodeBtn = document.getElementById('roomCodeBtn');
 const roomCodeDisplay = document.getElementById('roomCodeDisplay');
 
 // Define o código da sala se o elemento e a variável existirem
@@ -1464,19 +1563,19 @@ if (roomCodeDisplay && typeof roomCode !== 'undefined' && roomCode) {
 }
 
 // Configura o evento de clique para copiar o código da sala
-if (roomHeader) {
-  roomHeader.onclick = () => {
+if (roomCodeBtn) {
+  roomCodeBtn.onclick = () => {
     navigator.clipboard.writeText(roomCode).then(() => {
       playSound('pop'); // Som de confirmação
-      roomHeader.classList.add('copied');
+      roomHeader?.classList.add('copied');
 
-      const originalText = roomHeader.querySelector('p').textContent;
-      roomHeader.querySelector('p').textContent = "CÓDIGO COPIADO!";
+      const originalTitle = roomCodeBtn.title;
+      roomCodeBtn.title = 'Código copiado!';
 
       // Reseta o estado visual do botão após 1.2 segundos
       setTimeout(() => {
-        roomHeader.classList.remove('copied');
-        roomHeader.querySelector('p').textContent = originalText;
+        roomHeader?.classList.remove('copied');
+        roomCodeBtn.title = originalTitle;
       }, 1200);
     }).catch(err => {
       console.error('Erro ao copiar:', err);

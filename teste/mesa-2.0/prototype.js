@@ -10,7 +10,6 @@ let toastTimer = null;
 
 function updateStatus() {
   document.getElementById('deckCount').textContent = prototypeState.deck;
-  document.getElementById('graveyardCount').textContent = prototypeState.graveyard;
   document.getElementById('asylumValue').textContent = prototypeState.asylum;
 
   document.querySelector('[data-status="deck"]').textContent = prototypeState.deck;
