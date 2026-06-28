@@ -10,7 +10,6 @@ const tableAsylumScoreEl = document.getElementById('table-asylum-score');
 const deckEl = document.getElementById('deck');
 const graveyardArea = document.getElementById('graveyardArea');
 const graveyardCardsEl = graveyardArea?.querySelector('.graveyard-cards') || graveyardArea;
-const shuffleBtn = document.getElementById('shuffleBtn');
 const resetBtn = document.getElementById('resetBtn');
 const asylumScoreEl = document.getElementById('asylum-score');
 const asylumPlusBtn = document.getElementById('asylum-plus');
@@ -18,16 +17,19 @@ const asylumMinusBtn = document.getElementById('asylum-minus');
 
 const CHAT_MESSAGE_MAX_LENGTH = 240;
 const QUICK_CHAT_MESSAGES = [
+  'Contesto',
+  'Bloqueio',
   'Sou o Duque',
   'Sou o Capitão',
+  'Sou o Assassino',
   'Sou a Condessa',
+  'Sou o Embaixador',
+  'Sou o Inquisidor',
   'Taxar',
   'Extorquir',
   'Assassinar',
   'Trocar',
-  'Investigar',
-  'Contesto',
-  'Bloqueio'
+  'Investigar'
 ];
 
 let chatMessages = [];
@@ -266,7 +268,7 @@ function getCardFolder(type) {
 
   // Categorias baseadas na nova estrutura de pastas
   const base = ['assassino', 'capitao', 'condessa', 'duque', 'embaixador', 'inquisidor'];
-  const dlc1 = ['bispo', 'camaleao', 'diplomata', 'marionetista', 'mercenario', 'tesoureiro', 'vigilante'];
+  const dlc1 = ['bispo', 'diplomata', 'marionetista', 'mercenario', 'tesoureiro', 'vigilante'];
   const dlc2 = ['estrategista', 'ladrao', 'magnata', 'pistoleiro', 'vigarista', 'xerife'];
   const promo = ['benfeitor', 'bufao', 'burgues', 'burocrata'];
 
@@ -295,7 +297,6 @@ const CARD_DISPLAY_NAMES = {
   tesoureiro: 'Tesoureiro',
   diplomata: 'Diplomata',
   marionetista: 'Marionetista',
-  camaleao: 'Camaleão',
   pistoleiro: 'Pistoleiro',
   magnata: 'Magnata',
   estrategista: 'Estrategista',
@@ -614,15 +615,20 @@ function renderAll() {
     // --- 2.2 CABEÇALHO DO JOGADOR (AVATAR E NOME) ---
     let headerEl = playerEl.querySelector('.player-header');
     if (!headerEl) {
-      const titleDiv = playerEl.querySelector('.player-title');
+      let titleDiv = playerEl.querySelector('.player-title');
+      if (!titleDiv) {
+        titleDiv = document.createElement('div');
+        titleDiv.className = 'player-title';
+      }
+
       headerEl = document.createElement('div');
       headerEl.className = 'player-header player-identity';
 
       const img = document.createElement('img');
       img.className = 'player-avatar';
 
-      // Injeta o cabeçalho antes do título e reorganiza o DOM
-      playerEl.insertBefore(headerEl, titleDiv);
+      // Mantém a identificação como primeira linha do slot.
+      playerEl.insertBefore(headerEl, playerEl.querySelector('.points'));
       headerEl.appendChild(img);
       headerEl.appendChild(titleDiv);
     }

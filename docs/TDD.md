@@ -1213,7 +1213,7 @@ Responsavel pela tela de jogo:
 - contador de deck;
 - imagens de cartas e areas.
 
-Tamanho atual: aproximadamente 2900 linhas, incluindo estilos legados ainda necessarios aos modais e a camada nova da Mesa 2.0.
+Tamanho atual: aproximadamente 1950 linhas. A limpeza da Mesa 2.0 removeu mais de 900 linhas de layout, componentes e media queries da mesa anterior.
 
 Pontos importantes:
 
@@ -1225,6 +1225,8 @@ Pontos importantes:
 - As cartas usam `aspect-ratio: 2 / 3` e a custom property `--card-width`, compartilhada por mao e baralho.
 - O cemiterio renderiza em `.graveyard-cards`, com overlap e rotacoes alternadas.
 - No mobile, `decks-wrapper` volta a ser grid proprio e neutraliza os `grid-area` herdados do desktop.
+- Regras da mesa ficam escopadas por `.game-table`; estilos globais remanescentes atendem reset, modais, configuracao e componentes compartilhados.
+- O arquivo nao mantem mais os grids, jogadores, areas especiais, efeitos de carta ou breakpoints da mesa anterior.
 
 ### 15.2 `css/lobby.css`
 
@@ -1483,13 +1485,10 @@ Esta secao documenta achados do estado atual, nao necessariamente bugs fatais.
 
 - `index.html` `og:image` aponta para `assets/img/ico-coup-master.png`; arquivo real esta em `assets/img/logo/ico-coup-master.png`.
 - `sitemap.xml` aponta para `/img/asilo.png` e `/img/dlc3-actions.jpg`; estrutura real usa `assets/img/...`.
-- `css/main.css` usa `..assets/fonts/...`; deveria usar `../assets/fonts/...`.
-- `css/main.css` e `css/lobby.css` referenciam `.woff`; arquivo `.woff` nao existe.
 - Segundo `@font-face` em `css/lobby.css` usa `assets/fonts/...` relativo ao CSS, provavelmente incorreto.
 
 ### 21.2 HTML Invalido
 
-- `index.html`: `<span id="deck-count">` fechado como `</div>`.
 - `lobby.html`: `font-loader` aparece depois do `</body>`.
 
 ### 21.3 IDs Esperados pelo JS Ausentes no HTML

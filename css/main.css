@@ -11,16 +11,6 @@
     font-display: swap;
 }
 
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
 /* Força a anulação completa do motor de acessibilidade de alto contraste forçado */
 @media screen and (-webkit-min-device-pixel-ratio:0) {
 
@@ -120,29 +110,6 @@ body::-webkit-scrollbar {
 }
 
 
-/* =======================================================
-   === AMBIENTAÇÃO E ILUMINAÇÃO (VIGNETTE) ===
-   ======================================================= */
-
-/* Ambientação Mobile-First */
-.vignette {
-    position: fixed;
-    top: 0;
-    left: 0;
-    /* Mude de 100% para estas unidades de viewport */
-    width: 100vw;
-    height: 100vh;
-    /* No mobile: Centro mais aberto (60%) e bordas mais claras (0.5) */
-    background: radial-gradient(circle, transparent 60%, rgba(0, 0, 0, 0.5) 100%);
-    pointer-events: none;
-    z-index: 9000;
-    will-change: opacity;
-    /* Otimização leve */
-}
-
-
-/* ////////////////////////////////////////////////////// */
-
 p {
     margin: 0;
     padding: 0;
@@ -153,53 +120,10 @@ h2 {
     /* Adicione esta linha para remover o espaço no topo */
 }
 
-.container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 12px;
-    position: relative;
-    z-index: 1;
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-    transition: max-width 0.3s ease;
-}
-
-
-/* Overlay de Carregamento */
-#loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #14171e;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #232a33;
-    border-top: 4px solid #1e90ff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 20px;
-}
-
-
 /* =======================================================
        === BOTÕES DE CONTROLE E SLIDER (UI SUPERIOR) ===
        ======================================================= */
 
-
-.shuffleBtn {
-    display: none !important;
-}
 
 .musicBtn.muted {
     opacity: 0.4;
@@ -287,563 +211,6 @@ h2 {
     filter: brightness(1.1);
 }
 
-/* =======================================================
-       === ESTRUTURA DO TABULEIRO (BOARD LAYOUT) ===
-       ======================================================= */
-
-.board {
-    background: var(--bg);
-    border-radius: 0px 0px 10px 10px;
-    border: 0;
-    padding: 10px;
-    box-shadow: none;
-}
-
-.top-row {
-    --control-gap: 4px;
-    --control-button-size: 34px;
-    --control-icon-size: 20px;
-    --control-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.room {
-    color: var(--muted);
-    font-size: 14px;
-}
-
-.controls,
-.room-controls {
-    display: flex;
-    gap: 4px;
-    gap: var(--control-gap, 4px);
-    align-items: center;
-}
-
-.controls button,
-.room-controls button {
-    width: var(--control-button-size);
-    height: var(--control-button-size);
-    padding: 0;
-    border-radius: var(--control-radius);
-    border: 0;
-    background: var(--panel);
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Seleciona todos os botões dentro de .controls e o botão Reset */
-.controls button,
-.room-controls button {
-    transition: transform 0.2s ease, background-color 0.2s ease;
-    /* Transição suave para escala e cor */
-}
-
-/* Aplica o efeito de hover e foco (acessibilidade) a todos os botões do cabeçalho */
-.controls button:hover,
-.room-controls button:hover {
-    transform: scale(1.15) translateY(-2px);
-    /* Efeito de zoom e leve subida */
-    background-color: #2c3540;
-    /* Destaque sutil no fundo do botão */
-}
-
-/* Garante que as imagens dentro dos botões sigam o estilo branco */
-.controls button img,
-.room-controls button img {
-    width: var(--control-icon-size);
-    /* Padronização de tamanho */
-    height: var(--control-icon-size);
-    display: block;
-    object-fit: contain;
-    filter: brightness(0) invert(1);
-    /* Mantém ícones brancos */
-    pointer-events: none;
-    transition: transform 0.2s ease;
-    /* Evita que o ícone interfira no clique do botão */
-}
-
-/* Layout Central */
-.center-area {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-/* Container dos Jogadores */
-.player-hands-container {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 18px;
-}
-
-/* Wrapper Asilo e Deck */
-.decks-wrapper {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    width: min(100%, 280px);
-    margin: 0 auto;
-}
-
-.table-status {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: clamp(6px, 2vw, 13px);
-    width: fit-content;
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 6px 12px;
-    border: 1px solid rgba(230, 238, 246, 0.24);
-    border-radius: 7px;
-    background: rgba(17, 25, 35, 0.96);
-    box-shadow: 0 8px 24px rgba(10, 10, 12, 0.18);
-    color: var(--muted);
-    font-family: "Cinzel", Georgia, serif;
-    font-size: 12px;
-    line-height: 1.2;
-}
-
-.status-room {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--muted);
-    font: inherit;
-    cursor: pointer;
-}
-
-.status-room:active {
-    transform: scale(0.98);
-}
-
-.status-room strong {
-    color: #f6c204;
-}
-
-.table-status span strong {
-    color: var(--text);
-}
-
-.table-status.copied {
-    border-color: var(--accent);
-    box-shadow: 0 0 12px rgba(30, 144, 255, 0.24);
-}
-
-.table-status.copied .status-room {
-    color: var(--accent);
-}
-
-
-
-
-/* =======================================================
-       === ÁREA DO JOGADOR (AVATAR, PONTOS, RELIGIÃO) ===
-       ======================================================= */
-.player-area {
-    display: flex;
-    border-radius: 10px;
-    border: 2px solid #ffffff0f;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    position: relative;
-}
-
-.player-area.is-empty {
-    justify-content: center;
-    min-height: 110px;
-    border: 2px dashed rgba(230, 238, 246, 0.18);
-    background: rgba(255, 255, 255, 0.015);
-    color: var(--muted);
-}
-
-.player-area.is-empty .points,
-.player-area.is-empty .remove-player,
-.player-area.is-empty .religion-status,
-.player-area.is-empty .player-avatar,
-.player-area.is-empty .religion-badge {
-    display: none !important;
-}
-
-.player-area.is-empty .player-header {
-    justify-content: center;
-}
-
-.player-area.is-empty .player-title {
-    max-width: none;
-    color: var(--muted);
-    cursor: default !important;
-}
-
-.player-area.is-empty .player-stack {
-    min-height: 32px;
-    padding: 4px;
-}
-
-.empty-seat-label {
-    align-self: center;
-    color: rgba(230, 238, 246, 0.34);
-    font-size: 10px;
-    line-height: 1.3;
-    text-align: center;
-}
-
-
-/* Botão Kickar/Remover */
-.points {
-    display: flex;
-    align-items: center;
-    margin-top: 6px;
-    margin-bottom: 6px;
-    justify-content: center;
-}
-
-.remove-player {
-    position: absolute;
-    right: 3px;
-    top: 3px;
-    background: #ff3b3b;
-    width: 12px;
-    height: 12px;
-    color: white;
-    font-size: 0;
-    line-height: 0;
-    border-radius: 50%;
-    border: 1px solid white;
-    cursor: pointer;
-    padding: 0;
-}
-
-.remove-player:hover {
-    background: #ff5555;
-}
-
-
-/* Nome e Foto */
-.player-title {
-    font-weight: 600;
-    margin-bottom: 0px;
-    color: var(--muted);
-}
-
-
-.player-area.local-player .player-title {
-    color: var(--accent);
-    font-weight: 700;
-}
-
-/* Estilo para o cabeçalho que contém Foto, Nome e Religião */
-.player-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    justify-content: center;
-}
-
-/* O Avatar do jogador já possui um tamanho definido */
-.player-avatar {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 2px solid #1e90ff;
-    object-fit: cover;
-}
-
-
-/* Novo Badge de Religião circular */
-.religion-badge {
-    width: 40px;
-    /* Mesmo tamanho do avatar para manter simetria */
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.3s;
-    object-fit: contain;
-    background: rgba(0, 0, 0, 0.4);
-    /* Fundo sutil para destacar o ícone */
-    ;
-    border: 2px solid #1e90ff;
-}
-
-.religion-badge:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-}
-
-
-
-
-/* =======================================================
-       === 7. ÁREAS ESPECIAIS (ASILO, DECK, CEMITÉRIO) ===
-       ======================================================= */
-
-
-/* Deck Principal */
-.deck-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 8px;
-    border-radius: 12px;
-    border: 2px var(--accent) solid;
-    background: var(--panel);
-}
-
-.deck {
-    width: 72px;
-    height: 107px;
-    border-radius: 7px;
-    border: 3px solid #3b5998;
-    cursor: pointer;
-    background-image: url('../assets/img/cards/base/back.png');
-    background-size: cover;
-    background-position: center;
-    text-indent: -9999px;
-    overflow: hidden;
-}
-
-.pile-info {
-    margin: 0px !important;
-    display: flex;
-    gap: 4px;
-    align-items: center;
-    text-align: center;
-}
-
-/* Asilo */
-.asylum-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 18px;
-    border-radius: 10px;
-    border: 2px solid var(--accent2);
-    background: var(--panel);
-    text-align: center;
-}
-
-.asylum-area .muted {
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.asylum-image {
-    width: 76px;
-    height: 76px;
-    background-image: url('../assets/img/cards/religion/asilo.png');
-    background-size: cover;
-    background-position: center;
-    border-radius: 10px;
-}
-
-.asylum-points {
-    display: flex;
-    align-items: center;
-}
-
-.asylum-points button {
-    background: #f6c204;
-    color: #000;
-    border: 0;
-    cursor: pointer;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    font-size: 24px;
-}
-
-.asylum-points .score {
-    min-width: 28px;
-    text-align: center;
-    color: #fff;
-}
-
-/* Graveyard */
-.graveyard-area {
-    border-radius: 10px;
-    border: 2px solid #ffffff1f;
-    padding: 18px;
-    min-height: 140px;
-    display: flex;
-    gap: 7px;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: flex-start;
-    background: linear-gradient(180deg, #0000000d, #00000005);
-    text-align: center;
-    position: relative;
-    z-index: 1;
-    overflow: hidden;
-}
-
-.graveyard-label {
-    position: absolute;
-    top: 8px;
-    left: 10px;
-    z-index: 2;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    pointer-events: none;
-}
-
-.graveyard-area::before {
-    content: "";
-    background-image: url('../assets/img/icons/skull.svg');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 30%;
-    opacity: 0.03;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    pointer-events: none;
-}
-
-
-/* Container da imagem do Asilo com suporte a efeitos e interatividade */
-.asylum-image-wrapper {
-    width: 64px;
-    /* Tamanho padrão para telas intermediárias */
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    /* Transição suave para o efeito de brilho */
-}
-
-/* Efeito de brilho dourado suavizado ao passar o mouse */
-.asylum-image-wrapper:hover {
-    transform: scale(1.03);
-    /* Reduzido levemente o aumento de 1.05 para 1.03 */
-    box-shadow: 0 0 12px 2px rgba(255, 185, 44, 0.6);
-    /* Brilho reduzido e com transparência */
-    cursor: pointer;
-}
-
-/* Garante que a imagem preencha o wrapper sem distorções */
-.asylum-image-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-
-
-/* =======================================================
-       === REGRAS PARA O MODO: OCULTAR RELIGIÃO E ASILO ===
-       ======================================================= */
-
-/* Oculta o novo ícone circular quando a configuração de visibilidade está ativa */
-body.hide-religion .religion-badge {
-    display: none !important;
-}
-
-/* Garante que o Asilo também permaneça oculto conforme sua preferência */
-body.hide-religion .asylum-area {
-    display: none !important;
-}
-
-/* 2. Ajusta o layout do wrapper para 1 coluna em TODAS as resoluções
-          quando o Asilo estiver oculto. O Deck ocupará todo o espaço. */
-
-body.hide-religion .decks-wrapper {
-    grid-template-columns: 1fr !important;
-}
-
-/* Ajuste específico para garantir que o Deck não fique esticado demais verticalmente no PC
-       se você quiser manter a proporção, ou pode deixar ele preencher tudo.
-       Aqui garantimos que ele centralize se sobrar espaço. */
-@media (min-width: 1200px) {
-    body.hide-religion .deck-area {
-        width: 100%;
-        box-sizing: border-box;
-    }
-}
-
-/* =======================================================
-       === ESTILOS DE CARTAS E SLOTS ===
-       ======================================================= */
-
-.card {
-    /* --- Estética e Identidade --- */
-    border-radius: 6px;
-    border: 1px solid #3b5898;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-    cursor: grab;
-    user-select: none;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    display: block;
-    text-indent: -9999px;
-    overflow: hidden;
-
-    /* --- Layout e Performance --- */
-    position: relative;
-    will-change: transform;
-    /* Otimiza o uso da GPU para animações fluidas */
-    transition: transform 0.1s ease-out;
-    /* Suaviza a volta da carta e o hover */
-    transform-style: preserve-3d;
-    /* CRÍTICO: Habilita a profundidade real para o efeito Balatro */
-
-    /* IMPORTANTE: Sem o !important para permitir que o JS aplique a rotação no hover */
-    transform: none;
-}
-
-.card:active {
-    cursor: grabbing;
-}
-
-/* Garante que o container tenha perspectiva */
-.player-stack,
-.deck-area,
-.graveyard-area {
-    perspective: 1000px;
-}
-
-
-.card:active {
-    cursor: grabbing;
-}
-
-.card.back {
-    background-image: url('../assets/img/cards/base/back.png');
-    color: transparent
-}
-
-.card .label {
-    padding: 6px;
-    text-align: center;
-    color: #0b0b0b
-}
-
 .card-tooltip {
     position: fixed;
     left: 0;
@@ -872,64 +239,6 @@ body.hide-religion .decks-wrapper {
     opacity: 1;
     transform: translateY(0);
 }
-
-.player-hand {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    padding: 6px;
-}
-
-.player-stack {
-    display: grid;
-    grid-template-columns: repeat(4, auto);
-    justify-content: center;
-    align-items: center;
-    padding: 6px;
-    width: 100%;
-    gap: 4px;
-}
-
-.points .plus,
-.points .minus {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 0;
-    background: #f6c204;
-    color: #000;
-    cursor: pointer;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    font-size: 24px;
-}
-
-.points .score {
-    min-width: 28px;
-    text-align: center;
-    color: #fff;
-}
-
-.muted {
-    color: var(--muted);
-    font-size: 10px
-}
-
-.slot {
-    /* width: 96px;
-    height: 136px; */
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center
-}
-
-
 
 /* =======================================================
        === MODAIS, OVERLAYS E MENUS ===
@@ -1463,405 +772,6 @@ body.hide-religion .decks-wrapper {
 
 
 /* =======================================================
-       === EFEITOS VISUAIS (3D E BALATRO) ===
-       ======================================================= */
-.balatro-effect {
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-    will-change: transform, box-shadow;
-    transform-style: preserve-3d;
-}
-
-.deck-area,
-.card-slot,
-.card-dropzone,
-.hand {
-    perspective: 600px;
-}
-
-
-/* =======================================================
-       === EFEITO DE ARRASTAR (FLUTUANTE) ===
-       ======================================================= */
-.card.lifting {
-    transform: scale(1.15) rotate(5deg) !important;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6) !important;
-    cursor: grabbing !important;
-    z-index: 9999;
-}
-
-.card.is-dragging {
-    opacity: 0.1 !important;
-    transform: scale(0.9) !important;
-    box-shadow: none !important;
-}
-
-
-
-/* ////////////////////////////////////////////////////////////////////////////////// */
-
-
-
-
-/* --- BASE DO MODO COMPACTO (Compartilhado por todas as telas < 1200px) --- */
-@media (max-width: 1199px) {
-    .container {
-        padding: 4px;
-        max-width: 100%;
-    }
-
-
-    /* Áreas do Jogador */
-    .player-area {
-        min-height: 80px;
-        padding: 4px;
-    }
-
-    .player-area.is-empty {
-        min-height: 80px;
-    }
-
-    .player-title {
-        font-size: 10px !important;
-        line-height: 10px;
-        margin-bottom: 0 !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 60px;
-    }
-
-    .player-header {
-        gap: 4px;
-        margin-bottom: 0;
-    }
-
-    .player-avatar {
-        width: 18px;
-        height: 18px;
-    }
-
-    .religion-badge {
-        width: 18px;
-        height: 18px;
-    }
-
-    /* Cartas e Slots */
-    .card,
-    .slot {
-        width: 40px;
-        height: 56px;
-    }
-
-    .slot {
-        border-radius: 7px;
-    }
-
-    .player-stack {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, 40px);
-        justify-content: center;
-        gap: 6px;
-        padding: 2px;
-    }
-
-    /* Controles e Religião */
-    .points {
-        margin-top: 2px !important;
-        margin-bottom: 5px !important;
-    }
-
-    .points .plus,
-    .points .minus {
-        width: 16px;
-        height: 16px;
-        font-size: 20px;
-    }
-
-
-    /* Rodapé e Decks */
-    .decks-wrapper {
-        gap: 4px;
-        margin-top: 0;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-    }
-
-    .asylum-area {
-        padding: 4px;
-        gap: 4px;
-        border-width: 2px;
-        min-height: 80px;
-        justify-content: center;
-    }
-
-    .asylum-points button {
-        width: 16px;
-        height: 16px;
-        font-size: 20px;
-    }
-
-    .asylum-image-wrapper {
-        width: 44px;
-        height: 44px;
-        border-radius: 6px;
-    }
-
-    .deck {
-        width: 46px;
-        height: 68px;
-        border: 2px solid #3b5998;
-    }
-
-    #deck-count {
-        font-size: 10px;
-    }
-
-    /* Cemitério */
-    .graveyard-area {
-        min-height: 70px;
-        padding: 4px;
-        gap: 2px;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .graveyard-area .muted,
-    .asylum-area .muted,
-    .pile-info {
-        font-size: 8px;
-        line-height: 10px;
-        margin: 0;
-    }
-
-}
-
-
-
-/* --- REGRAS EXCLUSIVAS POR TAMANHO DE TELA --- */
-
-/* Telas Mínimas (< 292px) */
-@media (max-width: 292px) {
-    .player-hands-container {
-        grid-template-columns: 1fr;
-        gap: 4px;
-    }
-
-    .top-row {
-        --control-button-size: 28px;
-        --control-icon-size: 16px;
-        --control-radius: 6px;
-    }
-
-    /* Ajuste específico para o slider de volume não quebrar o layout */
-    #volumeSlider,
-    #effectsVolumeSlider {
-        width: 40px !important;
-    }
-
-    .setting-row {
-        font-size: 14px;
-    }
-}
-
-/* Mobile Padrão (292px - 479px) */
-@media (min-width: 292px) and (max-width: 479px) {
-    .player-hands-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 4px;
-    }
-
-    .top-row {
-        --control-button-size: 29px;
-        --control-icon-size: 16px;
-        --control-radius: 6px;
-    }
-
-    /* Ajuste específico para o slider de volume não quebrar o layout */
-    #volumeSlider,
-    #effectsVolumeSlider {
-        width: 40px !important;
-    }
-
-    .setting-row {
-        font-size: 14px;
-    }
-
-    .icon-btn {
-        padding: 8px 4px;
-    }
-}
-
-/* Tablets e Celulares Grandes (480px - 768px) */
-@media (min-width: 480px) and (max-width: 768px) {
-    .player-hands-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 4px;
-    }
-
-    .top-row {
-        --control-button-size: 30px;
-        --control-icon-size: 17px;
-        --control-radius: 7px;
-    }
-}
-
-/* Laptop Pequeno / Telas Médias (769px - 1200px) */
-@media (min-width: 769px) and (max-width: 1200px) {
-    .player-hands-container {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 4px;
-    }
-
-    .top-row {
-        --control-button-size: 30px;
-        --control-icon-size: 17px;
-        --control-radius: 7px;
-    }
-
-    .decks-wrapper {
-        margin-top: 0px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 280px;
-        gap: 4px;
-    }
-
-    .center-area {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-}
-
-
-
-
-/* ////////////////////////////////////////////////////////////////////// */
-
-
-/* =======================================================
-       === VERSÃO PC OTIMIZADA (TELAS > 1200px) ===
-       ======================================================= */
-
-@media (min-width: 1200px) {
-
-    .vignette {
-        /* O gradiente: transparente no centro, preto (ou azul escuro) nas bordas */
-        background: radial-gradient(circle, transparent 50%, rgba(0, 0, 0, 0.5) 100%);
-    }
-
-    /* --- 1. ESTRUTURA GLOBAL --- */
-    .container {
-        max-width: 90vw;
-        padding: 5px;
-    }
-
-    /* --- 2. GRID DE JOGADORES (4 COLUNAS) --- */
-    .player-hands-container {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-    }
-
-    .player-area {
-        min-height: 110px;
-        padding: 5px;
-    }
-
-    .player-avatar {
-        width: 28px;
-        height: 28px;
-    }
-
-    .religion-badge {
-        width: 28px;
-        height: 28px;
-    }
-
-    .player-title {
-        font-size: 12px;
-    }
-
-    /* --- 3. CARTAS E SLOTS --- */
-    .card,
-    .slot,
-    .card.small,
-    .slot.small {
-        width: 55px;
-        height: 76px;
-    }
-
-    .card {
-        border-radius: 8px;
-        border: 2px solid #3b5898;
-    }
-
-    .player-stack {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        padding: 6px;
-        width: 100%;
-        gap: 7px;
-    }
-
-
-    /* --- 5. ÁREA CENTRAL E TABULEIRO INFERIOR --- */
-    .center-area {
-        gap: 8px;
-    }
-
-    /* Cemitério */
-    .graveyard-area {
-        min-height: 110px;
-        align-content: center;
-        justify-content: center;
-    }
-
-    .graveyard-area::before {
-        background-size: 14%;
-    }
-
-    /* Decks e Asilo */
-    .decks-wrapper {
-        margin-top: 0;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        width: 280px;
-    }
-
-
-    .asylum-area,
-    .deck-area {
-        min-height: 110px;
-        padding: 8px;
-        justify-content: center;
-    }
-
-    .deck {
-        width: 66px;
-        height: 94px;
-        border-radius: 10px;
-        border: 3px solid #3b5998;
-    }
-
-    .asylum-image-wrapper {
-        width: 60px;
-        height: 60px;
-    }
-
-    /* No seu style.css */
-    .player-hands-container {
-        display: grid;
-        transition: grid-template-columns 0.3s ease;
-        /* Suaviza a mudança de layout */
-    }
-}
-
-/* =======================================================
    === AJUSTES RESPONSIVOS DO MODAL DE CONFIGURACOES ===
    ======================================================= */
 
@@ -2031,7 +941,15 @@ body.hide-religion .decks-wrapper {
     --table-shadow: 0 10px 22px rgba(0, 0, 0, 0.3);
 }
 
+.muted {
+    color: var(--muted);
+    font-size: 10px;
+}
+
 .container.prototype-scroll {
+    position: relative;
+    z-index: 1;
+    display: block;
     width: 100%;
     max-width: none;
     min-height: 100dvh;
@@ -2085,12 +1003,18 @@ body.hide-religion .decks-wrapper {
 
 .game-table .controls button,
 .game-table .room-controls button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 38px;
     height: 38px;
     padding: 0;
     border: 0;
     border-radius: 7px;
     background: var(--panel);
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .game-table .controls button:hover,
@@ -2104,8 +1028,12 @@ body.hide-religion .decks-wrapper {
 
 .game-table .controls button img,
 .game-table .room-controls button img {
+    display: block;
     width: 22px;
     height: 22px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    pointer-events: none;
 }
 
 .game-table .center-area {
@@ -2182,6 +1110,36 @@ body.hide-religion .decks-wrapper {
     box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.24), var(--table-shadow);
 }
 
+.game-table .player-area.is-empty .points,
+.game-table .player-area.is-empty .remove-player,
+.game-table .player-area.is-empty .religion-status,
+.game-table .player-area.is-empty .player-avatar,
+.game-table .player-area.is-empty .religion-badge {
+    display: none !important;
+}
+
+.game-table .remove-player {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 12px;
+    height: 12px;
+    padding: 0;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    background: #ff3b3b;
+    color: #fff;
+    font-size: 0;
+    line-height: 0;
+    cursor: pointer;
+}
+
+.game-table .remove-player:hover,
+.game-table .remove-player:focus-visible {
+    background: #ff5555;
+    outline: 0;
+}
+
 .game-table .religion-status {
     display: none;
 }
@@ -2208,6 +1166,15 @@ body.hide-religion .decks-wrapper {
 
 .game-table .religion-badge {
     object-fit: contain;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.game-table .religion-badge:hover,
+.game-table .religion-badge:focus-visible {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    outline: 0;
 }
 
 .game-table .player-title {
@@ -2216,10 +1183,16 @@ body.hide-religion .decks-wrapper {
     overflow: hidden;
     color: var(--text);
     font-size: clamp(12px, 0.9vw, 15px);
+    font-weight: 600;
     line-height: 1.2;
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.game-table .player-area.local-player .player-title {
+    color: var(--accent);
+    font-weight: 700;
 }
 
 .game-table .points,
@@ -2315,6 +1288,7 @@ body.hide-religion .decks-wrapper {
     background-color: #fff;
     background-position: center;
     background-size: cover;
+    background-repeat: no-repeat;
     box-shadow: 0 7px 12px rgba(0, 0, 0, 0.28);
     transform: perspective(900px)
         translateY(calc(var(--card-base-shift) + var(--card-lift)))
@@ -2332,6 +1306,24 @@ body.hide-religion .decks-wrapper {
     position: relative;
     display: block;
     overflow: hidden;
+    cursor: grab;
+    user-select: none;
+    text-indent: -9999px;
+}
+
+.game-table .card:active {
+    cursor: grabbing;
+}
+
+.game-table .card.back {
+    background-image: url('../assets/img/cards/base/back.png');
+    color: transparent;
+}
+
+.game-table .card .label {
+    padding: 6px;
+    color: #0b0b0b;
+    text-align: center;
 }
 
 .game-table .balatro-effect.is-tilting {
@@ -2384,7 +1376,6 @@ body.hide-religion .decks-wrapper {
     text-align: center;
 }
 
-.game-table .special-zone,
 .game-table .graveyard-area,
 .game-table .asylum-area,
 .game-table .deck-area {
@@ -2423,16 +1414,31 @@ body.hide-religion .decks-wrapper {
     text-transform: uppercase;
 }
 
-.game-table .asylum-image-wrapper,
-.game-table .asylum-image {
+.game-table .asylum-image-wrapper {
     width: 72px;
     height: 72px;
     margin: 0;
     border-radius: 7px;
 }
 
-.game-table .asylum-image {
-    object-fit: cover;
+.game-table .asylum-image-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.game-table .asylum-image-wrapper:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 12px 2px rgba(255, 185, 44, 0.6);
+    cursor: pointer;
+}
+
+.game-table .asylum-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .game-table .asylum-points {
@@ -2443,16 +1449,24 @@ body.hide-religion .decks-wrapper {
     position: relative;
     cursor: grab;
     text-indent: -9999px;
+    overflow: hidden;
+    background-image: url('../assets/img/cards/base/back.png');
 }
 
-.game-table .deck-total,
+.game-table .pile-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 !important;
+    text-align: center;
+}
+
 .game-table #deck-count {
     color: var(--muted);
     font-size: 10px;
     line-height: 1.2;
 }
 
-.game-table .deck-total strong,
 .game-table #deck-count {
     color: var(--text);
 }
@@ -2479,51 +1493,91 @@ body.hide-religion .decks-wrapper {
     perspective: 900px;
 }
 
-.game-table .graveyard-label {
-    top: 10px;
-    left: 12px;
-    color: var(--muted);
-    font-size: 10px;
-}
-
 .game-table .graveyard-area::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    background-image: url('../assets/img/icons/skull.svg');
+    background-repeat: no-repeat;
+    background-position: center;
     background-size: min(18%, 150px);
+    content: "";
     opacity: 0.025;
+    pointer-events: none;
 }
 
 .game-table .graveyard-card {
-    --card-base-rotation: -3deg;
+    --card-base-rotation: 0deg;
+    --card-base-shift: 0px;
     flex: 0 0 auto;
     width: clamp(54px, 4.6vw, 80px);
     margin-left: var(--graveyard-overlap, clamp(-25px, -1.7vw, -12px));
     border-color: rgba(255, 255, 255, 0.34);
+    box-shadow: none;
 }
 
 .game-table .graveyard-card:first-child {
     margin-left: 0;
 }
 
-.game-table .graveyard-card:nth-of-type(even) {
-    --card-base-shift: 5px;
-    --card-base-rotation: 3deg;
-}
-
-.game-table .graveyard-card:nth-of-type(3n) {
-    --card-base-shift: -4px;
-    --card-base-rotation: -1deg;
+.game-table .graveyard-card.balatro-effect.is-tilting {
+    box-shadow: none;
 }
 
 .game-table .table-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
     z-index: 18;
     gap: 13px;
     width: fit-content;
     max-width: 100%;
     margin: 0 auto;
     padding: 6px 12px;
+    border: 1px solid rgba(230, 238, 246, 0.24);
     border-radius: 7px;
     background: rgba(17, 25, 35, 0.96);
     color: var(--muted);
     font-size: 12px;
+    line-height: 1.2;
+}
+
+.game-table .status-room {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    cursor: pointer;
+}
+
+.game-table .status-room:active {
+    transform: scale(0.98);
+}
+
+.game-table .status-room strong {
+    color: var(--coin);
+}
+
+.game-table .table-status span strong {
+    color: var(--text);
+}
+
+.game-table .table-status.copied {
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(30, 144, 255, 0.24);
+}
+
+.game-table .table-status.copied .status-room {
+    color: var(--accent);
+}
+
+body.hide-religion .game-table .religion-badge,
+body.hide-religion .game-table .asylum-area {
+    display: none !important;
 }
 
 body.hide-religion .game-table .center-area {
@@ -2663,8 +1717,7 @@ body.hide-religion .game-table .center-area {
         border-width: 1px;
     }
 
-    .game-table .asylum-image-wrapper,
-    .game-table .asylum-image {
+    .game-table .asylum-image-wrapper {
         width: var(--tablet-asylum-size);
         height: var(--tablet-asylum-size);
         border-radius: 6px;
@@ -2803,7 +1856,7 @@ body.hide-religion .game-table .center-area {
     }
 
     .game-table .graveyard-area {
-        min-height: 100px;
+        min-height: 80px;
         padding: 8px 10px;
         box-shadow: none;
     }
@@ -2818,13 +1871,11 @@ body.hide-religion .game-table .center-area {
 
     .game-table .asylum-area .muted,
     .game-table .zone-title,
-    .game-table .deck-total,
     .game-table #deck-count {
         font-size: 8px;
     }
 
-    .game-table .asylum-image-wrapper,
-    .game-table .asylum-image {
+    .game-table .asylum-image-wrapper {
         width: 44px;
         height: 44px;
     }
