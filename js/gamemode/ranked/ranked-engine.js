@@ -32,6 +32,8 @@
             pendingLoss: null,
             pendingExchange: null,
             pendingExamine: null,
+            matchStats: {},
+            readyCountdownStartedAt: null,
             winnerUid: null
         };
     }
@@ -43,6 +45,8 @@
         state.deck = Array.isArray(state.deck) ? state.deck : [];
         state.discard = Array.isArray(state.discard) ? state.discard : [];
         state.log = Array.isArray(state.log) ? state.log : [];
+        state.matchStats = state.matchStats && typeof state.matchStats === 'object' ? state.matchStats : {};
+        state.readyCountdownStartedAt = state.readyCountdownStartedAt || null;
         Object.values(state.players).forEach((player) => {
             player.influences = Array.isArray(player.influences) ? player.influences : [];
             player.coins = Number.isFinite(Number(player.coins)) ? Number(player.coins) : SETTINGS.startingCoins;
@@ -83,6 +87,33 @@
         return state.turnOrder?.[state.turnIndex] || null;
     }
 
+    function createPlayerMatchStats() {
+        return {
+            actions: 0,
+            bluffs: 0,
+            challenges: 0,
+            successfulChallenges: 0,
+            failedChallenges: 0,
+            coups: 0,
+            assassinations: 0,
+            steals: 0,
+            coinsStolen: 0
+        };
+    }
+
+    function ensureMatchStats(state, uid) {
+        normalizeState(state);
+        state.matchStats[uid] = {
+            ...createPlayerMatchStats(),
+            ...(state.matchStats[uid] || {})
+        };
+        return state.matchStats[uid];
+    }
+
+    function playerHasHiddenRole(player, role) {
+        return Boolean(player?.influences?.some((card) => !card.revealed && card.role === role));
+    }
+
     function nextFreeSeat(state) {
         const occupied = new Set(getPlayers(state).map((player) => player.seat));
         for (let seat = 1; seat <= SETTINGS.maxPlayers; seat += 1) {
@@ -100,6 +131,7 @@
             existing.connected = true;
             existing.name = user.name || existing.name;
             existing.photo = user.photo || existing.photo;
+            updateReadyCountdown(state, now);
             state.updatedAt = now;
             return state;
         }
@@ -122,6 +154,7 @@
             joinedAt: now
         };
         addLog(state, `${state.players[user.uid].name} entrou na sala.`, 'system', now);
+        updateReadyCountdown(state, now);
         state.updatedAt = now;
         return state;
     }
@@ -141,6 +174,7 @@
         const name = state.players[uid].name;
         delete state.players[uid];
         addLog(state, `${name} saiu da sala.`, 'system', now);
+        updateReadyCountdown(state, now);
         state.updatedAt = now;
         return state;
     }
@@ -153,25 +187,56 @@
         pruneDisconnectedWaitingPlayers(state, uid, now);
         player.ready = !player.ready;
         addLog(state, `${player.name} ${player.ready ? 'esta pronto' : 'cancelou a prontidao'}.`, 'system', now);
+        updateReadyCountdown(state, now);
         state.updatedAt = now;
-        maybeStart(state, now, random);
         return state;
     }
 
     function pruneDisconnectedWaitingPlayers(state, preservedUid, now) {
         if (state.status !== PHASES.WAITING) return;
+        let pruned = false;
         Object.values(state.players || {}).forEach((player) => {
             if (player.uid !== preservedUid && player.connected === false) {
                 delete state.players[player.uid];
+                pruned = true;
                 addLog(state, `${player.name} deixou a sala antes do inicio.`, 'system', now);
             }
         });
+        if (pruned) updateReadyCountdown(state, now);
+    }
+
+    function arePlayersReadyToStart(state) {
+        const players = getPlayers(state);
+        return players.length >= SETTINGS.minPlayers && players.every((player) => player.ready);
+    }
+
+    function updateReadyCountdown(state, now = Date.now()) {
+        if (state.status !== PHASES.WAITING) return false;
+        if (!arePlayersReadyToStart(state)) {
+            state.readyCountdownStartedAt = null;
+            state.deadline = null;
+            return false;
+        }
+
+        if (!state.readyCountdownStartedAt) {
+            state.readyCountdownStartedAt = now;
+            state.deadline = now + SETTINGS.readyCountdownSeconds * 1000;
+            addLog(state, `Todos estao prontos. A partida comeca em ${SETTINGS.readyCountdownSeconds} segundos.`, 'system', now);
+        }
+        return true;
     }
 
     function maybeStart(state, now = Date.now(), random = Math.random) {
         normalizeState(state);
         const players = getPlayers(state);
-        if (players.length < SETTINGS.minPlayers || players.some((player) => !player.ready)) return false;
+        if (!arePlayersReadyToStart(state)) {
+            updateReadyCountdown(state, now);
+            return false;
+        }
+        if (!state.deadline || now < state.deadline) {
+            updateReadyCountdown(state, now);
+            return false;
+        }
 
         state.deck = Rules.createDeck(random);
         state.discard = [];
@@ -179,12 +244,17 @@
         state.turnIndex = 0;
         state.turnNumber = 1;
         state.winnerUid = null;
+        state.startedAt = now;
+        state.finishedAt = null;
+        state.matchStats = {};
+        state.readyCountdownStartedAt = null;
 
         players.forEach((player) => {
             player.coins = SETTINGS.startingCoins;
             player.eliminated = false;
             player.ready = false;
             player.influences = [];
+            ensureMatchStats(state, player.uid);
             for (let index = 0; index < SETTINGS.startingInfluences; index += 1) {
                 const card = state.deck.pop();
                 player.influences.push({ ...card, revealed: false });
@@ -229,8 +299,13 @@
         validateTurnAction(state, uid, actionType, targetUid);
         const action = Rules.getAction(actionType);
         const actor = getPlayer(state, uid);
+        const actorStats = ensureMatchStats(state, uid);
 
         if (action.cost > 0) actor.coins -= action.cost;
+        actorStats.actions += 1;
+        if (action.claim && !playerHasHiddenRole(actor, action.claim)) {
+            actorStats.bluffs += 1;
+        }
 
         state.pendingAction = {
             id: `rank-action-${state.turnNumber}-${now}`,
@@ -316,14 +391,18 @@
 
         const actor = getPlayer(state, pending.actorUid);
         const truthfulCard = actor.influences.find((card) => !card.revealed && card.role === pending.claim);
+        const challengerStats = ensureMatchStats(state, challengerUid);
+        challengerStats.challenges += 1;
         addLog(state, `${getPlayer(state, challengerUid).name} contestou ${actor.name}.`, 'challenge', now);
 
         if (truthfulCard) {
+            challengerStats.failedChallenges += 1;
             replaceProvenInfluence(state, actor.uid, truthfulCard.id);
             pending.claimConfirmed = true;
             scheduleLoss(state, challengerUid, 'Contestacao incorreta.', 'resume-action', now);
             addLog(state, `${actor.name} provou ter ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
         } else {
+            challengerStats.successfulChallenges += 1;
             scheduleLoss(state, actor.uid, 'Blefe contestado.', 'cancel-action', now);
             addLog(state, `${actor.name} nao tinha ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
         }
@@ -366,13 +445,17 @@
 
         const blocker = getPlayer(state, block.uid);
         const truthfulCard = blocker.influences.find((card) => !card.revealed && card.role === block.claim);
+        const challengerStats = ensureMatchStats(state, challengerUid);
+        challengerStats.challenges += 1;
         addLog(state, `${getPlayer(state, challengerUid).name} contestou o bloqueio de ${blocker.name}.`, 'challenge', now);
 
         if (truthfulCard) {
+            challengerStats.failedChallenges += 1;
             replaceProvenInfluence(state, blocker.uid, truthfulCard.id);
             scheduleLoss(state, challengerUid, 'Contestacao incorreta do bloqueio.', 'accept-block', now);
             addLog(state, `${blocker.name} provou o bloqueio.`, 'challenge-result', now);
         } else {
+            challengerStats.successfulChallenges += 1;
             scheduleLoss(state, blocker.uid, 'Bloqueio blefado.', 'execute-action', now);
             addLog(state, `${blocker.name} blefou o bloqueio.`, 'challenge-result', now);
         }
@@ -472,12 +555,19 @@
                 const amount = Math.min(2, target.coins);
                 target.coins -= amount;
                 actor.coins += amount;
+                if (amount > 0) {
+                    const stats = ensureMatchStats(state, actor.uid);
+                    stats.steals += 1;
+                    stats.coinsStolen += amount;
+                }
                 addLog(state, `${actor.name} roubou ${amount} moeda(s) de ${target.name}.`, 'action-result', now);
                 endTurn(state, now);
                 break;
             }
             case ACTIONS.COUP:
             case ACTIONS.ASSASSINATE:
+                if (pending.type === ACTIONS.COUP) ensureMatchStats(state, actor.uid).coups += 1;
+                if (pending.type === ACTIONS.ASSASSINATE) ensureMatchStats(state, actor.uid).assassinations += 1;
                 scheduleLoss(
                     state,
                     target.uid,
@@ -595,6 +685,7 @@
         state.status = PHASES.FINISHED;
         state.phase = PHASES.FINISHED;
         state.winnerUid = alive[0].uid;
+        state.finishedAt = now;
         state.deadline = null;
         state.pendingAction = null;
         state.pendingLoss = null;
@@ -605,9 +696,43 @@
         return true;
     }
 
+    function buildMatchResults(state, now = Date.now()) {
+        normalizeState(state);
+        const winnerUid = state.winnerUid || null;
+        const endedAt = state.finishedAt || now;
+        const players = {};
+
+        getPlayers(state).forEach((player) => {
+            const stats = ensureMatchStats(state, player.uid);
+            players[player.uid] = {
+                uid: player.uid,
+                name: player.name || 'Jogador',
+                photo: player.photo || '',
+                seat: player.seat,
+                won: player.uid === winnerUid,
+                eliminated: Boolean(player.eliminated),
+                matchStats: { ...stats }
+            };
+        });
+
+        return {
+            schemaVersion: 1,
+            winnerUid,
+            playerCount: Object.keys(players).length,
+            startedAt: state.startedAt || state.createdAt || endedAt,
+            endedAt,
+            turnNumber: state.turnNumber || 0,
+            players
+        };
+    }
+
     function advanceExpired(state, now = Date.now()) {
         normalizeState(state);
-        if (!state.deadline || now < state.deadline || state.status !== 'active') return false;
+        if (!state.deadline || now < state.deadline || ![PHASES.WAITING, 'active'].includes(state.status)) return false;
+
+        if (state.status === PHASES.WAITING) {
+            return maybeStart(state, now);
+        }
 
         if (state.phase === PHASES.TURN) {
             const activeUid = getActiveUid(state);
@@ -662,7 +787,8 @@
         getPlayer,
         getActiveUid,
         getBlockClaimsForPlayer,
-        countInfluences
+        countInfluences,
+        buildMatchResults
     });
 });
 

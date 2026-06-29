@@ -93,7 +93,8 @@ Preserve:
 - Host e determinado por `salas/{roomCode}/hostUID`.
 - Sala sem `mode` e casual; sala ranqueada exige conta Google, baralho padrao e nao permite bots.
 - O ranqueado nao possui host ou controles administrativos. Todos os clientes passam pelo mesmo motor de regras.
-- Nao grave rating confiavel enquanto influencias secretas e transicoes puderem ser lidas/escritas diretamente pelo cliente.
+- O ranqueado agenda uma contagem de 5 segundos depois que todos estao prontos antes de iniciar a partida.
+- `rankedStats/{uid}` e `rankedResults/{roomCode}` existem para perfil/estatisticas beta, mas nao trate como rating confiavel enquanto influencias secretas e transicoes puderem ser lidas/escritas diretamente pelo cliente.
 
 ## Ao Adicionar Carta
 

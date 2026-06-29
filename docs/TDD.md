@@ -616,6 +616,13 @@ O campo `status` existe no dado inicial da sala, mas nao e usado como estado de 
 
 O campo `grave` existe no estado inicial e reset, mas o cemiterio visual usa `freeCards`. No codigo atual, "cemiterio" e "area livre" sao semanticamente misturados.
 
+O modo ranqueado tambem grava agregados fora da sala:
+
+- `rankedResults/{roomCode}`: resultado imutavel client-side de uma sala finalizada, usado para evitar contabilizar a mesma partida mais de uma vez.
+- `rankedStats/{uid}`: estatisticas acumuladas do jogador exibidas no modal de perfil do lobby, incluindo jogos, vitorias, derrotas, taxa de vitoria, sequencias, score ranqueado, desafios, assassinatos, golpes, roubos e progresso inicial de conquistas.
+
+Esses agregados ainda sao escritos por clientes autenticados. Eles servem como fundacao de produto para perfil e classificacao, mas nao devem ser tratados como rating competitivo confiavel sem Security Rules mais restritivas e/ou backend autoritativo.
+
 ### 8.2 `gameState.deck`
 
 Array de cartas ocultas no baralho.
@@ -1052,6 +1059,8 @@ Regras atuais:
 - redireciona primeiro para `ranked-waiting.html`, sem carregar `gameState.js` ou `board-renderer.js`;
 - nao possui host, administrador, bots, reset manual ou configuracao de baralho;
 - desenha seis lugares na sala de espera e inicia automaticamente com 2 a 6 jogadores quando todos marcam pronto;
+- exibe QR Code de convite na sala de espera, apontando para `ranked-waiting.html?room={codigo}`;
+- antes de iniciar, agenda uma contagem de 5 segundos para evitar que a sala comece instantaneamente por clique impulsivo em "Estou pronto";
 - quando o estado sai de `waiting`, `ranked-waiting.html` redireciona para `ranked.html`, que renderiza apenas a mesa ativa, as acoes e o registro oficial;
 - usa cinco copias de Duque, Capitao, Assassino, Condessa, Embaixador e Inquisidor;
 - obriga Golpe de Estado quando o jogador possui 10 moedas ou mais;
@@ -1094,8 +1103,13 @@ rankedState: {
   pendingLoss: null,
   pendingExchange: null,
   pendingExamine: null,
+  matchStats: {},
+  readyCountdownStartedAt: null,
   deadline: 0,
   winnerUid: null,
+  startedAt: 0,
+  finishedAt: 0,
+  statsCommittedAt: 0,
   log: []
 }
 ```
@@ -1107,9 +1121,10 @@ Integridade e limite desta fase:
 - transacoes reduzem conflitos acidentais, mas nao substituem validacao autoritativa;
 - as influencias secretas ficam no Realtime Database e podem ser inspecionadas por um cliente modificado;
 - sem Security Rules especificas e backend confiavel, um cliente malicioso ainda pode escrever estado invalido;
-- por isso vitorias, derrotas, rating, matchmaking e leaderboard ainda nao sao persistidos.
+- vitorias, derrotas e estatisticas ranqueadas agora sao persistidas em `rankedStats/{uid}` por clientes autenticados, mas ainda nao representam rating competitivo confiavel;
+- matchmaking e leaderboard mundial ainda nao foram implementados.
 
-Antes de ativar pontuacao competitiva real, mover validacao e informacao secreta para Cloud Functions, servidor proprio ou outro componente autoritativo, além de versionar regras do Firebase.
+Antes de ativar pontuacao competitiva real, mover validacao, resultado oficial e informacao secreta para Cloud Functions, servidor proprio ou outro componente autoritativo, alem de versionar regras do Firebase.
 
 ## 11. Renderizacao do Tabuleiro
 

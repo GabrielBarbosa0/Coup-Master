@@ -42,7 +42,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <link rel="stylesheet" href="css/lobby.css?v=ranked-mode-beta">
+    <link rel="stylesheet" href="css/lobby.css?v=profile-stats">
     <link rel="stylesheet" href="css/loading.css?v=standard-loading">
 </head>
 
@@ -56,7 +56,7 @@
         <h1>Coup Master</h1>
 
         <div id="user-info">
-            <img id="user-photo" src="" alt="Foto">
+            <img id="user-photo" src="" alt="Foto" title="Ver estatísticas" tabindex="0">
 
             <div class="welcome-text">
                 BEM-VINDO,<br> <span id="user-name"></span>!
@@ -111,6 +111,81 @@
         </div>
     </div>
 
+    <div id="playerStatsModal" class="modal-overlay player-stats-modal" style="display: none;">
+        <section class="modal-content player-stats-content" role="dialog" aria-modal="true"
+            aria-labelledby="playerStatsTitle">
+            <button id="closePlayerStatsModalBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+
+            <header class="player-stats-header">
+                <img id="statsPlayerPhoto" src="assets/img/icons/ghost.svg" alt="">
+                <div>
+                    <span class="player-stats-eyebrow">Perfil ranqueado</span>
+                    <h2 id="playerStatsTitle">Estatísticas</h2>
+                    <p id="playerStatsSubtitle">Histórico competitivo do jogador.</p>
+                </div>
+            </header>
+
+            <div id="playerStatsLoading" class="player-stats-loading">Carregando estatísticas...</div>
+
+            <div id="playerStatsBody" class="player-stats-body" hidden>
+                <div class="player-stats-grid">
+                    <div class="player-stat">
+                        <span>Jogos</span>
+                        <strong id="statsGames">0</strong>
+                    </div>
+                    <div class="player-stat">
+                        <span>Vitórias</span>
+                        <strong id="statsWins">0</strong>
+                    </div>
+                    <div class="player-stat">
+                        <span>Derrotas</span>
+                        <strong id="statsLosses">0</strong>
+                    </div>
+                    <div class="player-stat">
+                        <span>Taxa de vitória</span>
+                        <strong id="statsWinRate">0%</strong>
+                    </div>
+                    <div class="player-stat">
+                        <span>Sequência atual</span>
+                        <strong id="statsCurrentStreak">0</strong>
+                    </div>
+                    <div class="player-stat">
+                        <span>Maior sequência</span>
+                        <strong id="statsBestStreak">0</strong>
+                    </div>
+                </div>
+
+                <section class="player-stats-section">
+                    <h3>Identidade de jogo</h3>
+                    <div class="player-style-row">
+                        <span id="statsPlayStyle">Sem estilo definido</span>
+                        <strong id="statsRankScore">0 pts</strong>
+                    </div>
+                    <p id="statsScoreHint">
+                        A pontuação usa o limite inferior do intervalo de confiança de 95% da taxa de vitória.
+                    </p>
+                </section>
+
+                <section class="player-stats-section">
+                    <h3>Precisão e ações</h3>
+                    <div class="player-actions-grid">
+                        <span>Sucesso em desafios <strong id="statsChallengeAccuracy">0%</strong></span>
+                        <span>Desafios vencidos <strong id="statsSuccessfulChallenges">0</strong></span>
+                        <span>Assassinatos <strong id="statsAssassinations">0</strong></span>
+                        <span>Golpes de Estado <strong id="statsCoups">0</strong></span>
+                        <span>Roubos <strong id="statsSteals">0</strong></span>
+                        <span>Blefes detectados <strong id="statsBluffs">0</strong></span>
+                    </div>
+                </section>
+
+                <section class="player-stats-section">
+                    <h3>Conquistas</h3>
+                    <div id="statsAchievements" class="player-achievements"></div>
+                </section>
+            </div>
+        </section>
+    </div>
+
     <div class="vignette"></div>
 
     <div id="font-loader" class="loader-overlay">
@@ -123,7 +198,7 @@
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=ranked-mode-beta" defer></script>
-    <script src="js/lobby/lobby-manager.js" defer></script>
+    <script src="js/lobby/lobby-manager.js?v=profile-stats" defer></script>
 
 </body>
 

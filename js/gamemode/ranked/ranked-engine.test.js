@@ -8,6 +8,14 @@ function createStartedState() {
     Engine.joinPlayer(state, { uid: 'u2', name: 'Bruno', photo: '' }, 1002);
     Engine.toggleReady(state, 'u1', 1003, () => 0.42);
     Engine.toggleReady(state, 'u2', 1004, () => 0.42);
+    Engine.advanceExpired(state, state.deadline + 1);
+    return state;
+}
+
+function createWaitingState() {
+    const state = Engine.createState(1000);
+    Engine.joinPlayer(state, { uid: 'u1', name: 'Alice', photo: '' }, 1001);
+    Engine.joinPlayer(state, { uid: 'u2', name: 'Bruno', photo: '' }, 1002);
     return state;
 }
 
@@ -20,6 +28,23 @@ function testImmediateIncome() {
     Engine.performAction(state, 'u1', Rules.ACTIONS.INCOME, null, 2000);
     assert.equal(state.players.u1.coins, 3);
     assert.equal(Engine.getActiveUid(state), 'u2');
+    assert.equal(state.phase, Rules.PHASES.TURN);
+}
+
+function testReadyCountdownDelaysStart() {
+    const state = createWaitingState();
+    Engine.toggleReady(state, 'u1', 2000);
+    assert.equal(state.status, Rules.PHASES.WAITING);
+    assert.equal(state.deadline, null);
+
+    Engine.toggleReady(state, 'u2', 2100);
+    assert.equal(state.status, Rules.PHASES.WAITING);
+    assert.equal(state.deadline, 2100 + Rules.SETTINGS.readyCountdownSeconds * 1000);
+    assert.equal(Engine.advanceExpired(state, state.deadline - 1), false);
+    assert.equal(state.status, Rules.PHASES.WAITING);
+
+    assert.equal(Engine.advanceExpired(state, state.deadline + 1), true);
+    assert.equal(state.status, 'active');
     assert.equal(state.phase, Rules.PHASES.TURN);
 }
 
@@ -137,7 +162,28 @@ function testInfluenceLossTimeoutNormalizesOldState() {
     assert.equal(Engine.getActiveUid(state), 'u2');
 }
 
+function testMatchStatsTrackActionsAndChallenges() {
+    const state = createStartedState();
+    state.players.u1.influences.forEach((card) => { card.role = Rules.ROLES.CAPTAIN; });
+    Engine.performAction(state, 'u1', Rules.ACTIONS.TAX, null, 2000);
+    Engine.challengeAction(state, 'u2', 2100);
+    const challengeResult = Engine.buildMatchResults(state, 2200);
+    assert.equal(challengeResult.players.u1.matchStats.actions, 1);
+    assert.equal(challengeResult.players.u1.matchStats.bluffs, 1);
+    assert.equal(challengeResult.players.u2.matchStats.challenges, 1);
+    assert.equal(challengeResult.players.u2.matchStats.successfulChallenges, 1);
+
+    const stealState = createStartedState();
+    stealState.players.u1.influences[0].role = Rules.ROLES.CAPTAIN;
+    Engine.performAction(stealState, 'u1', Rules.ACTIONS.STEAL, 'u2', 3000);
+    Engine.passResponse(stealState, 'u2', 3100);
+    const stealResult = Engine.buildMatchResults(stealState, 3200);
+    assert.equal(stealResult.players.u1.matchStats.steals, 1);
+    assert.equal(stealResult.players.u1.matchStats.coinsStolen, 2);
+}
+
 testImmediateIncome();
+testReadyCountdownDelaysStart();
 testSuccessfulChallengeCancelsBluff();
 testFailedChallengeResumesAction();
 testTruthfulBlockCancelsAssassination();
@@ -148,7 +194,8 @@ testMandatoryCoup();
 testBluffedBlockLetsActionContinue();
 testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
+testMatchStatsTrackActionsAndChallenges();
 
-console.log('ranked-engine: 11 testes aprovados');
+console.log('ranked-engine: 13 testes aprovados');
 
 

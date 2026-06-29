@@ -488,6 +488,19 @@ h2 {
     margin-bottom: 10px;
 }
 
+#user-photo {
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+#user-photo:hover,
+#user-photo:focus-visible {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(30, 144, 255, 0.2);
+    outline: 0;
+    transform: translateY(-1px);
+}
+
 .welcome-text {
     display: block;
     margin: 5px 0 15px 0;
@@ -623,6 +636,237 @@ button {
 
 .ranked-mode-note[hidden] {
     display: none;
+}
+
+.player-stats-modal {
+    padding: 22px;
+}
+
+.player-stats-content {
+    width: min(680px, 100%);
+    max-height: min(760px, calc(100dvh - 44px));
+    padding: 26px;
+    overflow-y: auto;
+    border: 1px solid rgba(230, 238, 246, 0.14);
+    background: var(--panel);
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) rgba(255, 255, 255, 0.08);
+}
+
+.player-stats-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.player-stats-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+}
+
+.player-stats-content::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 999px;
+}
+
+.player-stats-header {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.player-stats-header img {
+    flex: 0 0 auto;
+    width: 76px;
+    height: 76px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.player-stats-eyebrow {
+    display: block;
+    margin-bottom: 2px;
+    color: rgba(230, 238, 246, 0.58);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.player-stats-header h2 {
+    margin: 0;
+    text-align: left;
+}
+
+#playerStatsSubtitle {
+    margin: 4px 0 0;
+    color: rgba(230, 238, 246, 0.68);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.player-stats-loading {
+    padding: 28px 12px;
+    color: rgba(230, 238, 246, 0.72);
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.player-stats-body[hidden] {
+    display: none;
+}
+
+.player-stats-grid,
+.player-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.player-stat,
+.player-actions-grid span,
+.player-style-row,
+.achievement-badge {
+    border: 1px solid rgba(230, 238, 246, 0.14);
+    border-radius: 8px;
+    background: #171d26;
+}
+
+.player-stat {
+    display: grid;
+    gap: 6px;
+    min-height: 78px;
+    padding: 14px 10px;
+    place-items: center;
+}
+
+.player-stat span,
+.player-actions-grid span {
+    color: rgba(230, 238, 246, 0.62);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.player-stat strong {
+    color: #ffffff;
+    font-size: 24px;
+}
+
+.player-stats-section {
+    margin-top: 18px;
+    text-align: left;
+}
+
+.player-stats-section h3 {
+    margin: 0 0 10px;
+    color: var(--text);
+    font-size: 14px;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+.player-style-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 54px;
+    padding: 12px 14px;
+}
+
+.player-style-row span {
+    color: var(--text);
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.player-style-row strong {
+    color: #ffc400;
+    white-space: nowrap;
+}
+
+#statsScoreHint {
+    margin: 8px 0 0;
+    color: rgba(230, 238, 246, 0.56);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.player-actions-grid span {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px;
+}
+
+.player-actions-grid strong {
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.player-achievements {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.achievement-badge {
+    display: grid;
+    gap: 4px;
+    min-height: 76px;
+    padding: 12px;
+    opacity: 0.46;
+}
+
+.achievement-badge.is-unlocked {
+    border-color: rgba(30, 144, 255, 0.8);
+    background: rgba(30, 144, 255, 0.1);
+    opacity: 1;
+}
+
+.achievement-badge strong {
+    color: var(--text);
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.achievement-badge small {
+    color: rgba(230, 238, 246, 0.62);
+    font-size: 10px;
+    line-height: 1.35;
+}
+
+@media (max-width: 560px) {
+    .player-stats-modal {
+        padding: 14px;
+    }
+
+    .player-stats-content {
+        padding: 22px 16px;
+    }
+
+    .player-stats-header {
+        align-items: flex-start;
+    }
+
+    .player-stats-header img {
+        width: 58px;
+        height: 58px;
+    }
+
+    .player-stats-grid,
+    .player-actions-grid,
+    .player-achievements {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .player-style-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
 
 input {

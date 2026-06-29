@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/loading.css?v=rank-split-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-split-v1">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=waiting-qr-code-text">
 </head>
 
 <body data-rank-view="waiting">
@@ -36,18 +36,21 @@
             </div>
 
             <div class="rank-waiting-room">
-                <span class="rank-kicker">Sala ranqueada</span>
-                <button id="rankRoomCode" class="rank-room-code" type="button" title="Copiar código da sala">Sala: ----</button>
                 <span id="rankConnectionStatus" class="rank-connection-status">Conectando...</span>
             </div>
         </header>
 
         <section class="rank-waiting-card" aria-live="polite">
             <div>
-                <span class="rank-kicker">Estado da partida</span>
+                <span class="rank-kicker">Sala ranqueada</span>
                 <h1 id="rankPhaseTitle">Aguardando jogadores</h1>
                 <p id="rankPhaseDescription" class="rank-phase-description">Todos os jogadores precisam confirmar prontidão para iniciar.</p>
             </div>
+            <aside class="rank-waiting-invite" aria-label="Convite da sala por QR Code">
+                <button id="rankRoomCode" class="rank-room-code" type="button" title="Copiar código da sala">Sala: ----</button>
+                <img id="rankRoomQr" alt="QR Code para entrar nesta sala ranqueada">
+                <span>Escaneie para entrar</span>
+            </aside>
             <div id="rankInteraction" class="rank-interaction rank-waiting-interaction"></div>
         </section>
 
@@ -73,10 +76,10 @@
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>
-    <script src="js/gamemode/ranked/ranked-rules.js?v=rank-split-v1" defer></script>
-    <script src="js/gamemode/ranked/ranked-engine.js?v=rank-split-v1" defer></script>
-    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-split-v1" defer></script>
-    <script src="js/gamemode/ranked/ranked-game.js?v=rank-split-v1" defer></script>
+    <script src="js/gamemode/ranked/ranked-rules.js?v=waiting-ready-delay" defer></script>
+    <script src="js/gamemode/ranked/ranked-engine.js?v=waiting-ready-delay" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=waiting-qr-code-text" defer></script>
+    <script src="js/gamemode/ranked/ranked-game.js?v=waiting-ready-delay" defer></script>
 </body>
 
 </html>

@@ -11,6 +11,8 @@
     let exchangeSelection = new Set();
     let exchangeKey = '';
     let chatMessages = [];
+    let chatMessagesInitialized = false;
+    let lastSeenChatMessageKey = '';
     let viewMode = 'game';
 
     const quickMessages = [
@@ -39,12 +41,25 @@
     function bindStaticEvents() {
         document.getElementById('leaveRankBtn')?.addEventListener('click', () => controller.leaveRoom());
         document.getElementById('rankRoomCode')?.addEventListener('click', async () => {
+            const codeButton = document.getElementById('rankRoomCode');
             try {
                 await navigator.clipboard.writeText(roomCode);
-                document.getElementById('rankRoomCode').textContent = 'Codigo copiado';
-                window.setTimeout(renderRoomCode, 1000);
+                codeButton?.classList.add('is-copied');
+                if (codeButton) codeButton.textContent = 'Codigo copiado';
+                window.setTimeout(() => {
+                    codeButton?.classList.remove('is-copied');
+                    renderRoomCode();
+                }, 1000);
             } catch (error) {
                 showError('Nao foi possivel copiar o codigo da sala.');
+            }
+        });
+        document.getElementById('rankRoomQr')?.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(getRankedInviteUrl());
+                playRankSfx('pop');
+            } catch (error) {
+                showError('Nao foi possivel copiar o convite da sala.');
             }
         });
         bindModal('rankCharacterActionsBtn', 'rankActionsModal', '#closeRankActionsBtn', resetActionsGuide);
@@ -111,6 +126,21 @@
     function renderRoomCode() {
         const codeButton = document.getElementById('rankRoomCode');
         if (codeButton) codeButton.textContent = `Sala: ${roomCode || '----'}`;
+        renderRoomQr();
+    }
+
+    function getRankedInviteUrl() {
+        const inviteUrl = new URL('ranked-waiting.html', root.location.href);
+        inviteUrl.searchParams.set('room', roomCode || '');
+        return inviteUrl.href;
+    }
+
+    function renderRoomQr() {
+        const qrImage = document.getElementById('rankRoomQr');
+        if (!qrImage || !roomCode) return;
+        const data = encodeURIComponent(getRankedInviteUrl());
+        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=164x164&margin=8&data=${data}`;
+        qrImage.title = 'Clique para copiar o convite da sala';
     }
 
     function setConnectionStatus(message, connected = true) {
@@ -143,6 +173,7 @@
     function renderPlayers() {
         const container = document.getElementById('rankPlayers');
         container.replaceChildren();
+        container.classList.toggle('is-waiting-view', state.status === PHASES.WAITING);
         const bySeat = new Map(Engine.getPlayers(state).map((player) => [player.seat, player]));
         const activeUid = Engine.getActiveUid(state);
 
@@ -151,7 +182,7 @@
             if (!player) {
                 const empty = element('article', 'rank-player-slot is-empty');
                 const emptyText = element('div');
-                emptyText.append(element('strong', '', `Lugar ${seat}`), element('div', 'rank-player-state', 'Aguardando jogador'));
+                emptyText.append(element('strong', '', `Lugar ${seat}`), element('div', 'rank-player-state', 'Disponivel'));
                 empty.append(emptyText);
                 container.append(empty);
                 continue;
@@ -173,14 +204,20 @@
                 element('div', 'rank-player-name', player.name),
                 element('div', 'rank-player-state', getPlayerStateLabel(player, activeUid))
             );
-            const coins = element('div', 'rank-coin-count', `${player.coins} $`);
-            header.append(avatar, identity, coins);
+            header.append(avatar, identity);
 
-            const hand = element('div', 'rank-opponent-hand');
-            (player.influences || []).forEach((card) => {
-                hand.append(createCard(card, player.uid === currentUid || card.revealed));
-            });
-            slot.append(header, hand);
+            if (state.status === PHASES.WAITING) {
+                slot.append(header);
+            } else {
+                const coins = element('div', 'rank-coin-count', `${player.coins} $`);
+                header.append(coins);
+
+                const hand = element('div', 'rank-opponent-hand');
+                (player.influences || []).forEach((card) => {
+                    hand.append(createCard(card, player.uid === currentUid || card.revealed));
+                });
+                slot.append(header, hand);
+            }
             container.append(slot);
         }
     }
@@ -214,8 +251,10 @@
         selectedAction = state.phase === PHASES.TURN ? selectedAction : null;
 
         if (state.status === PHASES.WAITING) {
-            title.textContent = 'Aguardando jogadores';
-            description.textContent = 'A partida comeca automaticamente quando houver pelo menos dois jogadores e todos estiverem prontos.';
+            title.textContent = state.deadline ? 'Começando em instantes' : 'Prepare sua entrada';
+            description.textContent = state.deadline
+                ? 'Todos estao prontos. A mesa abre automaticamente ao fim da contagem.'
+                : 'Convide pelo codigo da sala e confirme prontidao quando todos estiverem preparados.';
             renderWaiting(interaction);
             return;
         }
@@ -262,16 +301,25 @@
     }
 
     function renderWaiting(container) {
-        const list = element('div', 'rank-waiting-list');
-        Engine.getPlayers(state).forEach((player) => {
-            const chip = element('span', `rank-ready-chip${player.ready ? ' is-ready' : ''}`, `${player.name}: ${player.ready ? 'pronto' : 'aguardando'}`);
-            list.append(chip);
-        });
+        const players = Engine.getPlayers(state);
+        const readyCount = players.filter((player) => player.ready).length;
+        const summary = element('div', 'rank-waiting-summary');
+        summary.append(
+            element('span', 'rank-waiting-counter', `${readyCount}/${Math.max(players.length, Rules.SETTINGS.minPlayers)} prontos`),
+            element('span', 'rank-waiting-countdown', getReadyCountdownText())
+        );
+
         const self = Engine.getPlayer(state, currentUid);
         const ready = element('button', self?.ready ? 'rank-secondary-btn' : 'rank-primary-btn', self?.ready ? 'Cancelar prontidao' : 'Estou pronto');
         ready.type = 'button';
         ready.addEventListener('click', () => controller.toggleReady());
-        container.append(list, ready);
+        container.append(summary, ready);
+    }
+
+    function getReadyCountdownText(now = Date.now()) {
+        if (!state?.deadline || state.status !== PHASES.WAITING) return 'Aguardando confirmação';
+        const seconds = Math.max(0, Math.ceil((state.deadline - now) / 1000));
+        return `Iniciando em ${seconds}s`;
     }
 
     function renderTurn(container, activePlayer) {
@@ -497,6 +545,10 @@
 
     function updateClock(now = Date.now()) {
         const timer = document.getElementById('rankTimer');
+        const waitingCountdown = document.querySelector('.rank-waiting-countdown');
+        if (waitingCountdown) {
+            waitingCountdown.textContent = getReadyCountdownText(now);
+        }
         if (!timer) return;
         if (!state?.deadline) {
             timer.textContent = '--';
@@ -513,11 +565,15 @@
         const modal = document.getElementById('chatModal');
         const input = document.getElementById('chatInput');
         chatBtn?.addEventListener('click', () => {
+            if (!modal) return;
             modal.style.display = 'flex';
+            chatBtn.classList.remove('chat-btn-has-unread');
             chatBtn.classList.add('is-chat-open');
+            lastSeenChatMessageKey = getLastChatMessageKey();
             window.setTimeout(() => input?.focus(), 50);
         });
         document.getElementById('closeChatBtn')?.addEventListener('click', () => {
+            if (!modal) return;
             modal.style.display = 'none';
             chatBtn.classList.remove('is-chat-open');
         });
@@ -605,11 +661,51 @@
         sound.play().catch(() => null);
     }
 
+    function getChatMessageKey(message) {
+        if (!message) return '';
+        return String(message.id || message.timestamp || `${message.uid || ''}-${message.text || ''}`);
+    }
+
+    function getLastChatMessageKey() {
+        return getChatMessageKey(chatMessages[chatMessages.length - 1]);
+    }
+
+    function isChatModalOpen() {
+        return document.getElementById('chatModal')?.style.display === 'flex';
+    }
+
+    function updateChatUnreadState(latestMessage) {
+        const latestKey = getChatMessageKey(latestMessage);
+        const chatBtn = document.getElementById('chatBtn');
+
+        if (!chatMessagesInitialized) {
+            lastSeenChatMessageKey = latestKey;
+            chatMessagesInitialized = true;
+            return;
+        }
+
+        if (!latestKey || latestKey === lastSeenChatMessageKey) return;
+
+        if (isChatModalOpen()) {
+            lastSeenChatMessageKey = latestKey;
+            chatBtn?.classList.remove('chat-btn-has-unread');
+            return;
+        }
+
+        if (latestMessage?.uid !== currentUid) {
+            chatBtn?.classList.add('chat-btn-has-unread');
+            playRankSfx('pop');
+        }
+
+        lastSeenChatMessageKey = latestKey;
+    }
+
     function renderChat(messages) {
         chatMessages = messages.slice(-60);
         const list = document.getElementById('chatMessagesList');
         if (!list) return;
         list.replaceChildren();
+        updateChatUnreadState(chatMessages[chatMessages.length - 1]);
         if (chatMessages.length === 0) {
             list.append(element('p', 'chat-empty-message', 'Nenhuma mensagem ainda.'));
             return;

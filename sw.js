@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coup-master-pwa-v40';
+const CACHE_NAME = 'coup-master-pwa-v47';
 
 const APP_SHELL = [
   './',

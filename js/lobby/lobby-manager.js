@@ -11,6 +11,12 @@ const joinRoomBtn = document.getElementById('join-room-btn');
 const createRoomBtn = document.getElementById('create-room-btn');
 const rankedModeInput = document.getElementById('ranked-mode-input');
 const rankedModeNote = document.getElementById('ranked-mode-note');
+const playerStatsModal = document.getElementById('playerStatsModal');
+const closePlayerStatsModalBtn = document.getElementById('closePlayerStatsModalBtn');
+const playerStatsLoading = document.getElementById('playerStatsLoading');
+const playerStatsBody = document.getElementById('playerStatsBody');
+
+let currentLobbyUser = null;
 
 // =======================================================
 // === SISTEMA DE TRATAMENTO DE ERROS (MODAL) ===
@@ -143,12 +149,199 @@ function persistUserSession(user) {
     return { safeName, safePhoto };
 }
 
+function formatPercent(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '0%';
+    return `${Math.round(number * 100)}%`;
+}
+
+function numberValue(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+}
+
+function getDefaultRankedStats(user) {
+    const { safeName, safePhoto } = getUserDisplayData(user || {});
+    return {
+        uid: user?.uid || '',
+        name: safeName,
+        photo: safePhoto,
+        games: 0,
+        wins: 0,
+        losses: 0,
+        winRate: 0,
+        currentWinStreak: 0,
+        bestWinStreak: 0,
+        rankScore: 0,
+        challengeAccuracy: 0,
+        successfulChallenges: 0,
+        challenges: 0,
+        assassinations: 0,
+        coups: 0,
+        steals: 0,
+        bluffs: 0,
+        honestGames: 0
+    };
+}
+
+function getPlayStyle(stats) {
+    if (!numberValue(stats.games)) return 'Sem histórico ranqueado';
+
+    const aggressive = numberValue(stats.coups) + numberValue(stats.assassinations);
+    const tactical = numberValue(stats.steals);
+    const challenger = numberValue(stats.challenges);
+    const bluff = numberValue(stats.bluffs);
+
+    const styles = [
+        { label: 'Executor agressivo', value: aggressive },
+        { label: 'Oportunista tático', value: tactical },
+        { label: 'Caçador de blefes', value: challenger },
+        { label: 'Mestre do blefe', value: bluff }
+    ].sort((left, right) => right.value - left.value);
+
+    if (styles[0].value <= 0) return 'Estrategista prudente';
+    return styles[0].label;
+}
+
+function getAchievements(stats) {
+    return [
+        {
+            title: 'Primeira vitória',
+            description: 'Venceu uma partida ranqueada.',
+            unlocked: numberValue(stats.wins) >= 1
+        },
+        {
+            title: 'Jogador honesto',
+            description: 'Terminou uma partida sem blefar.',
+            unlocked: numberValue(stats.honestGames) >= 1
+        },
+        {
+            title: 'Virada de jogo',
+            description: 'Espaço reservado para uma conquista de recuperação.',
+            unlocked: false
+        },
+        {
+            title: 'Sequência real',
+            description: 'Conquistou 3 vitórias seguidas.',
+            unlocked: numberValue(stats.bestWinStreak) >= 3
+        },
+        {
+            title: 'Mão pesada',
+            description: 'Aplicou 10 Golpes de Estado.',
+            unlocked: numberValue(stats.coups) >= 10
+        },
+        {
+            title: 'Sombra na corte',
+            description: 'Realizou 10 assassinatos.',
+            unlocked: numberValue(stats.assassinations) >= 10
+        }
+    ];
+}
+
+function setText(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+}
+
+function renderAchievements(stats) {
+    const list = document.getElementById('statsAchievements');
+    if (!list) return;
+    list.innerHTML = '';
+
+    getAchievements(stats).forEach((achievement) => {
+        const badge = document.createElement('div');
+        badge.className = `achievement-badge${achievement.unlocked ? ' is-unlocked' : ''}`;
+
+        const title = document.createElement('strong');
+        title.textContent = achievement.title;
+
+        const description = document.createElement('small');
+        description.textContent = achievement.description;
+
+        badge.append(title, description);
+        list.append(badge);
+    });
+}
+
+function renderPlayerStats(stats) {
+    const merged = { ...getDefaultRankedStats(currentLobbyUser), ...(stats || {}) };
+    const photo = document.getElementById('statsPlayerPhoto');
+    const title = document.getElementById('playerStatsTitle');
+    const subtitle = document.getElementById('playerStatsSubtitle');
+
+    if (photo) photo.src = merged.photo || 'assets/img/icons/ghost.svg';
+    if (title) title.textContent = merged.name || 'Estatísticas';
+    if (subtitle) {
+        subtitle.textContent = numberValue(merged.games)
+            ? `${numberValue(merged.games)} jogo(s) ranqueado(s) registrados.`
+            : 'Sem partidas ranqueadas registradas ainda.';
+    }
+
+    setText('statsGames', numberValue(merged.games));
+    setText('statsWins', numberValue(merged.wins));
+    setText('statsLosses', numberValue(merged.losses));
+    setText('statsWinRate', formatPercent(merged.winRate));
+    setText('statsCurrentStreak', numberValue(merged.currentWinStreak));
+    setText('statsBestStreak', numberValue(merged.bestWinStreak));
+    setText('statsPlayStyle', getPlayStyle(merged));
+    setText('statsRankScore', `${numberValue(merged.rankScore)} pts`);
+    setText('statsChallengeAccuracy', formatPercent(merged.challengeAccuracy));
+    setText('statsSuccessfulChallenges', numberValue(merged.successfulChallenges));
+    setText('statsAssassinations', numberValue(merged.assassinations));
+    setText('statsCoups', numberValue(merged.coups));
+    setText('statsSteals', numberValue(merged.steals));
+    setText('statsBluffs', numberValue(merged.bluffs));
+    renderAchievements(merged);
+}
+
+function openPlayerStatsModal() {
+    if (!playerStatsModal || !currentLobbyUser) return;
+    playerStatsModal.style.display = 'flex';
+    if (playerStatsLoading) {
+        playerStatsLoading.hidden = false;
+        playerStatsLoading.textContent = 'Carregando estatísticas...';
+    }
+    if (playerStatsBody) playerStatsBody.hidden = true;
+
+    db.ref(`rankedStats/${currentLobbyUser.uid}`).once('value')
+        .then((snapshot) => {
+            renderPlayerStats(snapshot.val());
+            if (playerStatsLoading) playerStatsLoading.hidden = true;
+            if (playerStatsBody) playerStatsBody.hidden = false;
+        })
+        .catch(() => {
+            renderPlayerStats(null);
+            if (playerStatsLoading) playerStatsLoading.textContent = 'Não foi possível carregar estatísticas.';
+            if (playerStatsBody) playerStatsBody.hidden = false;
+        });
+}
+
+function closePlayerStatsModal() {
+    if (playerStatsModal) playerStatsModal.style.display = 'none';
+}
+
+if (userPhotoImg) {
+    userPhotoImg.addEventListener('click', openPlayerStatsModal);
+    userPhotoImg.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openPlayerStatsModal();
+        }
+    });
+}
+
+closePlayerStatsModalBtn?.addEventListener('click', closePlayerStatsModal);
+playerStatsModal?.addEventListener('click', (event) => {
+    if (event.target === playerStatsModal) closePlayerStatsModal();
+});
+
 /**
  * Observador de estado de autenticação.
  * Atualiza a UI e o sessionStorage sempre que o status do usuário muda.
  */
 auth.onAuthStateChanged(user => {
     if (user) {
+        currentLobbyUser = user;
         // Usuário está Logado: Ajusta visibilidade da interface
         if (userInfoDiv) userInfoDiv.style.display = 'block';
         if (roomActionsDiv) roomActionsDiv.style.display = 'block';
@@ -171,6 +364,7 @@ auth.onAuthStateChanged(user => {
         }
 
     } else {
+        currentLobbyUser = null;
         sessionStorage.removeItem('currentUID');
         sessionStorage.removeItem('currentName');
         sessionStorage.removeItem('currentPhoto');

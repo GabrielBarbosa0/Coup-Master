@@ -35,6 +35,7 @@ const QUICK_CHAT_MESSAGES = [
 let chatMessages = [];
 let chatMessagesInitialized = false;
 let chatListenerReady = false;
+let lastSeenChatMessageKey = '';
 let cardFanLayoutFrame = null;
 
 function calculateAdaptiveFanOverlap(container, items, options) {
@@ -927,6 +928,7 @@ function openChatModal() {
     chatBtn.classList.remove('chat-btn-has-unread');
     chatBtn.classList.add('is-chat-open');
   }
+  lastSeenChatMessageKey = getLastChatMessageKey();
   window.setTimeout(() => chatInput?.focus(), 60);
 }
 
@@ -956,20 +958,52 @@ async function sendChatMessage({ text, type = 'text' }) {
   });
 }
 
+function getChatMessageKey(message) {
+  if (!message) return '';
+  return String(message.id || message.createdAt || `${message.uid || message.actorUid || ''}-${message.text || ''}`);
+}
+
+function getLastChatMessageKey() {
+  return getChatMessageKey(chatMessages[chatMessages.length - 1]);
+}
+
+function isOwnChatMessage(message) {
+  return message?.uid === currentUser?.uid || message?.actorUid === currentUser?.uid;
+}
+
+function isChatModalOpen() {
+  return document.getElementById('chatModal')?.style.display === 'flex';
+}
+
 function setChatMessages(messages = []) {
-  const previousCount = chatMessages.length;
   chatMessages = messages.slice(-60);
   renderChatMessages();
 
-  const chatModal = document.getElementById('chatModal');
   const chatBtn = document.getElementById('chatBtn');
-  if (chatMessagesInitialized
-    && messages.length > previousCount
-    && chatModal?.style.display !== 'flex') {
-    chatBtn?.classList.add('chat-btn-has-unread');
+  const latestMessage = chatMessages[chatMessages.length - 1];
+  const latestKey = getChatMessageKey(latestMessage);
+
+  if (!chatMessagesInitialized) {
+    lastSeenChatMessageKey = latestKey;
+    chatMessagesInitialized = true;
+    return;
   }
 
-  chatMessagesInitialized = true;
+  if (!latestKey || latestKey === lastSeenChatMessageKey) return;
+
+  if (isChatModalOpen()) {
+    lastSeenChatMessageKey = latestKey;
+    chatBtn?.classList.remove('chat-btn-has-unread');
+    return;
+  }
+
+  if (chatMessagesInitialized
+    && !isOwnChatMessage(latestMessage)) {
+    chatBtn?.classList.add('chat-btn-has-unread');
+    if (typeof playSound === 'function') playSound('pop');
+  }
+
+  lastSeenChatMessageKey = latestKey;
 }
 
 function renderChatMessages() {

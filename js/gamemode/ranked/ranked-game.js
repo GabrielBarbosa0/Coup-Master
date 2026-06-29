@@ -11,6 +11,7 @@
     let rankedStateRef = null;
     let presenceDisconnect = null;
     let deadlineAdvancePending = false;
+    let statsCommitPending = false;
 
     function redirectToLobby(message) {
         if (message) sessionStorage.setItem('lobbyError', message);
@@ -126,13 +127,19 @@
             if (redirectIfWrongView(rankedState)) return;
             Renderer.render(rankedState);
             Renderer.setConnectionStatus('Sincronizado');
+            if (rankedState.status === Rules.PHASES.FINISHED) {
+                persistRankedMatchResults(rankedState);
+            }
         }, () => {
             Renderer.setConnectionStatus('Sem conexao', false);
         });
 
         db.ref(`salas/${roomCode}/chatMessages`).limitToLast(60).on('value', (snapshot) => {
             const messages = [];
-            snapshot.forEach((child) => messages.push(child.val()));
+            snapshot.forEach((child) => {
+                const message = child.val();
+                if (message?.text) messages.push({ ...message, id: message.id || child.key });
+            });
             Renderer.renderChat(messages);
         });
     }
@@ -154,6 +161,93 @@
             quick: Boolean(quick),
             timestamp: firebase.database.ServerValue.TIMESTAMP
         }).catch((error) => Renderer.showError(error.message));
+    }
+
+    function calculateWilsonLowerBound(wins, games) {
+        if (!games) return 0;
+        const z = 1.96;
+        const ratio = wins / games;
+        const denominator = 1 + ((z * z) / games);
+        const center = ratio + ((z * z) / (2 * games));
+        const margin = z * Math.sqrt((ratio * (1 - ratio) + ((z * z) / (4 * games))) / games);
+        return Math.max(0, (center - margin) / denominator);
+    }
+
+    function normalizeRankedStats(current, player, result, now) {
+        const previous = current && typeof current === 'object' ? current : {};
+        const match = player.matchStats || {};
+        const games = Number(previous.games || 0) + 1;
+        const wins = Number(previous.wins || 0) + (player.won ? 1 : 0);
+        const losses = Number(previous.losses || 0) + (player.won ? 0 : 1);
+        const currentWinStreak = player.won ? Number(previous.currentWinStreak || 0) + 1 : 0;
+        const bestWinStreak = Math.max(Number(previous.bestWinStreak || 0), currentWinStreak);
+        const successfulChallenges = Number(previous.successfulChallenges || 0) + Number(match.successfulChallenges || 0);
+        const challenges = Number(previous.challenges || 0) + Number(match.challenges || 0);
+        const winRate = games ? wins / games : 0;
+        const challengeAccuracy = challenges ? successfulChallenges / challenges : 0;
+        const wilsonScore = calculateWilsonLowerBound(wins, games);
+
+        return {
+            schemaVersion: 1,
+            uid: player.uid,
+            name: player.name || previous.name || 'Jogador',
+            photo: player.photo || previous.photo || 'assets/img/icons/ghost.svg',
+            games,
+            wins,
+            losses,
+            winRate,
+            currentWinStreak,
+            bestWinStreak,
+            rankScore: Math.round(wilsonScore * 1000),
+            confidenceLowerBound: wilsonScore,
+            actions: Number(previous.actions || 0) + Number(match.actions || 0),
+            bluffs: Number(previous.bluffs || 0) + Number(match.bluffs || 0),
+            honestGames: Number(previous.honestGames || 0) + (Number(match.bluffs || 0) === 0 ? 1 : 0),
+            challenges,
+            successfulChallenges,
+            failedChallenges: Number(previous.failedChallenges || 0) + Number(match.failedChallenges || 0),
+            challengeAccuracy,
+            coups: Number(previous.coups || 0) + Number(match.coups || 0),
+            assassinations: Number(previous.assassinations || 0) + Number(match.assassinations || 0),
+            steals: Number(previous.steals || 0) + Number(match.steals || 0),
+            coinsStolen: Number(previous.coinsStolen || 0) + Number(match.coinsStolen || 0),
+            lastRoomCode: roomCode,
+            lastMatchAt: result.endedAt || now,
+            updatedAt: now
+        };
+    }
+
+    function updatePlayerRankedStats(player, result, now) {
+        return db.ref(`rankedStats/${player.uid}`).transaction((current) => (
+            normalizeRankedStats(current, player, result, now)
+        ));
+    }
+
+    function persistRankedMatchResults(state) {
+        if (statsCommitPending || state.statsCommittedAt || !state.winnerUid) return;
+
+        const now = Date.now();
+        const result = {
+            ...Engine.buildMatchResults(state, now),
+            roomCode,
+            committedBy: currentUser.uid,
+            committedAt: now
+        };
+
+        statsCommitPending = true;
+        db.ref(`rankedResults/${roomCode}`).transaction((current) => {
+            if (current) return;
+            return result;
+        }).then((transactionResult) => {
+            if (!transactionResult.committed) return null;
+            const players = Object.values(result.players || {});
+            return Promise.all(players.map((player) => updatePlayerRankedStats(player, result, now)))
+                .then(() => rankedStateRef?.child('statsCommittedAt').set(now));
+        }).catch((error) => {
+            console.error('Erro ao persistir estatisticas ranqueadas:', error);
+        }).finally(() => {
+            statsCommitPending = false;
+        });
     }
 
     function leaveRoom() {
