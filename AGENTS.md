@@ -12,6 +12,7 @@ Pontos de entrada:
 - `lobby.html`: perfil autenticado, criacao e entrada em salas.
 - `index.html`: tabuleiro do modo casual.
 - `ranked.html`: partida ranqueada com regras automatizadas.
+- `.nojekyll`: desativa o processamento Jekyll no GitHub Pages; mantenha esse arquivo para publicar o app como site estatico puro.
 
 Scripts principais:
 

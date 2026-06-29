@@ -176,6 +176,7 @@ Coup-Master/
     banners/
     screenshots/
   AGENTS.md
+  .nojekyll
   README.md
   index.html
   login.html
