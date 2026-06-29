@@ -965,8 +965,9 @@ button.rank-card {
     }
 
     .rank-waiting-invite {
-        width: 100%;
+        width: min(184px, 100%);
         grid-template-columns: 1fr;
+        justify-self: center;
         justify-items: center;
         min-width: 0;
         gap: 6px;
