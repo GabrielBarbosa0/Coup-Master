@@ -155,10 +155,23 @@ window.openQuickActions = (pid) => {
   quickActionTargetPid = pid;
   const modal = document.getElementById('quickActionsModal');
   const title = document.getElementById('quickActionsTitle');
+  const kickBtn = document.getElementById('quickActionKickBtn');
   const player = localGameState.players[pid];
 
   if (modal && title && player) {
     title.innerText = `Ação contra ${player.name || 'Jogador ' + pid}`;
+
+    if (kickBtn) {
+      const canKick = Boolean(isAdmin && pid !== myPlayerId && (player.uid || player.online));
+      kickBtn.hidden = !canKick;
+      kickBtn.onclick = canKick ? () => {
+        const targetPid = quickActionTargetPid;
+        modal.style.display = 'none';
+        quickActionTargetPid = null;
+        window.kickPlayer?.(targetPid);
+      } : null;
+    }
+
     if (typeof playSound === 'function') playSound('click');
     modal.style.display = 'flex';
   }
@@ -225,6 +238,7 @@ window.executeAction = (type) => {
   // Fecha o modal após qualquer ação processada
   const modal = document.getElementById('quickActionsModal');
   if (modal) modal.style.display = 'none';
+  quickActionTargetPid = null;
 };
 
 
@@ -450,9 +464,6 @@ function renderEmptyPlayerSlot(playerEl, pid) {
   playerEl.style.boxShadow = '';
   playerEl.style.border = '';
 
-  const removeBtn = playerEl.querySelector('.remove-player');
-  if (removeBtn) removeBtn.style.display = 'none';
-
   const title = playerEl.querySelector('.player-title');
   if (title) {
     title.textContent = 'Vazio';
@@ -605,13 +616,6 @@ function renderAll() {
       playerEl.classList.add('local-player');
     }
 
-    // Controle de Moderação: Botão de expulsar (X) visível apenas para o Host
-    const removeBtn = playerEl.querySelector('.remove-player');
-    if (removeBtn) {
-      // Mostra o botão apenas se for Admin E não for o seu próprio slot
-      removeBtn.style.display = (isAdmin && pid !== myPlayerId) ? 'block' : 'none';
-    }
-
     // --- 2.2 CABEÇALHO DO JOGADOR (AVATAR E NOME) ---
     let headerEl = playerEl.querySelector('.player-header');
     if (!headerEl) {
@@ -720,6 +724,7 @@ function renderAll() {
   if (closeQuickActionsBtn) {
     closeQuickActionsBtn.onclick = () => {
       document.getElementById('quickActionsModal').style.display = 'none';
+      quickActionTargetPid = null;
     };
   }
 
@@ -1180,22 +1185,22 @@ function setupUI() {
   // =======================================================
 
   /**
-   * Função global chamada ao clicar no botão 'X' do jogador.
+   * Função global chamada pela ação de remover jogador.
    * Define quem será expulso e abre o modal de confirmação.
    */
   window.kickPlayer = (pid) => {
+    const player = localGameState.players?.[pid];
+    const canKick = Boolean(isAdmin && pid !== myPlayerId && (player?.uid || player?.online));
+    if (!canKick) return;
+
     // Sincroniza com a variável global 'pendingKickPid' do gameState.js
     window.pendingKickPid = pid;
 
     const modal = document.getElementById('kickPlayerModal');
     const text = document.getElementById('kickPlayerText');
 
-    // Busca o nome do jogador no estado local para o texto de confirmação
-    const player = localGameState.players ? localGameState.players[pid] : null;
-
     if (text && player) {
-      // Texto simplificado e direto
-      text.innerText = `Remover ${player.name || 'o Jogador ' + pid}?`;
+      text.innerText = `Tem certeza que deseja remover ${player.name || 'o Jogador ' + pid} da sala?`;
     }
 
     if (modal) {
@@ -1530,8 +1535,6 @@ function setupUI() {
 
   document.querySelectorAll('.player-area').forEach(area => {
     const pid = parseInt(area.dataset.player);
-    const removeBtn = area.querySelector('.remove-player');
-    if (removeBtn) removeBtn.addEventListener('click', () => kickPlayer(pid));
     const religionEl = area.querySelector('.religion-status');
     if (religionEl) religionEl.addEventListener('click', () => toggleReligion(pid));
     area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));

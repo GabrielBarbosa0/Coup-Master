@@ -931,6 +931,7 @@ Acoes:
 - `steal`: exige alvo com pelo menos 2 moedas, tira 2 do alvo e adiciona 2 ao jogador local.
 - `assassinate`: exige 3 moedas do jogador local, deduz 3, dispara `ninja-star`.
 - `tax`: adiciona 3 moedas ao jogador local.
+- `Remover jogador`: aparece apenas para o host ao selecionar outro jogador ocupado e abre o modal de confirmacao de remocao.
 
 Essas acoes alteram moedas e audio, mas nao automatizam perda/revelacao de influencia.
 
@@ -959,21 +960,23 @@ Bot nao executa IA de jogo. E um slot artificial para teste/mesa.
 
 ### 10.15 Kick/Remocao de Jogador
 
-Somente host ve botao de remover em slots que nao sao o proprio host.
+Os slots nao exibem botao permanente de remocao. Somente o host ve a acao `Remover jogador` ao clicar no nome de outro jogador ocupado.
 
 Fluxo:
 
-1. `window.kickPlayer(pid)` guarda `window.pendingKickPid`.
-2. Abre modal de confirmacao.
-3. Confirmar chama `confirmKickAction()`.
-4. Transacao:
+1. O host clica no nome do jogador e abre as acoes rapidas.
+2. A acao de remocao fecha as acoes rapidas e chama `window.kickPlayer(pid)`.
+3. `window.kickPlayer(pid)` valida host, alvo ocupado e impede auto-remocao.
+4. O PID e guardado em `window.pendingKickPid` e o modal de confirmacao e aberto.
+5. Confirmar chama `confirmKickAction()`, que repete as validacoes de host e auto-remocao.
+6. Transacao:
    - devolve cartas da mao ao deck;
    - reseta `owner`, `location`, `visible`;
    - embaralha deck;
    - reseta slot para vazio;
    - score volta para 2;
    - religiao volta por paridade.
-5. Listener de expulsao no cliente removido detecta UID divergente e redireciona.
+7. Listener de expulsao no cliente removido detecta UID divergente e redireciona.
 
 Observacao:
 
@@ -1000,7 +1003,7 @@ Responsabilidades:
 7. Iterar slots 1 a 8.
 8. Manter slots vazios visiveis e sem aceitar cartas.
 9. Marcar jogador local.
-10. Mostrar botao de kick para host.
+10. Disponibilizar remocao para o host nas acoes rapidas de outros jogadores.
 11. Criar header dinamico do jogador se necessario.
 12. Atualizar avatar, nome e clique de acoes rapidas.
 13. Criar/atualizar badge de religiao.

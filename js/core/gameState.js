@@ -470,7 +470,10 @@ function addBot() {
  */
 function confirmKickAction() {
   const pid = window.pendingKickPid; // Usa a variável global
-  if (!pid) return;
+  if (!isAdmin || !pid || pid === myPlayerId) {
+    window.pendingKickPid = null;
+    return;
+  }
 
   // 1. Toca o som de impacto localmente
   if (typeof playSound === 'function') playSound('impact');
