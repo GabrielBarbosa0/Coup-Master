@@ -68,22 +68,28 @@ flowchart LR
   Pages --> Login["login.html + login-manager.js"]
   Pages --> Lobby["lobby.html + lobby-manager.js"]
   Pages --> Game["index.html + gameState.js + board-renderer.js"]
+  Pages --> Ranked["ranked.html + ranked-game.js + ranked-engine.js"]
 
   Auth --> Session["sessionStorage: UID, nome, foto, anonimo"]
   Login --> Auth
   Login --> Session
   Lobby --> Session
   Session --> Game
+  Session --> Ranked
   RTDB --> State["salas/{roomCode}/gameState"]
   State --> Game
   Game --> State
+  RTDB --> RankedState["salas/{roomCode}/rankedState"]
+  RankedState --> Ranked
+  Ranked --> RankedState
 ```
 
 O frontend tem tres paginas principais:
 
 - `login.html`: tela dedicada de autenticacao com Google ou visitante anonimo.
 - `lobby.html`: perfil autenticado, criacao e entrada em salas.
-- `index.html`: tabuleiro principal da partida.
+- `index.html`: tabuleiro do modo casual.
+- `ranked.html`: tela dedicada ao modo ranqueado automatizado.
 
 Os scripts sao carregados como arquivos globais com `defer`. Eles dependem da ordem no HTML, nao de imports ES Modules.
 
@@ -95,6 +101,15 @@ Ordem no tabuleiro:
 4. `js/core/rules.js`: define tipos de carta e utilitarios globais.
 5. `js/core/gameState.js`: conecta sala, Firebase, estado e mutacoes.
 6. `js/gamemode/casual/board-renderer.js`: renderiza DOM e configura interacoes.
+
+Ordem no ranqueado:
+
+1. Firebase CDN e `js/firebase/firebase.js`.
+2. `js/pwa/pwa.js` e `js/gamemode/game-modes.js`.
+3. `js/gamemode/ranked/ranked-rules.js`: contrato imutavel de acoes, personagens e tempos.
+4. `js/gamemode/ranked/ranked-engine.js`: transicoes puras da partida.
+5. `js/gamemode/ranked/ranked-renderer.js`: DOM responsivo, respostas, mao, log e chat.
+6. `js/gamemode/ranked/ranked-game.js`: autenticacao, sala, presenca, transacoes e deadlines.
 
 Ordem no lobby:
 
@@ -131,7 +146,8 @@ Coup-Master/
       vfx/
   css/
     lobby.css
-    main.css
+    casual-mode.css
+    ranked-mode.css
   docs/
     TDD.md
   js/
@@ -143,8 +159,15 @@ Coup-Master/
     login/
       login-manager.js
     gamemode/
+      game-modes.js
       casual/
         board-renderer.js
+      ranked/
+        ranked-engine.js
+        ranked-engine.test.js
+        ranked-game.js
+        ranked-renderer.js
+        ranked-rules.js
     lobby/
       lobby-manager.js
     pwa/
@@ -157,6 +180,7 @@ Coup-Master/
   index.html
   login.html
   lobby.html
+  ranked.html
   manifest.webmanifest
   robots.txt
   sitemap.xml
@@ -205,10 +229,16 @@ A verificacao local atualmente possivel sem adicionar tooling e:
 
 ```powershell
 node --check js\firebase\firebase.js
+node --check js\gamemode\game-modes.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\board-renderer.js
+node --check js\gamemode\ranked\ranked-rules.js
+node --check js\gamemode\ranked\ranked-engine.js
+node --check js\gamemode\ranked\ranked-renderer.js
+node --check js\gamemode\ranked\ranked-game.js
+node js\gamemode\ranked\ranked-engine.test.js
 ```
 
 Todos os arquivos JS passavam em `node --check` no momento desta analise.
@@ -220,7 +250,7 @@ O projeto agora possui uma camada PWA sem alterar sua arquitetura estatica:
 - `manifest.webmanifest`: define nome, descricao, `start_url` para `login.html`, `scope` relativo, `display: standalone`, cores de tema e icones 192x192/512x512.
 - `js/pwa/pwa.js`: registra `sw.js` apos o carregamento da pagina, somente quando `navigator.serviceWorker` existe.
 - `sw.js`: cria cache versionado do shell principal, HTMLs, CSS, JS local, fontes e icones criticos.
-- `index.html`, `login.html` e `lobby.html`: expõem manifesto, `theme-color`, metatags mobile/apple e registrador PWA.
+- `index.html`, `ranked.html`, `login.html` e `lobby.html`: expoem manifesto, `theme-color`, metatags mobile/apple e registrador PWA.
 
 Estrategia do service worker:
 
@@ -303,7 +333,7 @@ Responsabilidades:
 - Carrega favicon/logo.
 - Carrega Google Font `Cinzel`.
 - Carrega Material Symbols.
-- Carrega `css/main.css`.
+- Carrega `css/casual-mode.css`.
 - Define loading overlay inicial.
 - Define toolbar superior com saida, reset e controles globais.
 - Define tabuleiro com 8 areas fixas de jogadores, sempre visiveis.
@@ -390,7 +420,19 @@ Contrato de carta:
 
 O `id` e gerado localmente a cada reset/criacao do deck. Ele e unico dentro do deck atual, mas nao e globalmente unico entre salas ou resets.
 
-### 7.3 `js/core/gameState.js`
+### 7.3 `js/gamemode/game-modes.js`
+
+Responsabilidades:
+
+- Centralizar os identificadores `casual` e `ranked`.
+- Normalizar modos ausentes ou desconhecidos para `casual`.
+- Ler o modo tanto de `room.mode` quanto do legado opcional `room.gameState.mode`.
+- Informar rotulo de interface e elegibilidade para o ranqueado.
+- Expor o contrato global imutavel `window.CoupGameModes` para lobby e mesa.
+
+O modulo permanece em JavaScript vanilla e nao introduz TypeScript, bundler ou dependencia externa.
+
+### 7.4 `js/core/gameState.js`
 
 Responsabilidades:
 
@@ -405,7 +447,10 @@ Responsabilidades:
   - `lastSoundTimestamp`
   - `hostUID`
   - `isAdmin`
+  - `currentGameMode`
   - `window.pendingKickPid`
+- Consultar o modo persistido na raiz da sala antes de entrar na partida.
+- Bloquear acesso anonimo a salas ranqueadas mesmo em navegacao direta.
 - Gerenciar entrada/reentrada na sala.
 - Gerenciar listeners do Firebase.
 - Aplicar mutacoes de deck, cartas, moedas, religiao, bots e kick.
@@ -446,13 +491,15 @@ Contrato importante:
 
 `gameState.js` chama funcoes que sao definidas posteriormente em `board-renderer.js`, como `renderAll`, `setupUI`, `setupDropzones` e `setupAutoScroll`. Essas chamadas sao protegidas por `typeof`, mas a ordem continua importante para a experiencia. Como ambos usam `defer`, eles executam em ordem de declaracao no HTML.
 
-### 7.4 `js/lobby/lobby-manager.js`
+### 7.5 `js/lobby/lobby-manager.js`
 
 Responsabilidades:
 
 - Controlar login/logout Google.
 - Atualizar UI do lobby conforme autenticacao.
-- Persistir `currentUID`, `currentName`, `currentPhoto` em `sessionStorage`.
+- Persistir `currentUID`, `currentName`, `currentPhoto` e `currentRoomMode` em `sessionStorage`.
+- Controlar o seletor de modo Casual/Ranqueado.
+- Desabilitar criacao e entrada ranqueada para visitantes anonimos.
 - Gerar codigo de sala.
 - Criar sala no RTDB.
 - Validar existencia de sala antes de entrar.
@@ -470,6 +517,7 @@ Fluxo de criacao de sala:
 ```js
 {
   hostUID: currentUID,
+  mode: selectedMode,
   gameState: {
     status: "waiting",
     createdAt: firebase.database.ServerValue.TIMESTAMP
@@ -478,11 +526,12 @@ Fluxo de criacao de sala:
 }
 ```
 
-5. Redireciona para `index.html?room={newCode}`.
+5. Persiste `currentRoomMode` na sessao.
+6. Redireciona para `index.html?room={newCode}`.
 
 Observacao importante: a sala nasce com `gameState.status` e `gameState.createdAt`, mas sem `players`. A inicializacao completa do estado acontece depois em `joinGame()` no tabuleiro.
 
-### 7.5 `js/gamemode/casual/board-renderer.js`
+### 7.6 `js/gamemode/casual/board-renderer.js`
 
 Responsabilidades:
 
@@ -523,6 +572,7 @@ Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
   "salas": {
     "ABCD": {
       "hostUID": "firebase-auth-uid",
+      "mode": "casual",
       "lastActivity": 1710000000000,
       "notifications": {
         "target-user-uid": {
@@ -552,6 +602,8 @@ Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
   }
 }
 ```
+
+`mode` aceita `casual` ou `ranked`. Salas antigas sem esse campo sao interpretadas como casuais.
 
 O campo `status` existe no dado inicial da sala, mas nao e usado como estado de maquina no fluxo atual.
 
@@ -982,6 +1034,75 @@ Observacao:
 
 Existe `setupKickListener(pid)`, mas a chamada esta comentada. A expulsao ativa acontece dentro do listener principal de `gameState`.
 
+### 10.16 Modo Ranqueado Beta
+
+O lobby permite escolher o modo apenas ao criar uma sala. Ao entrar por codigo, sempre prevalece o modo persistido na sala.
+
+Regras atuais:
+
+- requer autenticacao Google; visitante anonimo nao cria nem entra;
+- persiste `mode = "ranked"` na raiz e usa `rankedState` separado do sandbox casual;
+- redireciona para `ranked.html`, sem carregar `gameState.js` ou `board-renderer.js`;
+- nao possui host, administrador, bots, reset manual ou configuracao de baralho;
+- desenha oito lugares e inicia automaticamente com 2 a 8 jogadores quando todos marcam pronto;
+- usa cinco copias de Duque, Capitao, Assassino, Condessa, Embaixador e Inquisidor;
+- obriga Golpe de Estado quando o jogador possui 10 moedas ou mais;
+- oferece Renda, Ajuda Externa, Golpe, Taxar, Extorquir, Assassinar, duas trocas e Investigar;
+- abre janelas temporizadas para contestar a declaracao, bloquear quando permitido e contestar o bloqueio;
+- troca automaticamente a carta comprovada por outra do baralho;
+- exige que o perdedor escolha a influencia revelada;
+- avanca por timeout: turno vira Renda, resposta vira passe e escolhas obrigatorias recebem fallback;
+- detecta eliminacao e encerra quando resta um jogador.
+
+Maquina de estados:
+
+```text
+waiting -> turn -> response -> block-challenge
+                    |              |
+                    +-> influence-loss <-+
+                    +-> exchange
+                    +-> examine
+                    +-> turn -> ... -> finished
+```
+
+Todas as mutacoes de jogo passam por `transaction()` em `salas/{roomCode}/rankedState`. Qualquer cliente conectado pode solicitar o avanco de um deadline expirado; a transacao relê o estado atual e somente uma resolucao vence. Isso elimina a necessidade de um host para conduzir o fluxo.
+
+Schema resumido:
+
+```js
+rankedState: {
+  status: "waiting" | "active" | "finished",
+  phase: "waiting" | "turn" | "response" | "block-challenge" |
+    "influence-loss" | "exchange" | "examine" | "finished",
+  players: {
+    "<uid>": { seat, ready, connected, coins, influences, eliminated }
+  },
+  turnOrder: ["<uid>"],
+  turnIndex: 0,
+  turnNumber: 1,
+  deck: [],
+  discard: [],
+  pendingAction: null,
+  pendingLoss: null,
+  pendingExchange: null,
+  pendingExamine: null,
+  deadline: 0,
+  winnerUid: null,
+  log: []
+}
+```
+
+Integridade e limite desta fase:
+
+- a UI e o motor nao concedem permissoes administrativas a nenhum jogador;
+- `ranked-game.js` usa o UID entregue pelo Firebase Auth, nao o nome salvo no `sessionStorage`;
+- transacoes reduzem conflitos acidentais, mas nao substituem validacao autoritativa;
+- as influencias secretas ficam no Realtime Database e podem ser inspecionadas por um cliente modificado;
+- sem Security Rules especificas e backend confiavel, um cliente malicioso ainda pode escrever estado invalido;
+- por isso vitorias, derrotas, rating, matchmaking e leaderboard ainda nao sao persistidos.
+
+Antes de ativar pontuacao competitiva real, mover validacao e informacao secreta para Cloud Functions, servidor proprio ou outro componente autoritativo, além de versionar regras do Firebase.
+
 ## 11. Renderizacao do Tabuleiro
 
 ### 11.1 `renderAll()`
@@ -1196,7 +1317,7 @@ Os modos transparente, VHS, parallax e flutuacao foram removidos do runtime.
 
 ## 15. CSS e Design System Atual
 
-### 15.1 `css/main.css`
+### 15.1 `css/casual-mode.css`
 
 Responsavel pela tela de jogo:
 
@@ -1549,10 +1670,16 @@ Como nao ha suite automatizada, a validacao atual minima e:
 
 ```powershell
 node --check js\firebase\firebase.js
+node --check js\gamemode\game-modes.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\board-renderer.js
+node --check js\gamemode\ranked\ranked-rules.js
+node --check js\gamemode\ranked\ranked-engine.js
+node --check js\gamemode\ranked\ranked-renderer.js
+node --check js\gamemode\ranked\ranked-game.js
+node js\gamemode\ranked\ranked-engine.test.js
 ```
 
 ### 22.2 Validacao Manual Recomendada
@@ -1736,13 +1863,18 @@ Estas invariantes devem ser preservadas:
 | Arquivo | Papel | Risco |
 |---|---|---|
 | `index.html` | Estrutura do tabuleiro, modais, audio e scripts | Alto: ids sao contrato com JS |
+| `ranked.html` | Estrutura da partida ranqueada e scripts dedicados | Alto: ids sao contrato com o renderer |
 | `lobby.html` | Login e entrada/criacao de salas | Medio |
 | `js/firebase/firebase.js` | Inicializacao Firebase global | Alto: ordem e config |
 | `js/core/rules.js` | Tipos de cartas e utilitarios de deck | Alto: fonte de verdade parcial |
 | `js/core/gameState.js` | Mutacoes e sincronizacao Firebase | Muito alto |
 | `js/lobby/lobby-manager.js` | Auth/lobby/salas/limpeza | Alto |
 | `js/gamemode/casual/board-renderer.js` | Renderizacao, UI, interacoes, efeitos | Muito alto |
-| `css/main.css` | Layout e visual do jogo | Medio/alto |
+| `js/gamemode/ranked/ranked-rules.js` | Contratos de personagens, acoes e tempos | Alto |
+| `js/gamemode/ranked/ranked-engine.js` | Maquina de estados e resolucao das regras | Muito alto |
+| `js/gamemode/ranked/ranked-game.js` | Coordenacao Firebase e presenca ranqueada | Muito alto |
+| `js/gamemode/ranked/ranked-renderer.js` | DOM, respostas, log, mao e chat ranqueados | Alto |
+| `css/casual-mode.css` | Layout e visual do jogo | Medio/alto |
 | `css/lobby.css` | Layout e visual do lobby | Medio |
 | `robots.txt` | Crawling | Baixo/medio |
 | `sitemap.xml` | SEO/indexacao | Baixo/medio |
@@ -1816,10 +1948,16 @@ Validar sintaxe JS:
 
 ```powershell
 node --check js\firebase\firebase.js
+node --check js\gamemode\game-modes.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\board-renderer.js
+node --check js\gamemode\ranked\ranked-rules.js
+node --check js\gamemode\ranked\ranked-engine.js
+node --check js\gamemode\ranked\ranked-renderer.js
+node --check js\gamemode\ranked\ranked-game.js
+node js\gamemode\ranked\ranked-engine.test.js
 ```
 
 Listar arquivos:

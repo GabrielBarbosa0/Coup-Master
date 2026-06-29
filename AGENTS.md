@@ -10,16 +10,22 @@ Pontos de entrada:
 
 - `login.html`: autenticacao com Google ou visitante anonimo.
 - `lobby.html`: perfil autenticado, criacao e entrada em salas.
-- `index.html`: tabuleiro principal.
+- `index.html`: tabuleiro do modo casual.
+- `ranked.html`: partida ranqueada com regras automatizadas.
 
 Scripts principais:
 
 - `js/firebase/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
 - `js/login/login-manager.js`: login Google/anonimo e persistencia de sessao local.
+- `js/gamemode/game-modes.js`: contrato compartilhado dos modos casual e ranqueado.
 - `js/core/rules.js`: tipos de carta, criacao de deck e utilitarios.
 - `js/core/gameState.js`: conexao com sala, mutacoes e listeners do Firebase.
 - `js/lobby/lobby-manager.js`: lobby/salas/logout/limpeza.
 - `js/gamemode/casual/board-renderer.js`: renderizacao, DOM, modais, drag/drop, presets e efeitos visuais.
+- `js/gamemode/ranked/ranked-rules.js`: personagens, acoes e tempos oficiais do ranqueado.
+- `js/gamemode/ranked/ranked-engine.js`: maquina de estados pura para turnos, contestacoes, bloqueios e eliminacoes.
+- `js/gamemode/ranked/ranked-game.js`: autenticacao, transacoes, presenca e listeners Firebase do ranqueado.
+- `js/gamemode/ranked/ranked-renderer.js`: interface e chat da tela ranqueada.
 
 Leia `docs/TDD.md` antes de fazer mudancas estruturais.
 
@@ -39,10 +45,16 @@ Depois de alterar JavaScript, rode:
 
 ```powershell
 node --check js\firebase\firebase.js
+node --check js\gamemode\game-modes.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\board-renderer.js
+node --check js\gamemode\ranked\ranked-rules.js
+node --check js\gamemode\ranked\ranked-engine.js
+node --check js\gamemode\ranked\ranked-renderer.js
+node --check js\gamemode\ranked\ranked-game.js
+node js\gamemode\ranked\ranked-engine.test.js
 ```
 
 Para testar localmente, use servidor estatico:
@@ -77,6 +89,9 @@ Preserve:
 - Carta no cemiterio/free area: `owner = null`, `visible = true`, `location = "free"`.
 - Scores nao devem ficar negativos.
 - Host e determinado por `salas/{roomCode}/hostUID`.
+- Sala sem `mode` e casual; sala ranqueada exige conta Google, baralho padrao e nao permite bots.
+- O ranqueado nao possui host ou controles administrativos. Todos os clientes passam pelo mesmo motor de regras.
+- Nao grave rating confiavel enquanto influencias secretas e transicoes puderem ser lidas/escritas diretamente pelo cliente.
 
 ## Ao Adicionar Carta
 

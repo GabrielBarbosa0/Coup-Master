@@ -39,7 +39,7 @@
 
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
-  <link rel="stylesheet" href="css/main.css?v=quick-action-kick">
+  <link rel="stylesheet" href="css/casual-mode.css?v=quick-action-kick">
   <link rel="stylesheet" href="css/chat.css?v=room-chat-visibility">
   <link rel="stylesheet" href="css/loading.css?v=standard-loading">
 </head>
@@ -455,6 +455,11 @@
           <input type="range" id="effectsVolumeSlider" min="0" max="1" step="0.01" value="1" style="width: 100%;">
         </div>
 
+        <!-- <div class="setting-row">
+          <label>Modo:</label>
+          <span id="roomModeLabel" class="room-mode-label" data-mode="casual">Casual</span>
+        </div> -->
+
         <div class="setting-row">
           <label>Religião:</label>
           <button id="toggleReligionBtn" class="icon-btn settings-control-btn" title="Mostrar/Ocultar Religião">
@@ -699,8 +704,9 @@
   <script src="js/firebase/firebase.js" defer></script>
   <script src="js/pwa/pwa.js" defer></script>
   <script src="js/core/rules.js" defer></script>
-  <script src="js/core/gameState.js?v=quick-action-kick" defer></script>
-  <script src="js/gamemode/casual/board-renderer.js?v=quick-action-kick" defer></script>
+  <script src="js/gamemode/game-modes.js?v=ranked-mode-beta" defer></script>
+  <script src="js/core/gameState.js?v=ranked-mode-beta" defer></script>
+  <script src="js/gamemode/casual/board-renderer.js?v=ranked-mode-beta" defer></script>
 
 </body>
 

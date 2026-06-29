@@ -861,6 +861,23 @@ h2 {
     white-space: nowrap;
 }
 
+#settingsModal .room-mode-label {
+    min-width: 96px;
+    padding: 8px 10px;
+    border: 1px solid rgba(230, 238, 246, 0.16);
+    border-radius: 7px;
+    background: #171d26;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+}
+
+#settingsModal .room-mode-label[data-mode="ranked"] {
+    border-color: rgba(246, 194, 4, 0.7);
+    color: var(--coin);
+}
+
 #settingsModal #volumeSlider,
 #settingsModal #effectsVolumeSlider {
     flex: 1 1 auto;

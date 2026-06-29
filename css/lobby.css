@@ -537,6 +537,94 @@ button {
     background: #00e668;
 }
 
+.game-mode-selector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    margin: 0 0 14px;
+    padding: 0;
+    border: 0;
+}
+
+.game-mode-selector legend {
+    width: 100%;
+    margin-bottom: 8px;
+    color: rgba(230, 238, 246, 0.72);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.game-mode-option {
+    position: relative;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.game-mode-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.game-mode-option-content {
+    display: grid;
+    gap: 3px;
+    min-height: 58px;
+    padding: 10px 8px;
+    border: 1px solid rgba(230, 238, 246, 0.16);
+    border-radius: 7px;
+    background: #171d26;
+    place-content: center;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.game-mode-option-content strong {
+    color: var(--text);
+    font-size: 13px;
+}
+
+.game-mode-option-content small {
+    color: rgba(230, 238, 246, 0.56);
+    font-size: 9px;
+    text-transform: uppercase;
+}
+
+.game-mode-option input:checked + .game-mode-option-content {
+    border-color: var(--accent);
+    background: rgba(30, 144, 255, 0.1);
+}
+
+.game-mode-option input:focus-visible + .game-mode-option-content {
+    outline: 2px solid rgba(30, 144, 255, 0.5);
+    outline-offset: 2px;
+}
+
+.game-mode-option input:disabled + .game-mode-option-content {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.ranked-mode-note {
+    margin: -4px 0 12px;
+    color: rgba(230, 238, 246, 0.66);
+    font-size: 10px;
+    line-height: 1.45;
+    text-transform: uppercase;
+}
+
+.ranked-mode-note[hidden] {
+    display: none;
+}
+
 input {
     width: 100%;
     padding: 12px;

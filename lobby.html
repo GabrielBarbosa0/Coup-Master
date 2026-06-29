@@ -42,7 +42,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <link rel="stylesheet" href="css/lobby.css?v=loading-ready">
+    <link rel="stylesheet" href="css/lobby.css?v=ranked-mode-beta">
     <link rel="stylesheet" href="css/loading.css?v=standard-loading">
 </head>
 
@@ -66,7 +66,31 @@
         </div>
 
         <div id="room-actions" class="room-actions">
-            <h2 style="margin-top: 0; margin-bottom: 15px;">Sala</h2>
+
+            <fieldset class="game-mode-selector">
+                <legend>Modo da nova sala</legend>
+
+                <label class="game-mode-option">
+                    <input type="radio" name="game-mode" value="casual" checked>
+                    <span class="game-mode-option-content">
+                        <strong>Casual</strong>
+                        <small>Mesa livre</small>
+                    </span>
+                </label>
+
+                <label class="game-mode-option">
+                    <input id="ranked-mode-input" type="radio" name="game-mode" value="ranked">
+                    <span class="game-mode-option-content">
+                        <strong>Ranqueado</strong>
+                        <small>Baralho padrão</small>
+                    </span>
+                </label>
+            </fieldset>
+
+            <p id="ranked-mode-note" class="ranked-mode-note" hidden>
+                O modo ranqueado exige uma conta Google e não permite bots.
+            </p>
+
             <input type="text" id="room-code-input" placeholder="CÓDIGO (EX: XJ94)">
             <button id="join-room-btn">ENTRAR NA SALA</button>
             <button id="create-room-btn">CRIAR NOVA SALA</button>
@@ -98,6 +122,7 @@
 
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
+    <script src="js/gamemode/game-modes.js?v=ranked-mode-beta" defer></script>
     <script src="js/lobby/lobby-manager.js" defer></script>
 
 </body>

@@ -31,6 +31,7 @@ let isDrawingCard = false;
 let lastSoundTimestamp = 0;
 let pendingKickPid = null;
 window.pendingKickPid = null;
+let currentGameMode = CoupGameModes.normalize(sessionStorage.getItem('currentRoomMode'));
 
 
 // =======================================================
@@ -204,7 +205,9 @@ function resetTable(newConfig = null) {
   updateRoomActivity();
   triggerSound('8-bit-start');
 
-  const configToUse = newConfig || localGameState.deckConfig || createDefaultDeckConfig();
+  const configToUse = CoupGameModes.isRanked(currentGameMode)
+    ? createDefaultDeckConfig()
+    : newConfig || localGameState.deckConfig || createDefaultDeckConfig();
   let newDeck = createDeck(configToUse);
   let currentPlayers = localGameState.players || {};
   let newPlayersState = {};
@@ -422,6 +425,11 @@ function toggleReligion(pid) {
  * Caso a sala esteja cheia, exibe um modal de aviso.
  */
 function addBot() {
+  if (CoupGameModes.isRanked(currentGameMode)) {
+    console.warn('Bots não são permitidos no modo ranqueado.');
+    return;
+  }
+
   playSound('click');
   let botSlot = null;
 
@@ -697,7 +705,7 @@ function setupKickListener(pid) {
 let hostUID = null;
 let isAdmin = false;
 
-function initializeGame() {
+function startGame() {
   // 1. Identifica o Administrador via UID fixo no banco
   db.ref(`salas/${roomCode}/hostUID`).on('value', (snapshot) => {
     hostUID = snapshot.val();
@@ -743,6 +751,37 @@ function initializeGame() {
   if (typeof setupUI === "function") setupUI();
   if (typeof setupDropzones === "function") setupDropzones();
   if (typeof setupAutoScroll === "function") setupAutoScroll();
+}
+
+function initializeGame() {
+  db.ref(`salas/${roomCode}`).once('value').then((snapshot) => {
+    if (!snapshot.exists()) {
+      sessionStorage.setItem('lobbyError', `A sala "${roomCode}" não existe mais.`);
+      window.location.href = 'lobby.html';
+      return;
+    }
+
+    currentGameMode = CoupGameModes.fromRoom(snapshot.val());
+    sessionStorage.setItem('currentRoomMode', currentGameMode);
+    document.body.dataset.roomMode = currentGameMode;
+
+    if (CoupGameModes.isRanked(currentGameMode) && currentUser.isAnonymous) {
+      sessionStorage.setItem('lobbyError', 'O modo ranqueado exige login com uma conta Google.');
+      window.location.href = 'lobby.html';
+      return;
+    }
+
+    if (CoupGameModes.isRanked(currentGameMode)) {
+      window.location.replace(`ranked.html?room=${roomCode}`);
+      return;
+    }
+
+    startGame();
+  }).catch((error) => {
+    console.error('Erro ao carregar o modo da sala:', error);
+    sessionStorage.setItem('lobbyError', 'Não foi possível carregar os dados da sala.');
+    window.location.href = 'lobby.html';
+  });
 }
 
 /**

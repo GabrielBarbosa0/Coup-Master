@@ -36,11 +36,12 @@ O Coup Master 3D, de outro repositorio, serve como referencia de longo prazo par
 
 - Nao e a versao Coup Master 3D.
 - Nao e uma simulacao fisica completa.
-- Nao e um jogo com regras 100% automatizadas.
+- O modo casual nao e um jogo com regras 100% automatizadas; o ranqueado automatiza o fluxo principal de turnos e personagens.
 - Nao e um aplicativo mobile nativo.
 - Nao tem suporte garantido para todos os navegadores.
 - Nao tem, por enquanto, backend autoritativo proprio.
-- Nao tem matchmaking, ranking, temporadas ou economia externa.
+- Nao tem matchmaking, temporadas ou economia externa.
+- O modo ranqueado beta possui tela e fluxo scriptados, mas ainda nao calcula rating nem leaderboard porque nao ha backend autoritativo antifraude.
 
 ## 3. Pilares De Design
 
@@ -709,7 +710,7 @@ Nao implementar agora, exceto se for pedido explicitamente:
 - camera orbit;
 - moedas fisicas arrastaveis;
 - chat em tempo real;
-- ranking;
+- rating, leaderboard e temporadas para o modo ranqueado;
 - matchmaking;
 - temporadas;
 - loja;

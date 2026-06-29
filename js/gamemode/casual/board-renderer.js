@@ -498,8 +498,16 @@ function renderAll() {
   // Referências aos elementos de controle global
   const resetBtn = document.getElementById('resetBtn');
   const addBotBtn = document.getElementById('addBotBtn');
+  const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
   const applyDeckBtn = document.getElementById('applyDeckConfigBtn');
+  const roomModeLabel = document.getElementById('roomModeLabel');
   const configInputs = document.querySelectorAll('.card-config-item input');
+  const isRankedMode = CoupGameModes.isRanked(currentGameMode);
+
+  if (roomModeLabel) {
+    roomModeLabel.dataset.mode = currentGameMode;
+    roomModeLabel.textContent = CoupGameModes.getLabel(currentGameMode);
+  }
 
   // NOVO: Esconde ou mostra o botão de Reset baseado no status de Admin
   if (resetBtn) {
@@ -509,17 +517,26 @@ function renderAll() {
   // Visibilidade dos botões Reset e Adicionar Bot
   if (addBotBtn) {
     const botRow = addBotBtn.closest('.setting-row');
-    if (botRow) botRow.style.display = isAdmin ? 'flex' : 'none';
+    if (botRow) botRow.style.display = isAdmin && !isRankedMode ? 'flex' : 'none';
+  }
+
+  if (openDeckConfigBtn) {
+    const deckConfigRow = openDeckConfigBtn.closest('.setting-row');
+    if (deckConfigRow) deckConfigRow.style.display = isRankedMode ? 'none' : 'flex';
   }
 
   // Habilita ou desabilita os campos de texto do baralho em tempo real
   configInputs.forEach(input => {
-    input.disabled = !isAdmin;
+    input.disabled = !isAdmin || isRankedMode;
   });
 
   // Configuração visual e funcional do botão de aplicar baralho
   if (applyDeckBtn) {
-    if (!isAdmin) {
+    if (isRankedMode) {
+      applyDeckBtn.disabled = true;
+      applyDeckBtn.style.background = '#555';
+      applyDeckBtn.textContent = 'Baralho padrão no modo ranqueado';
+    } else if (!isAdmin) {
       applyDeckBtn.disabled = true;
       applyDeckBtn.style.background = '#555'; // Cinza para indicar bloqueio
       applyDeckBtn.textContent = 'Apenas o Host pode aplicar';
@@ -1302,10 +1319,18 @@ function setupUI() {
   const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
   const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
   const configInputs = document.querySelectorAll('.card-config-item input');
+  const isRankedMode = CoupGameModes.isRanked(currentGameMode);
+
+  if (openDeckConfigBtn) {
+    const deckConfigRow = openDeckConfigBtn.closest('.setting-row');
+    if (deckConfigRow) deckConfigRow.style.display = isRankedMode ? 'none' : 'flex';
+  }
 
   // Navegação para o Modal de Baralho
   if (openDeckConfigBtn && configModal) {
     openDeckConfigBtn.onclick = () => {
+      if (isRankedMode) return;
+
       playSound('click');
 
       // --- NOVO: Sincroniza os inputs com a configuração salva no Firebase ---
@@ -1340,13 +1365,13 @@ function setupUI() {
 
   // Lógica de Permissão e Aplicação da Configuração (Apenas para o Host)
   configInputs.forEach(input => {
-    input.disabled = !isAdmin;
+    input.disabled = !isAdmin || isRankedMode;
   });
 
   if (applyDeckConfigBtn) {
     applyDeckConfigBtn.onclick = () => {
       // Verificação extra de segurança
-      if (!isAdmin) return;
+      if (!isAdmin || isRankedMode) return;
 
       playSound('click');
       const newConfig = {};
@@ -1659,6 +1684,7 @@ const leaveRoomBtn = document.getElementById('leaveRoomBtn');
 if (leaveRoomBtn) {
   leaveRoomBtn.onclick = () => {
     if (typeof playSound === 'function') playSound('click');
+    sessionStorage.removeItem('currentRoomMode');
     window.location.href = 'lobby.html'; // Retorna ao lobby
   };
 }

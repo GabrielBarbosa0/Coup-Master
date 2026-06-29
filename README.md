@@ -96,6 +96,7 @@ com foco em escalabilidade e consistência de estado.
 * **Feedback Visual de Espectador:** Destaque com brilho azul suave e borda no avatar do jogador que está sendo assistido.
 * **Interface Responsiva e Adaptável:** Ocultação automática do botão de espectador para jogadores que possuem cartas na mão.
 * **Sistema de Salas Privadas:** Criação e entrada em salas via códigos únicos de 4 dígitos com função de cópia rápida no cabeçalho.
+* **Modo Ranqueado Beta:** Tela e fluxo próprios para contas Google, sem host ou bots, com turnos, custos, alvos, contestações, bloqueios, perdas de influência e tempos de resposta controlados pelo sistema. Rating e leaderboard continuam suspensos até existir validação autoritativa antifraude.
 * **Controle de Áudio Integrado:** Música de fundo e efeitos sonoros sincronizados para ações como compra de cartas, moedas e impacto.
 * **Gestão de Bots:** Capacidade de adicionar bots para testes de mesa.
 * **Modais de Referência Rápida:** Visualização de guias de ações de personagens e regras alternativas através de cartas que giram (flip cards).
@@ -128,6 +129,7 @@ com foco em escalabilidade e consistência de estado.
 O projeto segue uma arquitetura modular com separação clara de responsabilidades:
 
 - **js/firebase/firebase.js** → Inicialização e infraestrutura (Auth + Database)
+- **js/gamemode/game-modes.js** → Contrato compartilhado dos modos Casual e Ranqueado
 - **rules.js** → Constantes e manipulação estrutural do baralho
 - **gameState.js** → Gerenciamento de estado e transações Firebase
 - **board-renderer.js** → Renderização da interface e interações
@@ -162,7 +164,8 @@ Coup-Master/
 │   ├── 📂 sounds/              # Trilha sonora (bgm) e efeitos sonoros (vfx)
 ├── 📂 css/                     # Estilização e folhas de estilo
 │   ├── lobby.css               # Design da interface do menu e salas
-│   └── main.css                # Layout do tabuleiro 2D e responsividade mobile
+│   ├── casual-mode.css         # Layout do tabuleiro 2D e responsividade mobile
+│   └── ranked-mode.css         # Layout dedicado do modo ranqueado
 ├── 📂 js/                      # Núcleo lógico do ecossistema JavaScript
 │   ├── 📂 core/                # Estado do jogo e regras globais
 │   │   ├── gameState.js        # Sincronização do estado da partida em tempo real
@@ -170,8 +173,13 @@ Coup-Master/
 │   ├── 📂 firebase/            # Infraestrutura Firebase
 │   │   └── firebase.js         # Inicialização e conexões com o banco de dados
 │   ├── 📂 gamemode/            # Lógicas específicas por modo de jogo
-│   │   └── 📂 casual/          # Scripts dedicados à mesa clássica casual
-│   │       └── board-renderer.js # Manipulador do DOM e renderizador do tabuleiro 2D
+│   │   ├── 📂 casual/          # Scripts dedicados à mesa clássica casual
+│   │   │   └── board-renderer.js # Manipulador do DOM e renderizador do tabuleiro 2D
+│   │   └── 📂 ranked/          # Scripts dedicados ao modo ranqueado
+│   │       ├── ranked-rules.js
+│   │       ├── ranked-engine.js
+│   │       ├── ranked-renderer.js
+│   │       └── ranked-game.js
 │   └── 📂 lobby/
 │       └── lobby-manager.js    # Fluxo de criação, faxina e entrada de salas
 ├── 📄 index.html               # Tabuleiro principal do jogo em modo normal 2D
@@ -187,6 +195,7 @@ Coup-Master/
 * **`js/core/`**: Funciona como o motor lógico invisível do jogo. O `gameState.js` escuta e injeta alterações diretamente no Firebase, garantindo que o jogo funcione como um sandbox em tempo real.
 * **`js/firebase/`**: Centraliza a inicialização do Firebase e expõe `window.db` e `window.auth` para os demais scripts.
 * **`js/gamemode/casual/`**: Concentra a engine visual da mesa bidimensional através do script `board-renderer.js`, responsável por manipular o DOM de forma reativa conforme as atualizações da partida.
+* **`js/gamemode/ranked/`**: Concentra o fluxo automatizado do modo ranqueado, incluindo regras, máquina de estados, renderização e integração Firebase.
 * **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
 
 ---

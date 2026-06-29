@@ -9,6 +9,8 @@ const roomActionsDiv = document.getElementById('room-actions');
 const roomCodeInput = document.getElementById('room-code-input');
 const joinRoomBtn = document.getElementById('join-room-btn');
 const createRoomBtn = document.getElementById('create-room-btn');
+const rankedModeInput = document.getElementById('ranked-mode-input');
+const rankedModeNote = document.getElementById('ranked-mode-note');
 
 // =======================================================
 // === SISTEMA DE TRATAMENTO DE ERROS (MODAL) ===
@@ -50,6 +52,43 @@ function hideLoader() {
 function waitForFonts() {
     if (document.fonts) return document.fonts.ready.catch(() => null);
     return new Promise(resolve => setTimeout(resolve, 1000));
+}
+
+function getSelectedGameMode() {
+    const selectedMode = document.querySelector('input[name="game-mode"]:checked');
+    return CoupGameModes.normalize(selectedMode?.value);
+}
+
+function isAnonymousSession() {
+    return sessionStorage.getItem('currentIsAnonymous') === 'true';
+}
+
+function setRankedModeAvailability(user) {
+    const canAccessRanked = CoupGameModes.canAccessRanked(user);
+
+    if (rankedModeInput) {
+        rankedModeInput.disabled = !canAccessRanked;
+
+        if (!canAccessRanked && rankedModeInput.checked) {
+            const casualModeInput = document.querySelector('input[name="game-mode"][value="casual"]');
+            if (casualModeInput) casualModeInput.checked = true;
+        }
+    }
+
+    if (rankedModeNote) {
+        rankedModeNote.hidden = false;
+        rankedModeNote.textContent = canAccessRanked
+            ? 'Ranqueado usa conta Google, baralho padrão e não permite bots.'
+            : 'O modo ranqueado exige uma conta Google e não permite bots.';
+    }
+}
+
+function openRoom(code, mode) {
+    const normalizedMode = CoupGameModes.normalize(mode);
+    sessionStorage.setItem('currentRoomMode', normalizedMode);
+    showLoader(CoupGameModes.isRanked(normalizedMode) ? 'Carregando mesa ranqueada...' : 'Carregando mesa...');
+    const destination = CoupGameModes.isRanked(normalizedMode) ? 'ranked.html' : 'index.html';
+    window.location.href = `${destination}?room=${code}`;
 }
 
 // Configuração do evento de fechamento do modal de erro
@@ -120,14 +159,24 @@ auth.onAuthStateChanged(user => {
         if (userNameSpan) userNameSpan.textContent = safeName;
         if (userPhotoImg) userPhotoImg.src = safePhoto;
 
+        setRankedModeAvailability(user);
+
         cleanupOldRooms();
-        waitForFonts().then(hideLoader);
+        const pendingLobbyError = sessionStorage.getItem('lobbyError');
+        if (pendingLobbyError) {
+            sessionStorage.removeItem('lobbyError');
+            showError(pendingLobbyError);
+        } else {
+            waitForFonts().then(hideLoader);
+        }
 
     } else {
         sessionStorage.removeItem('currentUID');
         sessionStorage.removeItem('currentName');
         sessionStorage.removeItem('currentPhoto');
         sessionStorage.removeItem('currentIsAnonymous');
+        sessionStorage.removeItem('currentRoomMode');
+        sessionStorage.removeItem('lobbyError');
         showLoader('Retornando ao login...');
         window.location.href = 'login.html';
     }
@@ -162,8 +211,14 @@ if (joinRoomBtn) {
         // Verifica existência da sala no Firebase antes de redirecionar
         db.ref(`salas/${code}`).once('value', (snapshot) => {
             if (snapshot.exists()) {
-                showLoader('Carregando mesa...');
-                window.location.href = `index.html?room=${code}`;
+                const roomMode = CoupGameModes.fromRoom(snapshot.val());
+
+                if (CoupGameModes.isRanked(roomMode) && isAnonymousSession()) {
+                    showError('O modo ranqueado exige login com uma conta Google.');
+                    return;
+                }
+
+                openRoom(code, roomMode);
             } else {
                 showError(`A sala "${code}" não existe.`);
             }
@@ -177,7 +232,14 @@ if (joinRoomBtn) {
 // [lobby.js]
 if (createRoomBtn) {
     createRoomBtn.onclick = () => {
-        showLoader('Criando sala...');
+        const selectedMode = getSelectedGameMode();
+
+        if (CoupGameModes.isRanked(selectedMode) && isAnonymousSession()) {
+            showError('Entre com uma conta Google para criar uma sala ranqueada.');
+            return;
+        }
+
+        showLoader(CoupGameModes.isRanked(selectedMode) ? 'Criando sala ranqueada...' : 'Criando sala...');
         const newCode = generateRoomCode();
         const currentUID = sessionStorage.getItem('currentUID'); //
 
@@ -188,7 +250,7 @@ if (createRoomBtn) {
             }
 
             const initialData = {
-                hostUID: currentUID, // Define o dono eterno da sala via UID
+                mode: selectedMode,
                 gameState: {
                     status: 'waiting',
                     createdAt: firebase.database.ServerValue.TIMESTAMP
@@ -196,9 +258,12 @@ if (createRoomBtn) {
                 lastActivity: Date.now()
             };
 
+            if (!CoupGameModes.isRanked(selectedMode)) {
+                initialData.hostUID = currentUID;
+            }
+
             db.ref(`salas/${newCode}`).set(initialData).then(() => {
-                showLoader('Carregando mesa...');
-                window.location.href = `index.html?room=${newCode}`;
+                openRoom(newCode, selectedMode);
             }).catch(error => {
                 showError("Erro ao criar sala: " + error.message);
             });
