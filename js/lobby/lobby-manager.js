@@ -174,11 +174,39 @@ function getDefaultRankedStats(user) {
         bestWinStreak: 0,
         rankScore: 0,
         challengeAccuracy: 0,
+        actions: 0,
         successfulChallenges: 0,
+        failedChallenges: 0,
         challenges: 0,
         assassinations: 0,
         coups: 0,
         steals: 0,
+        coinsStolen: 0,
+        comebackWins: 0,
+        finalInfluenceWins: 0,
+        perfectWins: 0,
+        perfectBluffWins: 0,
+        doubleContessaWins: 0,
+        condessaBlocks: 0,
+        successfulBlocks: 0,
+        falseCondessaBluffs: 0,
+        contestedAssassinsWon: 0,
+        ambassadorExchanges: 0,
+        inquisitorInspections: 0,
+        dukeTaxes: 0,
+        foreignAidBlocks: 0,
+        taxBluffs: 0,
+        captainBlocks: 0,
+        ambassadorBlocks: 0,
+        forcedCoups: 0,
+        winsAsFirstPlayer: 0,
+        winsAgainstFivePlayers: 0,
+        winsWithNoCoins: 0,
+        fastestWins: 0,
+        longestGamesWon: 0,
+        revengeWins: 0,
+        flawlessChallenges: 0,
+        allRolesClaimedWins: 0,
         bluffs: 0,
         honestGames: 0
     };
@@ -211,14 +239,49 @@ function getAchievements(stats) {
             unlocked: numberValue(stats.wins) >= 1
         },
         {
+            title: 'Entrada na corte',
+            description: 'Disputou a primeira partida ranqueada.',
+            unlocked: numberValue(stats.games) >= 1
+        },
+        {
+            title: 'Nome nos salões',
+            description: 'Disputou 5 partidas ranqueadas.',
+            unlocked: numberValue(stats.games) >= 5
+        },
+        {
+            title: 'Veterano da intriga',
+            description: 'Disputou 25 partidas ranqueadas.',
+            unlocked: numberValue(stats.games) >= 25
+        },
+        {
+            title: 'Lenda da mesa',
+            description: 'Disputou 100 partidas ranqueadas.',
+            unlocked: numberValue(stats.games) >= 100
+        },
+        {
             title: 'Jogador honesto',
             description: 'Terminou uma partida sem blefar.',
             unlocked: numberValue(stats.honestGames) >= 1
         },
         {
-            title: 'Virada de jogo',
-            description: 'Espaço reservado para uma conquista de recuperação.',
-            unlocked: false
+            title: 'Santo improvável',
+            description: 'Venceu 5 partidas sem blefar.',
+            unlocked: numberValue(stats.honestGames) >= 5
+        },
+        {
+            title: 'Mentiroso astuto',
+            description: 'Blefou 10 vezes no ranqueado.',
+            unlocked: numberValue(stats.bluffs) >= 10
+        },
+        {
+            title: 'Deus da mentira',
+            description: 'Blefou 50 vezes no ranqueado.',
+            unlocked: numberValue(stats.bluffs) >= 50
+        },
+        {
+            title: 'Blefe perfeito',
+            description: 'Venceu uma partida blefando sem ser pego.',
+            unlocked: numberValue(stats.perfectBluffWins) >= 1
         },
         {
             title: 'Sequência real',
@@ -226,14 +289,199 @@ function getAchievements(stats) {
             unlocked: numberValue(stats.bestWinStreak) >= 3
         },
         {
+            title: 'Dinastia em marcha',
+            description: 'Conquistou 5 vitórias seguidas.',
+            unlocked: numberValue(stats.bestWinStreak) >= 5
+        },
+        {
+            title: 'Coroa invicta',
+            description: 'Conquistou 10 vitórias seguidas.',
+            unlocked: numberValue(stats.bestWinStreak) >= 10
+        },
+        {
+            title: 'Virada de jogo',
+            description: 'Venceu depois de ficar em situação crítica.',
+            unlocked: numberValue(stats.comebackWins) >= 1
+        },
+        {
+            title: 'Última influência',
+            description: 'Venceu restando apenas uma influência.',
+            unlocked: numberValue(stats.finalInfluenceWins) >= 1
+        },
+        {
+            title: 'Vitória impecável',
+            description: 'Venceu sem perder influências.',
+            unlocked: numberValue(stats.perfectWins) >= 1
+        },
+        {
             title: 'Mão pesada',
             description: 'Aplicou 10 Golpes de Estado.',
             unlocked: numberValue(stats.coups) >= 10
         },
         {
+            title: 'Trono tomado',
+            description: 'Aplicou 25 Golpes de Estado.',
+            unlocked: numberValue(stats.coups) >= 25
+        },
+        {
+            title: 'Regicida oficial',
+            description: 'Aplicou 50 Golpes de Estado.',
+            unlocked: numberValue(stats.coups) >= 50
+        },
+        {
             title: 'Sombra na corte',
             description: 'Realizou 10 assassinatos.',
             unlocked: numberValue(stats.assassinations) >= 10
+        },
+        {
+            title: 'Assassino impiedoso',
+            description: 'Realizou 25 assassinatos.',
+            unlocked: numberValue(stats.assassinations) >= 25
+        },
+        {
+            title: 'Contrato sem testemunhas',
+            description: 'Realizou 50 assassinatos.',
+            unlocked: numberValue(stats.assassinations) >= 50
+        },
+        {
+            title: 'Lâmina contestada',
+            description: 'Provou um Assassino após ser contestado.',
+            unlocked: numberValue(stats.contestedAssassinsWon) >= 1
+        },
+        {
+            title: 'Capitão sem porto',
+            description: 'Realizou 10 roubos.',
+            unlocked: numberValue(stats.steals) >= 10
+        },
+        {
+            title: 'Tesouro saqueado',
+            description: 'Roubou 25 moedas ao todo.',
+            unlocked: numberValue(stats.coinsStolen) >= 25
+        },
+        {
+            title: 'Caçador de blefes',
+            description: 'Venceu 10 contestações.',
+            unlocked: numberValue(stats.successfulChallenges) >= 10
+        },
+        {
+            title: 'Olhos de inquisidor',
+            description: 'Venceu 25 contestações.',
+            unlocked: numberValue(stats.successfulChallenges) >= 25
+        },
+        {
+            title: 'Acusador preciso',
+            description: 'Manteve 70% de sucesso em 10 contestações.',
+            unlocked: numberValue(stats.challenges) >= 10 && numberValue(stats.challengeAccuracy) >= 0.7
+        },
+        {
+            title: 'Falso profeta',
+            description: 'Errou 10 contestações.',
+            unlocked: numberValue(stats.failedChallenges) >= 10
+        },
+        {
+            title: 'Duas Condessas',
+            description: 'Venceu uma partida segurando duas Condessas.',
+            unlocked: numberValue(stats.doubleContessaWins) >= 1
+        },
+        {
+            title: 'Muralha da Condessa',
+            description: 'Bloqueou 10 assassinatos com Condessa.',
+            unlocked: numberValue(stats.condessaBlocks) >= 10
+        },
+        {
+            title: 'Condessa de mentira',
+            description: 'Blefou Condessa e sobreviveu ao momento.',
+            unlocked: numberValue(stats.falseCondessaBluffs) >= 1
+        },
+        {
+            title: 'Embaixador incansável',
+            description: 'Realizou 10 trocas com Embaixador.',
+            unlocked: numberValue(stats.ambassadorExchanges) >= 10
+        },
+        {
+            title: 'Inquisidor atento',
+            description: 'Investigou 10 influências.',
+            unlocked: numberValue(stats.inquisitorInspections) >= 10
+        },
+        {
+            title: 'Corte em movimento',
+            description: 'Executou 100 ações ranqueadas.',
+            unlocked: numberValue(stats.actions) >= 100
+        },
+        {
+            title: 'Pontuação nobre',
+            description: 'Alcançou 500 pontos ranqueados.',
+            unlocked: numberValue(stats.rankScore) >= 500
+        },
+        {
+            title: 'Duque declarado',
+            description: 'Coletou renda como Duque 25 vezes.',
+            unlocked: numberValue(stats.dukeTaxes) >= 25
+        },
+        {
+            title: 'Portões fechados',
+            description: 'Bloqueou ajuda externa 10 vezes.',
+            unlocked: numberValue(stats.foreignAidBlocks) >= 10
+        },
+        {
+            title: 'Duque imaginário',
+            description: 'Blefou Duque 10 vezes.',
+            unlocked: numberValue(stats.taxBluffs) >= 10
+        },
+        {
+            title: 'Patrulha do Capitão',
+            description: 'Bloqueou 10 roubos com Capitão.',
+            unlocked: numberValue(stats.captainBlocks) >= 10
+        },
+        {
+            title: 'Diplomata alerta',
+            description: 'Bloqueou 10 roubos com Embaixador.',
+            unlocked: numberValue(stats.ambassadorBlocks) >= 10
+        },
+        {
+            title: 'Sete moedas pesadas',
+            description: 'Foi obrigado a aplicar Golpe de Estado 5 vezes.',
+            unlocked: numberValue(stats.forcedCoups) >= 5
+        },
+        {
+            title: 'Primeira voz',
+            description: 'Venceu jogando como primeiro da mesa.',
+            unlocked: numberValue(stats.winsAsFirstPlayer) >= 1
+        },
+        {
+            title: 'Mesa cheia, trono meu',
+            description: 'Venceu uma partida contra cinco oponentes.',
+            unlocked: numberValue(stats.winsAgainstFivePlayers) >= 1
+        },
+        {
+            title: 'Sem moedas, sem medo',
+            description: 'Venceu uma partida terminando sem moedas.',
+            unlocked: numberValue(stats.winsWithNoCoins) >= 1
+        },
+        {
+            title: 'Golpe relâmpago',
+            description: 'Venceu uma partida em poucos turnos.',
+            unlocked: numberValue(stats.fastestWins) >= 1
+        },
+        {
+            title: 'Maratona da corte',
+            description: 'Venceu uma partida longa e disputada.',
+            unlocked: numberValue(stats.longestGamesWon) >= 1
+        },
+        {
+            title: 'Vingança servida fria',
+            description: 'Eliminou quem tirou sua primeira influência e venceu.',
+            unlocked: numberValue(stats.revengeWins) >= 1
+        },
+        {
+            title: 'Julgamento perfeito',
+            description: 'Venceu uma partida acertando todas as contestações.',
+            unlocked: numberValue(stats.flawlessChallenges) >= 1
+        },
+        {
+            title: 'Máscaras da corte',
+            description: 'Venceu reivindicando todos os papéis ao menos uma vez.',
+            unlocked: numberValue(stats.allRolesClaimedWins) >= 1
         }
     ];
 }
@@ -248,7 +496,11 @@ function renderAchievements(stats) {
     if (!list) return;
     list.innerHTML = '';
 
-    getAchievements(stats).forEach((achievement) => {
+    const achievements = getAchievements(stats);
+    const unlockedCount = achievements.filter((achievement) => achievement.unlocked).length;
+    setText('statsAchievementsCount', `${unlockedCount}/${achievements.length}`);
+
+    achievements.forEach((achievement) => {
         const badge = document.createElement('div');
         badge.className = `achievement-badge${achievement.unlocked ? ' is-unlocked' : ''}`;
 

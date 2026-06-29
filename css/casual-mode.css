@@ -505,6 +505,20 @@ h2 {
     border-radius: 10px;
 }
 
+.modal-actions-and-rules:has(.flip-card) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    max-width: calc(100vw - 28px);
+    max-height: calc(100dvh - 28px);
+}
+
+.modal-actions-and-rules:has(.flip-card)>.close-btn {
+    z-index: 1010;
+    transform: translateZ(60px);
+}
+
 
 
 /* Centraliza o conjunto seguindo o padrão dos outros modais */
@@ -765,8 +779,9 @@ h2 {
 
 .flip-card {
     background-color: transparent;
-    width: 300px;
-    height: 450px;
+    width: min(360px, 84vw, calc((100dvh - 72px) * 0.6667));
+    aspect-ratio: 2 / 3;
+    height: auto;
     perspective: 1000px;
 }
 
@@ -784,14 +799,33 @@ h2 {
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
+    overflow: hidden;
+    border-radius: 20px;
 }
 
 .flip-card-front img,
 .flip-card-back img {
     width: 100%;
-    height: auto;
+    height: 100%;
+    display: block;
     border-radius: 20px;
     object-fit: cover;
+}
+
+@media (max-width: 560px) {
+    .flip-card {
+        width: min(300px, 84vw, calc((100dvh - 72px) * 0.6667));
+    }
+}
+
+@media (max-height: 560px) {
+    .modal-actions-and-rules:has(.flip-card) {
+        padding: 14px;
+    }
+
+    .flip-card {
+        width: min(300px, 78vw, calc((100dvh - 64px) * 0.6667));
+    }
 }
 
 
@@ -1087,7 +1121,8 @@ h2 {
         "players-bottom players-bottom players-bottom"
         "status status status";
     grid-template-columns: minmax(150px, 0.75fr) minmax(520px, 4fr) minmax(150px, 0.75fr);
-    grid-template-rows: minmax(188px, 1fr) minmax(205px, 1.1fr) minmax(188px, 1fr) auto;
+    grid-template-rows: 200px 210px 200px auto;
+    align-content: start;
     gap: var(--table-gap);
     width: var(--table-content-width);
     min-width: 920px;
@@ -1137,6 +1172,7 @@ h2 {
     display: grid;
     grid-template-rows: auto auto minmax(78px, 1fr);
     align-items: start;
+    align-content: start;
     justify-content: stretch;
     min-width: 0;
     min-height: 0;
@@ -1502,6 +1538,8 @@ h2 {
 }
 
 .game-table .graveyard-cards {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
@@ -1515,17 +1553,19 @@ h2 {
 
 .game-table .graveyard-area::before {
     position: absolute;
-    inset: 0;
-    z-index: -1;
-    width: 100%;
-    height: 100%;
+    top: 50%;
+    left: 50%;
+    z-index: 0;
+    width: 64px;
+    height: 64px;
     background-image: url('../assets/img/icons/skull.svg');
     background-repeat: no-repeat;
     background-position: center;
-    background-size: min(18%, 150px);
+    background-size: contain;
     content: "";
-    opacity: 0.025;
+    opacity: 0.035;
     pointer-events: none;
+    transform: translate(-50%, -50%);
 }
 
 .game-table .graveyard-card {

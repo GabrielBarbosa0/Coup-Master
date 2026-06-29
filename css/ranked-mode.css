@@ -468,12 +468,11 @@ button.rank-card {
 
 .rank-game-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
 }
 
-.rank-stage,
-.rank-log-panel {
+.rank-stage {
     min-height: 270px;
     border: 1px solid var(--rank-border);
     border-radius: 8px;
@@ -493,7 +492,7 @@ button.rank-card {
 
 .rank-turn-bar h1 {
     margin: 5px 0 0;
-    font-size: clamp(20px, 3vw, 30px);
+    font-size: clamp(18px, 2.2vw, 24px);
 }
 
 .rank-timer {
@@ -513,7 +512,7 @@ button.rank-card {
 }
 
 .rank-phase-description {
-    margin: 14px 0 18px;
+    margin: 10px 0 16px;
     color: var(--rank-muted);
     font-size: 13px;
     line-height: 1.5;
@@ -529,6 +528,11 @@ button.rank-card {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
+}
+
+.rank-target-list + .rank-secondary-btn,
+.rank-choice-cards + .rank-primary-btn {
+    margin-top: 10px;
 }
 
 .rank-action-btn,
@@ -586,8 +590,8 @@ button.rank-card {
 }
 
 .rank-interaction-title {
-    margin: 0 0 12px;
-    font-size: 16px;
+    margin: 0 0 10px;
+    font-size: 14px;
 }
 
 .rank-waiting-list {
@@ -608,13 +612,6 @@ button.rank-card {
 .rank-ready-chip.is-ready {
     border-color: var(--rank-success);
     color: var(--rank-success);
-}
-
-.rank-log-panel {
-    display: flex;
-    flex-direction: column;
-    min-height: 270px;
-    overflow: hidden;
 }
 
 .rank-log-heading {
@@ -670,6 +667,23 @@ button.rank-card {
 .rank-log-entry.is-important,
 .rank-log-entry.is-winner {
     color: var(--rank-gold);
+}
+
+.rank-log-modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - 40px);
+}
+
+.rank-log-modal-content .rank-log-heading {
+    margin-top: 16px;
+    padding: 0 0 12px;
+}
+
+.rank-log-modal-content .rank-log {
+    min-height: 260px;
+    max-height: min(52vh, 380px);
+    padding: 8px 4px 0;
 }
 
 .rank-modal-overlay {
@@ -748,6 +762,67 @@ button.rank-card {
     border-radius: 10px;
 }
 
+#rankFeedbackModal .modal-actions-and-rules {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: visible;
+    border: 2px solid var(--rank-accent);
+    border-radius: 15px;
+    background: #171d26 !important;
+}
+
+#rankFeedbackModal iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: none;
+    border-radius: 13px;
+    background-color: #14171e !important;
+}
+
+#rankFeedbackModal .close-btn {
+    top: -15px;
+    right: -15px;
+    z-index: 1010;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--rank-accent);
+    background: var(--rank-bg);
+    line-height: 1;
+}
+
+#rankFeedbackModal .modal-actions-and-rules::-webkit-scrollbar {
+    width: 6px;
+}
+
+#rankFeedbackModal .modal-actions-and-rules::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+#rankFeedbackModal .modal-actions-and-rules::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: var(--rank-accent);
+}
+
+.modal-actions-and-rules:has(.flip-card) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    max-width: calc(100vw - 28px);
+    max-height: calc(100dvh - 28px);
+}
+
+.modal-actions-and-rules:has(.flip-card)>.close-btn {
+    z-index: 1010;
+    transform: translateZ(60px);
+}
+
 .settings-container {
     display: flex;
     flex-direction: column;
@@ -816,8 +891,9 @@ button.rank-card {
 }
 
 .flip-card {
-    width: 300px;
-    height: 450px;
+    width: min(360px, 84vw, calc((100dvh - 72px) * 0.6667));
+    aspect-ratio: 2 / 3;
+    height: auto;
     background-color: transparent;
     perspective: 1000px;
     cursor: pointer;
@@ -837,15 +913,33 @@ button.rank-card {
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
+    overflow: hidden;
+    border-radius: 20px;
 }
 
 .flip-card-front img,
 .flip-card-back img {
     width: 100%;
-    height: auto;
+    height: 100%;
     display: block;
     border-radius: 20px;
     object-fit: cover;
+}
+
+@media (max-width: 560px) {
+    .flip-card {
+        width: min(300px, 84vw, calc((100dvh - 72px) * 0.6667));
+    }
+}
+
+@media (max-height: 560px) {
+    .modal-actions-and-rules:has(.flip-card) {
+        padding: 14px;
+    }
+
+    .flip-card {
+        width: min(300px, 78vw, calc((100dvh - 64px) * 0.6667));
+    }
 }
 
 .rank-close-btn {
@@ -899,10 +993,6 @@ button.rank-card {
 
     .rank-game-grid {
         grid-template-columns: 1fr;
-    }
-
-    .rank-log-panel {
-        min-height: 260px;
     }
 
     .rank-log {
@@ -1085,7 +1175,7 @@ button.rank-card {
     }
 
     .rank-turn-bar h1 {
-        font-size: 19px;
+        font-size: 18px;
     }
 
     .rank-timer {

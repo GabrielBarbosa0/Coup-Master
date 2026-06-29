@@ -640,17 +640,31 @@ button {
 
 .player-stats-modal {
     padding: 22px;
+    overflow: hidden;
+}
+
+.player-stats-frame {
+    position: relative;
+    width: min(680px, 100%);
+    max-height: min(760px, calc(100dvh - 44px));
 }
 
 .player-stats-content {
-    width: min(680px, 100%);
-    max-height: min(760px, calc(100dvh - 44px));
+    width: 100%;
+    max-height: inherit;
     padding: 26px;
+    overflow-x: hidden;
     overflow-y: auto;
     border: 1px solid rgba(230, 238, 246, 0.14);
     background: var(--panel);
     scrollbar-width: thin;
     scrollbar-color: var(--accent) rgba(255, 255, 255, 0.08);
+}
+
+.player-stats-close {
+    top: -12px;
+    right: -12px;
+    z-index: 1002;
 }
 
 .player-stats-content::-webkit-scrollbar {
@@ -673,6 +687,10 @@ button {
     align-items: center;
     margin-bottom: 20px;
     text-align: left;
+}
+
+.player-stats-header > div {
+    min-width: 0;
 }
 
 .player-stats-header img {
@@ -728,6 +746,7 @@ button {
 .player-actions-grid span,
 .player-style-row,
 .achievement-badge {
+    min-width: 0;
     border: 1px solid rgba(230, 238, 246, 0.14);
     border-radius: 8px;
     background: #171d26;
@@ -768,6 +787,30 @@ button {
     text-transform: uppercase;
 }
 
+.player-achievements-heading {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.player-achievements-heading h3 {
+    margin-bottom: 0;
+}
+
+.player-achievements-heading span {
+    flex: 0 0 auto;
+    min-width: 52px;
+    padding: 5px 9px;
+    border: 1px solid rgba(30, 144, 255, 0.56);
+    border-radius: 999px;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    text-align: center;
+}
+
 .player-style-row {
     display: flex;
     gap: 12px;
@@ -800,6 +843,7 @@ button {
     justify-content: space-between;
     gap: 8px;
     padding: 12px;
+    overflow-wrap: anywhere;
 }
 
 .player-actions-grid strong {
@@ -808,17 +852,39 @@ button {
 }
 
 .player-achievements {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
     gap: 10px;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 2px 10px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) rgba(255, 255, 255, 0.08);
+}
+
+.player-achievements::-webkit-scrollbar {
+    height: 8px;
+}
+
+.player-achievements::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+}
+
+.player-achievements::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 999px;
 }
 
 .achievement-badge {
     display: grid;
+    flex: 0 0 176px;
     gap: 4px;
     min-height: 76px;
     padding: 12px;
     opacity: 0.46;
+    scroll-snap-align: start;
 }
 
 .achievement-badge.is-unlocked {
@@ -848,6 +914,11 @@ button {
         padding: 22px 16px;
     }
 
+    .player-stats-close {
+        top: -10px;
+        right: -10px;
+    }
+
     .player-stats-header {
         align-items: flex-start;
     }
@@ -858,9 +929,12 @@ button {
     }
 
     .player-stats-grid,
-    .player-actions-grid,
-    .player-achievements {
+    .player-actions-grid {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .achievement-badge {
+        flex-basis: 154px;
     }
 
     .player-style-row {

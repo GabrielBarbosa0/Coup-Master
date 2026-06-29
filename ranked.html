@@ -17,7 +17,7 @@
 
     <link rel="stylesheet" href="css/loading.css?v=rank-split-v1">
     <link rel="stylesheet" href="css/chat.css?v=chat-unread-alert">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=waiting-qr-card-width">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-feedback-modal-parity">
 </head>
 
 <body data-rank-view="game">
@@ -40,14 +40,17 @@
                 <button id="leaveRankBtn" class="rank-icon-btn" type="button" title="Sair da Sala">
                     <img src="assets/img/icons/logout.svg" alt="Sair">
                 </button>
-                <button id="rankMusicBtn" class="rank-icon-btn musicBtn" type="button" title="Música de Fundo">
-                    <img src="assets/img/icons/music_note.svg" alt="Música">
-                </button>
             </div>
 
             <div class="rank-header-actions rank-header-actions-right">
+                <button id="rankMusicBtn" class="rank-icon-btn musicBtn" type="button" title="Música de Fundo">
+                    <img src="assets/img/icons/music_note.svg" alt="Música">
+                </button>
                 <button id="openRankFeedbackBtn" class="rank-icon-btn feedbackBtn" type="button" title="Enviar Feedback / Bug">
                     <img src="assets/img/icons/feedback.svg" alt="Feedback">
+                </button>
+                <button id="openRankLogBtn" class="rank-icon-btn" type="button" title="Registro Oficial">
+                    <img src="assets/img/icons/history.svg" alt="Registro">
                 </button>
                 <button id="rankCharacterActionsBtn" class="rank-icon-btn infoBtn" type="button" title="Ações de Personagem">
                     <img src="assets/img/icons/info.svg" alt="Ações">
@@ -76,24 +79,8 @@
                 <p id="rankPhaseDescription" class="rank-phase-description">Aguardando o estado atual da partida.</p>
                 <div id="rankInteraction" class="rank-interaction"></div>
             </section>
-
-            <aside class="rank-log-panel">
-                <div class="rank-log-heading">
-                    <span class="rank-kicker">Registro oficial</span>
-                    <div class="rank-log-actions">
-                        <strong id="rankTurnNumber">Turno 0</strong>
-                        <button id="copyRankLogBtn" class="rank-copy-log-btn" type="button">Copiar log</button>
-                    </div>
-                </div>
-                <div id="rankLog" class="rank-log" role="log" aria-live="polite"></div>
-            </aside>
         </section>
 
-        <footer class="rank-table-status" aria-label="Status da sala ranqueada">
-            <button id="rankRoomCode" class="rank-room-code" type="button" title="Copiar código da sala">Sala: ----</button>
-            <span>Modo: <strong>Ranqueado</strong></span>
-            <span id="rankConnectionStatus" class="rank-connection-status">Conectando...</span>
-        </footer>
     </main>
 
     <div id="rankActionsModal" class="modal-overlay" style="display: none;">
@@ -129,6 +116,21 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="rankLogModal" class="modal-overlay" style="display: none;">
+        <section class="modal-content standard-modal-content rank-log-modal-content" role="dialog" aria-modal="true" aria-labelledby="rankLogTitle">
+            <button id="closeRankLogBtn" class="close-btn" type="button" aria-label="Fechar registro">&times;</button>
+            <h2 id="rankLogTitle">Registro oficial</h2>
+            <div class="rank-log-heading">
+                <span class="rank-kicker">Histórico da partida</span>
+                <div class="rank-log-actions">
+                    <strong id="rankTurnNumber">Turno 0</strong>
+                    <button id="copyRankLogBtn" class="rank-copy-log-btn" type="button">Copiar log</button>
+                </div>
+            </div>
+            <div id="rankLog" class="rank-log" role="log" aria-live="polite"></div>
+        </section>
     </div>
 
     <div id="rankFeedbackModal" class="modal-overlay" style="display: none;">
@@ -177,9 +179,8 @@
     <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>
     <script src="js/gamemode/ranked/ranked-rules.js?v=waiting-ready-delay" defer></script>
     <script src="js/gamemode/ranked/ranked-engine.js?v=waiting-ready-delay" defer></script>
-    <script src="js/gamemode/ranked/ranked-renderer.js?v=waiting-qr-code-text" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-log-modal-controls" defer></script>
     <script src="js/gamemode/ranked/ranked-game.js?v=waiting-ready-delay" defer></script>
 </body>
 
 </html>
-

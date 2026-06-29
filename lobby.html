@@ -42,7 +42,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <link rel="stylesheet" href="css/lobby.css?v=profile-stats">
+    <link rel="stylesheet" href="css/lobby.css?v=stats-50-achievements">
     <link rel="stylesheet" href="css/loading.css?v=standard-loading">
 </head>
 
@@ -112,10 +112,12 @@
     </div>
 
     <div id="playerStatsModal" class="modal-overlay player-stats-modal" style="display: none;">
+        <div class="player-stats-frame">
+            <button id="closePlayerStatsModalBtn" class="close-btn player-stats-close" type="button"
+                aria-label="Fechar">&times;</button>
+
         <section class="modal-content player-stats-content" role="dialog" aria-modal="true"
             aria-labelledby="playerStatsTitle">
-            <button id="closePlayerStatsModalBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
-
             <header class="player-stats-header">
                 <img id="statsPlayerPhoto" src="assets/img/icons/ghost.svg" alt="">
                 <div>
@@ -179,11 +181,15 @@
                 </section>
 
                 <section class="player-stats-section">
-                    <h3>Conquistas</h3>
+                    <div class="player-achievements-heading">
+                        <h3>Conquistas</h3>
+                        <span id="statsAchievementsCount">0/50</span>
+                    </div>
                     <div id="statsAchievements" class="player-achievements"></div>
                 </section>
             </div>
         </section>
+        </div>
     </div>
 
     <div class="vignette"></div>
@@ -198,7 +204,7 @@
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=ranked-mode-beta" defer></script>
-    <script src="js/lobby/lobby-manager.js?v=profile-stats" defer></script>
+    <script src="js/lobby/lobby-manager.js?v=stats-50-achievements" defer></script>
 
 </body>
 

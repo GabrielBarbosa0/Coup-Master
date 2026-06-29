@@ -65,6 +65,7 @@
         bindModal('rankCharacterActionsBtn', 'rankActionsModal', '#closeRankActionsBtn', resetActionsGuide);
         bindModal('rankSettingsBtn', 'rankSettingsModal', '#closeRankSettingsBtn');
         bindModal('openRankFeedbackBtn', 'rankFeedbackModal', '#closeRankFeedbackBtn');
+        bindModal('openRankLogBtn', 'rankLogModal', '#closeRankLogBtn');
         setupActionsGuide();
         document.getElementById('copyRankLogBtn')?.addEventListener('click', copyOfficialLog);
         document.getElementById('rankFullscreenBtn')?.addEventListener('click', () => {
