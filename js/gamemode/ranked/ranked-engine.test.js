@@ -124,6 +124,19 @@ function testTurnTimeoutUsesMandatoryCoup() {
     assert.equal(state.pendingLoss.reason, 'Vitima de Golpe de Estado.');
 }
 
+function testInfluenceLossTimeoutNormalizesOldState() {
+    const state = createStartedState();
+    delete state.discard;
+    state.players.u1.influences.forEach((card) => { card.role = Rules.ROLES.CAPTAIN; });
+    Engine.performAction(state, 'u1', Rules.ACTIONS.TAX, null, 2000);
+    Engine.challengeAction(state, 'u2', 2100);
+    const deadline = state.deadline;
+    assert.equal(Engine.advanceExpired(state, deadline + 1), true);
+    assert.ok(Array.isArray(state.discard));
+    assert.equal(state.discard.length, 1);
+    assert.equal(Engine.getActiveUid(state), 'u2');
+}
+
 testImmediateIncome();
 testSuccessfulChallengeCancelsBluff();
 testFailedChallengeResumesAction();
@@ -134,7 +147,8 @@ testInquisitorExamine();
 testMandatoryCoup();
 testBluffedBlockLetsActionContinue();
 testTurnTimeoutUsesMandatoryCoup();
+testInfluenceLossTimeoutNormalizesOldState();
 
-console.log('ranked-engine: 10 testes aprovados');
+console.log('ranked-engine: 11 testes aprovados');
 
 

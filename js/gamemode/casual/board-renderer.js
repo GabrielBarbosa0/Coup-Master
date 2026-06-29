@@ -1392,7 +1392,7 @@ function setupUI() {
 
   // --- 6. MODAL DE INFORMAÇÕES E REGRAS ---
 
-  const infoBtn = document.getElementById('infoBtn');
+  const characterActionsBtn = document.getElementById('characterActionsBtn') || document.getElementById('infoBtn');
   const infoModal = document.getElementById('infoModal');
   const closeInfoBtn = document.getElementById('closeModalBtn');
   const flipCard = document.querySelector('.flip-card');
@@ -1468,8 +1468,8 @@ function setupUI() {
   }
 
 
-  if (infoBtn && infoModal) {
-    infoBtn.onclick = () => {
+  if (characterActionsBtn && infoModal) {
+    characterActionsBtn.onclick = () => {
       playSound('click');
       currentRuleImages = calculateRuleImages();
       infoModal.style.display = 'flex';

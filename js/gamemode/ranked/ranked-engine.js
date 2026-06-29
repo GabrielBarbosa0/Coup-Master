@@ -36,7 +36,23 @@
         };
     }
 
+    function normalizeState(state) {
+        if (!state || typeof state !== 'object') return state;
+        state.players = state.players || {};
+        state.turnOrder = Array.isArray(state.turnOrder) ? state.turnOrder : [];
+        state.deck = Array.isArray(state.deck) ? state.deck : [];
+        state.discard = Array.isArray(state.discard) ? state.discard : [];
+        state.log = Array.isArray(state.log) ? state.log : [];
+        Object.values(state.players).forEach((player) => {
+            player.influences = Array.isArray(player.influences) ? player.influences : [];
+            player.coins = Number.isFinite(Number(player.coins)) ? Number(player.coins) : SETTINGS.startingCoins;
+            player.eliminated = Boolean(player.eliminated);
+        });
+        return state;
+    }
+
     function addLog(state, message, type = 'info', now = Date.now()) {
+        normalizeState(state);
         const entry = {
             id: `rank-log-${now}-${state.log?.length || 0}`,
             message,
@@ -44,7 +60,7 @@
             timestamp: now,
             turn: state.turnNumber || 0
         };
-        state.log = [...(state.log || []), entry].slice(-80);
+        state.log = [...(state.log || []), entry];
     }
 
     function getPlayers(state) {
@@ -76,6 +92,7 @@
     }
 
     function joinPlayer(state, user, now = Date.now()) {
+        normalizeState(state);
         if (!user?.uid) throw new Error('Usuario invalido.');
         const existing = getPlayer(state, user.uid);
 
@@ -110,6 +127,7 @@
     }
 
     function setConnected(state, uid, connected, now = Date.now()) {
+        normalizeState(state);
         const player = getPlayer(state, uid);
         if (!player) return state;
         player.connected = Boolean(connected);
@@ -118,6 +136,7 @@
     }
 
     function leaveWaitingRoom(state, uid, now = Date.now()) {
+        normalizeState(state);
         if (state.status !== PHASES.WAITING || !state.players?.[uid]) return state;
         const name = state.players[uid].name;
         delete state.players[uid];
@@ -127,6 +146,7 @@
     }
 
     function toggleReady(state, uid, now = Date.now(), random = Math.random) {
+        normalizeState(state);
         if (state.status !== PHASES.WAITING) throw new Error('A partida ja comecou.');
         const player = getPlayer(state, uid);
         if (!player) throw new Error('Jogador nao encontrado.');
@@ -149,6 +169,7 @@
     }
 
     function maybeStart(state, now = Date.now(), random = Math.random) {
+        normalizeState(state);
         const players = getPlayers(state);
         if (players.length < SETTINGS.minPlayers || players.some((player) => !player.ready)) return false;
 
@@ -204,6 +225,7 @@
     }
 
     function performAction(state, uid, actionType, targetUid = null, now = Date.now()) {
+        normalizeState(state);
         validateTurnAction(state, uid, actionType, targetUid);
         const action = Rules.getAction(actionType);
         const actor = getPlayer(state, uid);
@@ -257,6 +279,7 @@
     }
 
     function passResponse(state, uid, now = Date.now()) {
+        normalizeState(state);
         if (![PHASES.RESPONSE, PHASES.BLOCK_CHALLENGE].includes(state.phase)) {
             throw new Error('Nao ha resposta pendente.');
         }
@@ -281,6 +304,7 @@
     }
 
     function challengeAction(state, challengerUid, now = Date.now()) {
+        normalizeState(state);
         const pending = state.pendingAction;
         if (state.phase !== PHASES.RESPONSE || !pending?.claim || pending.claimConfirmed) {
             throw new Error('Esta acao nao pode ser contestada agora.');
@@ -307,6 +331,7 @@
     }
 
     function declareBlock(state, blockerUid, claim, now = Date.now()) {
+        normalizeState(state);
         const pending = state.pendingAction;
         const legalClaims = getBlockClaimsForPlayer(state, blockerUid);
         const blocker = getPlayer(state, blockerUid);
@@ -330,6 +355,7 @@
     }
 
     function challengeBlock(state, challengerUid, now = Date.now()) {
+        normalizeState(state);
         const pending = state.pendingAction;
         const block = pending?.block;
         if (state.phase !== PHASES.BLOCK_CHALLENGE || !block) throw new Error('Nao ha bloqueio para contestar.');
@@ -371,6 +397,7 @@
     }
 
     function loseInfluence(state, uid, cardId, now = Date.now()) {
+        normalizeState(state);
         const pendingLoss = state.pendingLoss;
         if (state.phase !== PHASES.INFLUENCE_LOSS || pendingLoss?.playerUid !== uid) {
             throw new Error('Voce nao precisa perder uma influencia agora.');
@@ -485,6 +512,7 @@
     }
 
     function completeExchange(state, uid, keepIds, now = Date.now()) {
+        normalizeState(state);
         const pending = state.pendingExchange;
         if (state.phase !== PHASES.EXCHANGE || pending?.playerUid !== uid) throw new Error('Nao ha troca pendente.');
         const uniqueIds = [...new Set(keepIds || [])];
@@ -517,6 +545,7 @@
     }
 
     function completeExamine(state, uid, replace, now = Date.now()) {
+        normalizeState(state);
         const pending = state.pendingExamine;
         if (state.phase !== PHASES.EXAMINE || pending?.actorUid !== uid) throw new Error('Nao ha investigacao pendente.');
 
@@ -577,6 +606,7 @@
     }
 
     function advanceExpired(state, now = Date.now()) {
+        normalizeState(state);
         if (!state.deadline || now < state.deadline || state.status !== 'active') return false;
 
         if (state.phase === PHASES.TURN) {
@@ -593,9 +623,10 @@
         } else if (state.phase === PHASES.BLOCK_CHALLENGE) {
             acceptBlock(state, now);
         } else if (state.phase === PHASES.INFLUENCE_LOSS) {
-            const player = getPlayer(state, state.pendingLoss.playerUid);
-            const card = player.influences.find((influence) => !influence.revealed);
+            const player = getPlayer(state, state.pendingLoss?.playerUid);
+            const card = player?.influences?.find((influence) => !influence.revealed);
             if (card) loseInfluence(state, player.uid, card.id, now);
+            else endTurn(state, now);
         } else if (state.phase === PHASES.EXCHANGE) {
             completeExchange(
                 state,
@@ -611,6 +642,7 @@
 
     return Object.freeze({
         createState,
+        normalizeState,
         joinPlayer,
         setConnected,
         leaveWaitingRoom,

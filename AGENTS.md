@@ -11,7 +11,8 @@ Pontos de entrada:
 - `login.html`: autenticacao com Google ou visitante anonimo.
 - `lobby.html`: perfil autenticado, criacao e entrada em salas.
 - `index.html`: tabuleiro do modo casual.
-- `ranked.html`: partida ranqueada com regras automatizadas.
+- `ranked-waiting.html`: sala de espera/prontidao do modo ranqueado.
+- `ranked.html`: mesa da partida ranqueada com regras automatizadas.
 - `.nojekyll`: desativa o processamento Jekyll no GitHub Pages; mantenha esse arquivo para publicar o app como site estatico puro.
 
 Scripts principais:
@@ -82,7 +83,7 @@ Cuidados:
 
 Preserve:
 
-- 8 slots maximos por sala.
+- 8 slots maximos no casual e 6 slots maximos no ranqueado.
 - UID real reentra no mesmo slot.
 - Carta existe em apenas um lugar: `deck`, `freeCards` ou `players[n].hand`.
 - Carta no deck: `owner = null`, `visible = false`, `location = "deck"`.

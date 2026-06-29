@@ -91,7 +91,7 @@
 
     const SETTINGS = Object.freeze({
         minPlayers: 2,
-        maxPlayers: 8,
+        maxPlayers: 6,
         cardsPerRole: 5,
         startingCoins: 2,
         startingInfluences: 2,

@@ -68,6 +68,7 @@ flowchart LR
   Pages --> Login["login.html + login-manager.js"]
   Pages --> Lobby["lobby.html + lobby-manager.js"]
   Pages --> Game["index.html + gameState.js + board-renderer.js"]
+  Pages --> RankedWaiting["ranked-waiting.html + ranked-game.js + ranked-engine.js"]
   Pages --> Ranked["ranked.html + ranked-game.js + ranked-engine.js"]
 
   Auth --> Session["sessionStorage: UID, nome, foto, anonimo"]
@@ -75,21 +76,25 @@ flowchart LR
   Login --> Session
   Lobby --> Session
   Session --> Game
+  Session --> RankedWaiting
   Session --> Ranked
   RTDB --> State["salas/{roomCode}/gameState"]
   State --> Game
   Game --> State
   RTDB --> RankedState["salas/{roomCode}/rankedState"]
+  RankedState --> RankedWaiting
+  RankedWaiting --> RankedState
   RankedState --> Ranked
   Ranked --> RankedState
 ```
 
-O frontend tem tres paginas principais:
+O frontend tem cinco paginas principais:
 
 - `login.html`: tela dedicada de autenticacao com Google ou visitante anonimo.
 - `lobby.html`: perfil autenticado, criacao e entrada em salas.
 - `index.html`: tabuleiro do modo casual.
-- `ranked.html`: tela dedicada ao modo ranqueado automatizado.
+- `ranked-waiting.html`: sala de espera/prontidao do modo ranqueado.
+- `ranked.html`: mesa dedicada ao modo ranqueado automatizado.
 
 Os scripts sao carregados como arquivos globais com `defer`. Eles dependem da ordem no HTML, nao de imports ES Modules.
 
@@ -181,6 +186,7 @@ Coup-Master/
   index.html
   login.html
   lobby.html
+  ranked-waiting.html
   ranked.html
   manifest.webmanifest
   robots.txt
@@ -251,7 +257,7 @@ O projeto agora possui uma camada PWA sem alterar sua arquitetura estatica:
 - `manifest.webmanifest`: define nome, descricao, `start_url` para `login.html`, `scope` relativo, `display: standalone`, cores de tema e icones 192x192/512x512.
 - `js/pwa/pwa.js`: registra `sw.js` apos o carregamento da pagina, somente quando `navigator.serviceWorker` existe.
 - `sw.js`: cria cache versionado do shell principal, HTMLs, CSS, JS local, fontes e icones criticos.
-- `index.html`, `ranked.html`, `login.html` e `lobby.html`: expoem manifesto, `theme-color`, metatags mobile/apple e registrador PWA.
+- `index.html`, `ranked-waiting.html`, `ranked.html`, `login.html` e `lobby.html`: expoem manifesto, `theme-color`, metatags mobile/apple e registrador PWA.
 
 Estrategia do service worker:
 
@@ -1043,9 +1049,10 @@ Regras atuais:
 
 - requer autenticacao Google; visitante anonimo nao cria nem entra;
 - persiste `mode = "ranked"` na raiz e usa `rankedState` separado do sandbox casual;
-- redireciona para `ranked.html`, sem carregar `gameState.js` ou `board-renderer.js`;
+- redireciona primeiro para `ranked-waiting.html`, sem carregar `gameState.js` ou `board-renderer.js`;
 - nao possui host, administrador, bots, reset manual ou configuracao de baralho;
-- desenha oito lugares e inicia automaticamente com 2 a 8 jogadores quando todos marcam pronto;
+- desenha seis lugares na sala de espera e inicia automaticamente com 2 a 6 jogadores quando todos marcam pronto;
+- quando o estado sai de `waiting`, `ranked-waiting.html` redireciona para `ranked.html`, que renderiza apenas a mesa ativa, as acoes e o registro oficial;
 - usa cinco copias de Duque, Capitao, Assassino, Condessa, Embaixador e Inquisidor;
 - obriga Golpe de Estado quando o jogador possui 10 moedas ou mais;
 - oferece Renda, Ajuda Externa, Golpe, Taxar, Extorquir, Assassinar, duas trocas e Investigar;
@@ -1864,7 +1871,8 @@ Estas invariantes devem ser preservadas:
 | Arquivo | Papel | Risco |
 |---|---|---|
 | `index.html` | Estrutura do tabuleiro, modais, audio e scripts | Alto: ids sao contrato com JS |
-| `ranked.html` | Estrutura da partida ranqueada e scripts dedicados | Alto: ids sao contrato com o renderer |
+| `ranked-waiting.html` | Sala de espera/prontidao do modo ranqueado | Alto: ids sao contrato com o renderer |
+| `ranked.html` | Estrutura da mesa ranqueada ativa e scripts dedicados | Alto: ids sao contrato com o renderer |
 | `lobby.html` | Login e entrada/criacao de salas | Medio |
 | `js/firebase/firebase.js` | Inicializacao Firebase global | Alto: ordem e config |
 | `js/core/rules.js` | Tipos de cartas e utilitarios de deck | Alto: fonte de verdade parcial |

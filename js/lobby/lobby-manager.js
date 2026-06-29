@@ -86,8 +86,8 @@ function setRankedModeAvailability(user) {
 function openRoom(code, mode) {
     const normalizedMode = CoupGameModes.normalize(mode);
     sessionStorage.setItem('currentRoomMode', normalizedMode);
-    showLoader(CoupGameModes.isRanked(normalizedMode) ? 'Carregando mesa ranqueada...' : 'Carregando mesa...');
-    const destination = CoupGameModes.isRanked(normalizedMode) ? 'ranked.html' : 'index.html';
+    showLoader(CoupGameModes.isRanked(normalizedMode) ? 'Carregando sala ranqueada...' : 'Carregando mesa...');
+    const destination = CoupGameModes.isRanked(normalizedMode) ? 'ranked-waiting.html' : 'index.html';
     window.location.href = `${destination}?room=${code}`;
 }
 

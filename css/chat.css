@@ -89,6 +89,13 @@
 .chat-status-text {
     margin: 0 0 12px;
     color: rgba(230, 238, 246, 0.78);
+    font-size: 1.1em;
+    text-align: center;
+}
+
+.chat-subtitle {
+    text-align: center;
+    font-size: 1.1em;
 }
 
 .chat-messages-list {

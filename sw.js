@@ -1,10 +1,11 @@
-﻿const CACHE_NAME = 'coup-master-pwa-v36';
+const CACHE_NAME = 'coup-master-pwa-v40';
 
 const APP_SHELL = [
   './',
   './login.html',
   './lobby.html',
   './index.html',
+  './ranked-waiting.html',
   './ranked.html',
   './manifest.webmanifest',
   './css/loading.css',
@@ -34,9 +35,15 @@ const APP_SHELL = [
   './assets/img/icons/music_note.svg',
   './assets/img/icons/feedback.svg',
   './assets/img/icons/parchment.svg',
+  './assets/img/icons/info.svg',
   './assets/img/icons/ghost.svg',
   './assets/img/icons/fullscreen.svg',
   './assets/img/icons/settings.svg',
+  './assets/img/guides/front-actions.png',
+  './assets/img/guides/back-actions.png',
+  './assets/sounds/vfx/blip.mp3',
+  './assets/sounds/vfx/card-slide.mp3',
+  './assets/sounds/vfx/pop.mp3',
   './assets/fonts/tilda-script-bold.woff2',
   './assets/fonts/PressStart2P-Regular.ttf'
 ];

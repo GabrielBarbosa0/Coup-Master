@@ -4,6 +4,7 @@
     const Renderer = root.CoupRankedRenderer;
     const params = new URLSearchParams(root.location.search);
     const roomCode = (params.get('room') || '').trim().toUpperCase();
+    const viewMode = document.body?.dataset.rankView || 'game';
 
     let currentUser = null;
     let rankedState = null;
@@ -16,6 +17,23 @@
         root.location.href = 'lobby.html';
     }
 
+    function navigateToRankedView(destination) {
+        root.location.href = `${destination}?room=${encodeURIComponent(roomCode)}`;
+    }
+
+    function redirectIfWrongView(state) {
+        const shouldBeWaiting = state?.status === Rules.PHASES.WAITING;
+        if (shouldBeWaiting && viewMode !== 'waiting') {
+            navigateToRankedView('ranked-waiting.html');
+            return true;
+        }
+        if (!shouldBeWaiting && viewMode === 'waiting') {
+            navigateToRankedView('ranked.html');
+            return true;
+        }
+        return false;
+    }
+
     function getUserData(user) {
         return {
             uid: user.uid,
@@ -24,7 +42,7 @@
         };
     }
 
-    function transaction(mutator) {
+    function transaction(mutator, options = {}) {
         if (!rankedStateRef) return Promise.reject(new Error('Partida ainda nao conectada.'));
         let mutationError = null;
 
@@ -32,6 +50,7 @@
             mutationError = null;
             if (!current) return;
             try {
+                Engine.normalizeState(current);
                 mutator(current);
                 current.updatedAt = Date.now();
                 return current;
@@ -44,7 +63,9 @@
             if (!result.committed) throw new Error('A acao nao foi confirmada. Tente novamente.');
             return db.ref(`salas/${roomCode}/lastActivity`).set(Date.now());
         }).catch((error) => {
-            Renderer.showError(error.message || 'Nao foi possivel concluir a acao.');
+            if (!options.silent) {
+                Renderer.showError(error.message || 'Nao foi possivel concluir a acao.');
+            }
             throw error;
         });
     }
@@ -102,6 +123,7 @@
                 redirectToLobby('Voce nao faz mais parte desta sala ranqueada.');
                 return;
             }
+            if (redirectIfWrongView(rankedState)) return;
             Renderer.render(rankedState);
             Renderer.setConnectionStatus('Sincronizado');
         }, () => {
@@ -157,7 +179,7 @@
             Renderer.updateClock(Date.now());
             if (!rankedState?.deadline || Date.now() < rankedState.deadline || deadlineAdvancePending) return;
             deadlineAdvancePending = true;
-            transaction((state) => Engine.advanceExpired(state, Date.now()))
+            transaction((state) => Engine.advanceExpired(state, Date.now()), { silent: true })
                 .catch(() => null)
                 .finally(() => {
                     deadlineAdvancePending = false;

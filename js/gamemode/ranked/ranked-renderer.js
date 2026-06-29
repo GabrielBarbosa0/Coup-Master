@@ -11,6 +11,7 @@
     let exchangeSelection = new Set();
     let exchangeKey = '';
     let chatMessages = [];
+    let viewMode = 'game';
 
     const quickMessages = [
         'Sou o Duque', 'Sou o Capitao', 'Sou a Condessa', 'Taxar', 'Extorquir',
@@ -28,9 +29,11 @@
         controller = options.controller;
         currentUid = options.currentUid;
         roomCode = options.roomCode;
+        viewMode = document.body?.dataset.rankView || 'game';
         bindStaticEvents();
         renderRoomCode();
         setupChat();
+        setupAudioControls();
     }
 
     function bindStaticEvents() {
@@ -44,18 +47,64 @@
                 showError('Nao foi possivel copiar o codigo da sala.');
             }
         });
-        document.getElementById('rankRulesBtn')?.addEventListener('click', () => {
-            document.getElementById('rankRulesModal').hidden = false;
-        });
-        document.querySelector('[data-close-rank-modal]')?.addEventListener('click', () => {
-            document.getElementById('rankRulesModal').hidden = true;
-        });
+        bindModal('rankCharacterActionsBtn', 'rankActionsModal', '#closeRankActionsBtn', resetActionsGuide);
+        bindModal('rankSettingsBtn', 'rankSettingsModal', '#closeRankSettingsBtn');
+        bindModal('openRankFeedbackBtn', 'rankFeedbackModal', '#closeRankFeedbackBtn');
+        setupActionsGuide();
+        document.getElementById('copyRankLogBtn')?.addEventListener('click', copyOfficialLog);
         document.getElementById('rankFullscreenBtn')?.addEventListener('click', () => {
+            playRankSfx('click');
             if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
             else document.exitFullscreen?.();
         });
         document.getElementById('rankErrorConfirm')?.addEventListener('click', () => {
             document.getElementById('rankErrorModal').hidden = true;
+        });
+    }
+
+    function bindModal(openId, modalId, closeSelector, onOpen) {
+        const modal = document.getElementById(modalId);
+        document.getElementById(openId)?.addEventListener('click', () => {
+            playRankSfx('click');
+            if (typeof onOpen === 'function') onOpen();
+            showModal(modal);
+        });
+        modal?.querySelector(closeSelector)?.addEventListener('click', () => {
+            playRankSfx('click');
+            hideModal(modal);
+        });
+    }
+
+    function showModal(modal) {
+        if (!modal) return;
+        if (modal.hasAttribute('hidden')) modal.hidden = false;
+        else modal.style.display = 'flex';
+    }
+
+    function hideModal(modal) {
+        if (!modal) return;
+        if (modal.hasAttribute('hidden')) modal.hidden = true;
+        else modal.style.display = 'none';
+    }
+
+    function resetActionsGuide() {
+        document.getElementById('rankActionsFlipCard')?.classList.remove('is-flipped');
+    }
+
+    function setupActionsGuide() {
+        const flipCard = document.getElementById('rankActionsFlipCard');
+        if (!flipCard) return;
+
+        const flip = () => {
+            playRankSfx('card-slide');
+            flipCard.classList.toggle('is-flipped');
+        };
+
+        flipCard.addEventListener('click', flip);
+        flipCard.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            flip();
         });
     }
 
@@ -87,8 +136,7 @@
         hideLoading();
         renderPlayers();
         renderPhase();
-        renderHand();
-        renderLog();
+        if (viewMode === 'game') renderLog();
         updateClock();
     }
 
@@ -161,6 +209,7 @@
         const title = document.getElementById('rankPhaseTitle');
         const description = document.getElementById('rankPhaseDescription');
         const interaction = document.getElementById('rankInteraction');
+        if (!title || !description || !interaction) return;
         interaction.replaceChildren();
         selectedAction = state.phase === PHASES.TURN ? selectedAction : null;
 
@@ -353,7 +402,10 @@
         const cards = element('div', 'rank-choice-cards');
         Engine.getPlayer(state, currentUid).influences.filter((card) => !card.revealed).forEach((card) => {
             const button = createCard(card, true, { button: true });
-            button.addEventListener('click', () => controller.loseInfluence(card.id));
+            button.addEventListener('click', () => {
+                playRankSfx('card-slide');
+                controller.loseInfluence(card.id);
+            });
             cards.append(button);
         });
         container.append(cards);
@@ -383,7 +435,10 @@
         const confirm = element('button', 'rank-primary-btn', `Confirmar ${exchangeSelection.size}/${pending.keepCount}`);
         confirm.type = 'button';
         confirm.disabled = exchangeSelection.size !== pending.keepCount;
-        confirm.addEventListener('click', () => controller.completeExchange([...exchangeSelection]));
+        confirm.addEventListener('click', () => {
+            playRankSfx('card-slide');
+            controller.completeExchange([...exchangeSelection]);
+        });
         container.append(cards, confirm);
     }
 
@@ -407,25 +462,37 @@
         container.append(cards, actions);
     }
 
-    function renderHand() {
-        const hand = document.getElementById('rankHand');
-        hand.replaceChildren();
-        const self = Engine.getPlayer(state, currentUid);
-        if (!self || state.status === PHASES.WAITING) return;
-        hand.append(element('h2', '', 'Suas influencias'));
-        const cards = element('div', 'rank-hand-cards');
-        (self.influences || []).forEach((card) => cards.append(createCard(card, true)));
-        hand.append(cards);
-    }
-
     function renderLog() {
         const log = document.getElementById('rankLog');
+        if (!log) return;
         log.replaceChildren();
-        (state.log || []).slice().reverse().forEach((entry) => {
+        (state.log || []).forEach((entry) => {
             const item = element('div', `rank-log-entry is-${entry.type || 'info'}`, entry.message);
             log.append(item);
         });
-        document.getElementById('rankTurnNumber').textContent = `Turno ${state.turnNumber || 0}`;
+        const turnNumber = document.getElementById('rankTurnNumber');
+        if (turnNumber) turnNumber.textContent = `Turno ${state.turnNumber || 0}`;
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function copyOfficialLog() {
+        const button = document.getElementById('copyRankLogBtn');
+        const lines = (state?.log || []).map((entry) => {
+            const turn = entry.turn ? `Turno ${entry.turn}` : 'Turno 0';
+            return `[${turn}] ${entry.message}`;
+        });
+        const text = [
+            `Coup Master - registro ranqueado da sala ${roomCode}`,
+            `Turno atual: ${state?.turnNumber || 0}`,
+            '',
+            ...lines
+        ].join('\n');
+        navigator.clipboard.writeText(text).then(() => {
+            playRankSfx('pop');
+            if (!button) return;
+            button.textContent = 'Copiado';
+            window.setTimeout(() => { button.textContent = 'Copiar log'; }, 1200);
+        }).catch(() => showError('Nao foi possivel copiar o registro oficial.'));
     }
 
     function updateClock(now = Date.now()) {
@@ -458,21 +525,90 @@
             event.preventDefault();
             const message = input.value.trim();
             if (!message) return;
+            playRankSfx('click');
             controller.sendChat(message);
             input.value = '';
         });
         const quickContainer = document.getElementById('chatQuickMessages');
+        if (!quickContainer) return;
         quickMessages.forEach((message) => {
             const button = element('button', 'chat-quick-btn', message);
             button.type = 'button';
-            button.addEventListener('click', () => controller.sendChat(message, true));
+            button.addEventListener('click', () => {
+                playRankSfx('click');
+                controller.sendChat(message, true);
+            });
             quickContainer.append(button);
         });
+    }
+
+    function setupAudioControls() {
+        const bgm = document.getElementById('rankBgmAudio');
+        const musicBtn = document.getElementById('rankMusicBtn');
+        const musicSlider = document.getElementById('rankVolumeSlider');
+        const effectsSlider = document.getElementById('rankEffectsVolumeSlider');
+        const savedMusic = Number(localStorage.getItem('rankMusicVolume'));
+        const savedEffects = Number(localStorage.getItem('rankEffectsVolume'));
+        const musicVolume = Number.isFinite(savedMusic) ? savedMusic : 0.1;
+        const effectsVolume = Number.isFinite(savedEffects) ? savedEffects : 1;
+
+        root.rankSfxVolume = effectsVolume;
+        if (bgm) {
+            bgm.volume = musicVolume;
+            bgm.play()
+                .then(() => musicBtn?.classList.remove('muted'))
+                .catch(() => musicBtn?.classList.add('muted'));
+        }
+        if (musicBtn && bgm) {
+            musicBtn.addEventListener('click', () => {
+                playRankSfx('click');
+                if (bgm.paused) {
+                    bgm.play().then(() => musicBtn.classList.remove('muted')).catch(() => musicBtn.classList.add('muted'));
+                } else {
+                    bgm.pause();
+                    musicBtn.classList.add('muted');
+                }
+            });
+        }
+        if (musicSlider) {
+            musicSlider.value = musicVolume;
+            musicSlider.addEventListener('input', (event) => {
+                const value = normalizeVolume(event.target.value);
+                if (bgm) {
+                    bgm.volume = value;
+                    if (value > 0) bgm.play().catch(() => null);
+                }
+                localStorage.setItem('rankMusicVolume', String(value));
+            });
+        }
+        if (effectsSlider) {
+            effectsSlider.value = effectsVolume;
+            effectsSlider.addEventListener('input', (event) => {
+                const value = normalizeVolume(event.target.value);
+                root.rankSfxVolume = value;
+                localStorage.setItem('rankEffectsVolume', String(value));
+            });
+        }
+    }
+
+    function normalizeVolume(value) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return 1;
+        return Math.max(0, Math.min(1, number));
+    }
+
+    function playRankSfx(id) {
+        const sound = document.getElementById(`rank-audio-${id}`);
+        if (!sound) return;
+        sound.volume = normalizeVolume(root.rankSfxVolume);
+        sound.currentTime = 0;
+        sound.play().catch(() => null);
     }
 
     function renderChat(messages) {
         chatMessages = messages.slice(-60);
         const list = document.getElementById('chatMessagesList');
+        if (!list) return;
         list.replaceChildren();
         if (chatMessages.length === 0) {
             list.append(element('p', 'chat-empty-message', 'Nenhuma mensagem ainda.'));

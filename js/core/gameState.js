@@ -772,7 +772,7 @@ function initializeGame() {
     }
 
     if (CoupGameModes.isRanked(currentGameMode)) {
-      window.location.replace(`ranked.html?room=${roomCode}`);
+      window.location.replace(`ranked-waiting.html?room=${roomCode}`);
       return;
     }
 

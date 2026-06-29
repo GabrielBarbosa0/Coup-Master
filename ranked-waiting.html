@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#14171e">
+    <title>Sala Ranqueada | Coup Master</title>
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
+    <link rel="apple-touch-icon" href="assets/img/logo/coup-master-192x192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/loading.css?v=rank-split-v1">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-split-v1">
+</head>
+
+<body data-rank-view="waiting">
+    <div id="rankLoading" class="game-loading-overlay">
+        <div class="game-loading-content">
+            <h1>Coup Master</h1>
+            <p id="rankLoadingMessage">Entrando na sala ranqueada...</p>
+        </div>
+    </div>
+
+    <main class="rank-shell rank-waiting-shell">
+        <header class="rank-header rank-waiting-header">
+            <div class="rank-header-actions rank-room-actions">
+                <button id="leaveRankBtn" class="rank-icon-btn" type="button" title="Sair da Sala">
+                    <img src="assets/img/icons/logout.svg" alt="Sair">
+                </button>
+            </div>
+
+            <div class="rank-waiting-room">
+                <span class="rank-kicker">Sala ranqueada</span>
+                <button id="rankRoomCode" class="rank-room-code" type="button" title="Copiar código da sala">Sala: ----</button>
+                <span id="rankConnectionStatus" class="rank-connection-status">Conectando...</span>
+            </div>
+        </header>
+
+        <section class="rank-waiting-card" aria-live="polite">
+            <div>
+                <span class="rank-kicker">Estado da partida</span>
+                <h1 id="rankPhaseTitle">Aguardando jogadores</h1>
+                <p id="rankPhaseDescription" class="rank-phase-description">Todos os jogadores precisam confirmar prontidão para iniciar.</p>
+            </div>
+            <div id="rankInteraction" class="rank-interaction rank-waiting-interaction"></div>
+        </section>
+
+        <section id="rankPlayers" class="rank-players rank-waiting-players" aria-label="Jogadores da sala ranqueada"></section>
+    </main>
+
+    <div id="rankErrorModal" class="rank-modal-overlay" hidden>
+        <section class="rank-modal rank-error-modal" role="alertdialog" aria-modal="true" aria-labelledby="rankErrorTitle">
+            <span class="rank-kicker">Atenção</span>
+            <h2 id="rankErrorTitle">Não foi possível continuar</h2>
+            <p id="rankErrorText"></p>
+            <button id="rankErrorConfirm" class="rank-primary-btn" type="button">Entendi</button>
+        </section>
+    </div>
+
+    <audio id="rank-audio-click" src="assets/sounds/vfx/blip.mp3"></audio>
+    <audio id="rank-audio-card-slide" src="assets/sounds/vfx/card-slide.mp3"></audio>
+    <audio id="rank-audio-pop" src="assets/sounds/vfx/pop.mp3"></audio>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="js/firebase/firebase.js" defer></script>
+    <script src="js/pwa/pwa.js" defer></script>
+    <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>
+    <script src="js/gamemode/ranked/ranked-rules.js?v=rank-split-v1" defer></script>
+    <script src="js/gamemode/ranked/ranked-engine.js?v=rank-split-v1" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-split-v1" defer></script>
+    <script src="js/gamemode/ranked/ranked-game.js?v=rank-split-v1" defer></script>
+</body>
+
+</html>
