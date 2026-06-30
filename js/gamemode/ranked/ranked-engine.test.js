@@ -13,6 +13,23 @@ function createStartedState() {
     return state;
 }
 
+function createStartedStateWithThree() {
+    const state = Engine.createState(1000);
+    Engine.joinPlayer(state, { uid: 'u1', name: 'Alice', photo: '' }, 1001);
+    Engine.joinPlayer(state, { uid: 'u2', name: 'Bruno', photo: '' }, 1002);
+    Engine.joinPlayer(state, { uid: 'u3', name: 'Celia', photo: '' }, 1003);
+    Engine.toggleReady(state, 'u1', 1004, () => 0);
+    Engine.toggleReady(state, 'u2', 1005, () => 0);
+    Engine.toggleReady(state, 'u3', 1006, () => 0);
+    Engine.advanceExpired(state, state.deadline + 1, () => 0);
+    Engine.advanceExpired(state, state.deadline + 1);
+    state.turnOrder = ['u1', 'u2', 'u3'];
+    state.turnIndex = 0;
+    state.turnNumber = 1;
+    state.phase = Rules.PHASES.TURN;
+    return state;
+}
+
 function createWaitingState() {
     const state = Engine.createState(1000);
     Engine.joinPlayer(state, { uid: 'u1', name: 'Alice', photo: '' }, 1001);
@@ -158,6 +175,25 @@ function testInquisitorExamine() {
     assert.equal(Engine.getActiveUid(state), 'u2');
 }
 
+function testExamineEndsIfChallengerTargetIsEliminated() {
+    const state = createStartedStateWithThree();
+    state.players.u1.influences[0].role = Rules.ROLES.INQUISITOR;
+    state.players.u2.influences = [
+        { id: 'u2-final', role: Rules.ROLES.CONTESSA, revealed: false },
+        { id: 'u2-dead', role: Rules.ROLES.DUKE, revealed: true }
+    ];
+
+    Engine.performAction(state, 'u1', Rules.ACTIONS.EXAMINE, 'u2', 2000);
+    Engine.challengeAction(state, 'u2', 2100);
+    Engine.loseInfluence(state, 'u2', 'u2-final', 2200);
+
+    assert.equal(state.players.u2.eliminated, true);
+    assert.equal(state.pendingAction, null);
+    assert.equal(state.pendingExamine, null);
+    assert.equal(state.phase, Rules.PHASES.TURN);
+    assert.equal(Engine.getActiveUid(state), 'u3');
+}
+
 function testMandatoryCoup() {
     const state = createStartedState();
     state.players.u1.coins = Rules.SETTINGS.mandatoryCoupCoins;
@@ -236,12 +272,13 @@ testTruthfulBlockCancelsAssassination();
 testTurnTimeoutUsesIncome();
 testExchangeSelection();
 testInquisitorExamine();
+testExamineEndsIfChallengerTargetIsEliminated();
 testMandatoryCoup();
 testBluffedBlockLetsActionContinue();
 testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 
-console.log('ranked-engine: 15 testes aprovados');
+console.log('ranked-engine: 16 testes aprovados');
 
 

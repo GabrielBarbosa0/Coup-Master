@@ -631,6 +631,11 @@
 
     function continueAfterLoss(state, continuation, now) {
         if (continuation === 'resume-action') {
+            if (!canPendingActionContinue(state)) {
+                addLog(state, 'A acao foi encerrada porque o alvo nao esta mais disponivel.', 'action-result', now);
+                endTurn(state, now);
+                return;
+            }
             state.phase = PHASES.RESPONSE;
             state.pendingAction.passes = {};
             state.deadline = now + SETTINGS.responseSeconds * 1000;
@@ -655,6 +660,11 @@
     function executePendingAction(state, now = Date.now()) {
         const pending = state.pendingAction;
         if (!pending) return state;
+        if (!canPendingActionContinue(state)) {
+            addLog(state, 'A acao foi encerrada porque o alvo nao esta mais disponivel.', 'action-result', now);
+            endTurn(state, now);
+            return state;
+        }
         const actor = getPlayer(state, pending.actorUid);
         const target = pending.targetUid ? getPlayer(state, pending.targetUid) : null;
 
@@ -710,6 +720,16 @@
         return state;
     }
 
+    function canPendingActionContinue(state) {
+        const pending = state.pendingAction;
+        const action = pending ? Rules.getAction(pending.type) : null;
+        const actor = pending ? getPlayer(state, pending.actorUid) : null;
+        if (!pending || !action || !actor || actor.eliminated || countInfluences(actor) === 0) return false;
+        if (!action.requiresTarget) return true;
+        const target = getPlayer(state, pending.targetUid);
+        return Boolean(target && !target.eliminated && countInfluences(target) > 0);
+    }
+
     function beginExchange(state, uid, now) {
         const player = getPlayer(state, uid);
         const hidden = player.influences.filter((card) => !card.revealed);
@@ -742,7 +762,17 @@
 
     function beginExamine(state, actorUid, targetUid, now) {
         const target = getPlayer(state, targetUid);
+        if (!target || target.eliminated || countInfluences(target) === 0) {
+            addLog(state, 'A investigacao foi encerrada porque o alvo nao esta mais disponivel.', 'action-result', now);
+            endTurn(state, now);
+            return;
+        }
         const hidden = target.influences.filter((card) => !card.revealed);
+        if (!hidden.length) {
+            addLog(state, 'A investigacao foi encerrada porque o alvo nao tem influencias ocultas.', 'action-result', now);
+            endTurn(state, now);
+            return;
+        }
         const examined = hidden[Math.floor(Math.random() * hidden.length)];
         state.pendingExamine = {
             actorUid,

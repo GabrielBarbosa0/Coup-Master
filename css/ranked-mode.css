@@ -451,7 +451,7 @@ button.rank-card {
     cursor: pointer;
 }
 
-.rank-card + .rank-card {
+.rank-card+.rank-card {
     margin-left: -16px;
 }
 
@@ -541,8 +541,8 @@ button.rank-card {
     gap: 8px;
 }
 
-.rank-target-list + .rank-secondary-btn,
-.rank-choice-cards + .rank-primary-btn {
+.rank-target-list+.rank-secondary-btn,
+.rank-choice-cards+.rank-primary-btn {
     margin-top: 10px;
 }
 
@@ -893,10 +893,12 @@ button.rank-card {
 }
 
 @keyframes rankDrawSeatPulse {
+
     0%,
     100% {
         border-color: var(--rank-border);
     }
+
     50% {
         border-color: var(--rank-accent);
         box-shadow: inset 0 0 0 1px rgba(30, 144, 255, 0.2);
@@ -904,11 +906,13 @@ button.rank-card {
 }
 
 @keyframes rankStarterChipPulse {
+
     0%,
     100% {
         transform: translateY(0);
         opacity: 0.72;
     }
+
     50% {
         transform: translateY(-2px);
         opacity: 1;
@@ -916,6 +920,7 @@ button.rank-card {
 }
 
 @keyframes rankStarterSpotlight {
+
     0%,
     100% {
         border-color: var(--rank-border);
@@ -923,6 +928,7 @@ button.rank-card {
         color: var(--rank-muted);
         transform: translateY(0) scale(1);
     }
+
     50% {
         border-color: var(--rank-accent);
         box-shadow: 0 0 18px rgba(30, 144, 255, 0.3), inset 0 0 0 1px rgba(30, 144, 255, 0.2);
@@ -938,6 +944,7 @@ button.rank-card {
         color: var(--rank-text);
         transform: scale(1.02);
     }
+
     100% {
         border-color: var(--rank-gold);
         box-shadow: 0 0 26px rgba(255, 196, 0, 0.28), inset 0 0 0 1px rgba(255, 196, 0, 0.24);
@@ -951,6 +958,7 @@ button.rank-card {
         opacity: 0;
         transform: translateY(5px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1273,6 +1281,17 @@ button.rank-card {
     .flip-card {
         width: min(300px, 84vw, calc((100dvh - 72px) * 0.6667));
     }
+
+    .rank-close-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+
+    .rank-add-ai-modal .rank-close-btn {
+        top: -14px;
+        right: -14px;
+    }
 }
 
 @media (max-height: 560px) {
@@ -1310,6 +1329,16 @@ button.rank-card {
 
 .rank-add-ai-modal {
     overflow: visible;
+}
+
+.rank-add-ai-modal .rank-close-btn {
+    top: -18px;
+    right: -18px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
 .rank-add-ai-modal .rank-phase-description {
@@ -1374,6 +1403,17 @@ button.rank-card {
     border: 1px solid var(--rank-border);
     border-radius: 8px;
     background: rgba(17, 25, 35, 0.58);
+    transition: opacity 160ms ease, filter 160ms ease;
+}
+
+.rank-ai-personality-fields.is-disabled {
+    opacity: 0.42;
+    filter: grayscale(0.35);
+}
+
+.rank-ai-personality-fields.is-disabled,
+.rank-ai-personality-fields.is-disabled * {
+    cursor: not-allowed;
 }
 
 .rank-range-field span {
@@ -1388,6 +1428,10 @@ button.rank-card {
 
 .rank-range-field input {
     accent-color: var(--rank-accent);
+}
+
+.rank-range-field input:disabled {
+    pointer-events: none;
 }
 
 .rank-range-field small {
@@ -1609,7 +1653,7 @@ button.rank-card {
         border-radius: 4px;
     }
 
-    .rank-card + .rank-card {
+    .rank-card+.rank-card {
         margin-left: -13px;
     }
 
@@ -1767,6 +1811,7 @@ button.rank-card {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     .rank-player-slot.is-draw-candidate,
     .rank-starter-chip,
     .rank-starter-overlay-chip,

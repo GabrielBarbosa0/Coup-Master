@@ -1216,7 +1216,6 @@ h2 {
     height: 28px;
     border: 1px solid var(--accent);
     border-radius: 50%;
-    background: #fff;
     object-fit: cover;
 }
 

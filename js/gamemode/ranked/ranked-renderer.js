@@ -184,7 +184,13 @@
     function syncAiPersonalityFields() {
         const enabled = Boolean(document.getElementById('rankChooseAiPersonality')?.checked);
         const fields = document.getElementById('rankAiPersonalityFields');
-        if (fields) fields.hidden = !enabled;
+        if (fields) {
+            fields.classList.toggle('is-disabled', !enabled);
+            fields.setAttribute('aria-disabled', String(!enabled));
+            fields.querySelectorAll('input').forEach((input) => {
+                input.disabled = !enabled;
+            });
+        }
         syncAiPersonalityValues();
     }
 
@@ -357,55 +363,51 @@
         selectedAction = state.phase === PHASES.TURN ? selectedAction : null;
 
         if (state.status === PHASES.WAITING) {
-            title.textContent = state.deadline ? 'Começando em instantes' : 'Prepare sua entrada';
-            description.textContent = state.deadline
-                ? 'Todos estao prontos. A mesa abre automaticamente ao fim da contagem.'
-                : 'Convide pelo codigo da sala e confirme prontidao quando todos estiverem preparados.';
+            setPhaseText(
+                state.deadline ? 'Iniciando' : 'Prepare sua entrada',
+                state.deadline ? 'Tudo pronto.' : 'Convide pela sala e marque pronto.'
+            );
             renderWaiting(interaction);
             return;
         }
 
         if (state.status === PHASES.FINISHED) {
             const winner = Engine.getPlayer(state, state.winnerUid);
-            title.textContent = winner ? `${winner.name} venceu` : 'Partida encerrada';
-            description.textContent = 'Confira o desempenho final da partida ranqueada.';
+            setPhaseText(winner ? `${winner.name} venceu` : 'Partida encerrada');
             renderMatchResults(interaction);
             return;
         }
 
         if (state.phase === PHASES.STARTER_DRAW) {
-            title.textContent = 'Preparando a partida';
-            description.textContent = 'O sorteio do primeiro jogador esta acontecendo na mesa.';
+            setPhaseText('Sorteio inicial');
             return;
         }
 
         const activePlayer = Engine.getPlayer(state, Engine.getActiveUid(state));
         if (state.phase === PHASES.TURN) {
-            title.textContent = `Turno de ${activePlayer?.name || 'jogador'}`;
-            description.textContent = activePlayer?.uid === currentUid
-                ? 'Escolha uma acao. O sistema aplicara custos, janelas de resposta e efeitos.'
-                : 'Aguardando o jogador da vez escolher uma acao.';
+            setPhaseText(activePlayer?.uid === currentUid ? 'Sua vez' : `Vez de ${activePlayer?.name || 'jogador'}`);
             renderTurn(interaction, activePlayer);
         } else if (state.phase === PHASES.RESPONSE) {
-            title.textContent = 'Janela de resposta';
-            description.textContent = describePendingAction();
+            setPhaseText('Responder', describePendingAction());
             renderActionResponse(interaction);
         } else if (state.phase === PHASES.BLOCK_CHALLENGE) {
-            title.textContent = 'Bloqueio declarado';
-            description.textContent = describePendingBlock();
+            setPhaseText('Bloqueio', describePendingBlock());
             renderBlockChallenge(interaction);
         } else if (state.phase === PHASES.INFLUENCE_LOSS) {
-            title.textContent = 'Perda de influencia';
-            description.textContent = state.pendingLoss?.reason || 'Uma influencia deve ser revelada.';
+            setPhaseText(state.pendingLoss?.playerUid === currentUid ? 'Revele uma carta' : 'Perda de influencia', state.pendingLoss?.reason || '');
             renderInfluenceLoss(interaction);
         } else if (state.phase === PHASES.EXCHANGE) {
-            title.textContent = 'Troca de influencias';
-            description.textContent = 'Escolha as influencias que permanecerao na sua mao.';
+            setPhaseText(state.pendingExchange?.playerUid === currentUid ? 'Escolha cartas' : 'Troca');
             renderExchange(interaction);
         } else if (state.phase === PHASES.EXAMINE) {
-            title.textContent = 'Investigacao do Inquisidor';
-            description.textContent = 'O Inquisidor decide se a influencia examinada permanece ou volta ao baralho.';
+            setPhaseText(state.pendingExamine?.actorUid === currentUid ? 'Investigar' : 'Investigacao');
             renderExamine(interaction);
+        }
+
+        function setPhaseText(titleText, descriptionText = '') {
+            title.textContent = titleText;
+            description.textContent = descriptionText;
+            description.hidden = !descriptionText;
         }
     }
 
@@ -589,13 +591,12 @@
 
     function renderTurn(container, activePlayer) {
         if (activePlayer?.uid !== currentUid) {
-            container.append(element('p', 'rank-phase-description', 'As opcoes aparecerao quando chegar a sua vez.'));
             return;
         }
 
         if (selectedAction) {
             const action = Rules.getAction(selectedAction);
-            container.append(element('h2', 'rank-interaction-title', `Escolha o alvo de ${action.label}`));
+            container.append(element('h2', 'rank-interaction-title', 'Escolha o alvo'));
             const targets = element('div', 'rank-target-list');
             Engine.getAlivePlayers(state).filter((player) => player.uid !== currentUid).forEach((player) => {
                 const button = element('button', 'rank-target-btn', `${player.name} - ${player.coins} moeda(s)`);
@@ -621,7 +622,7 @@
             const action = Rules.getAction(actionType);
             const button = element('button', 'rank-action-btn');
             button.type = 'button';
-            button.append(document.createTextNode(action.label), element('small', '', action.description));
+            button.textContent = action.label;
             const self = Engine.getPlayer(state, currentUid);
             const forcedCoup = self.coins >= Rules.SETTINGS.mandatoryCoupCoins;
             button.disabled = self.coins < action.cost || (forcedCoup && actionType !== ACTIONS.COUP);
@@ -643,17 +644,17 @@
         const action = Rules.getAction(pending?.type);
         const actor = Engine.getPlayer(state, pending?.actorUid);
         const target = Engine.getPlayer(state, pending?.targetUid);
-        if (!pending || !action || !actor) return 'Aguardando respostas.';
+        if (!pending || !action || !actor) return '';
         const claim = pending.claim ? ` declarando ${Rules.getRole(pending.claim).label}` : '';
-        return `${actor.name} escolheu ${action.label}${claim}${target ? ` contra ${target.name}` : ''}.`;
+        return `${actor.name}: ${action.label}${claim}${target ? ` contra ${target.name}` : ''}.`;
     }
 
     function describePendingBlock() {
         const block = state.pendingAction?.block;
         const blocker = Engine.getPlayer(state, block?.uid);
         return block && blocker
-            ? `${blocker.name} declarou ${Rules.getRole(block.claim).label} para bloquear. O bloqueio pode ser contestado.`
-            : 'Aguardando a resolucao do bloqueio.';
+            ? `${blocker.name}: ${Rules.getRole(block.claim).label}.`
+            : '';
     }
 
     function canCurrentPlayerRespond(excludedUid) {
@@ -664,7 +665,6 @@
     function renderActionResponse(container) {
         const pending = state.pendingAction;
         if (!canCurrentPlayerRespond(pending.actorUid)) {
-            container.append(element('p', 'rank-phase-description', 'Sua resposta foi registrada. Aguardando os demais jogadores.'));
             return;
         }
 
@@ -691,7 +691,6 @@
     function renderBlockChallenge(container) {
         const blockerUid = state.pendingAction?.block?.uid;
         if (!canCurrentPlayerRespond(blockerUid)) {
-            container.append(element('p', 'rank-phase-description', 'Aguardando a resposta dos outros jogadores.'));
             return;
         }
         const actions = element('div', 'rank-response-actions');
@@ -707,11 +706,8 @@
 
     function renderInfluenceLoss(container) {
         if (state.pendingLoss?.playerUid !== currentUid) {
-            const player = Engine.getPlayer(state, state.pendingLoss?.playerUid);
-            container.append(element('p', 'rank-phase-description', `Aguardando ${player?.name || 'o jogador'} escolher uma influencia.`));
             return;
         }
-        container.append(element('h2', 'rank-interaction-title', 'Escolha a influencia que sera revelada'));
         const cards = element('div', 'rank-choice-cards');
         Engine.getPlayer(state, currentUid).influences.filter((card) => !card.revealed).forEach((card) => {
             const button = createCard(card, true, { button: true });
@@ -727,7 +723,6 @@
     function renderExchange(container) {
         const pending = state.pendingExchange;
         if (pending?.playerUid !== currentUid) {
-            container.append(element('p', 'rank-phase-description', 'Aguardando o jogador concluir a troca.'));
             return;
         }
         const nextKey = pending.options.map((card) => card.id).join('|');
@@ -758,7 +753,6 @@
     function renderExamine(container) {
         const pending = state.pendingExamine;
         if (pending?.actorUid !== currentUid) {
-            container.append(element('p', 'rank-phase-description', 'Aguardando a decisao do Inquisidor.'));
             return;
         }
         const card = { id: pending.cardId, role: pending.role, revealed: false };

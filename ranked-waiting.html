@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/loading.css?v=rank-split-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=starter-draw-overlay">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-bot-personality-disabled">
 </head>
 
 <body data-rank-view="waiting">
@@ -89,7 +89,7 @@
                     <span>Escolher personalidade manualmente</span>
                 </label>
 
-                <div id="rankAiPersonalityFields" class="rank-ai-personality-fields" hidden>
+                <div id="rankAiPersonalityFields" class="rank-ai-personality-fields is-disabled">
                     <label class="rank-range-field">
                         <span>Vinganca <strong id="rankAiVengefulnessValue">50%</strong></span>
                         <input id="rankAiVengefulness" type="range" min="0" max="100" value="50">
@@ -127,10 +127,10 @@
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>
-    <script src="js/gamemode/ranked/ranked-rules.js?v=starter-draw-overlay" defer></script>
-    <script src="js/gamemode/ranked/ranked-engine.js?v=starter-draw-overlay" defer></script>
-    <script src="js/gamemode/ranked/ranked-renderer.js?v=starter-draw-overlay" defer></script>
-    <script src="js/gamemode/ranked/ranked-game.js?v=starter-draw-overlay" defer></script>
+    <script src="js/gamemode/ranked/ranked-rules.js?v=rank-copy-simplify" defer></script>
+    <script src="js/gamemode/ranked/ranked-engine.js?v=rank-copy-simplify" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-copy-simplify" defer></script>
+    <script src="js/gamemode/ranked/ranked-game.js?v=rank-copy-simplify" defer></script>
 </body>
 
 </html>

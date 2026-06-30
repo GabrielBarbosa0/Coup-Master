@@ -14,6 +14,9 @@
     let statsCommitPending = false;
     let botActionPending = false;
 
+    const BOT_DECISION_MIN_DELAY_MS = 3600;
+    const BOT_DECISION_RANDOM_DELAY_MS = 1200;
+
     function redirectToLobby(message) {
         if (message) sessionStorage.setItem('lobbyError', message);
         root.location.href = 'lobby.html';
@@ -555,7 +558,7 @@
                 }, { silent: true }).catch(() => null).finally(() => {
                     botActionPending = false;
                 });
-            }, 450 + Math.floor(Math.random() * 650));
+            }, BOT_DECISION_MIN_DELAY_MS + Math.floor(Math.random() * BOT_DECISION_RANDOM_DELAY_MS));
         }, 900);
     }
 

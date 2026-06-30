@@ -1086,7 +1086,8 @@ Jogadores IA no ranqueado:
 - `honesty` reduz a chance de blefes em declaracoes e bloqueios;
 - `skepticism` aumenta a chance de contestar declaracoes/bloqueios e muda a tolerancia a riscos como Ajuda Externa contra Duque provavel;
 - se a personalidade nao for escolhida manualmente, `ranked-engine.js` gera valores aleatorios e marca `personalityHidden = true`;
-- `ranked-game.js` roda um driver client-side simples que toma decisoes por transacao durante turno, resposta, contestacao de bloqueio, perda de influencia, troca e investigacao.
+- `ranked-game.js` roda um driver client-side simples que toma decisoes por transacao durante turno, resposta, contestacao de bloqueio, perda de influencia, troca e investigacao;
+- cada decisao automatica espera uma pequena janela de leitura antes de executar, para que logs e mensagens da rodada nao avancem instantaneamente.
 
 Maquina de estados:
 
