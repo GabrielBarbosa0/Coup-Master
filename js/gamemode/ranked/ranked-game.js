@@ -175,6 +175,19 @@
 
     function normalizeRankedStats(current, player, result, now) {
         const previous = current && typeof current === 'object' ? current : {};
+        const countedRooms = previous.countedRooms && typeof previous.countedRooms === 'object'
+            ? { ...previous.countedRooms }
+            : {};
+
+        if (countedRooms[roomCode]) {
+            return {
+                ...previous,
+                name: player.name || previous.name || 'Jogador',
+                photo: player.photo || previous.photo || 'assets/img/icons/ghost.svg',
+                updatedAt: now
+            };
+        }
+
         const match = player.matchStats || {};
         const matchScore = Number(player.performanceScore || 0);
         const hadPreviousGames = Number(previous.games || 0) > 0;
@@ -188,6 +201,7 @@
         const winRate = games ? wins / games : 0;
         const challengeAccuracy = challenges ? successfulChallenges / challenges : 0;
         const wilsonScore = calculateWilsonLowerBound(wins, games);
+        countedRooms[roomCode] = result.endedAt || now;
 
         return {
             schemaVersion: 1,
@@ -220,6 +234,7 @@
             coinsStolen: Number(previous.coinsStolen || 0) + Number(match.coinsStolen || 0),
             lastRoomCode: roomCode,
             lastMatchAt: result.endedAt || now,
+            countedRooms,
             updatedAt: now
         };
     }
@@ -230,8 +245,14 @@
         ));
     }
 
+    function updateCurrentUserRankedStats(result, now) {
+        const player = result?.players?.[currentUser.uid];
+        if (!player) return Promise.resolve(null);
+        return updatePlayerRankedStats(player, result, now);
+    }
+
     function persistRankedMatchResults(state) {
-        if (statsCommitPending || state.statsCommittedAt || !state.winnerUid) return;
+        if (statsCommitPending || !state.winnerUid) return;
 
         const now = Date.now();
         const result = {
@@ -243,15 +264,15 @@
 
         statsCommitPending = true;
         db.ref(`rankedResults/${roomCode}`).transaction((current) => {
-            if (current) return;
-            return result;
+            return current || result;
         }).then((transactionResult) => {
-            if (!transactionResult.committed) return null;
-            const players = Object.values(result.players || {});
-            return Promise.all(players.map((player) => updatePlayerRankedStats(player, result, now)))
-                .then(() => rankedStateRef?.child('statsCommittedAt').set(now));
+            const savedResult = transactionResult.snapshot?.val?.() || result;
+            return updateCurrentUserRankedStats(savedResult, now);
         }).catch((error) => {
             console.error('Erro ao persistir estatisticas ranqueadas:', error);
+            return updateCurrentUserRankedStats(result, now).catch((statsError) => {
+                console.error('Erro ao persistir estatisticas do jogador:', statsError);
+            });
         }).finally(() => {
             statsCommitPending = false;
         });

@@ -208,7 +208,8 @@ function getDefaultRankedStats(user) {
         flawlessChallenges: 0,
         allRolesClaimedWins: 0,
         bluffs: 0,
-        honestGames: 0
+        honestGames: 0,
+        countedRooms: {}
     };
 }
 
