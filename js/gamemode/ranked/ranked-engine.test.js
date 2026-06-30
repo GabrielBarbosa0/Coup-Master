@@ -8,6 +8,7 @@ function createStartedState() {
     Engine.joinPlayer(state, { uid: 'u2', name: 'Bruno', photo: '' }, 1002);
     Engine.toggleReady(state, 'u1', 1003, () => 0.42);
     Engine.toggleReady(state, 'u2', 1004, () => 0.42);
+    Engine.advanceExpired(state, state.deadline + 1, () => 0);
     Engine.advanceExpired(state, state.deadline + 1);
     return state;
 }
@@ -43,9 +44,23 @@ function testReadyCountdownDelaysStart() {
     assert.equal(Engine.advanceExpired(state, state.deadline - 1), false);
     assert.equal(state.status, Rules.PHASES.WAITING);
 
-    assert.equal(Engine.advanceExpired(state, state.deadline + 1), true);
+    assert.equal(Engine.advanceExpired(state, state.deadline + 1, () => 0.75), true);
     assert.equal(state.status, 'active');
+    assert.equal(state.phase, Rules.PHASES.STARTER_DRAW);
+    assert.equal(state.starterDraw.winnerUid, 'u2');
+    assert.equal(Engine.getActiveUid(state), 'u2');
+
+    assert.equal(Engine.advanceExpired(state, state.deadline + 1), true);
     assert.equal(state.phase, Rules.PHASES.TURN);
+    assert.equal(state.turnNumber, 1);
+    assert.equal(Engine.getActiveUid(state), 'u2');
+}
+
+function testInitialDealSkipsAmbassador() {
+    const state = createStartedState();
+    const initialHands = Engine.getPlayers(state).flatMap((player) => player.influences);
+    assert.ok(initialHands.every((card) => card.role !== Rules.ROLES.AMBASSADOR));
+    assert.ok(state.deck.some((card) => card.role === Rules.ROLES.AMBASSADOR));
 }
 
 function testSuccessfulChallengeCancelsBluff() {
@@ -170,6 +185,9 @@ function testMatchStatsTrackActionsAndChallenges() {
     const challengeResult = Engine.buildMatchResults(state, 2200);
     assert.equal(challengeResult.players.u1.matchStats.actions, 1);
     assert.equal(challengeResult.players.u1.matchStats.bluffs, 1);
+    assert.equal(challengeResult.players.u1.matchStats.provenBluffs, 1);
+    assert.ok(Number.isFinite(challengeResult.players.u1.performanceScore));
+    assert.ok(challengeResult.players.u1.performanceBreakdown.some((item) => item.label === 'Blefes revelados'));
     assert.equal(challengeResult.players.u2.matchStats.challenges, 1);
     assert.equal(challengeResult.players.u2.matchStats.successfulChallenges, 1);
 
@@ -184,6 +202,7 @@ function testMatchStatsTrackActionsAndChallenges() {
 
 testImmediateIncome();
 testReadyCountdownDelaysStart();
+testInitialDealSkipsAmbassador();
 testSuccessfulChallengeCancelsBluff();
 testFailedChallengeResumesAction();
 testTruthfulBlockCancelsAssassination();
@@ -196,6 +215,6 @@ testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 
-console.log('ranked-engine: 13 testes aprovados');
+console.log('ranked-engine: 14 testes aprovados');
 
 

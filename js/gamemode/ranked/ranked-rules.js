@@ -80,6 +80,7 @@
 
     const PHASES = Object.freeze({
         WAITING: 'waiting',
+        STARTER_DRAW: 'starter-draw',
         TURN: 'turn',
         RESPONSE: 'response',
         BLOCK_CHALLENGE: 'block-challenge',
@@ -97,6 +98,7 @@
         startingInfluences: 2,
         mandatoryCoupCoins: 10,
         readyCountdownSeconds: 5,
+        starterDrawSeconds: 4,
         responseSeconds: 15,
         turnSeconds: 45,
         selectionSeconds: 20

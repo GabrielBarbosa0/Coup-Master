@@ -331,6 +331,17 @@ button {
     border-color: var(--rank-gold);
 }
 
+.rank-player-slot.is-draw-candidate {
+    animation: rankDrawSeatPulse 0.9s ease-in-out infinite;
+    animation-delay: calc(var(--draw-seat, 1) * 70ms);
+}
+
+.rank-player-slot.is-draw-winner {
+    animation: none;
+    border-color: var(--rank-gold);
+    box-shadow: inset 0 0 0 1px rgba(255, 196, 0, 0.25), 0 0 18px rgba(255, 196, 0, 0.16);
+}
+
 .rank-player-slot.is-eliminated {
     opacity: 0.48;
 }
@@ -612,6 +623,211 @@ button.rank-card {
 .rank-ready-chip.is-ready {
     border-color: var(--rank-success);
     color: var(--rank-success);
+}
+
+.rank-starter-draw {
+    display: grid;
+    gap: 12px;
+    max-width: 720px;
+}
+
+.rank-starter-title {
+    margin: 0;
+    color: var(--rank-gold);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.rank-starter-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rank-starter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 150px;
+    padding: 8px 10px;
+    border: 1px solid var(--rank-border-strong);
+    border-radius: 8px;
+    background: var(--rank-surface);
+    color: var(--rank-muted);
+    font-size: 12px;
+    font-weight: 800;
+    animation: rankStarterChipPulse 0.8s ease-in-out infinite;
+    animation-delay: calc(var(--draw-index, 0) * 110ms);
+}
+
+.rank-starter-chip.is-selected {
+    border-color: var(--rank-gold);
+    color: var(--rank-text);
+    box-shadow: 0 0 16px rgba(255, 196, 0, 0.18);
+}
+
+.rank-starter-chip img {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--rank-accent);
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+}
+
+.rank-starter-result {
+    color: var(--rank-text);
+    font-size: 16px;
+}
+
+.rank-match-results {
+    display: grid;
+    gap: 12px;
+}
+
+.rank-match-mvp {
+    display: grid;
+    grid-template-columns: 54px 1fr auto;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 12px;
+    border: 1px solid rgba(255, 196, 0, 0.45);
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(255, 196, 0, 0.13), rgba(17, 25, 35, 0.92));
+}
+
+.rank-match-mvp img {
+    width: 54px;
+    height: 54px;
+    grid-row: span 2;
+    border: 2px solid var(--rank-gold);
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+}
+
+.rank-match-mvp strong {
+    font-size: 18px;
+}
+
+.rank-match-mvp em {
+    grid-row: span 2;
+    color: var(--rank-gold);
+    font-size: 22px;
+    font-style: normal;
+    font-weight: 900;
+}
+
+.rank-match-scoreboard {
+    display: grid;
+    gap: 8px;
+}
+
+.rank-match-score-row {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1.2fr) auto auto minmax(130px, 0.8fr);
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--rank-border);
+    border-radius: 8px;
+    background: var(--rank-surface);
+}
+
+.rank-match-score-row.is-winner {
+    border-color: rgba(255, 196, 0, 0.35);
+}
+
+.rank-match-position {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    border: 1px solid var(--rank-border-strong);
+    border-radius: 50%;
+    color: var(--rank-muted);
+    font-weight: 800;
+}
+
+.rank-match-score-row.is-mvp .rank-match-position {
+    border-color: var(--rank-gold);
+    color: var(--rank-gold);
+}
+
+.rank-match-player-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rank-match-player-result {
+    color: var(--rank-muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.rank-match-points {
+    min-width: 58px;
+    text-align: right;
+}
+
+.rank-match-points.is-positive {
+    color: var(--rank-success);
+}
+
+.rank-match-points.is-negative {
+    color: var(--rank-danger);
+}
+
+.rank-match-breakdown {
+    color: var(--rank-muted);
+    font-size: 11px;
+}
+
+.rank-match-breakdown summary {
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.rank-match-breakdown ul {
+    display: grid;
+    gap: 4px;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rank-match-breakdown li {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(230, 238, 246, 0.08);
+}
+
+@keyframes rankDrawSeatPulse {
+    0%,
+    100% {
+        border-color: var(--rank-border);
+    }
+    50% {
+        border-color: var(--rank-accent);
+        box-shadow: inset 0 0 0 1px rgba(30, 144, 255, 0.2);
+    }
+}
+
+@keyframes rankStarterChipPulse {
+    0%,
+    100% {
+        transform: translateY(0);
+        opacity: 0.72;
+    }
+    50% {
+        transform: translateY(-2px);
+        opacity: 1;
+    }
 }
 
 .rank-log-heading {
@@ -1201,6 +1417,64 @@ button.rank-card {
         font-size: 10px;
     }
 
+    .rank-starter-draw {
+        gap: 8px;
+    }
+
+    .rank-starter-list {
+        gap: 5px;
+    }
+
+    .rank-starter-chip {
+        min-width: 0;
+        flex: 1 1 calc(50% - 5px);
+        padding: 7px;
+        font-size: 10px;
+    }
+
+    .rank-starter-chip img {
+        width: 24px;
+        height: 24px;
+    }
+
+    .rank-starter-result {
+        font-size: 13px;
+    }
+
+    .rank-match-mvp {
+        grid-template-columns: 42px 1fr;
+    }
+
+    .rank-match-mvp img {
+        width: 42px;
+        height: 42px;
+    }
+
+    .rank-match-mvp em {
+        grid-column: 2;
+        grid-row: auto;
+        font-size: 17px;
+    }
+
+    .rank-match-score-row {
+        grid-template-columns: 28px minmax(0, 1fr) auto;
+        gap: 7px;
+    }
+
+    .rank-match-player-result,
+    .rank-match-breakdown {
+        grid-column: 2 / -1;
+    }
+
+    .rank-match-position {
+        width: 24px;
+        height: 24px;
+    }
+
+    .rank-match-points {
+        min-width: 52px;
+    }
+
     .rank-modal-overlay {
         padding: 16px;
     }
@@ -1237,5 +1511,12 @@ button.rank-card {
 
     .floating-chat-actions {
         left: 4px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rank-player-slot.is-draw-candidate,
+    .rank-starter-chip {
+        animation: none;
     }
 }

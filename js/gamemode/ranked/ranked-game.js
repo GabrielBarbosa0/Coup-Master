@@ -176,6 +176,8 @@
     function normalizeRankedStats(current, player, result, now) {
         const previous = current && typeof current === 'object' ? current : {};
         const match = player.matchStats || {};
+        const matchScore = Number(player.performanceScore || 0);
+        const hadPreviousGames = Number(previous.games || 0) > 0;
         const games = Number(previous.games || 0) + 1;
         const wins = Number(previous.wins || 0) + (player.won ? 1 : 0);
         const losses = Number(previous.losses || 0) + (player.won ? 0 : 1);
@@ -200,8 +202,13 @@
             bestWinStreak,
             rankScore: Math.round(wilsonScore * 1000),
             confidenceLowerBound: wilsonScore,
+            performancePoints: Number(previous.performancePoints || 0) + matchScore,
+            bestMatchScore: hadPreviousGames ? Math.max(Number(previous.bestMatchScore || 0), matchScore) : matchScore,
+            worstMatchScore: hadPreviousGames ? Math.min(Number(previous.worstMatchScore || 0), matchScore) : matchScore,
             actions: Number(previous.actions || 0) + Number(match.actions || 0),
             bluffs: Number(previous.bluffs || 0) + Number(match.bluffs || 0),
+            provenBluffs: Number(previous.provenBluffs || 0) + Number(match.provenBluffs || 0),
+            blockedActions: Number(previous.blockedActions || 0) + Number(match.blockedActions || 0),
             honestGames: Number(previous.honestGames || 0) + (Number(match.bluffs || 0) === 0 ? 1 : 0),
             challenges,
             successfulChallenges,

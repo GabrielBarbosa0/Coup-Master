@@ -177,6 +177,8 @@
         container.classList.toggle('is-waiting-view', state.status === PHASES.WAITING);
         const bySeat = new Map(Engine.getPlayers(state).map((player) => [player.seat, player]));
         const activeUid = Engine.getActiveUid(state);
+        const drawCandidates = new Set(state.starterDraw?.candidates || []);
+        const drawWinnerUid = state.starterDraw?.winnerUid || null;
 
         for (let seat = 1; seat <= Rules.SETTINGS.maxPlayers; seat += 1) {
             const player = bySeat.get(seat);
@@ -190,8 +192,11 @@
             }
 
             const slot = element('article', 'rank-player-slot');
+            slot.style.setProperty('--draw-seat', seat);
             if (player.uid === currentUid) slot.classList.add('is-self');
             if (player.uid === activeUid && state.status === 'active') slot.classList.add('is-active');
+            if (state.phase === PHASES.STARTER_DRAW && drawCandidates.has(player.uid)) slot.classList.add('is-draw-candidate');
+            if (state.phase === PHASES.STARTER_DRAW && player.uid === drawWinnerUid) slot.classList.add('is-draw-winner');
             if (player.eliminated) slot.classList.add('is-eliminated');
 
             const header = element('div', 'rank-player-header');
@@ -226,6 +231,8 @@
     function getPlayerStateLabel(player, activeUid) {
         if (player.eliminated) return 'Eliminado';
         if (state.status === PHASES.WAITING) return player.ready ? 'Pronto' : 'Preparando-se';
+        if (state.phase === PHASES.STARTER_DRAW && player.uid === state.starterDraw?.winnerUid) return 'Sorteado';
+        if (state.phase === PHASES.STARTER_DRAW) return 'No sorteio';
         if (player.uid === activeUid) return 'Em jogo';
         return player.connected ? 'Online' : 'Reconectando';
     }
@@ -263,11 +270,16 @@
         if (state.status === PHASES.FINISHED) {
             const winner = Engine.getPlayer(state, state.winnerUid);
             title.textContent = winner ? `${winner.name} venceu` : 'Partida encerrada';
-            description.textContent = 'O resultado foi definido pelo fluxo automatico da partida.';
-            const back = element('button', 'rank-primary-btn', 'Voltar ao lobby');
-            back.type = 'button';
-            back.addEventListener('click', () => controller.leaveRoom());
-            interaction.append(back);
+            description.textContent = 'Confira o desempenho final da partida ranqueada.';
+            renderMatchResults(interaction);
+            return;
+        }
+
+        if (state.phase === PHASES.STARTER_DRAW) {
+            const starter = Engine.getPlayer(state, state.starterDraw?.winnerUid || Engine.getActiveUid(state));
+            title.textContent = 'Sorteando primeiro jogador';
+            description.textContent = 'O sistema esta escolhendo aleatoriamente quem abre a partida.';
+            renderStarterDraw(interaction, starter);
             return;
         }
 
@@ -321,6 +333,102 @@
         if (!state?.deadline || state.status !== PHASES.WAITING) return 'Aguardando confirmação';
         const seconds = Math.max(0, Math.ceil((state.deadline - now) / 1000));
         return `Iniciando em ${seconds}s`;
+    }
+
+    function renderStarterDraw(container, starter) {
+        const candidates = state.starterDraw?.candidates || state.turnOrder || [];
+        const panel = element('div', 'rank-starter-draw');
+        panel.append(element('p', 'rank-starter-title', 'Sorteador em andamento'));
+
+        const list = element('div', 'rank-starter-list');
+        candidates.forEach((uid, index) => {
+            const player = Engine.getPlayer(state, uid);
+            if (!player) return;
+            const chip = element('div', 'rank-starter-chip');
+            chip.style.setProperty('--draw-index', index);
+            if (uid === starter?.uid) chip.classList.add('is-selected');
+
+            const avatar = element('img');
+            avatar.src = player.photo || 'assets/img/icons/ghost.svg';
+            avatar.alt = '';
+            avatar.referrerPolicy = 'no-referrer';
+            chip.append(avatar, element('span', '', player.name));
+            list.append(chip);
+        });
+
+        const result = element(
+            'strong',
+            'rank-starter-result',
+            starter ? `${starter.name} abre a partida` : 'Escolhendo jogador...'
+        );
+        panel.append(list, result);
+        container.append(panel);
+    }
+
+    function renderMatchResults(container) {
+        const result = Engine.buildMatchResults(state);
+        const players = Object.values(result.players || {})
+            .sort((left, right) => Number(right.performanceScore || 0) - Number(left.performanceScore || 0));
+        const best = players[0] || null;
+
+        const panel = element('section', 'rank-match-results');
+        if (best) {
+            const hero = element('div', 'rank-match-mvp');
+            const avatar = element('img');
+            avatar.src = best.photo || 'assets/img/icons/ghost.svg';
+            avatar.alt = '';
+            avatar.referrerPolicy = 'no-referrer';
+            hero.append(
+                avatar,
+                element('span', 'rank-kicker', 'Melhor jogador da partida'),
+                element('strong', '', best.name),
+                element('em', '', formatSignedPoints(best.performanceScore))
+            );
+            panel.append(hero);
+        }
+
+        const list = element('div', 'rank-match-scoreboard');
+        players.forEach((player, index) => {
+            const row = element('article', 'rank-match-score-row');
+            if (player.won) row.classList.add('is-winner');
+            if (index === 0) row.classList.add('is-mvp');
+
+            const details = element('details', 'rank-match-breakdown');
+            const summary = element('summary', '', 'Ver pontos');
+            const breakdown = element('ul');
+            const items = player.performanceBreakdown || [];
+            if (items.length) {
+                items.forEach((item) => {
+                    const li = element('li');
+                    li.append(element('span', '', item.label), element('strong', '', formatSignedPoints(item.points)));
+                    breakdown.append(li);
+                });
+            } else {
+                breakdown.append(element('li', '', 'Sem eventos pontuados.'));
+            }
+            details.append(summary, breakdown);
+
+            row.append(
+                element('span', 'rank-match-position', `${index + 1}`),
+                element('strong', 'rank-match-player-name', player.name),
+                element('span', 'rank-match-player-result', player.won ? 'Vencedor' : player.eliminated ? 'Eliminado' : 'Sobreviveu'),
+                element('strong', `rank-match-points ${player.performanceScore >= 0 ? 'is-positive' : 'is-negative'}`, formatSignedPoints(player.performanceScore)),
+                details
+            );
+            list.append(row);
+        });
+        panel.append(list);
+
+        const back = element('button', 'rank-primary-btn', 'Voltar ao lobby');
+        back.type = 'button';
+        back.addEventListener('click', () => controller.leaveRoom());
+        panel.append(back);
+        container.append(panel);
+    }
+
+    function formatSignedPoints(value) {
+        const points = Number(value || 0);
+        return `${points > 0 ? '+' : ''}${points} pts`;
     }
 
     function renderTurn(container, activePlayer) {

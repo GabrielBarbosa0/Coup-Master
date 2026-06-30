@@ -28,6 +28,7 @@
             discard: [],
             log: [],
             deadline: null,
+            starterDraw: null,
             pendingAction: null,
             pendingLoss: null,
             pendingExchange: null,
@@ -45,6 +46,7 @@
         state.deck = Array.isArray(state.deck) ? state.deck : [];
         state.discard = Array.isArray(state.discard) ? state.discard : [];
         state.log = Array.isArray(state.log) ? state.log : [];
+        state.starterDraw = state.starterDraw && typeof state.starterDraw === 'object' ? state.starterDraw : null;
         state.matchStats = state.matchStats && typeof state.matchStats === 'object' ? state.matchStats : {};
         state.readyCountdownStartedAt = state.readyCountdownStartedAt || null;
         Object.values(state.players).forEach((player) => {
@@ -91,6 +93,8 @@
         return {
             actions: 0,
             bluffs: 0,
+            provenBluffs: 0,
+            blockedActions: 0,
             challenges: 0,
             successfulChallenges: 0,
             failedChallenges: 0,
@@ -108,6 +112,15 @@
             ...(state.matchStats[uid] || {})
         };
         return state.matchStats[uid];
+    }
+
+    function drawStartingInfluence(state) {
+        for (let index = state.deck.length - 1; index >= 0; index -= 1) {
+            if (state.deck[index]?.role !== Rules.ROLES.AMBASSADOR) {
+                return state.deck.splice(index, 1)[0];
+            }
+        }
+        throw new Error('Nao ha cartas iniciais validas suficientes no baralho.');
     }
 
     function playerHasHiddenRole(player, role) {
@@ -238,11 +251,14 @@
             return false;
         }
 
+        const starterIndex = Math.max(0, Math.min(players.length - 1, Math.floor(random() * players.length)));
+        const starterUid = players[starterIndex]?.uid || players[0]?.uid || null;
+
         state.deck = Rules.createDeck(random);
         state.discard = [];
         state.turnOrder = players.map((player) => player.uid);
-        state.turnIndex = 0;
-        state.turnNumber = 1;
+        state.turnIndex = Math.max(0, state.turnOrder.indexOf(starterUid));
+        state.turnNumber = 0;
         state.winnerUid = null;
         state.startedAt = now;
         state.finishedAt = null;
@@ -256,19 +272,40 @@
             player.influences = [];
             ensureMatchStats(state, player.uid);
             for (let index = 0; index < SETTINGS.startingInfluences; index += 1) {
-                const card = state.deck.pop();
+                const card = drawStartingInfluence(state);
                 player.influences.push({ ...card, revealed: false });
             }
         });
 
         state.status = 'active';
-        state.phase = PHASES.TURN;
-        state.deadline = now + SETTINGS.turnSeconds * 1000;
+        state.phase = PHASES.STARTER_DRAW;
+        state.deadline = now + SETTINGS.starterDrawSeconds * 1000;
+        state.starterDraw = {
+            candidates: state.turnOrder.slice(),
+            winnerUid: starterUid,
+            startedAt: now,
+            endsAt: state.deadline
+        };
         state.pendingAction = null;
         state.pendingLoss = null;
         state.pendingExchange = null;
         state.pendingExamine = null;
-        addLog(state, 'A partida ranqueada comecou.', 'important', now);
+        addLog(state, 'A partida ranqueada comecou. Sorteando quem joga primeiro.', 'important', now);
+        state.updatedAt = now;
+        return true;
+    }
+
+    function completeStarterDraw(state, now = Date.now()) {
+        normalizeState(state);
+        if (state.status !== 'active' || state.phase !== PHASES.STARTER_DRAW) return false;
+        const starterUid = state.starterDraw?.winnerUid || getActiveUid(state);
+        const starterIndex = state.turnOrder.indexOf(starterUid);
+        if (starterIndex >= 0) state.turnIndex = starterIndex;
+        state.turnNumber = 1;
+        state.phase = PHASES.TURN;
+        state.deadline = now + SETTINGS.turnSeconds * 1000;
+        if (state.starterDraw) state.starterDraw.completedAt = now;
+        addLog(state, `${getPlayer(state, getActiveUid(state))?.name || 'O jogador sorteado'} comeca a partida.`, 'turn', now);
         state.updatedAt = now;
         return true;
     }
@@ -403,6 +440,7 @@
             addLog(state, `${actor.name} provou ter ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
         } else {
             challengerStats.successfulChallenges += 1;
+            ensureMatchStats(state, actor.uid).provenBluffs += 1;
             scheduleLoss(state, actor.uid, 'Blefe contestado.', 'cancel-action', now);
             addLog(state, `${actor.name} nao tinha ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
         }
@@ -456,6 +494,7 @@
             addLog(state, `${blocker.name} provou o bloqueio.`, 'challenge-result', now);
         } else {
             challengerStats.successfulChallenges += 1;
+            ensureMatchStats(state, blocker.uid).provenBluffs += 1;
             scheduleLoss(state, blocker.uid, 'Bloqueio blefado.', 'execute-action', now);
             addLog(state, `${blocker.name} blefou o bloqueio.`, 'challenge-result', now);
         }
@@ -528,6 +567,7 @@
 
     function acceptBlock(state, now = Date.now()) {
         const blocker = getPlayer(state, state.pendingAction?.block?.uid);
+        if (blocker) ensureMatchStats(state, blocker.uid).blockedActions += 1;
         if (blocker) addLog(state, `O bloqueio de ${blocker.name} foi aceito.`, 'block', now);
         endTurn(state, now);
     }
@@ -704,6 +744,7 @@
 
         getPlayers(state).forEach((player) => {
             const stats = ensureMatchStats(state, player.uid);
+            const performance = calculateMatchPerformance(state, player);
             players[player.uid] = {
                 uid: player.uid,
                 name: player.name || 'Jogador',
@@ -711,7 +752,9 @@
                 seat: player.seat,
                 won: player.uid === winnerUid,
                 eliminated: Boolean(player.eliminated),
-                matchStats: { ...stats }
+                matchStats: { ...stats },
+                performanceScore: performance.total,
+                performanceBreakdown: performance.breakdown
             };
         });
 
@@ -726,12 +769,44 @@
         };
     }
 
-    function advanceExpired(state, now = Date.now()) {
+    function calculateMatchPerformance(state, player) {
+        const stats = ensureMatchStats(state, player.uid);
+        const hiddenInfluences = countInfluences(player);
+        const breakdown = [];
+        const add = (label, value) => {
+            const points = Number(value || 0);
+            if (points) breakdown.push({ label, points });
+        };
+
+        add(player.uid === state.winnerUid ? 'Vitoria' : 'Derrota', player.uid === state.winnerUid ? 30 : -8);
+        add('Acoes executadas', stats.actions * 2);
+        add('Golpes de Estado', stats.coups * 6);
+        add('Assassinatos', stats.assassinations * 7);
+        add('Roubos', stats.steals * 4);
+        add('Moedas roubadas', stats.coinsStolen);
+        add('Bloqueios aceitos', stats.blockedActions * 4);
+        add('Desafios vencidos', stats.successfulChallenges * 8);
+        add('Desafios perdidos', stats.failedChallenges * -6);
+        add('Blefes revelados', stats.provenBluffs * -7);
+        add('Influencias preservadas', hiddenInfluences * 3);
+        add('Eliminacao', player.eliminated ? -5 : 0);
+
+        return {
+            total: breakdown.reduce((sum, item) => sum + item.points, 0),
+            breakdown
+        };
+    }
+
+    function advanceExpired(state, now = Date.now(), random = Math.random) {
         normalizeState(state);
         if (!state.deadline || now < state.deadline || ![PHASES.WAITING, 'active'].includes(state.status)) return false;
 
         if (state.status === PHASES.WAITING) {
-            return maybeStart(state, now);
+            return maybeStart(state, now, random);
+        }
+
+        if (state.phase === PHASES.STARTER_DRAW) {
+            return completeStarterDraw(state, now);
         }
 
         if (state.phase === PHASES.TURN) {
@@ -773,6 +848,8 @@
         leaveWaitingRoom,
         toggleReady,
         maybeStart,
+        completeStarterDraw,
+        calculateMatchPerformance,
         performAction,
         passResponse,
         challengeAction,

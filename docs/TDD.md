@@ -619,7 +619,8 @@ O campo `grave` existe no estado inicial e reset, mas o cemiterio visual usa `fr
 O modo ranqueado tambem grava agregados fora da sala:
 
 - `rankedResults/{roomCode}`: resultado imutavel client-side de uma sala finalizada, usado para evitar contabilizar a mesma partida mais de uma vez.
-- `rankedStats/{uid}`: estatisticas acumuladas do jogador exibidas no modal de perfil do lobby, incluindo jogos, vitorias, derrotas, taxa de vitoria, sequencias, score ranqueado, desafios, assassinatos, golpes, roubos e progresso inicial de conquistas.
+- `rankedResults/{roomCode}` tambem inclui `performanceScore` e `performanceBreakdown` por jogador. Essa pontuacao de desempenho soma vitoria/derrota, acoes executadas, golpes, assassinatos, roubos, moedas roubadas, bloqueios aceitos, desafios vencidos/perdidos, blefes revelados, influencias preservadas e eliminacao.
+- `rankedStats/{uid}`: estatisticas acumuladas do jogador exibidas no modal de perfil do lobby, incluindo jogos, vitorias, derrotas, taxa de vitoria, sequencias, score ranqueado, pontos de desempenho acumulados, melhor/pior placar de partida, desafios, assassinatos, golpes, roubos e progresso inicial de conquistas.
 
 Esses agregados ainda sao escritos por clientes autenticados. Eles servem como fundacao de produto para perfil e classificacao, mas nao devem ser tratados como rating competitivo confiavel sem Security Rules mais restritivas e/ou backend autoritativo.
 
@@ -1061,8 +1062,10 @@ Regras atuais:
 - desenha seis lugares na sala de espera e inicia automaticamente com 2 a 6 jogadores quando todos marcam pronto;
 - exibe QR Code de convite na sala de espera, apontando para `ranked-waiting.html?room={codigo}`;
 - antes de iniciar, agenda uma contagem de 5 segundos para evitar que a sala comece instantaneamente por clique impulsivo em "Estou pronto";
+- ao sair da espera, cria deck, distribui influencias iniciais sem permitir Embaixador na mao inicial e entra em `starter-draw`, uma fase curta de sorteio visual que define aleatoriamente quem abre a partida;
 - quando o estado sai de `waiting`, `ranked-waiting.html` redireciona para `ranked.html`, que renderiza apenas a mesa ativa, as acoes e o registro oficial;
 - usa cinco copias de Duque, Capitao, Assassino, Condessa, Embaixador e Inquisidor;
+- Embaixadores permanecem no baralho inicial, mas so podem aparecer depois por compra, troca ou efeitos posteriores;
 - obriga Golpe de Estado quando o jogador possui 10 moedas ou mais;
 - oferece Renda, Ajuda Externa, Golpe, Taxar, Extorquir, Assassinar, duas trocas e Investigar;
 - abre janelas temporizadas para contestar a declaracao, bloquear quando permitido e contestar o bloqueio;
@@ -1074,12 +1077,12 @@ Regras atuais:
 Maquina de estados:
 
 ```text
-waiting -> turn -> response -> block-challenge
-                    |              |
-                    +-> influence-loss <-+
-                    +-> exchange
-                    +-> examine
-                    +-> turn -> ... -> finished
+waiting -> starter-draw -> turn -> response -> block-challenge
+                                  |              |
+                                  +-> influence-loss <-+
+                                  +-> exchange
+                                  +-> examine
+                                  +-> turn -> ... -> finished
 ```
 
 Todas as mutacoes de jogo passam por `transaction()` em `salas/{roomCode}/rankedState`. Qualquer cliente conectado pode solicitar o avanco de um deadline expirado; a transacao relê o estado atual e somente uma resolucao vence. Isso elimina a necessidade de um host para conduzir o fluxo.
@@ -1089,7 +1092,7 @@ Schema resumido:
 ```js
 rankedState: {
   status: "waiting" | "active" | "finished",
-  phase: "waiting" | "turn" | "response" | "block-challenge" |
+  phase: "waiting" | "starter-draw" | "turn" | "response" | "block-challenge" |
     "influence-loss" | "exchange" | "examine" | "finished",
   players: {
     "<uid>": { seat, ready, connected, coins, influences, eliminated }
@@ -1103,6 +1106,7 @@ rankedState: {
   pendingLoss: null,
   pendingExchange: null,
   pendingExamine: null,
+  starterDraw: { candidates: ["<uid>"], winnerUid: "<uid>", startedAt: 0, endsAt: 0 },
   matchStats: {},
   readyCountdownStartedAt: null,
   deadline: 0,
