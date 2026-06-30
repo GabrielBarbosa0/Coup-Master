@@ -96,7 +96,7 @@ com foco em escalabilidade e consistência de estado.
 * **Feedback Visual de Espectador:** Destaque com brilho azul suave e borda no avatar do jogador que está sendo assistido.
 * **Interface Responsiva e Adaptável:** Ocultação automática do botão de espectador para jogadores que possuem cartas na mão.
 * **Sistema de Salas Privadas:** Criação e entrada em salas via códigos únicos de 4 dígitos com função de cópia rápida no cabeçalho.
-* **Modo Ranqueado Beta:** Tela e fluxo próprios para contas Google, sem host ou bots, com turnos, custos, alvos, contestações, bloqueios, perdas de influência e tempos de resposta controlados pelo sistema. Rating e leaderboard continuam suspensos até existir validação autoritativa antifraude.
+* **Modo Ranqueado Beta:** Tela e fluxo próprios para contas Google, sem host, com bots IA experimentais na sala de espera, turnos, custos, alvos, contestações, bloqueios, perdas de influência e tempos de resposta controlados pelo sistema. Rating e leaderboard continuam suspensos até existir validação autoritativa antifraude.
 * **Controle de Áudio Integrado:** Música de fundo e efeitos sonoros sincronizados para ações como compra de cartas, moedas e impacto.
 * **Gestão de Bots:** Capacidade de adicionar bots para testes de mesa.
 * **Modais de Referência Rápida:** Visualização de guias de ações de personagens e regras alternativas através de cartas que giram (flip cards).

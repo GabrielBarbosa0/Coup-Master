@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/loading.css?v=rank-split-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=waiting-qr-card-width">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=starter-draw-overlay">
 </head>
 
 <body data-rank-view="waiting">
@@ -66,6 +66,57 @@
         </section>
     </div>
 
+    <div id="rankAddAiModal" class="rank-modal-overlay" hidden>
+        <section class="rank-modal rank-add-ai-modal" role="dialog" aria-modal="true" aria-labelledby="rankAddAiTitle">
+            <button id="closeRankAddAiBtn" class="rank-close-btn" type="button" aria-label="Fechar">&times;</button>
+            <span class="rank-kicker">Jogador IA</span>
+            <h2 id="rankAddAiTitle">Adicionar bot</h2>
+            <p class="rank-phase-description">
+                Defina o nome e, se quiser, ajuste a personalidade. Sem ajuste manual, o sistema escolhe os valores.
+            </p>
+
+            <form id="rankAddAiForm" class="rank-add-ai-form">
+                <label class="rank-field">
+                    <span>Nome do bot</span>
+                    <div class="rank-ai-name-row">
+                        <input id="rankAiName" type="text" maxlength="24" autocomplete="off" required>
+                        <button id="rankRandomAiNameBtn" class="rank-secondary-btn" type="button">Aleatorio</button>
+                    </div>
+                </label>
+
+                <label class="rank-toggle-field">
+                    <input id="rankChooseAiPersonality" type="checkbox">
+                    <span>Escolher personalidade manualmente</span>
+                </label>
+
+                <div id="rankAiPersonalityFields" class="rank-ai-personality-fields" hidden>
+                    <label class="rank-range-field">
+                        <span>Vinganca <strong id="rankAiVengefulnessValue">50%</strong></span>
+                        <input id="rankAiVengefulness" type="range" min="0" max="100" value="50">
+                        <small>Prioriza jogadores que prejudicaram o bot.</small>
+                    </label>
+
+                    <label class="rank-range-field">
+                        <span>Honestidade <strong id="rankAiHonestyValue">50%</strong></span>
+                        <input id="rankAiHonesty" type="range" min="0" max="100" value="50">
+                        <small>Quanto maior, menos o bot blefa.</small>
+                    </label>
+
+                    <label class="rank-range-field">
+                        <span>Ceticismo <strong id="rankAiSkepticismValue">50%</strong></span>
+                        <input id="rankAiSkepticism" type="range" min="0" max="100" value="50">
+                        <small>Quanto maior, mais o bot contesta e evita bloqueios provaveis.</small>
+                    </label>
+                </div>
+
+                <div class="rank-modal-actions">
+                    <button class="rank-secondary-btn" type="button" id="closeRankAddAiBtnSecondary">Cancelar</button>
+                    <button class="rank-primary-btn" type="submit">Adicionar</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
     <audio id="rank-audio-click" src="assets/sounds/vfx/blip.mp3"></audio>
     <audio id="rank-audio-card-slide" src="assets/sounds/vfx/card-slide.mp3"></audio>
     <audio id="rank-audio-pop" src="assets/sounds/vfx/pop.mp3"></audio>
@@ -76,10 +127,10 @@
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>
-    <script src="js/gamemode/ranked/ranked-rules.js?v=waiting-ready-delay" defer></script>
-    <script src="js/gamemode/ranked/ranked-engine.js?v=waiting-ready-delay" defer></script>
-    <script src="js/gamemode/ranked/ranked-renderer.js?v=waiting-qr-code-text" defer></script>
-    <script src="js/gamemode/ranked/ranked-game.js?v=rank-own-stats" defer></script>
+    <script src="js/gamemode/ranked/ranked-rules.js?v=starter-draw-overlay" defer></script>
+    <script src="js/gamemode/ranked/ranked-engine.js?v=starter-draw-overlay" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=starter-draw-overlay" defer></script>
+    <script src="js/gamemode/ranked/ranked-game.js?v=starter-draw-overlay" defer></script>
 </body>
 
 </html>

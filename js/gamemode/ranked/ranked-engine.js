@@ -53,8 +53,41 @@
             player.influences = Array.isArray(player.influences) ? player.influences : [];
             player.coins = Number.isFinite(Number(player.coins)) ? Number(player.coins) : SETTINGS.startingCoins;
             player.eliminated = Boolean(player.eliminated);
+            player.ai = Boolean(player.ai);
+            if (player.ai) {
+                player.connected = true;
+                player.ready = player.ready !== false;
+                player.grudges = player.grudges && typeof player.grudges === 'object' ? player.grudges : {};
+                player.personality = normalizeBotPersonality(player.personality);
+            }
         });
         return state;
+    }
+
+    function clampPercent(value, fallback = 50) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return fallback;
+        return Math.max(0, Math.min(100, Math.round(number)));
+    }
+
+    function createRandomBotPersonality(random = Math.random) {
+        const roll = () => Math.floor(random() * 101);
+        return {
+            vengefulness: roll(),
+            honesty: roll(),
+            skepticism: roll()
+        };
+    }
+
+    function normalizeBotPersonality(personality, random = Math.random) {
+        const source = personality && typeof personality === 'object'
+            ? personality
+            : createRandomBotPersonality(random);
+        return {
+            vengefulness: clampPercent(source.vengefulness),
+            honesty: clampPercent(source.honesty),
+            skepticism: clampPercent(source.skepticism)
+        };
     }
 
     function addLog(state, message, type = 'info', now = Date.now()) {
@@ -167,6 +200,42 @@
             joinedAt: now
         };
         addLog(state, `${state.players[user.uid].name} entrou na sala.`, 'system', now);
+        updateReadyCountdown(state, now);
+        state.updatedAt = now;
+        return state;
+    }
+
+    function addAiPlayer(state, options = {}, now = Date.now(), random = Math.random) {
+        normalizeState(state);
+        if (state.status !== PHASES.WAITING) throw new Error('A partida ranqueada ja comecou.');
+        const seat = nextFreeSeat(state);
+        if (!seat) throw new Error('A sala ranqueada esta cheia.');
+
+        const rawName = String(options.name || '').trim();
+        const name = rawName.slice(0, 24) || `Bot ${seat}`;
+        const duplicated = getPlayers(state).some((player) => (
+            player.name.toLocaleLowerCase('pt-BR') === name.toLocaleLowerCase('pt-BR')
+        ));
+        if (duplicated) throw new Error('Ja existe um jogador com esse nome.');
+
+        const uid = options.uid || `rank-bot-${now}-${Math.floor(random() * 100000)}`;
+        state.players[uid] = {
+            uid,
+            name,
+            photo: options.photo || 'assets/img/icons/robot.svg',
+            seat,
+            connected: true,
+            ready: true,
+            ai: true,
+            personality: normalizeBotPersonality(options.personality, random),
+            personalityHidden: !options.personality,
+            grudges: {},
+            coins: SETTINGS.startingCoins,
+            influences: [],
+            eliminated: false,
+            joinedAt: now
+        };
+        addLog(state, `${name} entrou como jogador IA.`, 'system', now);
         updateReadyCountdown(state, now);
         state.updatedAt = now;
         return state;
@@ -343,6 +412,7 @@
         if (action.claim && !playerHasHiddenRole(actor, action.claim)) {
             actorStats.bluffs += 1;
         }
+        if (targetUid) bumpGrudge(state, targetUid, uid, 1);
 
         state.pendingAction = {
             id: `rank-action-${state.turnNumber}-${now}`,
@@ -372,6 +442,14 @@
 
         state.updatedAt = now;
         return state;
+    }
+
+    function bumpGrudge(state, playerUid, offenderUid, amount = 1) {
+        const player = getPlayer(state, playerUid);
+        const offender = getPlayer(state, offenderUid);
+        if (!player?.ai || !offender || playerUid === offenderUid) return;
+        player.grudges = player.grudges && typeof player.grudges === 'object' ? player.grudges : {};
+        player.grudges[offenderUid] = Math.max(0, Number(player.grudges[offenderUid] || 0) + amount);
     }
 
     function getResponseUids(state) {
@@ -512,6 +590,8 @@
     }
 
     function scheduleLoss(state, playerUid, reason, continuation, now = Date.now()) {
+        const offenderUid = state.pendingAction?.actorUid;
+        if (offenderUid && offenderUid !== playerUid) bumpGrudge(state, playerUid, offenderUid, 2);
         state.pendingLoss = { playerUid, count: 1, reason, continuation };
         state.phase = PHASES.INFLUENCE_LOSS;
         state.deadline = now + SETTINGS.selectionSeconds * 1000;
@@ -844,6 +924,7 @@
         createState,
         normalizeState,
         joinPlayer,
+        addAiPlayer,
         setConnected,
         leaveWaitingRoom,
         toggleReady,

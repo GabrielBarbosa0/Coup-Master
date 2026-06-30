@@ -63,6 +63,32 @@ function testInitialDealSkipsAmbassador() {
     assert.ok(state.deck.some((card) => card.role === Rules.ROLES.AMBASSADOR));
 }
 
+function testAddAiPlayerToWaitingRoom() {
+    const state = createWaitingState();
+    Engine.addAiPlayer(state, {
+        name: 'Dama Fortuna',
+        personality: {
+            vengefulness: 88,
+            honesty: 21,
+            skepticism: 63
+        }
+    }, 2000, () => 0.5);
+
+    const bot = Engine.getPlayers(state).find((player) => player.ai);
+    assert.ok(bot);
+    assert.equal(bot.name, 'Dama Fortuna');
+    assert.equal(bot.ready, true);
+    assert.equal(bot.connected, true);
+    assert.equal(bot.personality.vengefulness, 88);
+    assert.equal(bot.personality.honesty, 21);
+    assert.equal(bot.personality.skepticism, 63);
+    assert.equal(bot.personalityHidden, false);
+    assert.throws(
+        () => Engine.addAiPlayer(state, { name: 'Dama Fortuna' }, 2001),
+        /Ja existe um jogador/
+    );
+}
+
 function testSuccessfulChallengeCancelsBluff() {
     const state = createStartedState();
     state.players.u1.influences.forEach((card) => { card.role = Rules.ROLES.CAPTAIN; });
@@ -203,6 +229,7 @@ function testMatchStatsTrackActionsAndChallenges() {
 testImmediateIncome();
 testReadyCountdownDelaysStart();
 testInitialDealSkipsAmbassador();
+testAddAiPlayerToWaitingRoom();
 testSuccessfulChallengeCancelsBluff();
 testFailedChallengeResumesAction();
 testTruthfulBlockCancelsAssassination();
@@ -215,6 +242,6 @@ testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 
-console.log('ranked-engine: 14 testes aprovados');
+console.log('ranked-engine: 15 testes aprovados');
 
 

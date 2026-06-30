@@ -15,6 +15,17 @@
     let lastSeenChatMessageKey = '';
     let viewMode = 'game';
 
+    const botNameIdeas = [
+        'Augusto', 'Berenice', 'Cassandra', 'Dario', 'Eloisa', 'Fausto',
+        'Gael', 'Helena', 'Icaro', 'Jandira', 'Livia', 'Mauro',
+        'Nadia', 'Otavio', 'Pilar', 'Quintino', 'Rafaela', 'Silas',
+        'Tarsila', 'Ulisses', 'Valentina', 'Xavier', 'Yara', 'Zeca',
+        'Duque Cinzento', 'Capitao Falso', 'Condessa Fria', 'Inquisidor Mudo',
+        'Baronesa Vesper', 'Lorde Sombra', 'Dama Fortuna', 'Arauto Azul',
+        'Marques Oculto', 'Visconde Sete', 'Oraculo da Corte', 'Mascara Rubra',
+        'Corvo Real', 'Duelista Nobre', 'Escriba Cego', 'General de Seda'
+    ];
+
     const quickMessages = [
         'Sou o Duque', 'Sou o Capitao', 'Sou a Condessa', 'Taxar', 'Extorquir',
         'Assassinar', 'Trocar', 'Investigar', 'Contesto', 'Bloqueio'
@@ -66,6 +77,7 @@
         bindModal('rankSettingsBtn', 'rankSettingsModal', '#closeRankSettingsBtn');
         bindModal('openRankFeedbackBtn', 'rankFeedbackModal', '#closeRankFeedbackBtn');
         bindModal('openRankLogBtn', 'rankLogModal', '#closeRankLogBtn');
+        bindAddAiModal();
         setupActionsGuide();
         document.getElementById('copyRankLogBtn')?.addEventListener('click', copyOfficialLog);
         document.getElementById('rankFullscreenBtn')?.addEventListener('click', () => {
@@ -101,6 +113,90 @@
         if (!modal) return;
         if (modal.hasAttribute('hidden')) modal.hidden = true;
         else modal.style.display = 'none';
+    }
+
+    function bindAddAiModal() {
+        const modal = document.getElementById('rankAddAiModal');
+        const form = document.getElementById('rankAddAiForm');
+        const nameInput = document.getElementById('rankAiName');
+        const randomButton = document.getElementById('rankRandomAiNameBtn');
+        const customToggle = document.getElementById('rankChooseAiPersonality');
+
+        document.getElementById('openRankAddAiBtn')?.addEventListener('click', () => {
+            playRankSfx('click');
+            fillRandomAiName();
+            syncAiPersonalityFields();
+            showModal(modal);
+        });
+        document.getElementById('closeRankAddAiBtn')?.addEventListener('click', () => {
+            playRankSfx('click');
+            hideModal(modal);
+        });
+        document.getElementById('closeRankAddAiBtnSecondary')?.addEventListener('click', () => {
+            playRankSfx('click');
+            hideModal(modal);
+        });
+        randomButton?.addEventListener('click', fillRandomAiName);
+        customToggle?.addEventListener('change', syncAiPersonalityFields);
+
+        ['rankAiVengefulness', 'rankAiHonesty', 'rankAiSkepticism'].forEach((inputId) => {
+            document.getElementById(inputId)?.addEventListener('input', syncAiPersonalityValues);
+        });
+
+        form?.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const name = String(nameInput?.value || '').trim();
+            if (!name) {
+                showError('Informe um nome para o jogador IA.');
+                return;
+            }
+
+            const choosePersonality = Boolean(customToggle?.checked);
+            controller.addAiPlayer({
+                name,
+                personality: choosePersonality ? {
+                    vengefulness: readRangeValue('rankAiVengefulness'),
+                    honesty: readRangeValue('rankAiHonesty'),
+                    skepticism: readRangeValue('rankAiSkepticism')
+                } : null
+            }).then(() => {
+                playRankSfx('pop');
+                form.reset();
+                syncAiPersonalityFields();
+                hideModal(modal);
+            }).catch((error) => showError(error.message || 'Nao foi possivel adicionar o jogador IA.'));
+        });
+    }
+
+    function fillRandomAiName() {
+        const input = document.getElementById('rankAiName');
+        if (!input) return;
+        const usedNames = new Set(Engine.getPlayers(state || {}).map((player) => player.name.toLocaleLowerCase('pt-BR')));
+        const available = botNameIdeas.filter((name) => !usedNames.has(name.toLocaleLowerCase('pt-BR')));
+        const names = available.length ? available : botNameIdeas;
+        input.value = names[Math.floor(Math.random() * names.length)] || 'Bot';
+    }
+
+    function readRangeValue(id) {
+        return Math.max(0, Math.min(100, Number(document.getElementById(id)?.value || 50)));
+    }
+
+    function syncAiPersonalityFields() {
+        const enabled = Boolean(document.getElementById('rankChooseAiPersonality')?.checked);
+        const fields = document.getElementById('rankAiPersonalityFields');
+        if (fields) fields.hidden = !enabled;
+        syncAiPersonalityValues();
+    }
+
+    function syncAiPersonalityValues() {
+        setText('rankAiVengefulnessValue', `${readRangeValue('rankAiVengefulness')}%`);
+        setText('rankAiHonestyValue', `${readRangeValue('rankAiHonesty')}%`);
+        setText('rankAiSkepticismValue', `${readRangeValue('rankAiSkepticism')}%`);
+    }
+
+    function setText(id, text) {
+        const node = document.getElementById(id);
+        if (node) node.textContent = text;
     }
 
     function resetActionsGuide() {
@@ -167,6 +263,7 @@
         hideLoading();
         renderPlayers();
         renderPhase();
+        renderStarterDrawOverlay();
         if (viewMode === 'game') renderLog();
         updateClock();
     }
@@ -207,7 +304,7 @@
 
             const identity = element('div');
             identity.append(
-                element('div', 'rank-player-name', player.name),
+                element('div', `rank-player-name${player.ai ? ' is-ai' : ''}`, player.name),
                 element('div', 'rank-player-state', getPlayerStateLabel(player, activeUid))
             );
             header.append(avatar, identity);
@@ -230,6 +327,7 @@
 
     function getPlayerStateLabel(player, activeUid) {
         if (player.eliminated) return 'Eliminado';
+        if (player.ai && state.status === PHASES.WAITING) return player.ready ? 'IA pronta' : 'IA preparando-se';
         if (state.status === PHASES.WAITING) return player.ready ? 'Pronto' : 'Preparando-se';
         if (state.phase === PHASES.STARTER_DRAW && player.uid === state.starterDraw?.winnerUid) return 'Sorteado';
         if (state.phase === PHASES.STARTER_DRAW) return 'No sorteio';
@@ -276,10 +374,8 @@
         }
 
         if (state.phase === PHASES.STARTER_DRAW) {
-            const starter = Engine.getPlayer(state, state.starterDraw?.winnerUid || Engine.getActiveUid(state));
-            title.textContent = 'Sorteando primeiro jogador';
-            description.textContent = 'O sistema esta escolhendo aleatoriamente quem abre a partida.';
-            renderStarterDraw(interaction, starter);
+            title.textContent = 'Preparando a partida';
+            description.textContent = 'O sorteio do primeiro jogador esta acontecendo na mesa.';
             return;
         }
 
@@ -326,7 +422,19 @@
         const ready = element('button', self?.ready ? 'rank-secondary-btn' : 'rank-primary-btn', self?.ready ? 'Cancelar prontidao' : 'Estou pronto');
         ready.type = 'button';
         ready.addEventListener('click', () => controller.toggleReady());
-        container.append(summary, ready);
+
+        const addAi = element('button', 'rank-secondary-btn', 'Adicionar jogador IA');
+        addAi.id = 'openRankAddAiBtn';
+        addAi.type = 'button';
+        addAi.disabled = players.length >= Rules.SETTINGS.maxPlayers;
+        addAi.addEventListener('click', () => {
+            playRankSfx('click');
+            fillRandomAiName();
+            syncAiPersonalityFields();
+            showModal(document.getElementById('rankAddAiModal'));
+        });
+
+        container.append(summary, ready, addAi);
     }
 
     function getReadyCountdownText(now = Date.now()) {
@@ -363,6 +471,54 @@
         );
         panel.append(list, result);
         container.append(panel);
+    }
+
+    function renderStarterDrawOverlay() {
+        const existing = document.getElementById('rankStarterDrawOverlay');
+        if (state.phase !== PHASES.STARTER_DRAW || state.status !== 'active') {
+            existing?.remove();
+            return;
+        }
+
+        const starter = Engine.getPlayer(state, state.starterDraw?.winnerUid || Engine.getActiveUid(state));
+        const candidates = state.starterDraw?.candidates || state.turnOrder || [];
+        const overlay = existing || element('div', 'rank-starter-overlay');
+        overlay.id = 'rankStarterDrawOverlay';
+        overlay.setAttribute('role', 'status');
+        overlay.setAttribute('aria-live', 'polite');
+        overlay.replaceChildren();
+
+        const panel = element('section', 'rank-starter-overlay-panel');
+        panel.append(
+            element('span', 'rank-kicker', 'Sorteio inicial'),
+            element('h2', '', 'Quem começa?'),
+            element('p', 'rank-phase-description', 'A mesa esta sorteando aleatoriamente o primeiro turno.')
+        );
+
+        const list = element('div', 'rank-starter-overlay-list');
+        candidates.forEach((uid, index) => {
+            const player = Engine.getPlayer(state, uid);
+            if (!player) return;
+            const chip = element('div', 'rank-starter-overlay-chip');
+            chip.style.setProperty('--draw-index', index);
+            if (player.uid === starter?.uid) chip.classList.add('is-winner');
+
+            const avatar = element('img');
+            avatar.src = player.photo || 'assets/img/icons/ghost.svg';
+            avatar.alt = '';
+            avatar.referrerPolicy = 'no-referrer';
+            chip.append(avatar, element('span', '', player.name));
+            list.append(chip);
+        });
+
+        panel.append(list);
+        panel.append(element(
+            'strong',
+            'rank-starter-overlay-result',
+            starter ? `${starter.name} começa.` : 'Escolhendo jogador...'
+        ));
+        overlay.append(panel);
+        if (!existing) document.body.append(overlay);
     }
 
     function renderMatchResults(container) {

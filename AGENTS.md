@@ -91,7 +91,7 @@ Preserve:
 - Carta no cemiterio/free area: `owner = null`, `visible = true`, `location = "free"`.
 - Scores nao devem ficar negativos.
 - Host e determinado por `salas/{roomCode}/hostUID`.
-- Sala sem `mode` e casual; sala ranqueada exige conta Google, baralho padrao e nao permite bots.
+- Sala sem `mode` e casual; sala ranqueada exige conta Google, baralho padrao e permite bots IA experimentais adicionados na sala de espera.
 - O ranqueado nao possui host ou controles administrativos. Todos os clientes passam pelo mesmo motor de regras.
 - O ranqueado agenda uma contagem de 5 segundos depois que todos estao prontos antes de iniciar a partida.
 - `rankedStats/{uid}` e `rankedResults/{roomCode}` existem para perfil/estatisticas beta, mas nao trate como rating confiavel enquanto influencias secretas e transicoes puderem ser lidas/escritas diretamente pelo cliente.

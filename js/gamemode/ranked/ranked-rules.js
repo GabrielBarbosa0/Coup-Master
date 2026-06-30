@@ -98,7 +98,7 @@
         startingInfluences: 2,
         mandatoryCoupCoins: 10,
         readyCountdownSeconds: 5,
-        starterDrawSeconds: 4,
+        starterDrawSeconds: 3,
         responseSeconds: 15,
         turnSeconds: 45,
         selectionSeconds: 20

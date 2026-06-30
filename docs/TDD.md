@@ -1059,11 +1059,12 @@ Regras atuais:
 - requer autenticacao Google; visitante anonimo nao cria nem entra;
 - persiste `mode = "ranked"` na raiz e usa `rankedState` separado do sandbox casual;
 - redireciona primeiro para `ranked-waiting.html`, sem carregar `gameState.js` ou `board-renderer.js`;
-- nao possui host, administrador, bots, reset manual ou configuracao de baralho;
+- nao possui host, administrador, reset manual ou configuracao de baralho;
+- permite adicionar jogadores IA na sala de espera ranqueada para preencher slots antes da partida;
 - desenha seis lugares na sala de espera e inicia automaticamente com 2 a 6 jogadores quando todos marcam pronto;
 - exibe QR Code de convite na sala de espera, apontando para `ranked-waiting.html?room={codigo}`;
 - antes de iniciar, agenda uma contagem de 5 segundos para evitar que a sala comece instantaneamente por clique impulsivo em "Estou pronto";
-- ao sair da espera, cria deck, distribui influencias iniciais sem permitir Embaixador na mao inicial e entra em `starter-draw`, uma fase curta de sorteio visual que define aleatoriamente quem abre a partida;
+- ao sair da espera, cria deck, distribui influencias iniciais sem permitir Embaixador na mao inicial e entra em `starter-draw`, uma fase curta de sorteio visual em overlay que define aleatoriamente quem abre a partida;
 - quando o estado sai de `waiting`, `ranked-waiting.html` redireciona para `ranked.html`, que renderiza apenas a mesa ativa, as acoes e o registro oficial;
 - usa cinco copias de Duque, Capitao, Assassino, Condessa, Embaixador e Inquisidor;
 - Embaixadores permanecem no baralho inicial, mas so podem aparecer depois por compra, troca ou efeitos posteriores;
@@ -1074,6 +1075,18 @@ Regras atuais:
 - exige que o perdedor escolha a influencia revelada;
 - avanca por timeout: turno vira Renda, resposta vira passe e escolhas obrigatorias recebem fallback;
 - detecta eliminacao e encerra quando resta um jogador.
+
+Jogadores IA no ranqueado:
+
+- sao adicionados por `ranked-waiting.html`, no modal `rankAddAiModal`;
+- ocupam um slot real de `rankedState.players`, com `ai = true`, `connected = true` e `ready = true`;
+- podem receber nome manual ou sugestao aleatoria do renderer;
+- possuem personalidade normalizada em porcentagens de `0` a `100`;
+- `vengefulness` aumenta a chance de mirar jogadores que prejudicaram o bot, usando `grudges` acumulados por alvo;
+- `honesty` reduz a chance de blefes em declaracoes e bloqueios;
+- `skepticism` aumenta a chance de contestar declaracoes/bloqueios e muda a tolerancia a riscos como Ajuda Externa contra Duque provavel;
+- se a personalidade nao for escolhida manualmente, `ranked-engine.js` gera valores aleatorios e marca `personalityHidden = true`;
+- `ranked-game.js` roda um driver client-side simples que toma decisoes por transacao durante turno, resposta, contestacao de bloqueio, perda de influencia, troca e investigacao.
 
 Maquina de estados:
 
@@ -1096,7 +1109,10 @@ rankedState: {
   phase: "waiting" | "starter-draw" | "turn" | "response" | "block-challenge" |
     "influence-loss" | "exchange" | "examine" | "finished",
   players: {
-    "<uid>": { seat, ready, connected, coins, influences, eliminated }
+    "<uid>": {
+      seat, ready, connected, coins, influences, eliminated,
+      ai, personality, personalityHidden, grudges
+    }
   },
   turnOrder: ["<uid>"],
   turnIndex: 0,

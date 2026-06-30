@@ -682,6 +682,91 @@ button.rank-card {
     font-size: 16px;
 }
 
+.rank-starter-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9700;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(2px);
+}
+
+.rank-starter-overlay-panel {
+    width: min(680px, 100%);
+    padding: 30px;
+    border: 1px solid var(--rank-border-strong);
+    border-radius: 8px;
+    background: var(--rank-bg);
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.42);
+    text-align: center;
+}
+
+.rank-starter-overlay-panel h2 {
+    margin: 6px 0 0;
+    font-size: clamp(28px, 4vw, 44px);
+}
+
+.rank-starter-overlay-panel .rank-phase-description {
+    margin: 10px auto 22px;
+    max-width: 460px;
+}
+
+.rank-starter-overlay-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0 auto;
+}
+
+.rank-starter-overlay-chip {
+    min-height: 88px;
+    display: grid;
+    place-items: center;
+    gap: 7px;
+    padding: 12px;
+    border: 1px solid var(--rank-border);
+    border-radius: 8px;
+    background: var(--rank-surface);
+    color: var(--rank-muted);
+    font-size: 12px;
+    font-weight: 800;
+    animation: rankStarterSpotlight 0.54s ease-in-out infinite;
+    animation-delay: calc(var(--draw-index, 0) * 120ms);
+}
+
+.rank-starter-overlay-chip.is-winner {
+    animation:
+        rankStarterSpotlight 0.54s ease-in-out infinite,
+        rankStarterWinnerReveal 0.42s ease-out 2.35s both;
+}
+
+.rank-starter-overlay-chip img {
+    width: 38px;
+    height: 38px;
+    border: 2px solid var(--rank-accent);
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+}
+
+.rank-starter-overlay-chip span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rank-starter-overlay-result {
+    display: block;
+    margin-top: 20px;
+    color: var(--rank-gold);
+    font-size: clamp(16px, 2.5vw, 22px);
+    opacity: 0;
+    animation: rankStarterResultReveal 0.34s ease-out 2.55s both;
+}
+
 .rank-match-results {
     display: grid;
     gap: 12px;
@@ -827,6 +912,48 @@ button.rank-card {
     50% {
         transform: translateY(-2px);
         opacity: 1;
+    }
+}
+
+@keyframes rankStarterSpotlight {
+    0%,
+    100% {
+        border-color: var(--rank-border);
+        box-shadow: none;
+        color: var(--rank-muted);
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        border-color: var(--rank-accent);
+        box-shadow: 0 0 18px rgba(30, 144, 255, 0.3), inset 0 0 0 1px rgba(30, 144, 255, 0.2);
+        color: var(--rank-text);
+        transform: translateY(-2px) scale(1.02);
+    }
+}
+
+@keyframes rankStarterWinnerReveal {
+    0% {
+        border-color: var(--rank-accent);
+        box-shadow: 0 0 18px rgba(30, 144, 255, 0.3);
+        color: var(--rank-text);
+        transform: scale(1.02);
+    }
+    100% {
+        border-color: var(--rank-gold);
+        box-shadow: 0 0 26px rgba(255, 196, 0, 0.28), inset 0 0 0 1px rgba(255, 196, 0, 0.24);
+        color: var(--rank-text);
+        transform: scale(1.05);
+    }
+}
+
+@keyframes rankStarterResultReveal {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -1181,6 +1308,107 @@ button.rank-card {
     color: var(--rank-muted);
 }
 
+.rank-add-ai-modal {
+    overflow: visible;
+}
+
+.rank-add-ai-modal .rank-phase-description {
+    margin: 0 0 18px;
+}
+
+.rank-add-ai-form,
+.rank-field,
+.rank-ai-personality-fields,
+.rank-range-field {
+    display: grid;
+    gap: 10px;
+}
+
+.rank-field,
+.rank-toggle-field,
+.rank-range-field {
+    color: var(--rank-text);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.rank-ai-name-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+}
+
+.rank-ai-name-row input {
+    width: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
+    border: 1px solid var(--rank-border-strong);
+    border-radius: 8px;
+    background: var(--rank-surface);
+    color: var(--rank-text);
+    font: inherit;
+    padding: 9px 11px;
+    outline: 0;
+}
+
+.rank-ai-name-row input:focus {
+    border-color: var(--rank-accent);
+    box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.18);
+}
+
+.rank-toggle-field {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--rank-muted);
+}
+
+.rank-toggle-field input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--rank-accent);
+}
+
+.rank-ai-personality-fields {
+    padding: 12px;
+    border: 1px solid var(--rank-border);
+    border-radius: 8px;
+    background: rgba(17, 25, 35, 0.58);
+}
+
+.rank-range-field span {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.rank-range-field strong {
+    color: var(--rank-accent);
+}
+
+.rank-range-field input {
+    accent-color: var(--rank-accent);
+}
+
+.rank-range-field small {
+    color: var(--rank-muted);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.rank-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.rank-player-name.is-ai::after {
+    content: " IA";
+    color: var(--rank-accent);
+    font-size: 9px;
+}
+
 .floating-chat-actions {
     position: fixed;
     top: 50%;
@@ -1441,6 +1669,30 @@ button.rank-card {
         font-size: 13px;
     }
 
+    .rank-starter-overlay {
+        padding: 14px;
+    }
+
+    .rank-starter-overlay-panel {
+        padding: 24px 14px;
+    }
+
+    .rank-starter-overlay-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .rank-starter-overlay-chip {
+        min-height: 76px;
+        padding: 9px;
+        font-size: 10px;
+    }
+
+    .rank-starter-overlay-chip img {
+        width: 32px;
+        height: 32px;
+    }
+
     .rank-match-mvp {
         grid-template-columns: 42px 1fr;
     }
@@ -1516,7 +1768,14 @@ button.rank-card {
 
 @media (prefers-reduced-motion: reduce) {
     .rank-player-slot.is-draw-candidate,
-    .rank-starter-chip {
+    .rank-starter-chip,
+    .rank-starter-overlay-chip,
+    .rank-starter-overlay-chip.is-winner,
+    .rank-starter-overlay-result {
         animation: none;
+    }
+
+    .rank-starter-overlay-result {
+        opacity: 1;
     }
 }
