@@ -183,7 +183,7 @@
 
 .chat-message-meta {
     color: rgba(230, 238, 246, 0.48);
-    font-family: system-ui, sans-serif !important;
+    font-family: "Cinzel", Georgia, serif !important;
     font-size: 10px;
     line-height: 1.4;
 }
@@ -191,7 +191,7 @@
 .chat-message-text {
     margin: 4px 0 0;
     color: var(--text);
-    font-family: system-ui, sans-serif !important;
+    font-family: "Cinzel", Georgia, serif !important;
     font-size: 14px;
     line-height: 1.45;
     user-select: text;

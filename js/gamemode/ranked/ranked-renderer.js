@@ -14,21 +14,18 @@
     let chatMessagesInitialized = false;
     let lastSeenChatMessageKey = '';
     let viewMode = 'game';
+    let matchResultsModalDismissed = false;
+    let matchResultsKey = '';
 
     const botNameIdeas = [
         'Augusto', 'Berenice', 'Cassandra', 'Dario', 'Eloisa', 'Fausto',
         'Gael', 'Helena', 'Icaro', 'Jandira', 'Livia', 'Mauro',
         'Nadia', 'Otavio', 'Pilar', 'Quintino', 'Rafaela', 'Silas',
         'Tarsila', 'Ulisses', 'Valentina', 'Xavier', 'Yara', 'Zeca',
-        'Duque Cinzento', 'Capitao Falso', 'Condessa Fria', 'Inquisidor Mudo',
+        'Duque Cinzento', 'Capitão Falso', 'Condessa Fria', 'Inquisidor Mudo',
         'Baronesa Vesper', 'Lorde Sombra', 'Dama Fortuna', 'Arauto Azul',
-        'Marques Oculto', 'Visconde Sete', 'Oraculo da Corte', 'Mascara Rubra',
+        'Marquês Oculto', 'Visconde Sete', 'Oráculo da Corte', 'Máscara Rubra',
         'Corvo Real', 'Duelista Nobre', 'Escriba Cego', 'General de Seda'
-    ];
-
-    const quickMessages = [
-        'Sou o Duque', 'Sou o Capitao', 'Sou a Condessa', 'Taxar', 'Extorquir',
-        'Assassinar', 'Trocar', 'Investigar', 'Contesto', 'Bloqueio'
     ];
 
     function element(tag, className, text) {
@@ -56,13 +53,13 @@
             try {
                 await navigator.clipboard.writeText(roomCode);
                 codeButton?.classList.add('is-copied');
-                if (codeButton) codeButton.textContent = 'Codigo copiado';
+                if (codeButton) codeButton.textContent = 'Código copiado';
                 window.setTimeout(() => {
                     codeButton?.classList.remove('is-copied');
                     renderRoomCode();
                 }, 1000);
             } catch (error) {
-                showError('Nao foi possivel copiar o codigo da sala.');
+                showError('Não foi possível copiar o código da sala.');
             }
         });
         document.getElementById('rankRoomQr')?.addEventListener('click', async () => {
@@ -70,13 +67,13 @@
                 await navigator.clipboard.writeText(getRankedInviteUrl());
                 playRankSfx('pop');
             } catch (error) {
-                showError('Nao foi possivel copiar o convite da sala.');
+                showError('Não foi possível copiar o convite da sala.');
             }
         });
         bindModal('rankCharacterActionsBtn', 'rankActionsModal', '#closeRankActionsBtn', resetActionsGuide);
         bindModal('rankSettingsBtn', 'rankSettingsModal', '#closeRankSettingsBtn');
         bindModal('openRankFeedbackBtn', 'rankFeedbackModal', '#closeRankFeedbackBtn');
-        bindModal('openRankLogBtn', 'rankLogModal', '#closeRankLogBtn');
+        bindRankPanel('openRankLogBtn', 'rankLogModal', '#closeRankLogBtn');
         bindAddAiModal();
         setupActionsGuide();
         document.getElementById('copyRankLogBtn')?.addEventListener('click', copyOfficialLog);
@@ -101,6 +98,32 @@
             playRankSfx('click');
             hideModal(modal);
         });
+    }
+
+    function bindRankPanel(openId, panelId, closeSelector) {
+        const panel = document.getElementById(panelId);
+        document.getElementById(openId)?.addEventListener('click', () => {
+            playRankSfx('click');
+            openRankPanel(panel);
+        });
+        panel?.querySelector(closeSelector)?.addEventListener('click', () => {
+            playRankSfx('click');
+            closeRankPanel(panel);
+        });
+    }
+
+    function isRankPanelOverlayMode() {
+        return window.matchMedia('(max-width: 980px)').matches;
+    }
+
+    function openRankPanel(panel) {
+        if (!panel) return;
+        panel.classList.add('is-panel-open');
+    }
+
+    function closeRankPanel(panel) {
+        if (!panel) return;
+        panel.classList.remove('is-panel-open');
     }
 
     function showModal(modal) {
@@ -164,7 +187,7 @@
                 form.reset();
                 syncAiPersonalityFields();
                 hideModal(modal);
-            }).catch((error) => showError(error.message || 'Nao foi possivel adicionar o jogador IA.'));
+            }).catch((error) => showError(error.message || 'Não foi possível adicionar o jogador IA.'));
         });
     }
 
@@ -270,6 +293,7 @@
         renderPlayers();
         renderPhase();
         renderStarterDrawOverlay();
+        renderMatchResultsModal();
         if (viewMode === 'game') renderLog();
         updateClock();
     }
@@ -318,8 +342,7 @@
             if (state.status === PHASES.WAITING) {
                 slot.append(header);
             } else {
-                const coins = element('div', 'rank-coin-count', `${player.coins} $`);
-                header.append(coins);
+                header.append(createCoinCounter(player.coins));
 
                 const hand = element('div', 'rank-opponent-hand');
                 (player.influences || []).forEach((card) => {
@@ -341,6 +364,17 @@
         return player.connected ? 'Online' : 'Reconectando';
     }
 
+    function createCoinCounter(coinsValue) {
+        const value = Number(coinsValue || 0);
+        const counter = element('div', 'rank-coin-count');
+        counter.setAttribute('aria-label', `${value} moeda${value === 1 ? '' : 's'}`);
+        counter.append(
+            element('span', 'rank-coin-icon'),
+            element('span', 'rank-coin-value', String(value))
+        );
+        return counter;
+    }
+
     function createCard(card, reveal, options = {}) {
         const wrapper = element(options.button ? 'button' : 'div', 'rank-card');
         if (options.button) wrapper.type = 'button';
@@ -349,7 +383,7 @@
         const image = element('img');
         const role = Rules.getRole(card.role);
         image.src = reveal && role ? role.image : 'assets/img/cards/base/back.png';
-        image.alt = reveal && role ? role.label : 'Influencia oculta';
+        image.alt = reveal && role ? role.label : 'Influência oculta';
         wrapper.append(image);
         return wrapper;
     }
@@ -359,10 +393,13 @@
         const description = document.getElementById('rankPhaseDescription');
         const interaction = document.getElementById('rankInteraction');
         if (!title || !description || !interaction) return;
+        const stage = title.closest('.rank-stage');
+        stage?.classList.remove('is-centered-stage', 'is-finished-stage', 'is-response-stage');
         interaction.replaceChildren();
         selectedAction = state.phase === PHASES.TURN ? selectedAction : null;
 
         if (state.status === PHASES.WAITING) {
+            stage?.classList.add('is-centered-stage');
             setPhaseText(
                 state.deadline ? 'Iniciando' : 'Prepare sua entrada',
                 state.deadline ? 'Tudo pronto.' : 'Convide pela sala e marque pronto.'
@@ -372,35 +409,63 @@
         }
 
         if (state.status === PHASES.FINISHED) {
-            const winner = Engine.getPlayer(state, state.winnerUid);
-            setPhaseText(winner ? `${winner.name} venceu` : 'Partida encerrada');
-            renderMatchResults(interaction);
+            stage?.classList.add('is-centered-stage', 'is-finished-stage');
+            setPhaseText('Partida encerrada');
+            const viewResults = element('button', 'rank-primary-btn', 'Ver resultado');
+            viewResults.type = 'button';
+            viewResults.addEventListener('click', () => {
+                playRankSfx('click');
+                matchResultsModalDismissed = false;
+                renderMatchResultsModal(true);
+            });
+            interaction.append(viewResults);
             return;
         }
 
         if (state.phase === PHASES.STARTER_DRAW) {
+            stage?.classList.add('is-centered-stage');
             setPhaseText('Sorteio inicial');
             return;
         }
 
         const activePlayer = Engine.getPlayer(state, Engine.getActiveUid(state));
         if (state.phase === PHASES.TURN) {
-            setPhaseText(activePlayer?.uid === currentUid ? 'Sua vez' : `Vez de ${activePlayer?.name || 'jogador'}`);
+            if (activePlayer?.uid !== currentUid) {
+                stage?.classList.add('is-centered-stage');
+            }
+            setPhaseText(
+                activePlayer?.uid === currentUid ? 'Sua vez' : `Vez de ${activePlayer?.name || 'jogador'}`,
+                describeTurnPhase(activePlayer)
+            );
             renderTurn(interaction, activePlayer);
         } else if (state.phase === PHASES.RESPONSE) {
+            stage?.classList.add(canCurrentPlayerRespond(state.pendingAction?.actorUid) ? 'is-response-stage' : 'is-centered-stage');
             setPhaseText('Responder', describePendingAction());
             renderActionResponse(interaction);
         } else if (state.phase === PHASES.BLOCK_CHALLENGE) {
+            stage?.classList.add(canCurrentPlayerRespond(state.pendingAction?.block?.uid) ? 'is-response-stage' : 'is-centered-stage');
             setPhaseText('Bloqueio', describePendingBlock());
             renderBlockChallenge(interaction);
         } else if (state.phase === PHASES.INFLUENCE_LOSS) {
-            setPhaseText(state.pendingLoss?.playerUid === currentUid ? 'Revele uma carta' : 'Perda de influencia', state.pendingLoss?.reason || '');
+            stage?.classList.add('is-centered-stage');
+            setPhaseText(
+                state.pendingLoss?.playerUid === currentUid ? 'Revele uma carta' : 'Perda de influência',
+                describeInfluenceLoss()
+            );
             renderInfluenceLoss(interaction);
         } else if (state.phase === PHASES.EXCHANGE) {
-            setPhaseText(state.pendingExchange?.playerUid === currentUid ? 'Escolha cartas' : 'Troca');
+            stage?.classList.add('is-centered-stage');
+            setPhaseText(
+                state.pendingExchange?.playerUid === currentUid ? 'Escolha cartas' : 'Troca',
+                describeExchangePhase()
+            );
             renderExchange(interaction);
         } else if (state.phase === PHASES.EXAMINE) {
-            setPhaseText(state.pendingExamine?.actorUid === currentUid ? 'Investigar' : 'Investigacao');
+            stage?.classList.add('is-centered-stage');
+            setPhaseText(
+                state.pendingExamine?.actorUid === currentUid ? 'Investigar' : 'Investigação',
+                describeExaminePhase()
+            );
             renderExamine(interaction);
         }
 
@@ -421,7 +486,7 @@
         );
 
         const self = Engine.getPlayer(state, currentUid);
-        const ready = element('button', self?.ready ? 'rank-secondary-btn' : 'rank-primary-btn', self?.ready ? 'Cancelar prontidao' : 'Estou pronto');
+        const ready = element('button', self?.ready ? 'rank-secondary-btn' : 'rank-primary-btn', self?.ready ? 'Cancelar prontidão' : 'Estou pronto');
         ready.type = 'button';
         ready.addEventListener('click', () => controller.toggleReady());
 
@@ -494,7 +559,7 @@
         panel.append(
             element('span', 'rank-kicker', 'Sorteio inicial'),
             element('h2', '', 'Quem começa?'),
-            element('p', 'rank-phase-description', 'A mesa esta sorteando aleatoriamente o primeiro turno.')
+            element('p', 'rank-phase-description', 'A mesa está sorteando aleatoriamente o primeiro turno.')
         );
 
         const list = element('div', 'rank-starter-overlay-list');
@@ -521,6 +586,68 @@
         ));
         overlay.append(panel);
         if (!existing) document.body.append(overlay);
+    }
+
+    function renderMatchResultsModal(forceOpen = false) {
+        const existing = document.getElementById('rankMatchResultsModal');
+        if (state.status !== PHASES.FINISHED) {
+            existing?.remove();
+            matchResultsModalDismissed = false;
+            matchResultsKey = '';
+            return;
+        }
+
+        const nextKey = `${roomCode}:${state.winnerUid || 'finished'}:${state.finishedAt || state.turn || ''}`;
+        if (nextKey !== matchResultsKey) {
+            matchResultsKey = nextKey;
+            matchResultsModalDismissed = false;
+        }
+
+        const overlay = existing || createMatchResultsModal();
+        const body = overlay.querySelector('#rankMatchResultsBody');
+        const winner = Engine.getPlayer(state, state.winnerUid);
+        if (!body) return;
+
+        body.replaceChildren();
+        const heading = element('div', 'rank-results-modal-heading');
+        heading.append(
+            element('span', 'rank-kicker', 'Resultado final'),
+            element('h2', '', winner ? `${winner.name} venceu` : 'Partida encerrada')
+        );
+        heading.querySelector('h2').id = 'rankMatchResultsTitle';
+        body.append(heading);
+        renderMatchResults(body);
+
+        if (forceOpen || !matchResultsModalDismissed) showModal(overlay);
+        else hideModal(overlay);
+    }
+
+    function createMatchResultsModal() {
+        const overlay = element('div', 'rank-modal-overlay rank-results-overlay');
+        overlay.id = 'rankMatchResultsModal';
+        overlay.hidden = true;
+
+        const modal = element('section', 'rank-modal rank-results-modal');
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-labelledby', 'rankMatchResultsTitle');
+
+        const close = element('button', 'rank-close-btn', '×');
+        close.type = 'button';
+        close.setAttribute('aria-label', 'Fechar resultado');
+        close.addEventListener('click', () => {
+            playRankSfx('click');
+            matchResultsModalDismissed = true;
+            hideModal(overlay);
+        });
+
+        const body = element('div', 'rank-results-scroll');
+        body.id = 'rankMatchResultsBody';
+
+        modal.append(close, body);
+        overlay.append(modal);
+        document.body.append(overlay);
+        return overlay;
     }
 
     function renderMatchResults(container) {
@@ -577,16 +704,71 @@
         });
         panel.append(list);
 
-        const back = element('button', 'rank-primary-btn', 'Voltar ao lobby');
+        const actions = element('div', 'rank-match-result-actions');
+        const restart = element('button', 'rank-primary-btn', 'Reiniciar partida');
+        restart.type = 'button';
+        restart.addEventListener('click', () => {
+            playRankSfx('click');
+            controller.restartMatch();
+        });
+
+        const back = element('button', 'rank-secondary-btn', 'Voltar ao lobby');
         back.type = 'button';
         back.addEventListener('click', () => controller.leaveRoom());
-        panel.append(back);
+        actions.append(restart, back);
+        panel.append(actions);
         container.append(panel);
     }
 
     function formatSignedPoints(value) {
         const points = Number(value || 0);
         return `${points > 0 ? '+' : ''}${points} pts`;
+    }
+
+    function describeTurnPhase(activePlayer) {
+        if (!activePlayer) return 'Aguardando a mesa definir o próximo jogador.';
+        if (activePlayer.uid === currentUid) {
+            const self = Engine.getPlayer(state, currentUid);
+            if (self?.coins >= Rules.SETTINGS.mandatoryCoupCoins) {
+                return 'Você tem 10 moedas ou mais e precisa aplicar um Golpe de Estado.';
+            }
+            return 'Escolha uma ação. O sistema aplica custos, abre as janelas de resposta e resolve a rodada automaticamente.';
+        }
+        return `${activePlayer.name} está escolhendo a próxima ação da rodada.`;
+    }
+
+    function describeInfluenceLoss() {
+        const loss = state.pendingLoss;
+        const player = Engine.getPlayer(state, loss?.playerUid);
+        if (!loss || !player) return '';
+        const reason = loss.reason ? `${loss.reason}. ` : '';
+        if (player.uid === currentUid) {
+            return `${reason}Escolha a influência que será revelada para continuar a partida.`;
+        }
+        return `${player.name} precisa revelar uma influência para a partida continuar.`;
+    }
+
+    function describeExchangePhase() {
+        const exchange = state.pendingExchange;
+        const player = Engine.getPlayer(state, exchange?.playerUid);
+        if (!exchange || !player) return '';
+        if (player.uid === currentUid) {
+            return `Escolha ${exchange.keepCount} carta(s) para devolver ao baralho e concluir a troca.`;
+        }
+        return `${player.name} está reorganizando as cartas da mão.`;
+    }
+
+    function describeExaminePhase() {
+        const examine = state.pendingExamine;
+        const actor = Engine.getPlayer(state, examine?.actorUid);
+        const target = Engine.getPlayer(state, examine?.targetUid);
+        if (!examine || !actor) return '';
+        if (actor.uid === currentUid) {
+            return target
+                ? `Escolha uma influência de ${target.name} para investigar.`
+                : 'Escolha a influência que será investigada.';
+        }
+        return `${actor.name} está investigando uma influência${target ? ` de ${target.name}` : ''}.`;
     }
 
     function renderTurn(container, activePlayer) {
@@ -599,7 +781,7 @@
             container.append(element('h2', 'rank-interaction-title', 'Escolha o alvo'));
             const targets = element('div', 'rank-target-list');
             Engine.getAlivePlayers(state).filter((player) => player.uid !== currentUid).forEach((player) => {
-                const button = element('button', 'rank-target-btn', `${player.name} - ${player.coins} moeda(s)`);
+                const button = element('button', 'rank-target-btn', player.name);
                 button.type = 'button';
                 button.addEventListener('click', () => {
                     controller.performAction(selectedAction, player.uid);
@@ -646,14 +828,16 @@
         const target = Engine.getPlayer(state, pending?.targetUid);
         if (!pending || !action || !actor) return '';
         const claim = pending.claim ? ` declarando ${Rules.getRole(pending.claim).label}` : '';
-        return `${actor.name}: ${action.label}${claim}${target ? ` contra ${target.name}` : ''}.`;
+        const targetText = target ? `\ncontra ${target.name}` : '';
+        return `${actor.name} escolheu ${action.label}${claim}${targetText}.`;
     }
 
     function describePendingBlock() {
         const block = state.pendingAction?.block;
         const blocker = Engine.getPlayer(state, block?.uid);
+        const role = Rules.getRole(block?.claim);
         return block && blocker
-            ? `${blocker.name}: ${Rules.getRole(block.claim).label}.`
+            ? `${blocker.name} bloqueou declarando ${role?.label || 'uma influência'}.\nVocê pode contestar o bloqueio ou aceitar a resolução.`
             : '';
     }
 
@@ -759,7 +943,7 @@
         const cards = element('div', 'rank-choice-cards');
         cards.append(createCard(card, true));
         const actions = element('div', 'rank-response-actions');
-        const keep = element('button', 'rank-primary-btn', 'Manter influencia');
+        const keep = element('button', 'rank-primary-btn', 'Manter influência');
         keep.type = 'button';
         keep.addEventListener('click', () => controller.completeExamine(false));
         const replace = element('button', 'rank-secondary-btn', 'Trocar pelo baralho');
@@ -799,7 +983,7 @@
             if (!button) return;
             button.textContent = 'Copiado';
             window.setTimeout(() => { button.textContent = 'Copiar log'; }, 1200);
-        }).catch(() => showError('Nao foi possivel copiar o registro oficial.'));
+        }).catch(() => showError('Não foi possível copiar o registro oficial.'));
     }
 
     function updateClock(now = Date.now()) {
@@ -825,7 +1009,7 @@
         const input = document.getElementById('chatInput');
         chatBtn?.addEventListener('click', () => {
             if (!modal) return;
-            modal.style.display = 'flex';
+            openRankPanel(modal);
             chatBtn.classList.remove('chat-btn-has-unread');
             chatBtn.classList.add('is-chat-open');
             lastSeenChatMessageKey = getLastChatMessageKey();
@@ -833,7 +1017,7 @@
         });
         document.getElementById('closeChatBtn')?.addEventListener('click', () => {
             if (!modal) return;
-            modal.style.display = 'none';
+            closeRankPanel(modal);
             chatBtn.classList.remove('is-chat-open');
         });
         document.getElementById('chatForm')?.addEventListener('submit', (event) => {
@@ -843,17 +1027,6 @@
             playRankSfx('click');
             controller.sendChat(message);
             input.value = '';
-        });
-        const quickContainer = document.getElementById('chatQuickMessages');
-        if (!quickContainer) return;
-        quickMessages.forEach((message) => {
-            const button = element('button', 'chat-quick-btn', message);
-            button.type = 'button';
-            button.addEventListener('click', () => {
-                playRankSfx('click');
-                controller.sendChat(message, true);
-            });
-            quickContainer.append(button);
         });
     }
 
@@ -930,7 +1103,9 @@
     }
 
     function isChatModalOpen() {
-        return document.getElementById('chatModal')?.style.display === 'flex';
+        const chatPanel = document.getElementById('chatModal');
+        if (!chatPanel) return false;
+        return !isRankPanelOverlayMode() || chatPanel.classList.contains('is-panel-open');
     }
 
     function updateChatUnreadState(latestMessage) {

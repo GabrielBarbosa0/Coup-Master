@@ -36,7 +36,7 @@ Permitir que grupos joguem Coup online em uma sala privada, com sincronizacao em
 - Permitir host/admin com controles privilegiados.
 - Permitir configuracao de deck com jogo base, cartas promocionais e DLCs.
 - Permitir modo espectador fantasma mediante autorizacao.
-- Permitir chat textual em tempo real com mensagens rapidas.
+- Permitir chat textual em tempo real. No modo casual ha mensagens rapidas; no ranqueado o chat fica livre, sem atalhos de blefe.
 - Oferecer ajudas visuais de regras e cartas de referencia.
 - Entregar experiencia visual expressiva com fundo animado, efeito VHS, parallax e animacao de cartas.
 - Rodar diretamente em navegador sem instalacao.
@@ -618,10 +618,10 @@ O campo `grave` existe no estado inicial e reset, mas o cemiterio visual usa `fr
 
 O modo ranqueado tambem grava agregados fora da sala:
 
-- `rankedResults/{roomCode}`: resultado imutavel client-side de uma sala finalizada, usado para evitar contabilizar a mesma partida mais de uma vez.
-- `rankedResults/{roomCode}` tambem inclui `performanceScore` e `performanceBreakdown` por jogador. Essa pontuacao de desempenho soma vitoria/derrota, acoes executadas, golpes, assassinatos, roubos, moedas roubadas, bloqueios aceitos, desafios vencidos/perdidos, blefes revelados, influencias preservadas e eliminacao.
+- `rankedResults/{resultKey}`: resultado imutavel client-side de uma partida finalizada. O `resultKey` combina codigo da sala e `matchId`, permitindo reiniciar a partida na mesma sala sem sobrescrever resultados anteriores.
+- `rankedResults/{resultKey}` tambem inclui `performanceScore` e `performanceBreakdown` por jogador. Essa pontuacao de desempenho soma vitoria/derrota, acoes executadas, golpes, assassinatos, roubos, moedas roubadas, bloqueios aceitos, desafios vencidos/perdidos, blefes revelados, influencias preservadas e eliminacao.
 - `rankedStats/{uid}`: estatisticas acumuladas do jogador exibidas no modal de perfil do lobby, incluindo jogos, vitorias, derrotas, taxa de vitoria, sequencias, score ranqueado, pontos de desempenho acumulados, melhor/pior placar de partida, desafios, assassinatos, golpes, roubos e progresso inicial de conquistas.
-- `rankedStats/{uid}/countedRooms/{roomCode}`: marcador por jogador para impedir que a mesma sala ranqueada seja contabilizada mais de uma vez no perfil, mesmo que a tela final seja reaberta ou varios clientes tentem persistir o resultado.
+- `rankedStats/{uid}/countedRooms/{resultKey}`: marcador por jogador para impedir que a mesma partida ranqueada seja contabilizada mais de uma vez no perfil, mesmo que a tela final seja reaberta ou varios clientes tentem persistir o resultado.
 
 Esses agregados ainda sao escritos por clientes autenticados. Eles servem como fundacao de produto para perfil e classificacao, mas nao devem ser tratados como rating competitivo confiavel sem Security Rules mais restritivas e/ou backend autoritativo.
 
@@ -1066,6 +1066,8 @@ Regras atuais:
 - antes de iniciar, agenda uma contagem de 5 segundos para evitar que a sala comece instantaneamente por clique impulsivo em "Estou pronto";
 - ao sair da espera, cria deck, distribui influencias iniciais sem permitir Embaixador na mao inicial e entra em `starter-draw`, uma fase curta de sorteio visual em overlay que define aleatoriamente quem abre a partida;
 - quando o estado sai de `waiting`, `ranked-waiting.html` redireciona para `ranked.html`, que renderiza apenas a mesa ativa, as acoes e o registro oficial;
+- em desktop, `ranked.html` organiza a mesa em uma coluna principal com slots e acoes, e uma lateral persistente com chat e registro oficial; em telas menores, chat e registro viram modais centrais acionados por botoes flutuantes na lateral direita;
+- ao finalizar, a mesa abre o resultado em modal padronizado, com melhor jogador, pontuacao por participante, detalhamento expansivel, acao para voltar ao lobby e acao para reiniciar a partida na mesma sala;
 - usa cinco copias de Duque, Capitao, Assassino, Condessa, Embaixador e Inquisidor;
 - Embaixadores permanecem no baralho inicial, mas so podem aparecer depois por compra, troca ou efeitos posteriores;
 - obriga Golpe de Estado quando o jogador possui 10 moedas ou mais;
@@ -1142,7 +1144,7 @@ Integridade e limite desta fase:
 - transacoes reduzem conflitos acidentais, mas nao substituem validacao autoritativa;
 - as influencias secretas ficam no Realtime Database e podem ser inspecionadas por um cliente modificado;
 - sem Security Rules especificas e backend confiavel, um cliente malicioso ainda pode escrever estado invalido;
-- vitorias, derrotas e estatisticas ranqueadas sao persistidas pelo proprio cliente do jogador em `rankedStats/{uid}`; `rankedResults/{roomCode}` guarda o resultado da sala e `countedRooms` evita duplicidade por usuario, mas isso ainda nao representa rating competitivo confiavel;
+- vitorias, derrotas e estatisticas ranqueadas sao persistidas pelo proprio cliente do jogador em `rankedStats/{uid}`; `rankedResults/{resultKey}` guarda o resultado da partida e `countedRooms` evita duplicidade por usuario, mas isso ainda nao representa rating competitivo confiavel;
 - matchmaking e leaderboard mundial ainda nao foram implementados.
 
 Antes de ativar pontuacao competitiva real, mover validacao, resultado oficial e informacao secreta para Cloud Functions, servidor proprio ou outro componente autoritativo, alem de versionar regras do Firebase.

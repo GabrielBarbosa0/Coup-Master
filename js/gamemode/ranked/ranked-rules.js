@@ -18,7 +18,7 @@
 
     const ROLE_DEFINITIONS = Object.freeze({
         [ROLES.DUKE]: { label: 'Duque', image: 'assets/img/cards/base/duque.png' },
-        [ROLES.CAPTAIN]: { label: 'Capitao', image: 'assets/img/cards/base/capitao.png' },
+        [ROLES.CAPTAIN]: { label: 'Capitão', image: 'assets/img/cards/base/capitao.png' },
         [ROLES.ASSASSIN]: { label: 'Assassino', image: 'assets/img/cards/base/assassino.png' },
         [ROLES.CONTESSA]: { label: 'Condessa', image: 'assets/img/cards/base/condessa.png' },
         [ROLES.AMBASSADOR]: { label: 'Embaixador', image: 'assets/img/cards/base/embaixador.png' },
@@ -47,7 +47,7 @@
             claim: null, cost: 0, challengeable: false, blockClaims: [ROLES.DUKE], blockScope: 'any'
         },
         [ACTIONS.COUP]: {
-            label: 'Golpe de Estado', description: 'Pague 7 moedas para eliminar uma influencia.', requiresTarget: true,
+            label: 'Golpe de Estado', description: 'Pague 7 moedas para eliminar uma influência.', requiresTarget: true,
             claim: null, cost: 7, challengeable: false, blockClaims: []
         },
         [ACTIONS.TAX]: {
@@ -55,7 +55,7 @@
             claim: ROLES.DUKE, cost: 0, challengeable: true, blockClaims: []
         },
         [ACTIONS.STEAL]: {
-            label: 'Extorquir', description: 'Declare Capitao e roube ate 2 moedas.', requiresTarget: true,
+            label: 'Extorquir', description: 'Declare Capitão e roube até 2 moedas.', requiresTarget: true,
             claim: ROLES.CAPTAIN, cost: 0, challengeable: true,
             blockClaims: [ROLES.CAPTAIN, ROLES.AMBASSADOR, ROLES.INQUISITOR], blockScope: 'target'
         },
@@ -65,15 +65,15 @@
             blockClaims: [ROLES.CONTESSA], blockScope: 'target'
         },
         [ACTIONS.EXCHANGE_AMBASSADOR]: {
-            label: 'Trocar (Embaixador)', description: 'Declare Embaixador e reorganize sua mao.', requiresTarget: false,
+            label: 'Trocar (Embaixador)', description: 'Declare Embaixador e reorganize sua mão.', requiresTarget: false,
             claim: ROLES.AMBASSADOR, cost: 0, challengeable: true, blockClaims: []
         },
         [ACTIONS.EXCHANGE_INQUISITOR]: {
-            label: 'Trocar (Inquisidor)', description: 'Declare Inquisidor e reorganize sua mao.', requiresTarget: false,
+            label: 'Trocar (Inquisidor)', description: 'Declare Inquisidor e reorganize sua mão.', requiresTarget: false,
             claim: ROLES.INQUISITOR, cost: 0, challengeable: true, blockClaims: []
         },
         [ACTIONS.EXAMINE]: {
-            label: 'Investigar', description: 'Declare Inquisidor e examine uma influencia.', requiresTarget: true,
+            label: 'Investigar', description: 'Declare Inquisidor e examine uma influência.', requiresTarget: true,
             claim: ROLES.INQUISITOR, cost: 0, challengeable: true, blockClaims: []
         }
     });
@@ -98,7 +98,7 @@
         startingInfluences: 2,
         mandatoryCoupCoins: 10,
         readyCountdownSeconds: 5,
-        starterDrawSeconds: 3,
+        starterDrawSeconds: 5,
         responseSeconds: 15,
         turnSeconds: 45,
         selectionSeconds: 20

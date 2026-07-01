@@ -48,7 +48,7 @@
     }
 
     function transaction(mutator, options = {}) {
-        if (!rankedStateRef) return Promise.reject(new Error('Partida ainda nao conectada.'));
+        if (!rankedStateRef) return Promise.reject(new Error('Partida ainda não conectada.'));
         let mutationError = null;
 
         return rankedStateRef.transaction((current) => {
@@ -65,11 +65,11 @@
             }
         }).then((result) => {
             if (mutationError) throw mutationError;
-            if (!result.committed) throw new Error('A acao nao foi confirmada. Tente novamente.');
+            if (!result.committed) throw new Error('A ação não foi confirmada. Tente novamente.');
             return db.ref(`salas/${roomCode}/lastActivity`).set(Date.now());
         }).catch((error) => {
             if (!options.silent) {
-                Renderer.showError(error.message || 'Nao foi possivel concluir a acao.');
+                Renderer.showError(error.message || 'Não foi possível concluir a ação.');
             }
             throw error;
         });
@@ -86,6 +86,7 @@
         completeExchange: (cardIds) => transaction((state) => Engine.completeExchange(state, currentUser.uid, cardIds)),
         completeExamine: (replace) => transaction((state) => Engine.completeExamine(state, currentUser.uid, replace)),
         addAiPlayer: (options) => transaction((state) => Engine.addAiPlayer(state, options)),
+        restartMatch,
         sendChat,
         leaveRoom
     };
@@ -93,7 +94,7 @@
     function joinRankedRoom(user) {
         const roomRef = db.ref(`salas/${roomCode}`);
         return roomRef.once('value').then((snapshot) => {
-            if (!snapshot.exists()) throw new Error('A sala informada nao existe.');
+            if (!snapshot.exists()) throw new Error('A sala informada não existe.');
             const room = snapshot.val();
             if (!root.CoupGameModes.isRanked(root.CoupGameModes.fromRoom(room))) {
                 throw new Error('Esta sala pertence ao modo casual.');
@@ -113,7 +114,7 @@
                 }
             }).then((result) => {
                 if (joinError) throw joinError;
-                if (!result.committed) throw new Error('Nao foi possivel entrar na partida ranqueada.');
+                if (!result.committed) throw new Error('Não foi possível entrar na partida ranqueada.');
                 sessionStorage.setItem('currentRoomMode', root.CoupGameModes.RANKED);
                 setupRealtimeListeners();
                 setupPresence();
@@ -126,7 +127,7 @@
         rankedStateRef.on('value', (snapshot) => {
             rankedState = snapshot.val();
             if (!rankedState?.players?.[currentUser.uid]) {
-                redirectToLobby('Voce nao faz mais parte desta sala ranqueada.');
+                redirectToLobby('Você não faz mais parte desta sala ranqueada.');
                 return;
             }
             if (redirectIfWrongView(rankedState)) return;
@@ -136,7 +137,7 @@
                 persistRankedMatchResults(rankedState);
             }
         }, () => {
-            Renderer.setConnectionStatus('Sem conexao', false);
+            Renderer.setConnectionStatus('Sem conexão', false);
         });
 
         db.ref(`salas/${roomCode}/chatMessages`).limitToLast(60).on('value', (snapshot) => {
@@ -184,7 +185,9 @@
             ? { ...previous.countedRooms }
             : {};
 
-        if (countedRooms[roomCode]) {
+        const resultKey = result.resultKey || `${roomCode}_${result.matchId || result.endedAt || now}`;
+
+        if (countedRooms[resultKey] || (!result.matchId && countedRooms[roomCode])) {
             return {
                 ...previous,
                 name: player.name || previous.name || 'Jogador',
@@ -206,7 +209,7 @@
         const winRate = games ? wins / games : 0;
         const challengeAccuracy = challenges ? successfulChallenges / challenges : 0;
         const wilsonScore = calculateWilsonLowerBound(wins, games);
-        countedRooms[roomCode] = result.endedAt || now;
+        countedRooms[resultKey] = result.endedAt || now;
 
         return {
             schemaVersion: 1,
@@ -263,24 +266,31 @@
         const result = {
             ...Engine.buildMatchResults(state, now),
             roomCode,
+            resultKey: `${roomCode}_${state.matchId || state.finishedAt || now}`,
             committedBy: currentUser.uid,
             committedAt: now
         };
 
         statsCommitPending = true;
-        db.ref(`rankedResults/${roomCode}`).transaction((current) => {
+        db.ref(`rankedResults/${result.resultKey}`).transaction((current) => {
             return current || result;
         }).then((transactionResult) => {
             const savedResult = transactionResult.snapshot?.val?.() || result;
             return updateCurrentUserRankedStats(savedResult, now);
         }).catch((error) => {
-            console.error('Erro ao persistir estatisticas ranqueadas:', error);
+            console.error('Erro ao persistir estatísticas ranqueadas:', error);
             return updateCurrentUserRankedStats(result, now).catch((statsError) => {
-                console.error('Erro ao persistir estatisticas do jogador:', statsError);
+                console.error('Erro ao persistir estatísticas do jogador:', statsError);
             });
         }).finally(() => {
             statsCommitPending = false;
         });
+    }
+
+    function restartMatch() {
+        return transaction((state) => Engine.restartMatch(state))
+            .then(() => navigateToRankedView('ranked-waiting.html'))
+            .catch(() => null);
     }
 
     function leaveRoom() {
@@ -552,7 +562,7 @@
             root.setTimeout(() => {
                 transaction((state) => {
                     if (!applyNextBotDecision(state, Date.now())) {
-                        throw new Error('Nenhuma acao de IA pendente.');
+                        throw new Error('Nenhuma ação de IA pendente.');
                     }
                     return state;
                 }, { silent: true }).catch(() => null).finally(() => {
@@ -577,7 +587,7 @@
 
     function boot() {
         if (!roomCode || roomCode.length !== 4) {
-            redirectToLobby('Codigo de sala ranqueada invalido.');
+            redirectToLobby('Código de sala ranqueada inválido.');
             return;
         }
 

@@ -34,6 +34,7 @@
             pendingExchange: null,
             pendingExamine: null,
             matchStats: {},
+            matchId: 0,
             readyCountdownStartedAt: null,
             winnerUid: null
         };
@@ -48,6 +49,7 @@
         state.log = Array.isArray(state.log) ? state.log : [];
         state.starterDraw = state.starterDraw && typeof state.starterDraw === 'object' ? state.starterDraw : null;
         state.matchStats = state.matchStats && typeof state.matchStats === 'object' ? state.matchStats : {};
+        state.matchId = Number.isFinite(Number(state.matchId)) ? Number(state.matchId) : 0;
         state.readyCountdownStartedAt = state.readyCountdownStartedAt || null;
         Object.values(state.players).forEach((player) => {
             player.influences = Array.isArray(player.influences) ? player.influences : [];
@@ -153,7 +155,7 @@
                 return state.deck.splice(index, 1)[0];
             }
         }
-        throw new Error('Nao ha cartas iniciais validas suficientes no baralho.');
+        throw new Error('Não há cartas iniciais válidas suficientes no baralho.');
     }
 
     function playerHasHiddenRole(player, role) {
@@ -170,7 +172,7 @@
 
     function joinPlayer(state, user, now = Date.now()) {
         normalizeState(state);
-        if (!user?.uid) throw new Error('Usuario invalido.');
+        if (!user?.uid) throw new Error('Usuário inválido.');
         const existing = getPlayer(state, user.uid);
 
         if (existing) {
@@ -182,10 +184,10 @@
             return state;
         }
 
-        if (state.status !== PHASES.WAITING) throw new Error('A partida ranqueada ja comecou.');
+        if (state.status !== PHASES.WAITING) throw new Error('A partida ranqueada já começou.');
         pruneDisconnectedWaitingPlayers(state, user.uid, now);
         const seat = nextFreeSeat(state);
-        if (!seat) throw new Error('A sala ranqueada esta cheia.');
+        if (!seat) throw new Error('A sala ranqueada está cheia.');
 
         state.players[user.uid] = {
             uid: user.uid,
@@ -207,16 +209,16 @@
 
     function addAiPlayer(state, options = {}, now = Date.now(), random = Math.random) {
         normalizeState(state);
-        if (state.status !== PHASES.WAITING) throw new Error('A partida ranqueada ja comecou.');
+        if (state.status !== PHASES.WAITING) throw new Error('A partida ranqueada já começou.');
         const seat = nextFreeSeat(state);
-        if (!seat) throw new Error('A sala ranqueada esta cheia.');
+        if (!seat) throw new Error('A sala ranqueada está cheia.');
 
         const rawName = String(options.name || '').trim();
         const name = rawName.slice(0, 24) || `Bot ${seat}`;
         const duplicated = getPlayers(state).some((player) => (
             player.name.toLocaleLowerCase('pt-BR') === name.toLocaleLowerCase('pt-BR')
         ));
-        if (duplicated) throw new Error('Ja existe um jogador com esse nome.');
+        if (duplicated) throw new Error('Já existe um jogador com esse nome.');
 
         const uid = options.uid || `rank-bot-${now}-${Math.floor(random() * 100000)}`;
         state.players[uid] = {
@@ -263,12 +265,12 @@
 
     function toggleReady(state, uid, now = Date.now(), random = Math.random) {
         normalizeState(state);
-        if (state.status !== PHASES.WAITING) throw new Error('A partida ja comecou.');
+        if (state.status !== PHASES.WAITING) throw new Error('A partida já começou.');
         const player = getPlayer(state, uid);
-        if (!player) throw new Error('Jogador nao encontrado.');
+        if (!player) throw new Error('Jogador não encontrado.');
         pruneDisconnectedWaitingPlayers(state, uid, now);
         player.ready = !player.ready;
-        addLog(state, `${player.name} ${player.ready ? 'esta pronto' : 'cancelou a prontidao'}.`, 'system', now);
+        addLog(state, `${player.name} ${player.ready ? 'está pronto' : 'cancelou a prontidão'}.`, 'system', now);
         updateReadyCountdown(state, now);
         state.updatedAt = now;
         return state;
@@ -281,7 +283,7 @@
             if (player.uid !== preservedUid && player.connected === false) {
                 delete state.players[player.uid];
                 pruned = true;
-                addLog(state, `${player.name} deixou a sala antes do inicio.`, 'system', now);
+                addLog(state, `${player.name} deixou a sala antes do início.`, 'system', now);
             }
         });
         if (pruned) updateReadyCountdown(state, now);
@@ -303,7 +305,7 @@
         if (!state.readyCountdownStartedAt) {
             state.readyCountdownStartedAt = now;
             state.deadline = now + SETTINGS.readyCountdownSeconds * 1000;
-            addLog(state, `Todos estao prontos. A partida comeca em ${SETTINGS.readyCountdownSeconds} segundos.`, 'system', now);
+            addLog(state, `Todos estão prontos. A partida começa em ${SETTINGS.readyCountdownSeconds} segundos.`, 'system', now);
         }
         return true;
     }
@@ -328,6 +330,7 @@
         state.turnOrder = players.map((player) => player.uid);
         state.turnIndex = Math.max(0, state.turnOrder.indexOf(starterUid));
         state.turnNumber = 0;
+        state.matchId = Number(state.matchId || 0) + 1;
         state.winnerUid = null;
         state.startedAt = now;
         state.finishedAt = null;
@@ -359,9 +362,50 @@
         state.pendingLoss = null;
         state.pendingExchange = null;
         state.pendingExamine = null;
-        addLog(state, 'A partida ranqueada comecou. Sorteando quem joga primeiro.', 'important', now);
+        addLog(state, 'A partida ranqueada começou. Sorteando quem joga primeiro.', 'important', now);
         state.updatedAt = now;
         return true;
+    }
+
+    function restartMatch(state, now = Date.now()) {
+        normalizeState(state);
+        if (state.status !== PHASES.FINISHED) throw new Error('A partida ainda não foi finalizada.');
+
+        getPlayers(state).forEach((player) => {
+            player.connected = player.ai ? true : player.connected !== false;
+            player.ready = Boolean(player.ai);
+            player.coins = SETTINGS.startingCoins;
+            player.influences = [];
+            player.eliminated = false;
+            if (player.ai) {
+                player.grudges = {};
+                player.personality = normalizeBotPersonality(player.personality);
+            }
+        });
+
+        state.status = PHASES.WAITING;
+        state.phase = PHASES.WAITING;
+        state.turnOrder = [];
+        state.turnIndex = 0;
+        state.turnNumber = 0;
+        state.deck = [];
+        state.discard = [];
+        state.log = [];
+        state.deadline = null;
+        state.starterDraw = null;
+        state.pendingAction = null;
+        state.pendingLoss = null;
+        state.pendingExchange = null;
+        state.pendingExamine = null;
+        state.matchStats = {};
+        state.readyCountdownStartedAt = null;
+        state.winnerUid = null;
+        state.startedAt = null;
+        state.finishedAt = null;
+        addLog(state, 'Sala reiniciada para uma nova partida.', 'system', now);
+        updateReadyCountdown(state, now);
+        state.updatedAt = now;
+        return state;
     }
 
     function completeStarterDraw(state, now = Date.now()) {
@@ -374,28 +418,28 @@
         state.phase = PHASES.TURN;
         state.deadline = now + SETTINGS.turnSeconds * 1000;
         if (state.starterDraw) state.starterDraw.completedAt = now;
-        addLog(state, `${getPlayer(state, getActiveUid(state))?.name || 'O jogador sorteado'} comeca a partida.`, 'turn', now);
+        addLog(state, `${getPlayer(state, getActiveUid(state))?.name || 'O jogador sorteado'} começa a partida.`, 'turn', now);
         state.updatedAt = now;
         return true;
     }
 
     function validateTurnAction(state, uid, actionType, targetUid) {
         if (state.status !== 'active' || state.phase !== PHASES.TURN) throw new Error('Aguarde a etapa atual terminar.');
-        if (getActiveUid(state) !== uid) throw new Error('Nao e o seu turno.');
+        if (getActiveUid(state) !== uid) throw new Error('Não é o seu turno.');
 
         const player = getPlayer(state, uid);
         const action = Rules.getAction(actionType);
         if (!player || player.eliminated) throw new Error('Jogador indisponivel.');
-        if (!action) throw new Error('Acao invalida.');
+        if (!action) throw new Error('Ação inválida.');
         if (player.coins >= SETTINGS.mandatoryCoupCoins && actionType !== ACTIONS.COUP) {
-            throw new Error(`Com ${SETTINGS.mandatoryCoupCoins} moedas ou mais, o Golpe de Estado e obrigatorio.`);
+            throw new Error(`Com ${SETTINGS.mandatoryCoupCoins} moedas ou mais, o Golpe de Estado é obrigatório.`);
         }
         if (player.coins < action.cost) throw new Error('Moedas insuficientes.');
 
         if (action.requiresTarget) {
             const target = getPlayer(state, targetUid);
             if (!target || target.uid === uid || target.eliminated || countInfluences(target) === 0) {
-                throw new Error('Escolha um alvo valido.');
+                throw new Error('Escolha um alvo válido.');
             }
         }
     }
@@ -471,17 +515,17 @@
     function passResponse(state, uid, now = Date.now()) {
         normalizeState(state);
         if (![PHASES.RESPONSE, PHASES.BLOCK_CHALLENGE].includes(state.phase)) {
-            throw new Error('Nao ha resposta pendente.');
+            throw new Error('Não há resposta pendente.');
         }
 
         const pending = state.pendingAction;
-        if (!pending) throw new Error('Acao pendente nao encontrada.');
+        if (!pending) throw new Error('Ação pendente não encontrada.');
         const excludedUid = state.phase === PHASES.BLOCK_CHALLENGE ? pending.block?.uid : pending.actorUid;
         const eligible = getAlivePlayers(state).map((player) => player.uid).filter((playerUid) => playerUid !== excludedUid);
-        if (!eligible.includes(uid)) throw new Error('Voce nao pode responder agora.');
+        if (!eligible.includes(uid)) throw new Error('Você não pode responder agora.');
 
         pending.passes = pending.passes || {};
-        if (pending.passes[uid]) throw new Error('Sua resposta ja foi registrada.');
+        if (pending.passes[uid]) throw new Error('Sua resposta já foi registrada.');
         pending.passes[uid] = true;
         addLog(state, `${getPlayer(state, uid).name} passou.`, 'response', now);
 
@@ -497,11 +541,11 @@
         normalizeState(state);
         const pending = state.pendingAction;
         if (state.phase !== PHASES.RESPONSE || !pending?.claim || pending.claimConfirmed) {
-            throw new Error('Esta acao nao pode ser contestada agora.');
+            throw new Error('Esta ação não pode ser contestada agora.');
         }
         const challenger = getPlayer(state, challengerUid);
         if (challengerUid === pending.actorUid || !challenger || challenger.eliminated || pending.passes?.[challengerUid]) {
-            throw new Error('Contestacao invalida.');
+            throw new Error('Contestação inválida.');
         }
 
         const actor = getPlayer(state, pending.actorUid);
@@ -514,13 +558,13 @@
             challengerStats.failedChallenges += 1;
             replaceProvenInfluence(state, actor.uid, truthfulCard.id);
             pending.claimConfirmed = true;
-            scheduleLoss(state, challengerUid, 'Contestacao incorreta.', 'resume-action', now);
+            scheduleLoss(state, challengerUid, 'Contestação incorreta.', 'resume-action', now);
             addLog(state, `${actor.name} provou ter ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
         } else {
             challengerStats.successfulChallenges += 1;
             ensureMatchStats(state, actor.uid).provenBluffs += 1;
             scheduleLoss(state, actor.uid, 'Blefe contestado.', 'cancel-action', now);
-            addLog(state, `${actor.name} nao tinha ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
+            addLog(state, `${actor.name} não tinha ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
         }
         return state;
     }
@@ -532,7 +576,7 @@
         const blocker = getPlayer(state, blockerUid);
         if (state.phase !== PHASES.RESPONSE || !pending || !blocker || blocker.eliminated
             || pending.passes?.[blockerUid] || !legalClaims.includes(claim)) {
-            throw new Error('Este bloqueio nao e permitido.');
+            throw new Error('Este bloqueio não é permitido.');
         }
 
         pending.block = { uid: blockerUid, claim };
@@ -553,10 +597,10 @@
         normalizeState(state);
         const pending = state.pendingAction;
         const block = pending?.block;
-        if (state.phase !== PHASES.BLOCK_CHALLENGE || !block) throw new Error('Nao ha bloqueio para contestar.');
+        if (state.phase !== PHASES.BLOCK_CHALLENGE || !block) throw new Error('Não há bloqueio para contestar.');
         const challenger = getPlayer(state, challengerUid);
         if (challengerUid === block.uid || !challenger || challenger.eliminated || pending.passes?.[challengerUid]) {
-            throw new Error('Contestacao invalida.');
+            throw new Error('Contestação inválida.');
         }
 
         const blocker = getPlayer(state, block.uid);
@@ -568,7 +612,7 @@
         if (truthfulCard) {
             challengerStats.failedChallenges += 1;
             replaceProvenInfluence(state, blocker.uid, truthfulCard.id);
-            scheduleLoss(state, challengerUid, 'Contestacao incorreta do bloqueio.', 'accept-block', now);
+            scheduleLoss(state, challengerUid, 'Contestação incorreta do bloqueio.', 'accept-block', now);
             addLog(state, `${blocker.name} provou o bloqueio.`, 'challenge-result', now);
         } else {
             challengerStats.successfulChallenges += 1;
@@ -602,12 +646,12 @@
         normalizeState(state);
         const pendingLoss = state.pendingLoss;
         if (state.phase !== PHASES.INFLUENCE_LOSS || pendingLoss?.playerUid !== uid) {
-            throw new Error('Voce nao precisa perder uma influencia agora.');
+            throw new Error('Você não precisa perder uma influência agora.');
         }
 
         const player = getPlayer(state, uid);
         const card = player?.influences.find((influence) => influence.id === cardId && !influence.revealed);
-        if (!card) throw new Error('Escolha uma influencia valida.');
+        if (!card) throw new Error('Escolha uma influência válida.');
 
         card.revealed = true;
         state.discard.push({ id: card.id, role: card.role });
@@ -632,7 +676,7 @@
     function continueAfterLoss(state, continuation, now) {
         if (continuation === 'resume-action') {
             if (!canPendingActionContinue(state)) {
-                addLog(state, 'A acao foi encerrada porque o alvo nao esta mais disponivel.', 'action-result', now);
+                addLog(state, 'A ação foi encerrada porque o alvo não está mais disponível.', 'action-result', now);
                 endTurn(state, now);
                 return;
             }
@@ -661,7 +705,7 @@
         const pending = state.pendingAction;
         if (!pending) return state;
         if (!canPendingActionContinue(state)) {
-            addLog(state, 'A acao foi encerrada porque o alvo nao esta mais disponivel.', 'action-result', now);
+            addLog(state, 'A ação foi encerrada porque o alvo não está mais disponível.', 'action-result', now);
             endTurn(state, now);
             return state;
         }
@@ -701,7 +745,7 @@
                 scheduleLoss(
                     state,
                     target.uid,
-                    pending.type === ACTIONS.COUP ? 'Vitima de Golpe de Estado.' : 'Vitima de assassinato.',
+                    pending.type === ACTIONS.COUP ? 'Vítima de Golpe de Estado.' : 'Vítima de assassinato.',
                     'end-turn',
                     now
                 );
@@ -744,10 +788,10 @@
     function completeExchange(state, uid, keepIds, now = Date.now()) {
         normalizeState(state);
         const pending = state.pendingExchange;
-        if (state.phase !== PHASES.EXCHANGE || pending?.playerUid !== uid) throw new Error('Nao ha troca pendente.');
+        if (state.phase !== PHASES.EXCHANGE || pending?.playerUid !== uid) throw new Error('Não há troca pendente.');
         const uniqueIds = [...new Set(keepIds || [])];
-        if (uniqueIds.length !== pending.keepCount) throw new Error(`Escolha ${pending.keepCount} influencia(s).`);
-        if (uniqueIds.some((id) => !pending.options.some((card) => card.id === id))) throw new Error('Escolha de troca invalida.');
+        if (uniqueIds.length !== pending.keepCount) throw new Error(`Escolha ${pending.keepCount} influência(s).`);
+        if (uniqueIds.some((id) => !pending.options.some((card) => card.id === id))) throw new Error('Escolha de troca inválida.');
 
         const player = getPlayer(state, uid);
         const kept = pending.options.filter((card) => uniqueIds.includes(card.id));
@@ -763,13 +807,13 @@
     function beginExamine(state, actorUid, targetUid, now) {
         const target = getPlayer(state, targetUid);
         if (!target || target.eliminated || countInfluences(target) === 0) {
-            addLog(state, 'A investigacao foi encerrada porque o alvo nao esta mais disponivel.', 'action-result', now);
+            addLog(state, 'A investigação foi encerrada porque o alvo não está mais disponível.', 'action-result', now);
             endTurn(state, now);
             return;
         }
         const hidden = target.influences.filter((card) => !card.revealed);
         if (!hidden.length) {
-            addLog(state, 'A investigacao foi encerrada porque o alvo nao tem influencias ocultas.', 'action-result', now);
+            addLog(state, 'A investigação foi encerrada porque o alvo não tem influências ocultas.', 'action-result', now);
             endTurn(state, now);
             return;
         }
@@ -787,7 +831,7 @@
     function completeExamine(state, uid, replace, now = Date.now()) {
         normalizeState(state);
         const pending = state.pendingExamine;
-        if (state.phase !== PHASES.EXAMINE || pending?.actorUid !== uid) throw new Error('Nao ha investigacao pendente.');
+        if (state.phase !== PHASES.EXAMINE || pending?.actorUid !== uid) throw new Error('Não há investigação pendente.');
 
         if (replace && state.deck.length > 0) {
             const target = getPlayer(state, pending.targetUid);
@@ -800,7 +844,7 @@
             }
         }
 
-        addLog(state, `${getPlayer(state, uid).name} concluiu a investigacao.`, 'action-result', now);
+        addLog(state, `${getPlayer(state, uid).name} concluiu a investigação.`, 'action-result', now);
         state.pendingExamine = null;
         endTurn(state, now);
         return state;
@@ -870,6 +914,7 @@
 
         return {
             schemaVersion: 1,
+            matchId: Number(state.matchId || 0),
             winnerUid,
             playerCount: Object.keys(players).length,
             startedAt: state.startedAt || state.createdAt || endedAt,
@@ -888,8 +933,8 @@
             if (points) breakdown.push({ label, points });
         };
 
-        add(player.uid === state.winnerUid ? 'Vitoria' : 'Derrota', player.uid === state.winnerUid ? 30 : -8);
-        add('Acoes executadas', stats.actions * 2);
+        add(player.uid === state.winnerUid ? 'Vitória' : 'Derrota', player.uid === state.winnerUid ? 30 : -8);
+        add('Ações executadas', stats.actions * 2);
         add('Golpes de Estado', stats.coups * 6);
         add('Assassinatos', stats.assassinations * 7);
         add('Roubos', stats.steals * 4);
@@ -898,8 +943,8 @@
         add('Desafios vencidos', stats.successfulChallenges * 8);
         add('Desafios perdidos', stats.failedChallenges * -6);
         add('Blefes revelados', stats.provenBluffs * -7);
-        add('Influencias preservadas', hiddenInfluences * 3);
-        add('Eliminacao', player.eliminated ? -5 : 0);
+        add('Influências preservadas', hiddenInfluences * 3);
+        add('Eliminação', player.eliminated ? -5 : 0);
 
         return {
             total: breakdown.reduce((sum, item) => sum + item.points, 0),
@@ -958,6 +1003,7 @@
         setConnected,
         leaveWaitingRoom,
         toggleReady,
+        restartMatch,
         maybeStart,
         completeStarterDraw,
         calculateMatchPerformance,

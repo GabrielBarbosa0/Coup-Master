@@ -3,6 +3,7 @@
     --rank-panel: #232a33;
     --rank-surface: #111923;
     --rank-surface-raised: #18222e;
+    --rank-table-surface: var(--rank-surface);
     --rank-border: rgba(230, 238, 246, 0.16);
     --rank-border-strong: rgba(230, 238, 246, 0.28);
     --rank-text: #e6eef6;
@@ -215,6 +216,9 @@ button {
 
 .rank-waiting-card .rank-phase-description {
     margin-bottom: 0;
+    margin-inline: 0;
+    max-width: 440px;
+    text-align: left;
 }
 
 .rank-waiting-invite {
@@ -367,7 +371,6 @@ button {
     border: 2px solid var(--rank-accent);
     border-radius: 50%;
     object-fit: cover;
-    background: #fff;
 }
 
 .rank-player-name {
@@ -420,9 +423,24 @@ button {
 
 .rank-coin-count {
     min-width: 35px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
     color: var(--rank-gold);
     font-size: 18px;
+    font-weight: 800;
     text-align: right;
+}
+
+.rank-coin-icon {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    display: inline-block;
+    background: currentColor;
+    -webkit-mask: url("../assets/img/icons/paid.svg") center / contain no-repeat;
+    mask: url("../assets/img/icons/paid.svg") center / contain no-repeat;
 }
 
 .rank-opponent-hand,
@@ -484,21 +502,80 @@ button.rank-card {
 }
 
 .rank-stage {
+    position: relative;
     min-height: 270px;
     border: 1px solid var(--rank-border);
     border-radius: 8px;
-    background: var(--rank-surface-raised);
+    background: var(--rank-table-surface);
 }
 
 .rank-stage {
     padding: 16px;
 }
 
+.rank-stage.is-centered-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.rank-stage.is-centered-stage .rank-turn-bar {
+    width: min(620px, calc(100% - 80px));
+    justify-content: center;
+    padding-inline: 0;
+}
+
+.rank-stage.is-centered-stage .rank-phase-description {
+    max-width: 620px;
+    margin-inline: auto;
+}
+
+.rank-stage.is-centered-stage .rank-interaction {
+    width: min(620px, 100%);
+    min-height: 0;
+    display: grid;
+    justify-items: center;
+}
+
+.rank-stage.is-finished-stage .rank-primary-btn {
+    min-width: 150px;
+}
+
+.rank-stage.is-response-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.rank-stage.is-response-stage .rank-turn-bar {
+    width: min(760px, calc(100% - 80px));
+    justify-content: center;
+    padding-inline: 0;
+}
+
+.rank-stage.is-response-stage .rank-phase-description {
+    max-width: 720px;
+    margin-inline: auto;
+}
+
+.rank-stage.is-response-stage .rank-interaction {
+    width: min(720px, 100%);
+    min-height: 0;
+    align-content: center;
+    justify-items: center;
+}
+
 .rank-turn-bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 16px;
+    padding-inline: 82px;
+    text-align: center;
 }
 
 .rank-turn-bar h1 {
@@ -507,10 +584,22 @@ button.rank-card {
 }
 
 .rank-timer {
-    min-width: 62px;
-    padding: 10px;
-    border: 1px solid var(--rank-border-strong);
-    border-radius: 8px;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    min-width: 58px;
+    min-height: 46px;
+    display: grid;
+    place-items: center;
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 204, 0, 0.55);
+    border-radius: 12px;
+    background:
+        linear-gradient(145deg, rgba(255, 204, 0, 0.12), rgba(255, 204, 0, 0.02)),
+        rgba(10, 17, 26, 0.82);
+    box-shadow:
+        0 0 16px rgba(255, 204, 0, 0.12),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
     color: var(--rank-gold);
     font-size: 24px;
     font-weight: 800;
@@ -523,27 +612,58 @@ button.rank-card {
 }
 
 .rank-phase-description {
+    max-width: 760px;
     margin: 10px 0 16px;
+    margin-inline: auto;
     color: var(--rank-muted);
     font-size: 13px;
     line-height: 1.5;
+    text-align: center;
+    white-space: pre-line;
 }
 
 .rank-interaction {
     min-height: 120px;
+    width: 100%;
+    display: grid;
+    justify-items: center;
+    align-content: start;
 }
 
 .rank-actions-grid,
 .rank-response-actions,
 .rank-target-list {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
+}
+
+.rank-actions-grid {
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rank-response-actions,
+.rank-target-list {
+    width: min(620px, 100%);
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+    justify-content: center;
+}
+
+.rank-target-list {
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 320px));
 }
 
 .rank-target-list+.rank-secondary-btn,
 .rank-choice-cards+.rank-primary-btn {
     margin-top: 10px;
+}
+
+.rank-target-list+.rank-secondary-btn,
+.rank-choice-cards+.rank-primary-btn,
+.rank-interaction>.rank-secondary-btn,
+.rank-interaction>.rank-primary-btn {
+    justify-self: center;
+    min-width: min(180px, 100%);
 }
 
 .rank-action-btn,
@@ -601,8 +721,9 @@ button.rank-card {
 }
 
 .rank-interaction-title {
-    margin: 0 0 10px;
+    margin: 0 0 12px;
     font-size: 14px;
+    text-align: center;
 }
 
 .rank-waiting-list {
@@ -739,7 +860,7 @@ button.rank-card {
 .rank-starter-overlay-chip.is-winner {
     animation:
         rankStarterSpotlight 0.54s ease-in-out infinite,
-        rankStarterWinnerReveal 0.42s ease-out 2.35s both;
+        rankStarterWinnerReveal 0.42s ease-out 3.45s both;
 }
 
 .rank-starter-overlay-chip img {
@@ -764,12 +885,26 @@ button.rank-card {
     color: var(--rank-gold);
     font-size: clamp(16px, 2.5vw, 22px);
     opacity: 0;
-    animation: rankStarterResultReveal 0.34s ease-out 2.55s both;
+    animation: rankStarterResultReveal 0.34s ease-out 3.75s both;
 }
 
 .rank-match-results {
     display: grid;
+    width: 100%;
+    box-sizing: border-box;
     gap: 12px;
+}
+
+.rank-match-result-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.rank-match-result-actions .rank-primary-btn,
+.rank-match-result-actions .rank-secondary-btn {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .rank-match-mvp {
@@ -790,7 +925,6 @@ button.rank-card {
     border: 2px solid var(--rank-gold);
     border-radius: 50%;
     object-fit: cover;
-    background: #fff;
 }
 
 .rank-match-mvp strong {
@@ -812,7 +946,7 @@ button.rank-card {
 
 .rank-match-score-row {
     display: grid;
-    grid-template-columns: 34px minmax(0, 1.2fr) auto auto minmax(130px, 0.8fr);
+    grid-template-columns: 34px minmax(0, 1fr) auto auto minmax(130px, 0.8fr);
     align-items: center;
     gap: 10px;
     padding: 10px;
@@ -843,6 +977,7 @@ button.rank-card {
 
 .rank-match-player-name {
     overflow: hidden;
+    min-width: 0;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -856,6 +991,7 @@ button.rank-card {
 .rank-match-points {
     min-width: 58px;
     text-align: right;
+    white-space: nowrap;
 }
 
 .rank-match-points.is-positive {
@@ -867,6 +1003,7 @@ button.rank-card {
 }
 
 .rank-match-breakdown {
+    min-width: 0;
     color: var(--rank-muted);
     font-size: 11px;
 }
@@ -890,6 +1027,15 @@ button.rank-card {
     gap: 8px;
     padding-top: 4px;
     border-top: 1px solid rgba(230, 238, 246, 0.08);
+}
+
+.rank-match-breakdown li span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.rank-match-breakdown li strong {
+    white-space: nowrap;
 }
 
 @keyframes rankDrawSeatPulse {
@@ -1233,6 +1379,55 @@ button.rank-card {
     margin: 6px 0 18px;
 }
 
+.rank-results-modal {
+    width: min(520px, 100%);
+    max-height: calc(100dvh - 72px);
+    overflow: visible;
+    padding: 0;
+}
+
+.rank-results-modal::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background: var(--rank-panel);
+    pointer-events: none;
+}
+
+.rank-results-modal .rank-close-btn {
+    top: -18px;
+    right: -18px;
+    z-index: 3;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.rank-results-scroll {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    box-sizing: border-box;
+    max-height: calc(100dvh - 72px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 30px 30px 24px;
+}
+
+.rank-results-modal-heading {
+    margin-bottom: 14px;
+}
+
+.rank-results-modal-heading h2 {
+    margin-bottom: 0;
+}
+
 .flip-card.is-flipped .flip-card-inner {
     transform: rotateY(-180deg);
 }
@@ -1456,7 +1651,7 @@ button.rank-card {
 .floating-chat-actions {
     position: fixed;
     top: 50%;
-    left: 8px;
+    right: 8px;
     z-index: 9500;
     transform: translateY(-50%);
 }
@@ -1640,7 +1835,13 @@ button.rank-card {
 
     .rank-coin-count {
         min-width: 25px;
+        gap: 3px;
         font-size: 14px;
+    }
+
+    .rank-coin-icon {
+        width: 24px;
+        height: 24px;
     }
 
     .rank-opponent-hand {
@@ -1667,15 +1868,21 @@ button.rank-card {
     }
 
     .rank-timer {
-        min-width: 50px;
-        padding: 7px;
+        top: 12px;
+        right: 10px;
+        min-width: 46px;
+        min-height: 38px;
+        padding: 6px 8px;
         font-size: 19px;
     }
 
-    .rank-actions-grid,
+    .rank-actions-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 5px;
+    }
+
     .rank-response-actions,
     .rank-target-list {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 5px;
     }
 
@@ -1753,13 +1960,13 @@ button.rank-card {
     }
 
     .rank-match-score-row {
-        grid-template-columns: 28px minmax(0, 1fr) auto;
-        gap: 7px;
+        grid-template-columns: 28px minmax(0, 1fr);
+        align-items: start;
+        gap: 6px 9px;
     }
 
-    .rank-match-player-result,
-    .rank-match-breakdown {
-        grid-column: 2 / -1;
+    .rank-match-player-result {
+        grid-column: 2;
     }
 
     .rank-match-position {
@@ -1768,7 +1975,50 @@ button.rank-card {
     }
 
     .rank-match-points {
-        min-width: 52px;
+        grid-column: 2;
+        justify-self: start;
+        min-width: 0;
+        font-size: 16px;
+        line-height: 1.1;
+        text-align: left;
+    }
+
+    .rank-match-breakdown {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .rank-match-breakdown summary {
+        display: block;
+        width: 100%;
+    }
+
+    .rank-match-breakdown li {
+        align-items: flex-start;
+    }
+
+    .rank-results-modal .rank-close-btn {
+        top: -14px;
+        right: -14px;
+    }
+
+    .rank-results-modal {
+        max-height: calc(100dvh - 88px);
+    }
+
+    .rank-results-scroll {
+        max-height: calc(100dvh - 88px);
+        padding: 24px 14px 20px;
+    }
+
+    .rank-match-result-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .rank-match-result-actions .rank-primary-btn,
+    .rank-match-result-actions .rank-secondary-btn {
+        min-height: 42px;
+        padding-inline: 10px;
     }
 
     .rank-modal-overlay {
@@ -1807,6 +2057,453 @@ button.rank-card {
 
     .floating-chat-actions {
         left: 4px;
+    }
+}
+
+.rank-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+    gap: 10px;
+    align-items: start;
+}
+
+.rank-main-stack {
+    display: grid;
+    min-width: 0;
+    gap: 10px;
+}
+
+body[data-rank-view="game"] .rank-players {
+    grid-auto-rows: 138px;
+    gap: 6px;
+    margin: 8px 0;
+}
+
+body[data-rank-view="game"] .rank-player-slot {
+    height: 100%;
+    min-height: 0;
+    padding: 8px;
+}
+
+body[data-rank-view="game"] .rank-player-header {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 6px;
+}
+
+body[data-rank-view="game"] .rank-player-avatar {
+    width: 28px;
+    height: 28px;
+}
+
+body[data-rank-view="game"] .rank-player-name {
+    font-size: 11px;
+}
+
+body[data-rank-view="game"] .rank-player-state {
+    font-size: 8px;
+}
+
+body[data-rank-view="game"] .rank-coin-count {
+    min-width: 28px;
+    gap: 3px;
+    font-size: 15px;
+}
+
+body[data-rank-view="game"] .rank-coin-icon {
+    width: 26px;
+    height: 26px;
+}
+
+body[data-rank-view="game"] .rank-opponent-hand,
+body[data-rank-view="game"] .rank-choice-cards {
+    min-height: 68px;
+    margin-top: 6px;
+}
+
+body[data-rank-view="game"] .rank-card {
+    width: 56px;
+    border-radius: 5px;
+}
+
+body[data-rank-view="game"] .rank-card+.rank-card {
+    margin-left: -14px;
+}
+
+body[data-rank-view="game"] .rank-stage {
+    min-height: clamp(260px, 30vh, 340px);
+    padding: 13px;
+}
+
+body[data-rank-view="game"] .rank-turn-bar {
+    gap: 12px;
+    padding-inline: 72px;
+}
+
+body[data-rank-view="game"] .rank-turn-bar h1 {
+    font-size: clamp(17px, 1.9vw, 21px);
+}
+
+body[data-rank-view="game"] .rank-phase-description {
+    margin: 8px auto 12px;
+    font-size: 11px;
+}
+
+body[data-rank-view="game"] .rank-timer {
+    top: 13px;
+    right: 13px;
+    min-width: 50px;
+    min-height: 40px;
+    padding: 6px 8px;
+    font-size: 20px;
+}
+
+.rank-side-stack {
+    position: sticky;
+    top: 8px;
+    display: grid;
+    grid-template-rows: minmax(250px, 310px) minmax(170px, 240px);
+    align-content: start;
+    gap: 10px;
+    min-width: 0;
+    height: auto;
+    max-height: none;
+}
+
+.rank-side-card {
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid var(--rank-border);
+    border-radius: 8px;
+    background: var(--rank-table-surface);
+}
+
+.rank-side-card .modal-content {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--rank-text);
+}
+
+#chatModal.rank-side-card {
+    box-sizing: border-box;
+    padding: 0;
+}
+
+#chatModal .chat-modal-content {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 12px;
+    overflow: hidden;
+}
+
+.rank-side-stack .chat-modal-content h2,
+.rank-side-stack .rank-log-modal-content h2 {
+    font-size: clamp(17px, 1.45vw, 21px);
+    line-height: 1.1;
+}
+
+.rank-side-stack .chat-subtitle {
+    margin: 3px 0 8px;
+    font-size: 76%;
+}
+
+.rank-side-stack .chat-messages-list {
+    gap: 7px;
+    padding: 10px;
+    border-radius: 8px;
+    background: var(--rank-table-surface);
+}
+
+.rank-side-stack .chat-empty-message {
+    font-size: 11px;
+}
+
+.rank-side-stack .chat-message {
+    max-width: 88%;
+    padding: 7px 9px;
+}
+
+.rank-side-stack .chat-message-meta {
+    font-size: 8px;
+}
+
+.rank-side-stack .chat-message-text {
+    margin-top: 3px;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.rank-side-stack .chat-form {
+    gap: 7px;
+}
+
+.rank-side-stack .chat-form input {
+    padding: 9px 10px;
+    font-size: 12px;
+}
+
+.rank-side-stack .chat-form .settings-action-btn {
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 12px;
+}
+
+.rank-side-stack .rank-log-modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: none;
+    padding: 0;
+}
+
+.rank-side-stack .rank-log-modal-content h2 {
+    margin: 0;
+    padding: 12px 12px 0;
+    text-align: center;
+}
+
+.rank-side-stack .rank-log-heading {
+    margin: 0;
+    padding: 8px 12px 10px;
+}
+
+.rank-side-stack .rank-log {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+    padding: 6px 12px 12px;
+    background: var(--rank-table-surface);
+}
+
+.rank-side-stack .rank-log-actions {
+    gap: 6px;
+}
+
+.rank-side-stack .rank-copy-log-btn {
+    min-height: 26px;
+    padding: 4px 8px;
+    font-size: 9px;
+}
+
+.rank-side-stack .rank-log-entry {
+    padding: 7px 0;
+    font-size: 9px;
+    line-height: 1.35;
+}
+
+.rank-side-stack .rank-kicker {
+    font-size: 9px;
+}
+
+.rank-panel-close {
+    display: none !important;
+}
+
+.floating-chat-actions {
+    display: none;
+}
+
+@media (max-width: 980px) {
+    .rank-layout {
+        display: block;
+    }
+
+    .rank-main-stack {
+        gap: 8px;
+    }
+
+    .floating-chat-actions {
+        left: 8px;
+        right: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding: 5px;
+        border: 1px solid var(--rank-border);
+        border-radius: 8px;
+        background: rgba(17, 25, 35, 0.82);
+        transform: translateY(-50%);
+    }
+
+    .rank-floating-panels .floating-chat-btn {
+        position: static;
+        left: auto;
+        top: auto;
+        transform: none;
+    }
+
+    .rank-floating-panels .floating-chat-btn:hover,
+    .rank-floating-panels .floating-chat-btn:focus-visible {
+        transform: none;
+    }
+
+    .rank-floating-panels .floating-chat-btn.is-chat-open {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+        transform: none;
+    }
+
+    .rank-side-stack {
+        position: static;
+        display: block;
+        height: auto;
+        max-height: none;
+    }
+
+    .rank-responsive-panel {
+        position: fixed;
+        inset: 0;
+        z-index: 10050;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+        max-height: none;
+        padding: 18px;
+        border: 0;
+        border-radius: 0;
+        background: rgba(0, 0, 0, 0.72);
+        box-shadow: none;
+        overflow: visible;
+        transform: none;
+        transition: none;
+    }
+
+    .rank-responsive-panel.is-panel-open {
+        display: flex;
+        transform: none;
+    }
+
+    .rank-panel-close {
+        position: absolute;
+        top: -12px;
+        right: -12px;
+        left: auto;
+        z-index: 3;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+        line-height: 1;
+    }
+
+    #chatModal .chat-modal-content,
+    .rank-side-stack .rank-log-modal-content {
+        position: relative;
+        width: min(430px, calc(100vw - 48px));
+        max-width: 430px;
+        height: min(640px, calc(100dvh - 80px));
+        max-height: calc(100dvh - 80px);
+        margin: 0;
+        padding: 22px 14px 14px;
+        border: 1px solid var(--rank-border);
+        border-radius: 10px;
+        background: var(--rank-panel);
+    }
+
+    #chatModal.rank-responsive-panel .chat-modal-content,
+    .rank-responsive-panel .rank-log-modal-content {
+        overflow: visible;
+    }
+
+    #chatModal.rank-responsive-panel .chat-messages-list,
+    .rank-responsive-panel .rank-log {
+        overflow-y: auto;
+    }
+
+    .rank-side-stack .rank-log {
+        max-height: none;
+    }
+}
+
+@media (max-width: 560px) {
+    #chatModal .chat-modal-content {
+        padding: 22px 14px 14px;
+    }
+
+    body[data-rank-view="game"] .rank-players {
+        grid-auto-rows: 126px;
+    }
+
+    body[data-rank-view="game"] .rank-player-slot {
+        min-height: 126px;
+        padding: 7px;
+    }
+
+    body[data-rank-view="game"] .rank-player-header {
+        grid-template-columns: 27px minmax(0, 1fr) auto;
+        gap: 5px;
+    }
+
+    body[data-rank-view="game"] .rank-player-avatar {
+        width: 27px;
+        height: 27px;
+    }
+
+    body[data-rank-view="game"] .rank-player-name {
+        font-size: 10px;
+    }
+
+    body[data-rank-view="game"] .rank-player-state {
+        font-size: 7px;
+    }
+
+    body[data-rank-view="game"] .rank-coin-count {
+        min-width: 25px;
+        gap: 3px;
+        font-size: 14px;
+    }
+
+    body[data-rank-view="game"] .rank-coin-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    body[data-rank-view="game"] .rank-opponent-hand,
+    body[data-rank-view="game"] .rank-choice-cards {
+        min-height: 76px;
+        margin-top: 6px;
+    }
+
+    body[data-rank-view="game"] .rank-card {
+        width: 48px;
+        border-radius: 4px;
+    }
+
+    body[data-rank-view="game"] .rank-card+.rank-card {
+        margin-left: -13px;
+    }
+
+    body[data-rank-view="game"] .rank-stage {
+        min-height: 330px;
+        padding: 14px 10px;
+    }
+
+    body[data-rank-view="game"] .rank-turn-bar {
+        padding-inline: 58px;
+    }
+
+    body[data-rank-view="game"] .rank-timer {
+        top: 12px;
+        right: 10px;
+        min-width: 46px;
+        min-height: 38px;
+        padding: 6px 8px;
+        font-size: 19px;
+    }
+
+    .rank-side-stack .rank-log-heading,
+    .rank-side-stack .rank-log-actions {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
 

@@ -102,8 +102,51 @@ function testAddAiPlayerToWaitingRoom() {
     assert.equal(bot.personalityHidden, false);
     assert.throws(
         () => Engine.addAiPlayer(state, { name: 'Dama Fortuna' }, 2001),
-        /Ja existe um jogador/
+        /Já existe um jogador/
     );
+}
+
+function testRestartMatchPreservesRoomParticipants() {
+    const state = createWaitingState();
+    Engine.addAiPlayer(state, {
+        name: 'Duelista Nobre',
+        personality: {
+            vengefulness: 70,
+            honesty: 30,
+            skepticism: 80
+        }
+    }, 2000, () => 0.5);
+    Engine.toggleReady(state, 'u1', 2100);
+    Engine.toggleReady(state, 'u2', 2200);
+    Engine.advanceExpired(state, state.deadline + 1, () => 0);
+    Engine.advanceExpired(state, state.deadline + 1);
+
+    const bot = Engine.getPlayers(state).find((player) => player.ai);
+    state.status = Rules.PHASES.FINISHED;
+    state.phase = Rules.PHASES.FINISHED;
+    state.winnerUid = 'u1';
+    state.finishedAt = 3000;
+    state.players.u1.coins = 9;
+    bot.eliminated = true;
+    bot.influences = [{ id: 'bot-card', role: Rules.ROLES.DUKE, revealed: true }];
+    bot.grudges = { u1: 2 };
+
+    Engine.restartMatch(state, 4000);
+
+    assert.equal(state.status, Rules.PHASES.WAITING);
+    assert.equal(state.phase, Rules.PHASES.WAITING);
+    assert.equal(Engine.getPlayers(state).length, 3);
+    assert.equal(state.players.u1.ready, false);
+    assert.equal(state.players.u1.coins, Rules.SETTINGS.startingCoins);
+    assert.deepEqual(state.players.u1.influences, []);
+    assert.equal(bot.ready, true);
+    assert.equal(bot.connected, true);
+    assert.equal(bot.eliminated, false);
+    assert.deepEqual(bot.influences, []);
+    assert.deepEqual(bot.grudges, {});
+    assert.equal(state.deck.length, 0);
+    assert.equal(state.winnerUid, null);
+    assert.equal(state.log[state.log.length - 1].message, 'Sala reiniciada para uma nova partida.');
 }
 
 function testSuccessfulChallengeCancelsBluff() {
@@ -199,7 +242,7 @@ function testMandatoryCoup() {
     state.players.u1.coins = Rules.SETTINGS.mandatoryCoupCoins;
     assert.throws(
         () => Engine.performAction(state, 'u1', Rules.ACTIONS.INCOME, null, 2000),
-        /Golpe de Estado e obrigatorio/
+        /Golpe de Estado é obrigatório/
     );
 }
 
@@ -213,7 +256,7 @@ function testBluffedBlockLetsActionContinue() {
     Engine.loseInfluence(state, 'u2', firstHiddenCard(state, 'u2').id, 2300);
     assert.equal(state.phase, Rules.PHASES.INFLUENCE_LOSS);
     assert.equal(state.pendingLoss.playerUid, 'u2');
-    assert.equal(state.pendingLoss.reason, 'Vitima de assassinato.');
+    assert.equal(state.pendingLoss.reason, 'Vítima de assassinato.');
 }
 
 function testTurnTimeoutUsesMandatoryCoup() {
@@ -223,7 +266,7 @@ function testTurnTimeoutUsesMandatoryCoup() {
     Engine.advanceExpired(state, deadline + 1);
     assert.equal(state.players.u1.coins, 3);
     assert.equal(state.pendingLoss.playerUid, 'u2');
-    assert.equal(state.pendingLoss.reason, 'Vitima de Golpe de Estado.');
+    assert.equal(state.pendingLoss.reason, 'Vítima de Golpe de Estado.');
 }
 
 function testInfluenceLossTimeoutNormalizesOldState() {
@@ -266,6 +309,7 @@ testImmediateIncome();
 testReadyCountdownDelaysStart();
 testInitialDealSkipsAmbassador();
 testAddAiPlayerToWaitingRoom();
+testRestartMatchPreservesRoomParticipants();
 testSuccessfulChallengeCancelsBluff();
 testFailedChallengeResumesAction();
 testTruthfulBlockCancelsAssassination();
@@ -279,6 +323,6 @@ testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 
-console.log('ranked-engine: 16 testes aprovados');
+console.log('ranked-engine: 17 testes aprovados');
 
 

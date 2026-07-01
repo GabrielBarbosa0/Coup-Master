@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 
 <head>
@@ -16,8 +16,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/loading.css?v=rank-split-v1">
-    <link rel="stylesheet" href="css/chat.css?v=chat-unread-alert">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-bot-personality-disabled">
+    <link rel="stylesheet" href="css/chat.css?v=chat-cinzel-v1">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-waiting-align-v1">
 </head>
 
 <body data-rank-view="game">
@@ -28,9 +28,13 @@
         </div>
     </div>
 
-    <aside class="floating-chat-actions" aria-label="Chat da sala">
+    <aside class="floating-chat-actions rank-floating-panels" aria-label="Registro e chat da partida">
         <button id="chatBtn" class="floating-chat-btn" type="button" title="Chat" aria-label="Abrir chat da sala">
             <img src="assets/img/icons/chat.svg" alt="">
+        </button>
+        <button id="openRankLogBtn" class="floating-chat-btn" type="button" title="Registro Oficial"
+            aria-label="Abrir registro oficial">
+            <img src="assets/img/icons/history.svg" alt="">
         </button>
     </aside>
 
@@ -46,39 +50,79 @@
                 <button id="rankMusicBtn" class="rank-icon-btn musicBtn" type="button" title="Música de Fundo">
                     <img src="assets/img/icons/music_note.svg" alt="Música">
                 </button>
-                <button id="openRankFeedbackBtn" class="rank-icon-btn feedbackBtn" type="button" title="Enviar Feedback / Bug">
+
+                <button id="openRankFeedbackBtn" class="rank-icon-btn feedbackBtn" type="button"
+                    title="Enviar Feedback / Bug">
                     <img src="assets/img/icons/feedback.svg" alt="Feedback">
                 </button>
-                <button id="openRankLogBtn" class="rank-icon-btn" type="button" title="Registro Oficial">
-                    <img src="assets/img/icons/history.svg" alt="Registro">
-                </button>
-                <button id="rankCharacterActionsBtn" class="rank-icon-btn infoBtn" type="button" title="Ações de Personagem">
+
+                <button id="rankCharacterActionsBtn" class="rank-icon-btn infoBtn" type="button"
+                    title="Ações de Personagem">
                     <img src="assets/img/icons/info.svg" alt="Ações">
                 </button>
-                <button id="rankSettingsBtn" class="rank-icon-btn" type="button" title="Configurações">
-                    <img src="assets/img/icons/settings.svg" alt="Configurações">
-                </button>
+
                 <button id="rankFullscreenBtn" class="rank-icon-btn fullscreenBtn" type="button" title="Tela Cheia">
                     <img src="assets/img/icons/fullscreen.svg" alt="Tela Cheia">
+                </button>
+
+                <button id="rankSettingsBtn" class="rank-icon-btn" type="button" title="Configurações">
+                    <img src="assets/img/icons/settings.svg" alt="Configurações">
                 </button>
             </div>
         </header>
 
-        <section id="rankPlayers" class="rank-players" aria-label="Jogadores da partida"></section>
+        <section class="rank-layout">
+            <div class="rank-main-stack">
+                <section id="rankPlayers" class="rank-players" aria-label="Jogadores da partida"></section>
 
-        <section class="rank-game-grid">
-            <section class="rank-stage" aria-live="polite">
-                <div class="rank-turn-bar">
-                    <div>
-                        <!-- <span class="rank-kicker">Ação da rodada</span> -->
-                        <h1 id="rankPhaseTitle">Sincronizando partida</h1>
-                    </div>
-                    <div id="rankTimer" class="rank-timer" aria-label="Tempo restante">--</div>
+                <section class="rank-game-grid">
+                    <section class="rank-stage" aria-live="polite">
+                        <div class="rank-turn-bar">
+                            <div>
+                                <!-- <span class="rank-kicker">Ação da rodada</span> -->
+                                <h1 id="rankPhaseTitle">Sincronizando partida</h1>
+                            </div>
+                            <div id="rankTimer" class="rank-timer" aria-label="Tempo restante">--</div>
+                        </div>
+
+                        <p id="rankPhaseDescription" class="rank-phase-description">Aguardando o estado atual da
+                            partida.</p>
+                        <div id="rankInteraction" class="rank-interaction"></div>
+                    </section>
+                </section>
+            </div>
+
+            <aside class="rank-side-stack" aria-label="Chat e registro da partida">
+                <div id="chatModal" class="rank-side-card rank-responsive-panel rank-chat-panel">
+                    <section class="modal-content chat-modal-content" role="region" aria-labelledby="chatTitle">
+                        <button id="closeChatBtn" class="close-btn rank-panel-close" type="button"
+                            aria-label="Fechar chat">&times;</button>
+                        <h2 id="chatTitle">Chat</h2>
+                        <p class="chat-subtitle">Converse com a sala.</p>
+                        <div id="chatMessagesList" class="chat-messages-list"></div>
+                        <form id="chatForm" class="chat-form">
+                            <input id="chatInput" type="text" maxlength="180" placeholder="Mensagem" autocomplete="off">
+                            <button class="settings-action-btn" type="submit">Enviar</button>
+                        </form>
+                    </section>
                 </div>
 
-                <p id="rankPhaseDescription" class="rank-phase-description">Aguardando o estado atual da partida.</p>
-                <div id="rankInteraction" class="rank-interaction"></div>
-            </section>
+                <div id="rankLogModal" class="rank-side-card rank-responsive-panel rank-log-panel">
+                    <section class="modal-content standard-modal-content rank-log-modal-content" role="region"
+                        aria-labelledby="rankLogTitle">
+                        <button id="closeRankLogBtn" class="close-btn rank-panel-close" type="button"
+                            aria-label="Fechar registro">&times;</button>
+                        <h2 id="rankLogTitle">Registro oficial</h2>
+                        <div class="rank-log-heading">
+                            <span class="rank-kicker">Histórico da partida</span>
+                            <div class="rank-log-actions">
+                                <button id="copyRankLogBtn" class="rank-copy-log-btn" type="button">Copiar log</button>
+                            </div>
+                        </div>
+                        <div id="rankLog" class="rank-log" role="log" aria-live="polite"></div>
+                    </section>
+                </div>
+            </aside>
         </section>
 
     </main>
@@ -86,7 +130,8 @@
     <div id="rankActionsModal" class="modal-overlay" style="display: none;">
         <div class="modal-actions-and-rules">
             <button id="closeRankActionsBtn" class="close-btn">&times;</button>
-            <div class="flip-card flip-horizontal-left" id="rankActionsFlipCard" role="button" tabindex="0" aria-label="Virar guia de ações">
+            <div class="flip-card flip-horizontal-left" id="rankActionsFlipCard" role="button" tabindex="0"
+                aria-label="Virar guia de ações">
                 <div class="flip-card-inner">
                     <div class="flip-card-front">
                         <img src="assets/img/guides/front-actions.png" alt="Ações dos personagens - frente">
@@ -107,30 +152,17 @@
             <div class="settings-container">
                 <div class="setting-row">
                     <label for="rankVolumeSlider">Música:</label>
-                    <input type="range" id="rankVolumeSlider" min="0" max="1" step="0.01" value="0.1" style="width: 100%;">
+                    <input type="range" id="rankVolumeSlider" min="0" max="1" step="0.01" value="0.1"
+                        style="width: 100%;">
                 </div>
 
                 <div class="setting-row">
                     <label for="rankEffectsVolumeSlider">Efeitos:</label>
-                    <input type="range" id="rankEffectsVolumeSlider" min="0" max="1" step="0.01" value="1" style="width: 100%;">
+                    <input type="range" id="rankEffectsVolumeSlider" min="0" max="1" step="0.01" value="1"
+                        style="width: 100%;">
                 </div>
             </div>
         </div>
-    </div>
-
-    <div id="rankLogModal" class="modal-overlay" style="display: none;">
-        <section class="modal-content standard-modal-content rank-log-modal-content" role="dialog" aria-modal="true" aria-labelledby="rankLogTitle">
-            <button id="closeRankLogBtn" class="close-btn" type="button" aria-label="Fechar registro">&times;</button>
-            <h2 id="rankLogTitle">Registro oficial</h2>
-            <div class="rank-log-heading">
-                <span class="rank-kicker">Histórico da partida</span>
-                <div class="rank-log-actions">
-                    <strong id="rankTurnNumber">Turno 0</strong>
-                    <button id="copyRankLogBtn" class="rank-copy-log-btn" type="button">Copiar log</button>
-                </div>
-            </div>
-            <div id="rankLog" class="rank-log" role="log" aria-live="polite"></div>
-        </section>
     </div>
 
     <div id="rankFeedbackModal" class="modal-overlay" style="display: none;">
@@ -142,25 +174,12 @@
     </div>
 
     <div id="rankErrorModal" class="rank-modal-overlay" hidden>
-        <section class="rank-modal rank-error-modal" role="alertdialog" aria-modal="true" aria-labelledby="rankErrorTitle">
-            <span class="rank-kicker">Atencao</span>
-            <h2 id="rankErrorTitle">Nao foi possivel continuar</h2>
+        <section class="rank-modal rank-error-modal" role="alertdialog" aria-modal="true"
+            aria-labelledby="rankErrorTitle">
+            <span class="rank-kicker">Atenção</span>
+            <h2 id="rankErrorTitle">Não foi possível continuar</h2>
             <p id="rankErrorText"></p>
             <button id="rankErrorConfirm" class="rank-primary-btn" type="button">Entendi</button>
-        </section>
-    </div>
-
-    <div id="chatModal" class="modal-overlay" style="display: none;">
-        <section class="modal-content chat-modal-content" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
-            <button id="closeChatBtn" class="close-btn" type="button" aria-label="Fechar chat">&times;</button>
-            <h2 id="chatTitle">Chat</h2>
-            <p class="chat-subtitle">Converse com a sala.</p>
-            <div id="chatMessagesList" class="chat-messages-list"></div>
-            <div id="chatQuickMessages" class="chat-quick-messages"></div>
-            <form id="chatForm" class="chat-form">
-                <input id="chatInput" type="text" maxlength="180" placeholder="Mensagem" autocomplete="off">
-                <button class="settings-action-btn" type="submit">Enviar</button>
-            </form>
         </section>
     </div>
 
@@ -177,10 +196,10 @@
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>
-    <script src="js/gamemode/ranked/ranked-rules.js?v=rank-copy-simplify" defer></script>
-    <script src="js/gamemode/ranked/ranked-engine.js?v=rank-copy-simplify" defer></script>
-    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-copy-simplify" defer></script>
-    <script src="js/gamemode/ranked/ranked-game.js?v=rank-copy-simplify" defer></script>
+    <script src="js/gamemode/ranked/ranked-rules.js?v=rank-stage-copy-v2" defer></script>
+    <script src="js/gamemode/ranked/ranked-engine.js?v=rank-stage-copy-v2" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-stage-copy-v2" defer></script>
+    <script src="js/gamemode/ranked/ranked-game.js?v=rank-stage-copy-v2" defer></script>
 </body>
 
 </html>

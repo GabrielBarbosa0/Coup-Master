@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/loading.css?v=rank-split-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-bot-personality-disabled">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-waiting-align-v1">
 </head>
 
 <body data-rank-view="waiting">
@@ -80,7 +80,7 @@
                     <span>Nome do bot</span>
                     <div class="rank-ai-name-row">
                         <input id="rankAiName" type="text" maxlength="24" autocomplete="off" required>
-                        <button id="rankRandomAiNameBtn" class="rank-secondary-btn" type="button">Aleatorio</button>
+                        <button id="rankRandomAiNameBtn" class="rank-secondary-btn" type="button">Aleatório</button>
                     </div>
                 </label>
 
@@ -91,7 +91,7 @@
 
                 <div id="rankAiPersonalityFields" class="rank-ai-personality-fields is-disabled">
                     <label class="rank-range-field">
-                        <span>Vinganca <strong id="rankAiVengefulnessValue">50%</strong></span>
+                        <span>Vingança <strong id="rankAiVengefulnessValue">50%</strong></span>
                         <input id="rankAiVengefulness" type="range" min="0" max="100" value="50">
                         <small>Prioriza jogadores que prejudicaram o bot.</small>
                     </label>
@@ -105,7 +105,7 @@
                     <label class="rank-range-field">
                         <span>Ceticismo <strong id="rankAiSkepticismValue">50%</strong></span>
                         <input id="rankAiSkepticism" type="range" min="0" max="100" value="50">
-                        <small>Quanto maior, mais o bot contesta e evita bloqueios provaveis.</small>
+                        <small>Quanto maior, mais o bot contesta e evita bloqueios prováveis.</small>
                     </label>
                 </div>
 
@@ -127,10 +127,10 @@
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>
-    <script src="js/gamemode/ranked/ranked-rules.js?v=rank-copy-simplify" defer></script>
-    <script src="js/gamemode/ranked/ranked-engine.js?v=rank-copy-simplify" defer></script>
-    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-copy-simplify" defer></script>
-    <script src="js/gamemode/ranked/ranked-game.js?v=rank-copy-simplify" defer></script>
+    <script src="js/gamemode/ranked/ranked-rules.js?v=rank-stage-copy-v2" defer></script>
+    <script src="js/gamemode/ranked/ranked-engine.js?v=rank-stage-copy-v2" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-stage-copy-v2" defer></script>
+    <script src="js/gamemode/ranked/ranked-game.js?v=rank-stage-copy-v2" defer></script>
 </body>
 
 </html>
