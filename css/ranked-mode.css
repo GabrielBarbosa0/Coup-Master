@@ -1379,6 +1379,7 @@ button.rank-card {
 }
 
 .quick-player-modal {
+    padding: 25px;
     text-align: center;
 }
 
@@ -1471,6 +1472,12 @@ button.rank-card {
 
 .quick-player-profile-stat-wide {
     grid-column: 1 / -1;
+}
+
+@media (max-width: 560px) {
+    .rank-player-profile-modal {
+        padding: 20px;
+    }
 }
 
 .modal-actions-and-rules {
