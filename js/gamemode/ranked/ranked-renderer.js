@@ -16,6 +16,8 @@
     let viewMode = 'game';
     let matchResultsModalDismissed = false;
     let matchResultsKey = '';
+    let rankCardTooltipEl = null;
+    let cardInteractionsBound = false;
 
     const botNameIdeas = [
         'Augusto', 'Berenice', 'Cassandra', 'Dario', 'Eloisa', 'Fausto',
@@ -85,6 +87,163 @@
         document.getElementById('rankErrorConfirm')?.addEventListener('click', () => {
             document.getElementById('rankErrorModal').hidden = true;
         });
+        setupRankCardInteractions();
+    }
+
+    function getRankCardTooltipElement() {
+        if (!rankCardTooltipEl) {
+            rankCardTooltipEl = element('div', 'card-tooltip rank-card-tooltip');
+            rankCardTooltipEl.id = 'rankCardTooltip';
+            document.body.appendChild(rankCardTooltipEl);
+        }
+
+        return rankCardTooltipEl;
+    }
+
+    function positionRankCardTooltip(event) {
+        const tooltip = getRankCardTooltipElement();
+        const offset = 14;
+        const rect = tooltip.getBoundingClientRect();
+        let left = event.clientX + offset;
+        let top = event.clientY + offset;
+
+        if (left + rect.width > window.innerWidth - 8) {
+            left = event.clientX - rect.width - offset;
+        }
+
+        if (top + rect.height > window.innerHeight - 8) {
+            top = event.clientY - rect.height - offset;
+        }
+
+        tooltip.style.left = `${Math.max(8, left)}px`;
+        tooltip.style.top = `${Math.max(8, top)}px`;
+    }
+
+    function showRankCardTooltip(event, label) {
+        if (!label) return;
+        const tooltip = getRankCardTooltipElement();
+        tooltip.textContent = label;
+        tooltip.classList.add('is-visible');
+        positionRankCardTooltip(event);
+    }
+
+    function hideRankCardTooltip() {
+        rankCardTooltipEl?.classList.remove('is-visible');
+    }
+
+    function attachRankCardTooltip(cardElement, label) {
+        if (!cardElement || !label) return;
+        cardElement.dataset.cardLabel = label;
+        cardElement.setAttribute('aria-label', label);
+
+        cardElement.addEventListener('mouseenter', (event) => showRankCardTooltip(event, label));
+        cardElement.addEventListener('mousemove', (event) => {
+            if (rankCardTooltipEl?.classList.contains('is-visible')) {
+                positionRankCardTooltip(event);
+            }
+        });
+        cardElement.addEventListener('mouseleave', hideRankCardTooltip);
+        cardElement.addEventListener('blur', hideRankCardTooltip);
+    }
+
+    function setupRankCardInteractions() {
+        if (cardInteractionsBound) return;
+        cardInteractionsBound = true;
+
+        document.addEventListener('contextmenu', (event) => {
+            if (event.pointerType === 'touch' || event.pointerType === 'pen') return;
+            const cardElement = event.target.closest('.rank-card');
+            if (!cardElement) return;
+
+            event.preventDefault();
+            hideRankCardTooltip();
+            openRankCardPreviewModal({
+                label: cardElement.dataset.cardLabel || 'Carta oculta',
+                image: cardElement.dataset.previewImage || 'assets/img/cards/base/back.png',
+                hidden: cardElement.dataset.previewHidden === 'true'
+            });
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') hideRankCardPreviewModal();
+        });
+    }
+
+    function getRankCardPreviewModal() {
+        let modal = document.getElementById('rankCardPreviewModal');
+        if (modal) return modal;
+
+        modal = element('div', 'modal-overlay rank-card-preview-modal');
+        modal.id = 'rankCardPreviewModal';
+        modal.style.display = 'none';
+
+        const content = element('div', 'modal-actions-and-rules rank-card-preview-content');
+        const close = element('button', 'close-btn');
+        close.id = 'closeRankCardPreviewBtn';
+        close.type = 'button';
+        close.textContent = '×';
+        close.setAttribute('aria-label', 'Fechar visualização da carta');
+
+        const flip = element('div', 'flip-card flip-horizontal-left');
+        flip.id = 'rankPreviewFlipCard';
+        flip.setAttribute('role', 'button');
+        flip.tabIndex = 0;
+        flip.setAttribute('aria-label', 'Virar carta ampliada');
+
+        const inner = element('div', 'flip-card-inner');
+        const front = element('div', 'flip-card-front');
+        front.id = 'rankPreviewFront';
+        const back = element('div', 'flip-card-back');
+        back.id = 'rankPreviewBack';
+        back.style.backgroundImage = "url('assets/img/cards/base/back.png')";
+        inner.append(front, back);
+        flip.append(inner);
+        content.append(close, flip);
+        modal.append(content);
+        document.body.appendChild(modal);
+
+        close.addEventListener('click', () => {
+            playRankSfx('click');
+            hideRankCardPreviewModal();
+        });
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) hideRankCardPreviewModal();
+        });
+        flip.addEventListener('click', () => toggleRankCardPreviewFlip());
+        flip.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            toggleRankCardPreviewFlip();
+        });
+
+        return modal;
+    }
+
+    function openRankCardPreviewModal({ label, image, hidden }) {
+        const modal = getRankCardPreviewModal();
+        const front = modal.querySelector('#rankPreviewFront');
+        const inner = modal.querySelector('#rankPreviewFlipCard .flip-card-inner');
+        const flip = modal.querySelector('#rankPreviewFlipCard');
+        const previewImage = hidden ? 'assets/img/cards/base/back.png' : image;
+
+        front.style.backgroundImage = `url('${previewImage}')`;
+        flip?.setAttribute('aria-label', hidden ? 'Carta oculta ampliada' : `${label || 'Carta'} ampliada`);
+        if (inner) inner.style.transform = 'rotateY(0deg)';
+        modal.style.display = 'flex';
+        playRankSfx('card-slide');
+    }
+
+    function hideRankCardPreviewModal() {
+        const modal = document.getElementById('rankCardPreviewModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function toggleRankCardPreviewFlip() {
+        const inner = document.querySelector('#rankPreviewFlipCard .flip-card-inner');
+        if (!inner) return;
+        const isFlipped = inner.style.transform === 'rotateY(180deg)';
+        inner.style.transform = isFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)';
+        playRankSfx('card-slide');
     }
 
     function bindModal(openId, modalId, closeSelector, onOpen) {
@@ -382,8 +541,15 @@
         if (options.selected) wrapper.classList.add('is-selected');
         const image = element('img');
         const role = Rules.getRole(card.role);
-        image.src = reveal && role ? role.image : 'assets/img/cards/base/back.png';
-        image.alt = reveal && role ? role.label : 'Influência oculta';
+        const isVisible = Boolean(reveal && role);
+        const label = isVisible ? role.label : 'Carta oculta';
+        const previewImage = isVisible ? role.image : 'assets/img/cards/base/back.png';
+        image.src = previewImage;
+        image.alt = label;
+        wrapper.dataset.cardId = card.id || '';
+        wrapper.dataset.previewImage = previewImage;
+        wrapper.dataset.previewHidden = isVisible ? 'false' : 'true';
+        attachRankCardTooltip(wrapper, label);
         wrapper.append(image);
         return wrapper;
     }

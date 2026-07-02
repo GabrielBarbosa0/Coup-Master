@@ -495,6 +495,74 @@ button.rank-card {
     object-fit: cover;
 }
 
+.card-tooltip {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 10000;
+    max-width: min(220px, calc(100vw - 16px));
+    padding: 8px 12px;
+    color: var(--rank-text);
+    background: var(--rank-surface);
+    border: 2px solid rgba(230, 238, 246, 0.7);
+    border-radius: 8px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+    font-family: "Cinzel", Georgia, serif;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.08s ease, transform 0.08s ease;
+}
+
+.card-tooltip.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.rank-card-preview-modal {
+    z-index: 9600;
+}
+
+.modal-actions-and-rules.rank-card-preview-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: visible;
+    width: auto;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100dvh - 32px);
+    padding: 0;
+    background: transparent;
+    border: 0;
+}
+
+.modal-actions-and-rules.rank-card-preview-content .close-btn {
+    top: -16px;
+    right: -16px;
+    z-index: 1010;
+}
+
+#rankPreviewFlipCard {
+    width: min(360px, 84vw, calc((100dvh - 72px) * 0.6667));
+    aspect-ratio: 2 / 3;
+    height: auto;
+}
+
+#rankPreviewFlipCard .flip-card-front,
+#rankPreviewFlipCard .flip-card-back {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
 .rank-game-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -1477,6 +1545,10 @@ button.rank-card {
         width: min(300px, 84vw, calc((100dvh - 72px) * 0.6667));
     }
 
+    #rankPreviewFlipCard {
+        width: min(300px, 84vw, calc((100dvh - 72px) * 0.6667));
+    }
+
     .rank-close-btn {
         width: 35px;
         height: 35px;
@@ -1495,6 +1567,10 @@ button.rank-card {
     }
 
     .flip-card {
+        width: min(300px, 78vw, calc((100dvh - 64px) * 0.6667));
+    }
+
+    #rankPreviewFlipCard {
         width: min(300px, 78vw, calc((100dvh - 64px) * 0.6667));
     }
 }
