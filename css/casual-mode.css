@@ -1997,7 +1997,13 @@ body.hide-religion .game-table .center-area {
         gap: var(--table-gap);
         width: 100%;
         min-width: 0;
-        margin: 0;
+        margin: auto 0;
+        transition: margin 220ms ease, transform 220ms ease;
+    }
+
+    .game-table .center-area > * {
+        animation: casual-center-item-enter 180ms ease both;
+        transition: opacity 180ms ease, transform 180ms ease;
     }
 
     .game-table .player-row-top {
@@ -2176,6 +2182,18 @@ body.hide-religion .game-table .center-area {
     }
 }
 
+@keyframes casual-center-item-enter {
+    from {
+        opacity: 0.78;
+        transform: translateY(7px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @media (hover: none), (pointer: coarse) {
     .game-table .balatro-effect {
         --tilt-x: 0deg !important;
@@ -2191,6 +2209,10 @@ body.hide-religion .game-table .center-area {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .game-table .center-area > * {
+        animation: none !important;
+    }
+
     .game-table *,
     .game-table *::before,
     .game-table *::after {
