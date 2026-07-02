@@ -168,6 +168,23 @@ h2 {
     text-align: center;
 }
 
+.spectator-helper-text {
+    margin: 0 0 20px;
+}
+
+.spectator-list.is-empty {
+    min-height: 74px;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding-right: 0;
+}
+
+.spectator-empty-message {
+    margin: 0;
+    line-height: 1.35;
+}
+
 .spectator-target-btn {
     display: flex;
     align-items: center;
@@ -836,6 +853,7 @@ h2 {
    ======================================================= */
 
 #settingsModal .standard-modal-content,
+#spectatorModal .standard-modal-content,
 #tutorialModal .standard-modal-content {
     width: min(380px, calc(100vw - 28px));
     max-width: 380px;
@@ -1403,8 +1421,9 @@ h2 {
 
 .game-table .player-area.is-empty {
     display: grid;
-    grid-template-rows: auto minmax(32px, 1fr);
+    grid-template-rows: 1fr;
     place-items: center;
+    align-content: stretch;
     min-height: 0;
     border: 2px dashed rgba(230, 238, 246, 0.18);
     background: rgba(255, 255, 255, 0.015);
@@ -1412,16 +1431,21 @@ h2 {
 }
 
 .game-table .player-area.is-empty .player-header {
-    display: block;
+    display: none;
 }
 
-.game-table .player-area.is-empty .player-title {
-    color: rgba(230, 238, 246, 0.34);
+.game-table .player-area.is-empty > .player-title {
+    display: none;
 }
 
 .game-table .player-area.is-empty .player-stack {
+    align-self: stretch;
+    justify-self: stretch;
     align-items: center;
-    min-height: 32px;
+    justify-content: center;
+    min-height: 100%;
+    height: 100%;
+    padding: 0;
 }
 
 .game-table .empty-seat-label {
@@ -1860,12 +1884,26 @@ body.hide-religion .game-table .center-area {
         gap: var(--table-gap);
     }
 
+    .game-table .player-row.mobile-row-hidden,
+    .game-table .player-area.mobile-seat-hidden {
+        display: none !important;
+    }
+
     .game-table .player-area {
         grid-template-rows: auto auto minmax(51px, 1fr);
         min-height: 114px;
         padding: 6px 4px 5px;
         border-width: 1px;
         box-shadow: none;
+    }
+
+    .game-table .player-area.is-empty {
+        grid-template-rows: 1fr;
+        place-items: center;
+        min-height: 114px;
+        padding: 6px 4px 5px;
+        align-content: stretch;
+        border-width: 1px;
     }
 
     .game-table .player-header {
@@ -1903,6 +1941,11 @@ body.hide-religion .game-table .center-area {
 
     .game-table .player-stack {
         min-height: 51px;
+    }
+
+    .game-table .player-area.is-empty .player-stack {
+        min-height: 100%;
+        height: 100%;
     }
 
     .game-table .slot + .slot {

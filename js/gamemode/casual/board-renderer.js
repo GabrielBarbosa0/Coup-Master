@@ -467,7 +467,7 @@ function renderEmptyPlayerSlot(playerEl, pid) {
 
   const title = playerEl.querySelector('.player-title');
   if (title) {
-    title.textContent = 'Vazio';
+    title.textContent = '';
     title.style.cursor = 'default';
     title.onclick = null;
   }
@@ -487,6 +487,40 @@ function renderEmptyPlayerSlot(playerEl, pid) {
     emptyLabel.className = 'empty-seat-label';
     emptyLabel.textContent = 'Aguardando jogador';
     hand.appendChild(emptyLabel);
+  }
+}
+
+function getVisibleMobileSeatLimit(players = {}) {
+  let highestOccupiedSlot = 0;
+
+  for (let pid = 1; pid <= MAX_PLAYERS; pid++) {
+    const player = players[pid];
+    if (player && (player.online || player.uid)) {
+      highestOccupiedSlot = pid;
+    }
+  }
+
+  const minimumVisibleSlots = 4;
+  const visibleSlots = Math.max(minimumVisibleSlots, highestOccupiedSlot);
+
+  return Math.min(MAX_PLAYERS, Math.ceil(visibleSlots / 2) * 2);
+}
+
+function applyMobileSeatVisibility(players = {}) {
+  const visibleLimit = getVisibleMobileSeatLimit(players);
+  const bottomRow = document.querySelector('.player-row-bottom');
+
+  for (let pid = 1; pid <= MAX_PLAYERS; pid++) {
+    const playerEl = document.getElementById(`player-${pid}`);
+    if (!playerEl) continue;
+
+    const shouldHideOnMobile = pid > visibleLimit;
+    playerEl.classList.toggle('mobile-seat-hidden', shouldHideOnMobile);
+    playerEl.setAttribute('aria-hidden', shouldHideOnMobile ? 'true' : 'false');
+  }
+
+  if (bottomRow) {
+    bottomRow.classList.toggle('mobile-row-hidden', visibleLimit <= 4);
   }
 }
 
@@ -554,6 +588,7 @@ function renderAll() {
   const spectatorBtn = document.getElementById('spectatorBtn');
   const spectatorModal = document.getElementById('spectatorModal');
   const spectatorList = document.getElementById('spectator-list');
+  const spectatorHelperText = document.getElementById('spectator-helper-text');
   const closeSpectatorModalBtn = document.getElementById('closeSpectatorModalBtn');
 
   if (spectatorBtn && spectatorModal) {
@@ -566,11 +601,13 @@ function renderAll() {
     spectatorBtn.onclick = () => {
       playSound('click');
       spectatorList.innerHTML = '';
+      let availablePlayers = 0;
 
       for (let i = 1; i <= MAX_PLAYERS; i++) {
         const p = state.players[i];
         // Só lista jogadores que possuem UID e não são o próprio usuário
         if (p && p.uid && i !== myPlayerId) {
+          availablePlayers++;
           const btn = document.createElement('div');
           btn.className = 'spectator-target-btn';
           btn.innerHTML = `
@@ -586,8 +623,17 @@ function renderAll() {
         }
       }
 
-      if (spectatorList.innerHTML === '') {
-        spectatorList.innerHTML = '<p class="muted">Nenhum outro jogador disponível.</p>';
+      if (spectatorHelperText) {
+        spectatorHelperText.hidden = availablePlayers === 0;
+      }
+
+      spectatorList.classList.toggle('is-empty', availablePlayers === 0);
+
+      if (availablePlayers === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.className = 'muted spectator-empty-message';
+        emptyMessage.textContent = 'Não tem jogadores disponíveis.';
+        spectatorList.appendChild(emptyMessage);
       }
       spectatorModal.style.display = 'flex';
     };
@@ -603,6 +649,7 @@ function renderAll() {
 
   // Limpa o tabuleiro antes de desenhar o novo estado.
   clearDOM();
+  applyMobileSeatVisibility(state.players);
 
 
 
@@ -975,6 +1022,41 @@ function isChatModalOpen() {
   return document.getElementById('chatModal')?.style.display === 'flex';
 }
 
+function isModalVisible(modal) {
+  if (!modal || modal.hidden) return false;
+  return window.getComputedStyle(modal).display !== 'none';
+}
+
+function syncFloatingChatButtonVisibility() {
+  const chatBtn = document.getElementById('chatBtn');
+  if (!chatBtn) return;
+
+  const hasBlockingModalOpen = Array
+    .from(document.querySelectorAll('.modal-overlay'))
+    .some(modal => modal.id !== 'chatModal' && isModalVisible(modal));
+
+  chatBtn.classList.toggle('is-hidden-by-modal', hasBlockingModalOpen);
+}
+
+function setupFloatingChatModalObserver() {
+  if (document.body?.dataset.floatingChatObserverBound === 'true') {
+    syncFloatingChatButtonVisibility();
+    return;
+  }
+
+  document.body.dataset.floatingChatObserverBound = 'true';
+
+  const observer = new MutationObserver(syncFloatingChatButtonVisibility);
+  document.querySelectorAll('.modal-overlay').forEach(modal => {
+    observer.observe(modal, {
+      attributes: true,
+      attributeFilter: ['class', 'style', 'hidden']
+    });
+  });
+
+  syncFloatingChatButtonVisibility();
+}
+
 function setChatMessages(messages = []) {
   chatMessages = messages.slice(-60);
   renderChatMessages();
@@ -1050,6 +1132,8 @@ function setupRoomChat() {
   const chatForm = document.getElementById('chatForm');
   const chatInput = document.getElementById('chatInput');
   const chatQuickMessages = document.getElementById('chatQuickMessages');
+
+  setupFloatingChatModalObserver();
 
   if (chatBtn?.dataset.chatBound === 'true') return;
   if (chatBtn) {

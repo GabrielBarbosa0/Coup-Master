@@ -34,7 +34,8 @@
     transform: translate(2px, -50%);
 }
 
-.floating-chat-btn.is-chat-open {
+.floating-chat-btn.is-chat-open,
+.floating-chat-btn.is-hidden-by-modal {
     visibility: hidden;
     opacity: 0;
     pointer-events: none;

@@ -239,6 +239,18 @@ Para que o login e a reserva de slots funcionem:
         ".write": "auth != null && auth.uid === $uid"
       }
     },
+    "rankedStats": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "rankedResults": {
+      ".read": "auth != null",
+      "$resultKey": {
+        ".write": "auth != null && !data.exists()"
+      }
+    },
     "salas": {
       "$roomCode": {
         ".read": "auth != null",
@@ -269,7 +281,15 @@ Para que o login e a reserva de slots funcionem:
 }
 ```
 
-Isso garante que apenas usuários autenticados possam acessar as salas.
+Isso garante que apenas usuários autenticados possam acessar as salas e que o lobby consiga ler as estatísticas do modo ranqueado.
+
+Os caminhos `rankedStats/{uid}` e `rankedResults/{resultKey}` são obrigatórios para o perfil ranqueado:
+
+- `rankedResults/{resultKey}` guarda o resultado imutável de cada partida finalizada.
+- `rankedStats/{uid}` guarda vitórias, derrotas, sequências, pontuação, ações e progresso de conquistas do jogador.
+- `rankedStats/{uid}/countedRooms/{resultKey}` impede que a mesma partida seja contabilizada mais de uma vez no perfil.
+
+> Enquanto o resultado e as estatísticas forem gravados pelo cliente, esses dados servem para beta, histórico local do jogador e testes de produto. Para ranking competitivo confiável, a validação do resultado deve migrar futuramente para um backend autoritativo ou Cloud Functions.
 
 ---
 

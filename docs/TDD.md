@@ -623,6 +623,8 @@ O modo ranqueado tambem grava agregados fora da sala:
 - `rankedStats/{uid}`: estatisticas acumuladas do jogador exibidas no modal de perfil do lobby, incluindo jogos, vitorias, derrotas, taxa de vitoria, sequencias, score ranqueado, pontos de desempenho acumulados, melhor/pior placar de partida, desafios, assassinatos, golpes, roubos e progresso inicial de conquistas.
 - `rankedStats/{uid}/countedRooms/{resultKey}`: marcador por jogador para impedir que a mesma partida ranqueada seja contabilizada mais de uma vez no perfil, mesmo que a tela final seja reaberta ou varios clientes tentem persistir o resultado.
 
+Dependencia operacional importante: as Security Rules precisam liberar leitura autenticada de `rankedStats` e `rankedResults`, escrita do proprio usuario em `rankedStats/{uid}` e criacao de resultados em `rankedResults/{resultKey}`. Sem esses caminhos nas regras, a partida pode finalizar e aparecer dentro de `salas/{roomCode}/rankedState`, mas o perfil do lobby permanece sem jogos, vitorias, derrotas e conquistas porque as escritas/leitura dos agregados sao bloqueadas pelo Realtime Database.
+
 Esses agregados ainda sao escritos por clientes autenticados. Eles servem como fundacao de produto para perfil e classificacao, mas nao devem ser tratados como rating competitivo confiavel sem Security Rules mais restritivas e/ou backend autoritativo.
 
 ### 8.2 `gameState.deck`
@@ -1519,11 +1521,16 @@ As regras documentadas no README incluem:
 
 - leitura para usuario autenticado;
 - escrita em `users/{uid}` somente para o proprio UID;
+- leitura autenticada em `rankedStats` e `rankedResults`;
+- escrita em `rankedStats/{uid}` somente pelo proprio UID;
+- criacao de `rankedResults/{resultKey}` por cliente autenticado quando o resultado ainda nao existe;
 - leitura em salas para autenticados;
 - escrita ampla em sala para autenticados;
 - regras especificas para `lastSFX`, `asylumScore`, `freeCards`, `deck`, `deckConfig`, `players`.
 
 Ponto critico:
+
+Se `rankedStats` e `rankedResults` nao estiverem presentes nas rules reais do console Firebase, o modo ranqueado ainda consegue gravar `salas/{roomCode}/rankedState`, mas nao consegue persistir os agregados consumidos pelo modal de perfil no lobby. Esse foi o motivo do perfil aparecer sem estatisticas mesmo apos partidas finalizadas.
 
 A regra `.write: "auth != null"` no nivel de `salas/$roomCode` e permissiva demais. Em Realtime Database Rules, permissoes mais altas podem permitir escrita mais ampla do que as restricoes desejadas em filhos. Isso precisa ser validado/corrigido antes de confiar em restricoes client-side.
 

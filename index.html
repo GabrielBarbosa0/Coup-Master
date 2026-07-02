@@ -40,7 +40,7 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
   <link rel="stylesheet" href="css/casual-mode.css?v=table-compact-safe-height">
-  <link rel="stylesheet" href="css/chat.css?v=chat-cinzel-v1">
+  <link rel="stylesheet" href="css/chat.css?v=chat-hide-modal-v1">
   <link rel="stylesheet" href="css/loading.css?v=standard-loading">
 </head>
 
@@ -100,7 +100,7 @@
         <div class="player-hands-container player-row player-row-top">
 
           <div class="player-area is-empty" id="player-1" data-player="1">
-            <div class="player-title">Vazio</div>
+            <div class="player-title"></div>
             <div class="points">
               <button class="minus">-</button>
               <div class="score" data-score="0">0</div>
@@ -111,7 +111,7 @@
           </div>
 
           <div class="player-area is-empty" id="player-2" data-player="2">
-            <div class="player-title">Vazio</div>
+            <div class="player-title"></div>
             <div class="points">
               <button class="minus">-</button>
               <div class="score" data-score="0">0</div>
@@ -122,7 +122,7 @@
           </div>
 
           <div class="player-area is-empty" id="player-3" data-player="3">
-            <div class="player-title">Vazio</div>
+            <div class="player-title"></div>
             <div class="points">
               <button class="minus">-</button>
               <div class="score" data-score="0">0</div>
@@ -133,7 +133,7 @@
           </div>
 
           <div class="player-area is-empty" id="player-4" data-player="4">
-            <div class="player-title">Vazio</div>
+            <div class="player-title"></div>
             <div class="points">
               <button class="minus">-</button>
               <div class="score" data-score="0">0</div>
@@ -152,7 +152,7 @@
         <div class="player-hands-container player-row player-row-bottom">
 
           <div class="player-area is-empty" id="player-5" data-player="5">
-            <div class="player-title">Vazio</div>
+            <div class="player-title"></div>
             <div class="points">
               <button class="minus">-</button>
               <div class="score" data-score="0">0</div>
@@ -163,7 +163,7 @@
           </div>
 
           <div class="player-area is-empty" id="player-6" data-player="6">
-            <div class="player-title">Vazio</div>
+            <div class="player-title"></div>
             <div class="points">
               <button class="minus">-</button>
               <div class="score" data-score="0">0</div>
@@ -174,7 +174,7 @@
           </div>
 
           <div class="player-area is-empty" id="player-7" data-player="7">
-            <div class="player-title">Vazio</div>
+            <div class="player-title"></div>
             <div class="points">
               <button class="minus">-</button>
               <div class="score" data-score="0">0</div>
@@ -185,7 +185,7 @@
           </div>
 
           <div class="player-area is-empty" id="player-8" data-player="8">
-            <div class="player-title">Vazio</div>
+            <div class="player-title"></div>
             <div class="points">
               <button class="minus">-</button>
               <div class="score" data-score="0">0</div>
@@ -570,7 +570,7 @@
     <div class="modal-content standard-modal-content" style="text-align: center;">
       <button id="closeSpectatorModalBtn" class="close-btn">&times;</button>
       <h2 style="margin-bottom: 10px;">Modo Espectador</h2>
-      <p class="muted" style="margin-bottom: 20px;">Escolha um jogador para assistir:</p>
+      <p id="spectator-helper-text" class="muted spectator-helper-text">Escolha um jogador para assistir:</p>
       <div id="spectator-list" class="spectator-list" style="display: flex; flex-direction: column; gap: 10px;">
       </div>
     </div>

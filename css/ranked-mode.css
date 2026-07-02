@@ -2139,14 +2139,13 @@ button.rank-card {
 .rank-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
-    gap: 10px;
+    gap: 8px;
     align-items: start;
 }
 
 .rank-main-stack {
     display: grid;
     min-width: 0;
-    gap: 10px;
 }
 
 body[data-rank-view="game"] .rank-players {
@@ -2239,7 +2238,7 @@ body[data-rank-view="game"] .rank-timer {
     display: grid;
     grid-template-rows: minmax(250px, 310px) minmax(170px, 240px);
     align-content: start;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
     height: auto;
     max-height: none;
@@ -2390,7 +2389,7 @@ body[data-rank-view="game"] .rank-timer {
     }
 
     .rank-main-stack {
-        gap: 8px;
+        gap: 2px;
     }
 
     .floating-chat-actions {

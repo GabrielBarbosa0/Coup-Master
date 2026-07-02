@@ -94,7 +94,7 @@ Preserve:
 - Sala sem `mode` e casual; sala ranqueada exige conta Google, baralho padrao e permite bots IA experimentais adicionados na sala de espera.
 - O ranqueado nao possui host ou controles administrativos. Todos os clientes passam pelo mesmo motor de regras.
 - O ranqueado agenda uma contagem de 5 segundos depois que todos estao prontos antes de iniciar a partida.
-- `rankedStats/{uid}` e `rankedResults/{roomCode}` existem para perfil/estatisticas beta, mas nao trate como rating confiavel enquanto influencias secretas e transicoes puderem ser lidas/escritas diretamente pelo cliente.
+- `rankedStats/{uid}` e `rankedResults/{resultKey}` existem para perfil/estatisticas beta. As Firebase Security Rules precisam liberar esses caminhos, ou o lobby nao consegue exibir partidas, vitorias, derrotas e conquistas do ranqueado. Nao trate esses dados como rating confiavel enquanto influencias secretas e transicoes puderem ser lidas/escritas diretamente pelo cliente.
 
 ## Ao Adicionar Carta
 
