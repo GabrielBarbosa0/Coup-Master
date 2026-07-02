@@ -1344,17 +1344,29 @@
         const savedEffects = Number(localStorage.getItem('rankEffectsVolume'));
         const musicVolume = Number.isFinite(savedMusic) ? savedMusic : 0.1;
         const effectsVolume = Number.isFinite(savedEffects) ? savedEffects : 1;
+        const bgmGuard = bgm && root.CoupAudioGuard
+            ? root.CoupAudioGuard.createBackgroundAudioGuard(bgm, { button: musicBtn })
+            : null;
 
         root.rankSfxVolume = effectsVolume;
         if (bgm) {
             bgm.volume = musicVolume;
-            bgm.play()
-                .then(() => musicBtn?.classList.remove('muted'))
-                .catch(() => musicBtn?.classList.add('muted'));
+            if (bgmGuard) {
+                bgmGuard.play();
+            } else {
+                bgm.play()
+                    .then(() => musicBtn?.classList.remove('muted'))
+                    .catch(() => musicBtn?.classList.add('muted'));
+            }
         }
         if (musicBtn && bgm) {
             musicBtn.addEventListener('click', () => {
                 playRankSfx('click');
+                if (bgmGuard) {
+                    bgmGuard.toggle();
+                    return;
+                }
+
                 if (bgm.paused) {
                     bgm.play().then(() => musicBtn.classList.remove('muted')).catch(() => musicBtn.classList.add('muted'));
                 } else {
@@ -1368,8 +1380,13 @@
             musicSlider.addEventListener('input', (event) => {
                 const value = normalizeVolume(event.target.value);
                 if (bgm) {
-                    bgm.volume = value;
-                    if (value > 0) bgm.play().catch(() => null);
+                    if (bgmGuard) {
+                        bgmGuard.setVolume(value);
+                        if (value > 0) bgmGuard.play();
+                    } else {
+                        bgm.volume = value;
+                        if (value > 0) bgm.play().catch(() => null);
+                    }
                 }
                 localStorage.setItem('rankMusicVolume', String(value));
             });

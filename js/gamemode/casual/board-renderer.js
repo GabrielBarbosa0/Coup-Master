@@ -1385,15 +1385,29 @@ function setupUI() {
   const effectsVolumeSlider = document.getElementById('effectsVolumeSlider');
 
   if (bgmAudio) bgmAudio.volume = 0.1;
+  const bgmGuard = bgmAudio && window.CoupAudioGuard
+    ? window.CoupAudioGuard.createBackgroundAudioGuard(bgmAudio, { button: musicBtn })
+    : null;
 
   if (musicBtn && bgmAudio) {
-    bgmAudio.play()
-      .then(() => musicBtn.classList.remove('muted'))
-      .catch(() => musicBtn.classList.add('muted'));
+    if (bgmGuard) {
+      bgmGuard.play();
+    } else {
+      bgmAudio.play()
+        .then(() => musicBtn.classList.remove('muted'))
+        .catch(() => musicBtn.classList.add('muted'));
+    }
 
     musicBtn.onclick = () => {
+      if (bgmGuard) {
+        bgmGuard.toggle();
+        return;
+      }
+
       if (bgmAudio.paused) {
-        bgmAudio.play().then(() => musicBtn.classList.remove('muted'));
+        bgmAudio.play()
+          .then(() => musicBtn.classList.remove('muted'))
+          .catch(() => musicBtn.classList.add('muted'));
       } else {
         bgmAudio.pause();
         musicBtn.classList.add('muted');
@@ -1404,6 +1418,11 @@ function setupUI() {
   if (volumeSlider && bgmAudio) {
     volumeSlider.value = bgmAudio.volume;
     volumeSlider.addEventListener('input', (e) => {
+      if (bgmGuard) {
+        bgmGuard.setVolume(e.target.value);
+        return;
+      }
+
       bgmAudio.volume = e.target.value;
     });
   }
