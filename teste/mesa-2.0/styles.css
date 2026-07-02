@@ -15,8 +15,33 @@
   --card-radius: clamp(4px, 0.35vw, 6px);
 }
 
+html,
+body,
+body * {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 * {
   box-sizing: border-box;
+}
+
+html::selection,
+body::selection,
+body *::selection {
+  background: transparent;
+  color: inherit;
+}
+
+html::-moz-selection,
+body::-moz-selection,
+body *::-moz-selection {
+  background: transparent;
+  color: inherit;
 }
 
 html,
@@ -30,12 +55,38 @@ body {
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
 button {
   -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+[contenteditable="true"],
+[data-allow-select="true"] {
+  -webkit-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+input::selection,
+textarea::selection,
+[contenteditable="true"]::selection,
+[data-allow-select="true"]::selection {
+  background: rgba(30, 144, 255, 0.35);
+  color: inherit;
+}
+
+input::-moz-selection,
+textarea::-moz-selection,
+[contenteditable="true"]::-moz-selection,
+[data-allow-select="true"]::-moz-selection {
+  background: rgba(30, 144, 255, 0.35);
+  color: inherit;
 }
 
 [hidden] {

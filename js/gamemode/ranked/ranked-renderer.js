@@ -18,6 +18,7 @@
     let matchResultsKey = '';
     let rankCardTooltipEl = null;
     let cardInteractionsBound = false;
+    let rankProfileLoadKey = 0;
 
     const botNameIdeas = [
         'Augusto', 'Berenice', 'Cassandra', 'Dario', 'Eloisa', 'Fausto',
@@ -35,6 +36,28 @@
         if (className) node.className = className;
         if (text !== undefined) node.textContent = text;
         return node;
+    }
+
+    function profileNumber(value) {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : 0;
+    }
+
+    function profilePercent(value) {
+        const number = profileNumber(value);
+        const percent = number > 0 && number <= 1 ? number * 100 : number;
+        return `${Math.round(percent)}%`;
+    }
+
+    function setProfileText(id, value) {
+        const node = document.getElementById(id);
+        if (node) node.textContent = value;
+    }
+
+    function getProfileDatabase() {
+        if (root.db) return root.db;
+        if (typeof db !== 'undefined') return db;
+        return null;
     }
 
     function init(options) {
@@ -75,6 +98,7 @@
         bindModal('rankCharacterActionsBtn', 'rankActionsModal', '#closeRankActionsBtn', resetActionsGuide);
         bindModal('rankSettingsBtn', 'rankSettingsModal', '#closeRankSettingsBtn');
         bindModal('openRankFeedbackBtn', 'rankFeedbackModal', '#closeRankFeedbackBtn');
+        bindRankPlayerProfileModal();
         bindRankPanel('openRankLogBtn', 'rankLogModal', '#closeRankLogBtn');
         bindAddAiModal();
         setupActionsGuide();
@@ -297,6 +321,110 @@
         else modal.style.display = 'none';
     }
 
+    function bindRankPlayerProfileModal() {
+        const modal = document.getElementById('rankPlayerProfileModal');
+        const closeButton = document.getElementById('closeRankPlayerProfileBtn');
+        closeButton?.addEventListener('click', () => {
+            playRankSfx('click');
+            hideModal(modal);
+        });
+        modal?.addEventListener('click', (event) => {
+            if (event.target !== modal) return;
+            hideModal(modal);
+        });
+    }
+
+    function setRankPlayerProfileLoading(player) {
+        const avatar = document.getElementById('rankPlayerProfileAvatar');
+        const loading = document.getElementById('rankPlayerProfileLoading');
+        const statsGrid = document.getElementById('rankPlayerProfileStats');
+        const name = player?.name || 'Jogador';
+
+        if (avatar) {
+            avatar.src = player?.photo || 'assets/img/icons/ghost.svg';
+            avatar.alt = `Perfil de ${name}`;
+        }
+
+        setProfileText('rankPlayerProfileTitle', 'Perfil do jogador');
+        setProfileText('rankPlayerProfileName', name);
+        setProfileText('rankPlayerProfileStatus', 'Carregando estatísticas...');
+
+        if (loading) {
+            loading.hidden = false;
+            loading.textContent = 'Carregando estatísticas...';
+        }
+        if (statsGrid) statsGrid.hidden = true;
+    }
+
+    function renderRankPlayerProfile(player, stats, options = {}) {
+        const name = stats?.name || player?.name || 'Jogador';
+        const photo = stats?.photo || player?.photo || 'assets/img/icons/ghost.svg';
+        const games = profileNumber(stats?.games);
+        const wins = profileNumber(stats?.wins);
+        const losses = profileNumber(stats?.losses);
+        const rankScore = profileNumber(stats?.rankScore ?? stats?.score ?? stats?.points);
+        const status = options.status || (games
+            ? `${games} jogo(s) ranqueado(s) registrados.`
+            : 'Sem partidas ranqueadas registradas ainda.');
+        const avatar = document.getElementById('rankPlayerProfileAvatar');
+        const loading = document.getElementById('rankPlayerProfileLoading');
+        const statsGrid = document.getElementById('rankPlayerProfileStats');
+
+        if (avatar) {
+            avatar.src = photo;
+            avatar.alt = `Perfil de ${name}`;
+        }
+
+        setProfileText('rankPlayerProfileName', name);
+        setProfileText('rankPlayerProfileStatus', status);
+        setProfileText('rankPlayerProfileGames', games);
+        setProfileText('rankPlayerProfileWins', wins);
+        setProfileText('rankPlayerProfileLosses', losses);
+        setProfileText('rankPlayerProfileWinRate', profilePercent(stats?.winRate));
+        setProfileText('rankPlayerProfileScore', `${rankScore} pts`);
+
+        if (loading) loading.hidden = true;
+        if (statsGrid) statsGrid.hidden = false;
+    }
+
+    function openRankPlayerProfile(player) {
+        const modal = document.getElementById('rankPlayerProfileModal');
+        if (!modal || !player) return;
+        const loadKey = ++rankProfileLoadKey;
+        setRankPlayerProfileLoading(player);
+        showModal(modal);
+        playRankSfx('click');
+
+        if (!player.uid || player.ai) {
+            renderRankPlayerProfile(player, null, {
+                status: player.ai
+                    ? 'Jogadores IA ainda não possuem perfil ranqueado persistido.'
+                    : 'Este jogador ainda não possui perfil ranqueado vinculado.'
+            });
+            return;
+        }
+
+        const database = getProfileDatabase();
+        if (!database) {
+            renderRankPlayerProfile(player, null, {
+                status: 'Não foi possível acessar as estatísticas agora.'
+            });
+            return;
+        }
+
+        database.ref(`rankedStats/${player.uid}`).once('value')
+            .then((snapshot) => {
+                if (loadKey !== rankProfileLoadKey) return;
+                renderRankPlayerProfile(player, snapshot.val());
+            })
+            .catch(() => {
+                if (loadKey !== rankProfileLoadKey) return;
+                renderRankPlayerProfile(player, null, {
+                    status: 'Não foi possível carregar estatísticas.'
+                });
+            });
+    }
+
     function bindAddAiModal() {
         const modal = document.getElementById('rankAddAiModal');
         const form = document.getElementById('rankAddAiForm');
@@ -488,8 +616,19 @@
             const header = element('div', 'rank-player-header');
             const avatar = element('img', 'rank-player-avatar');
             avatar.src = player.photo || 'assets/img/icons/ghost.svg';
-            avatar.alt = '';
+            avatar.alt = `Perfil de ${player.name || 'Jogador'}`;
+            avatar.title = 'Ver perfil do jogador';
             avatar.referrerPolicy = 'no-referrer';
+            avatar.tabIndex = 0;
+            avatar.addEventListener('click', (event) => {
+                event.stopPropagation();
+                openRankPlayerProfile(player);
+            });
+            avatar.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                openRankPlayerProfile(player);
+            });
 
             const identity = element('div');
             identity.append(

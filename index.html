@@ -39,9 +39,9 @@
 
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
-  <link rel="stylesheet" href="css/casual-mode.css?v=table-compact-safe-height">
-  <link rel="stylesheet" href="css/chat.css?v=chat-hide-modal-v1">
-  <link rel="stylesheet" href="css/loading.css?v=standard-loading">
+  <link rel="stylesheet" href="css/casual-mode.css?v=selection-lock-v1">
+  <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
+  <link rel="stylesheet" href="css/loading.css?v=selection-lock-v1">
 </head>
 
 <body>
@@ -468,13 +468,13 @@
           </button>
         </div>
 
-        <!-- <div class="setting-row">
+        <div class="setting-row">
           <label>Adicionar Bot:</label>
           <button id="addBotBtn" class="icon-btn settings-control-btn" title="Adicionar Jogador Fantasma">
             <img src="assets/img/icons/robot.svg" alt="Bot">
             <span>+1</span>
           </button>
-        </div> -->
+        </div>
 
         <div class="setting-row" style="justify-content: center; margin-top: 20px;">
           <button id="openDeckConfigBtn"
@@ -625,9 +625,48 @@
   </div>
 
   <div id="quickActionsModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content standard-modal-content" style="text-align: center;">
+    <div class="modal-content standard-modal-content quick-player-modal" style="text-align: center;">
       <button id="closeQuickActionsBtn" class="close-btn">&times;</button>
-      <h2 id="quickActionsTitle" style="font-size: 18px; margin-bottom: 15px;">Ações Contra...</h2>
+      <h2 id="quickActionsTitle" style="font-size: 18px; margin-bottom: 15px;">Perfil do jogador</h2>
+
+      <section class="quick-player-profile" aria-label="Perfil ranqueado do jogador">
+        <div class="quick-player-profile-header">
+          <img id="quickPlayerProfileAvatar" class="quick-player-profile-avatar" src="assets/img/icons/ghost.svg"
+            alt="">
+          <div class="quick-player-profile-meta">
+            <span class="quick-player-profile-eyebrow">Perfil ranqueado</span>
+            <strong id="quickPlayerProfileName">Jogador</strong>
+            <p id="quickPlayerProfileStatus">Carregando estatísticas...</p>
+          </div>
+        </div>
+
+        <div id="quickPlayerProfileLoading" class="quick-player-profile-loading">
+          Carregando estatísticas...
+        </div>
+
+        <div id="quickPlayerProfileStats" class="quick-player-profile-grid" hidden>
+          <div class="quick-player-profile-stat">
+            <span>Jogos</span>
+            <strong id="quickPlayerProfileGames">0</strong>
+          </div>
+          <div class="quick-player-profile-stat">
+            <span>Vitórias</span>
+            <strong id="quickPlayerProfileWins">0</strong>
+          </div>
+          <div class="quick-player-profile-stat">
+            <span>Derrotas</span>
+            <strong id="quickPlayerProfileLosses">0</strong>
+          </div>
+          <div class="quick-player-profile-stat">
+            <span>Taxa de vitória</span>
+            <strong id="quickPlayerProfileWinRate">0%</strong>
+          </div>
+          <div class="quick-player-profile-stat quick-player-profile-stat-wide">
+            <span>Pontos</span>
+            <strong id="quickPlayerProfileScore">0 pts</strong>
+          </div>
+        </div>
+      </section>
 
       <div class="quick-actions-grid" style="display: flex; flex-direction: column; gap: 10px;">
         <!-- <button onclick="executeAction('steal')" class="icon-btn"
@@ -701,6 +740,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
+  <script src="js/ui/selection-lock.js?v=selection-lock-v1" defer></script>
   <script src="js/firebase/firebase.js" defer></script>
   <script src="js/pwa/pwa.js" defer></script>
   <script src="js/core/rules.js" defer></script>

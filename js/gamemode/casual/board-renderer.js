@@ -151,6 +151,113 @@ function clearDOM() {
 // Lógica das Ações Rápidas
 
 let quickActionTargetPid = null;
+let quickProfileLoadKey = 0;
+
+function quickProfileNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function quickProfilePercent(value) {
+  const number = quickProfileNumber(value);
+  const percent = number > 0 && number <= 1 ? number * 100 : number;
+  return `${Math.round(percent)}%`;
+}
+
+function setQuickProfileText(id, value) {
+  const node = document.getElementById(id);
+  if (node) node.textContent = value;
+}
+
+function getQuickProfileDatabase() {
+  if (window.db) return window.db;
+  if (typeof db !== 'undefined') return db;
+  return null;
+}
+
+function renderQuickPlayerProfile(player, stats, options = {}) {
+  const name = stats?.name || player?.name || 'Jogador';
+  const photo = stats?.photo || player?.photo || 'assets/img/icons/ghost.svg';
+  const games = quickProfileNumber(stats?.games);
+  const wins = quickProfileNumber(stats?.wins);
+  const losses = quickProfileNumber(stats?.losses);
+  const rankScore = quickProfileNumber(stats?.rankScore ?? stats?.score ?? stats?.points);
+  const status = options.status || (games
+    ? `${games} jogo(s) ranqueado(s) registrados.`
+    : 'Sem partidas ranqueadas registradas ainda.');
+
+  const avatar = document.getElementById('quickPlayerProfileAvatar');
+  const loading = document.getElementById('quickPlayerProfileLoading');
+  const statsGrid = document.getElementById('quickPlayerProfileStats');
+
+  if (avatar) {
+    avatar.src = photo;
+    avatar.alt = `Perfil de ${name}`;
+  }
+
+  setQuickProfileText('quickPlayerProfileName', name);
+  setQuickProfileText('quickPlayerProfileStatus', status);
+  setQuickProfileText('quickPlayerProfileGames', games);
+  setQuickProfileText('quickPlayerProfileWins', wins);
+  setQuickProfileText('quickPlayerProfileLosses', losses);
+  setQuickProfileText('quickPlayerProfileWinRate', quickProfilePercent(stats?.winRate));
+  setQuickProfileText('quickPlayerProfileScore', `${rankScore} pts`);
+
+  if (loading) loading.hidden = true;
+  if (statsGrid) statsGrid.hidden = false;
+}
+
+function setQuickPlayerProfileLoading(player) {
+  const loading = document.getElementById('quickPlayerProfileLoading');
+  const statsGrid = document.getElementById('quickPlayerProfileStats');
+  const avatar = document.getElementById('quickPlayerProfileAvatar');
+  const name = player?.name || 'Jogador';
+
+  if (avatar) {
+    avatar.src = player?.photo || 'assets/img/icons/ghost.svg';
+    avatar.alt = `Perfil de ${name}`;
+  }
+
+  setQuickProfileText('quickPlayerProfileName', name);
+  setQuickProfileText('quickPlayerProfileStatus', 'Carregando estatísticas...');
+  if (loading) {
+    loading.hidden = false;
+    loading.textContent = 'Carregando estatísticas...';
+  }
+  if (statsGrid) statsGrid.hidden = true;
+}
+
+function loadQuickPlayerRankedStats(player) {
+  const loadKey = ++quickProfileLoadKey;
+  setQuickPlayerProfileLoading(player);
+
+  if (!player?.uid) {
+    renderQuickPlayerProfile(player, null, {
+      status: 'Este jogador ainda não possui perfil ranqueado vinculado.'
+    });
+    return;
+  }
+
+  const database = getQuickProfileDatabase();
+  if (!database) {
+    renderQuickPlayerProfile(player, null, {
+      status: 'Não foi possível acessar as estatísticas agora.'
+    });
+    return;
+  }
+
+  database.ref(`rankedStats/${player.uid}`).once('value')
+    .then((snapshot) => {
+      if (loadKey !== quickProfileLoadKey) return;
+      renderQuickPlayerProfile(player, snapshot.val());
+    })
+    .catch(() => {
+      if (loadKey !== quickProfileLoadKey) return;
+      renderQuickPlayerProfile(player, null, {
+        status: 'Não foi possível carregar estatísticas.'
+      });
+    });
+}
 
 window.openQuickActions = (pid) => {
   quickActionTargetPid = pid;
@@ -160,7 +267,8 @@ window.openQuickActions = (pid) => {
   const player = localGameState.players[pid];
 
   if (modal && title && player) {
-    title.innerText = `Ação contra ${player.name || 'Jogador ' + pid}`;
+    title.innerText = 'Perfil do jogador';
+    loadQuickPlayerRankedStats(player);
 
     if (kickBtn) {
       const canKick = Boolean(isAdmin && pid !== myPlayerId && (player.uid || player.online));
@@ -708,7 +816,22 @@ function renderAll() {
     headerEl.classList.add('player-identity');
     nameTxt?.classList.add('player-name');
 
-    if (avatarImg) avatarImg.src = player.photo || 'img/coup.png';
+    if (avatarImg) {
+      avatarImg.src = player.photo || 'img/coup.png';
+      avatarImg.alt = `Perfil de ${player.name || 'Jogador ' + pid}`;
+      avatarImg.title = 'Ver perfil do jogador';
+      avatarImg.style.cursor = 'pointer';
+      avatarImg.tabIndex = 0;
+      avatarImg.onclick = (event) => {
+        event.stopPropagation();
+        if (typeof openQuickActions === 'function') openQuickActions(pid);
+      };
+      avatarImg.onkeydown = (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        if (typeof openQuickActions === 'function') openQuickActions(pid);
+      };
+    }
 
     if (nameTxt) {
       nameTxt.textContent = player.name || `Jogador ${pid}`;

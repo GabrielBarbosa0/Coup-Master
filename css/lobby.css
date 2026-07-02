@@ -29,7 +29,9 @@
 
 
 /* 1. Reset Global */
-* {
+html,
+body,
+body * {
     font-family: "Cinzel", serif;
     box-sizing: border-box;
 
@@ -44,11 +46,49 @@
     -webkit-touch-callout: none;
 }
 
+* {
+    font-family: "Cinzel", serif;
+    box-sizing: border-box;
+}
+
+html::selection,
+body::selection,
+body *::selection {
+    background: transparent;
+    color: inherit;
+}
+
+html::-moz-selection,
+body::-moz-selection,
+body *::-moz-selection {
+    background: transparent;
+    color: inherit;
+}
+
 /* Garante que campos de texto continuem funcionando [cite: 115] */
 input,
-textarea {
+textarea,
+[contenteditable="true"],
+[data-allow-select="true"] {
     -webkit-user-select: text;
+    -ms-user-select: text;
     user-select: text;
+}
+
+input::selection,
+textarea::selection,
+[contenteditable="true"]::selection,
+[data-allow-select="true"]::selection {
+    background: rgba(30, 144, 255, 0.35);
+    color: inherit;
+}
+
+input::-moz-selection,
+textarea::-moz-selection,
+[contenteditable="true"]::-moz-selection,
+[data-allow-select="true"]::-moz-selection {
+    background: rgba(30, 144, 255, 0.35);
+    color: inherit;
 }
 
 body {

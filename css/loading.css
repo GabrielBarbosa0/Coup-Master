@@ -15,6 +15,55 @@
     --loading-message-size: 13px;
 }
 
+html,
+body,
+body * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+html::selection,
+body::selection,
+body *::selection {
+    background: transparent;
+    color: inherit;
+}
+
+html::-moz-selection,
+body::-moz-selection,
+body *::-moz-selection {
+    background: transparent;
+    color: inherit;
+}
+
+input,
+textarea,
+[contenteditable="true"],
+[data-allow-select="true"] {
+    -webkit-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+input::selection,
+textarea::selection,
+[contenteditable="true"]::selection,
+[data-allow-select="true"]::selection {
+    background: rgba(30, 144, 255, 0.35);
+    color: inherit;
+}
+
+input::-moz-selection,
+textarea::-moz-selection,
+[contenteditable="true"]::-moz-selection,
+[data-allow-select="true"]::-moz-selection {
+    background: rgba(30, 144, 255, 0.35);
+    color: inherit;
+}
+
 .loader-overlay,
 .game-loading-overlay {
     position: fixed;
@@ -28,6 +77,10 @@
     background: var(--loading-bg);
     color: var(--text, #e6eef6);
     transition: opacity 0.5s ease, visibility 0.5s ease;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
 }
 
 .loader-overlay.hidden,

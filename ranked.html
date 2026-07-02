@@ -15,9 +15,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/loading.css?v=rank-split-v1">
-    <link rel="stylesheet" href="css/chat.css?v=chat-cinzel-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-waiting-align-v1">
+    <link rel="stylesheet" href="css/loading.css?v=selection-lock-v1">
+    <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=selection-lock-v1">
 </head>
 
 <body data-rank-view="game">
@@ -165,6 +165,52 @@
         </div>
     </div>
 
+    <div id="rankPlayerProfileModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content standard-modal-content quick-player-modal rank-player-profile-modal">
+            <button id="closeRankPlayerProfileBtn" class="close-btn">&times;</button>
+            <h2 id="rankPlayerProfileTitle">Perfil do jogador</h2>
+
+            <section class="quick-player-profile" aria-label="Perfil ranqueado do jogador">
+                <div class="quick-player-profile-header">
+                    <img id="rankPlayerProfileAvatar" class="quick-player-profile-avatar"
+                        src="assets/img/icons/ghost.svg" alt="">
+                    <div class="quick-player-profile-meta">
+                        <span class="quick-player-profile-eyebrow">Perfil ranqueado</span>
+                        <strong id="rankPlayerProfileName">Jogador</strong>
+                        <p id="rankPlayerProfileStatus">Carregando estatísticas...</p>
+                    </div>
+                </div>
+
+                <div id="rankPlayerProfileLoading" class="quick-player-profile-loading">
+                    Carregando estatísticas...
+                </div>
+
+                <div id="rankPlayerProfileStats" class="quick-player-profile-grid" hidden>
+                    <div class="quick-player-profile-stat">
+                        <span>Jogos</span>
+                        <strong id="rankPlayerProfileGames">0</strong>
+                    </div>
+                    <div class="quick-player-profile-stat">
+                        <span>Vitórias</span>
+                        <strong id="rankPlayerProfileWins">0</strong>
+                    </div>
+                    <div class="quick-player-profile-stat">
+                        <span>Derrotas</span>
+                        <strong id="rankPlayerProfileLosses">0</strong>
+                    </div>
+                    <div class="quick-player-profile-stat">
+                        <span>Taxa de vitória</span>
+                        <strong id="rankPlayerProfileWinRate">0%</strong>
+                    </div>
+                    <div class="quick-player-profile-stat quick-player-profile-stat-wide">
+                        <span>Pontos</span>
+                        <strong id="rankPlayerProfileScore">0 pts</strong>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
     <div id="rankFeedbackModal" class="modal-overlay" style="display: none;">
         <div class="modal-actions-and-rules" style="width: 90%; max-width: 600px; height: 80vh;">
             <button id="closeRankFeedbackBtn" class="close-btn">&times;</button>
@@ -193,6 +239,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="js/ui/selection-lock.js?v=selection-lock-v1" defer></script>
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>

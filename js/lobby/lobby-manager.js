@@ -84,8 +84,8 @@ function setRankedModeAvailability(user) {
     if (rankedModeNote) {
         rankedModeNote.hidden = false;
         rankedModeNote.textContent = canAccessRanked
-            ? 'Ranqueado usa conta Google, baralho padrão e não permite bots.'
-            : 'O modo ranqueado exige uma conta Google e não permite bots.';
+            ? 'Ranqueado usa conta Google, baralho padrão e permite bots IA na sala de espera.'
+            : 'O modo ranqueado exige uma conta Google. Bots IA podem ser adicionados na sala de espera.';
     }
 }
 

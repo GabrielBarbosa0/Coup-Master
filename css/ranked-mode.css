@@ -25,8 +25,33 @@
     font-weight: 700;
 }
 
+html,
+body,
+body * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
 * {
     box-sizing: border-box;
+}
+
+html::selection,
+body::selection,
+body *::selection {
+    background: transparent;
+    color: inherit;
+}
+
+html::-moz-selection,
+body::-moz-selection,
+body *::-moz-selection {
+    background: transparent;
+    color: inherit;
 }
 
 html {
@@ -44,11 +69,37 @@ body {
 }
 
 button,
-input {
+input,
+textarea {
     font: inherit;
 }
 
 button {
+    color: inherit;
+}
+
+input,
+textarea,
+[contenteditable="true"],
+[data-allow-select="true"] {
+    -webkit-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+input::selection,
+textarea::selection,
+[contenteditable="true"]::selection,
+[data-allow-select="true"]::selection {
+    background: rgba(30, 144, 255, 0.35);
+    color: inherit;
+}
+
+input::-moz-selection,
+textarea::-moz-selection,
+[contenteditable="true"]::-moz-selection,
+[data-allow-select="true"]::-moz-selection {
+    background: rgba(30, 144, 255, 0.35);
     color: inherit;
 }
 
@@ -371,6 +422,12 @@ button {
     border: 2px solid var(--rank-accent);
     border-radius: 50%;
     object-fit: cover;
+    cursor: pointer;
+}
+
+.rank-player-avatar:focus-visible {
+    outline: 2px solid var(--rank-gold);
+    outline-offset: 2px;
 }
 
 .rank-player-name {
@@ -1319,6 +1376,101 @@ button.rank-card {
     box-sizing: border-box;
     margin: 0 auto;
     padding: 25px 15px 15px 25px;
+}
+
+.quick-player-modal {
+    text-align: center;
+}
+
+.quick-player-profile {
+    width: 100%;
+    margin-top: 14px;
+}
+
+.quick-player-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--rank-border);
+    border-radius: 8px;
+    background: rgba(17, 25, 35, 0.58);
+    text-align: left;
+}
+
+.quick-player-profile-avatar {
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+    border: 2px solid var(--rank-accent);
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--rank-surface);
+}
+
+.quick-player-profile-meta {
+    min-width: 0;
+}
+
+.quick-player-profile-eyebrow,
+.quick-player-profile-stat span,
+.quick-player-profile-loading,
+#rankPlayerProfileStatus {
+    color: var(--rank-muted);
+    font-size: 12px;
+}
+
+.quick-player-profile-eyebrow {
+    display: block;
+    margin-bottom: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+#rankPlayerProfileName {
+    display: block;
+    color: var(--rank-text);
+    font-size: 18px;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+#rankPlayerProfileStatus {
+    margin: 4px 0 0;
+    line-height: 1.25;
+}
+
+.quick-player-profile-loading {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px dashed var(--rank-border);
+    border-radius: 8px;
+}
+
+.quick-player-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.quick-player-profile-stat {
+    padding: 10px 8px;
+    border: 1px solid var(--rank-border);
+    border-radius: 8px;
+    background: rgba(17, 25, 35, 0.62);
+}
+
+.quick-player-profile-stat strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--rank-text);
+    font-size: 20px;
+    line-height: 1;
+}
+
+.quick-player-profile-stat-wide {
+    grid-column: 1 / -1;
 }
 
 .modal-actions-and-rules {

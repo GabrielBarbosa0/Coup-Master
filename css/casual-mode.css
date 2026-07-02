@@ -40,7 +40,9 @@
 /* =======================================================
    === RESET GERAL E TIPOGRAFIA ===
    ======================================================= */
-* {
+html,
+body,
+body * {
     font-family: "Cinzel", serif !important;
     /* Remove a seleção azul padrão */
     -webkit-user-select: none;
@@ -54,11 +56,48 @@
     -webkit-touch-callout: none;
 }
 
+* {
+    font-family: "Cinzel", serif !important;
+}
+
+html::selection,
+body::selection,
+body *::selection {
+    background: transparent;
+    color: inherit;
+}
+
+html::-moz-selection,
+body::-moz-selection,
+body *::-moz-selection {
+    background: transparent;
+    color: inherit;
+}
+
 /* Garante que campos de texto continuem funcionando [cite: 115] */
 input,
-textarea {
+textarea,
+[contenteditable="true"],
+[data-allow-select="true"] {
     -webkit-user-select: text;
+    -ms-user-select: text;
     user-select: text;
+}
+
+input::selection,
+textarea::selection,
+[contenteditable="true"]::selection,
+[data-allow-select="true"]::selection {
+    background: rgba(30, 144, 255, 0.35);
+    color: inherit;
+}
+
+input::-moz-selection,
+textarea::-moz-selection,
+[contenteditable="true"]::-moz-selection,
+[data-allow-select="true"]::-moz-selection {
+    background: rgba(30, 144, 255, 0.35);
+    color: inherit;
 }
 
 
@@ -354,6 +393,101 @@ h2 {
     line-height: 1.4;
     margin-bottom: 20px;
     text-align: center;
+}
+
+.quick-player-modal {
+    text-align: center;
+}
+
+.quick-player-profile {
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.quick-player-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(10, 15, 22, 0.28);
+    text-align: left;
+}
+
+.quick-player-profile-avatar {
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    object-fit: cover;
+    background: #101820;
+}
+
+.quick-player-profile-meta {
+    min-width: 0;
+}
+
+.quick-player-profile-eyebrow,
+.quick-player-profile-stat span,
+.quick-player-profile-loading,
+#quickPlayerProfileStatus {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.quick-player-profile-eyebrow {
+    display: block;
+    margin-bottom: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+#quickPlayerProfileName {
+    display: block;
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+#quickPlayerProfileStatus {
+    margin: 4px 0 0;
+    line-height: 1.25;
+}
+
+.quick-player-profile-loading {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+}
+
+.quick-player-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.quick-player-profile-stat {
+    padding: 10px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(10, 15, 22, 0.34);
+}
+
+.quick-player-profile-stat strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--text);
+    font-size: 20px;
+    line-height: 1;
+}
+
+.quick-player-profile-stat-wide {
+    grid-column: 1 / -1;
 }
 
 .quick-actions-divider {
@@ -1235,6 +1369,15 @@ h2 {
     border: 1px solid var(--accent);
     border-radius: 50%;
     object-fit: cover;
+}
+
+.game-table .player-avatar {
+    cursor: pointer;
+}
+
+.game-table .player-avatar:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
 }
 
 .game-table .religion-badge {
