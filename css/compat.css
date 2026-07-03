@@ -1,0 +1,38 @@
+:root,
+html,
+body,
+body *,
+body *::before,
+body *::after {
+    forced-color-adjust: none !important;
+}
+
+html,
+body {
+    color-scheme: dark;
+}
+
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+@media (forced-colors: active) {
+    html,
+    body {
+        background: var(--bg, var(--rank-bg, #171d26)) !important;
+        color: var(--text, var(--rank-text, #e6eef6)) !important;
+    }
+
+    button,
+    input,
+    textarea,
+    select,
+    a,
+    img,
+    svg,
+    canvas,
+    video,
+    iframe {
+        forced-color-adjust: none !important;
+    }
+}

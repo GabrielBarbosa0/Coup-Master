@@ -37,6 +37,60 @@ let chatMessagesInitialized = false;
 let chatListenerReady = false;
 let lastSeenChatMessageKey = '';
 let cardFanLayoutFrame = null;
+const SAMSUNG_DRAG_STORAGE_KEY = 'coupMasterSamsungDragEnabled';
+let samsungDragEnabled = readLocalBoolean(SAMSUNG_DRAG_STORAGE_KEY);
+let compatibleDragState = null;
+
+function readLocalBoolean(key) {
+  try {
+    return localStorage.getItem(key) === 'true';
+  } catch (error) {
+    return false;
+  }
+}
+
+function writeLocalBoolean(key, value) {
+  try {
+    localStorage.setItem(key, value ? 'true' : 'false');
+  } catch (error) {
+    // Preferimos falhar de forma silenciosa para nao bloquear o jogo.
+  }
+}
+
+function isSamsungDragModeEnabled() {
+  return samsungDragEnabled;
+}
+
+function updateSamsungDragButton() {
+  const button = document.getElementById('toggleSamsungDragBtn');
+  if (!button) return;
+
+  button.setAttribute('aria-pressed', samsungDragEnabled ? 'true' : 'false');
+  button.classList.toggle('is-active', samsungDragEnabled);
+  button.title = samsungDragEnabled
+    ? 'Desativar arraste compatível com Samsung Internet'
+    : 'Ativar arraste compatível com Samsung Internet';
+
+  const label = button.querySelector('span');
+  if (label) label.textContent = samsungDragEnabled ? 'Ativo' : 'Inativo';
+}
+
+function refreshSamsungDragMode() {
+  document.body?.classList.toggle('samsung-drag-enabled', samsungDragEnabled);
+
+  document.querySelectorAll('.game-table .card').forEach((cardElement) => {
+    cardElement.draggable = !samsungDragEnabled;
+  });
+
+  if (deckEl) deckEl.draggable = !samsungDragEnabled;
+  updateSamsungDragButton();
+}
+
+function setSamsungDragMode(enabled) {
+  samsungDragEnabled = Boolean(enabled);
+  writeLocalBoolean(SAMSUNG_DRAG_STORAGE_KEY, samsungDragEnabled);
+  refreshSamsungDragMode();
+}
 
 function calculateAdaptiveFanOverlap(container, items, options) {
   if (!container || items.length < 2) return null;
@@ -514,7 +568,7 @@ function createCardElement(card) {
 
   const el = document.createElement('div');
   el.className = 'card';
-  el.draggable = true;
+  el.draggable = !isSamsungDragModeEnabled();
   el.dataset.cardId = card.id;
 
   // --- DEFINIÇÃO DE APARÊNCIA (FRENTE/VERSO) ---
@@ -531,6 +585,11 @@ function createCardElement(card) {
 
   // --- EVENTOS DE ARRASTAR (DRAG & DROP) ---
   el.addEventListener('dragstart', (ev) => {
+    if (isSamsungDragModeEnabled()) {
+      ev.preventDefault();
+      return;
+    }
+
     hideCardTooltip();
     ev.dataTransfer.setData('text/plain', card.id);
     ev.dataTransfer.effectAllowed = "move";
@@ -555,6 +614,7 @@ function createCardElement(card) {
 
   attachBalatroEffect(el);
   attachCardTooltip(el, card);
+  attachCompatiblePointerDrag(el, card.id);
 
   return el;
 }
@@ -949,10 +1009,179 @@ function renderAll() {
  * Define como o Deck, as áreas de jogadores e o cemitério reagem ao
  * arrasto e soltura de cartas ou ações de compra.
  */
+function createCompatibleDragGhost(sourceElement, pointerEvent) {
+  const sourceRect = sourceElement.getBoundingClientRect();
+  const ghost = sourceElement.cloneNode(true);
+
+  ghost.removeAttribute('id');
+  ghost.setAttribute('aria-hidden', 'true');
+  ghost.classList.add('compatible-drag-ghost');
+  ghost.style.width = `${sourceRect.width}px`;
+  ghost.style.height = `${sourceRect.height}px`;
+  ghost.style.left = `${pointerEvent.clientX}px`;
+  ghost.style.top = `${pointerEvent.clientY}px`;
+  document.body.appendChild(ghost);
+
+  return ghost;
+}
+
+function getCompatibleDropzone(clientX, clientY) {
+  if (!compatibleDragState?.ghost) return null;
+
+  compatibleDragState.ghost.style.display = 'none';
+  const elementBelowPointer = document.elementFromPoint(clientX, clientY);
+  compatibleDragState.ghost.style.display = '';
+
+  if (!elementBelowPointer) return null;
+
+  const playerArea = elementBelowPointer.closest('.player-area');
+  if (playerArea && !playerArea.classList.contains('is-empty')) {
+    return playerArea;
+  }
+
+  const graveyardDropzone = elementBelowPointer.closest('#graveyardArea');
+  if (graveyardDropzone) return graveyardDropzone;
+
+  const deckDropzone = elementBelowPointer.closest('#deck');
+  if (deckDropzone) return deckDropzone;
+
+  return null;
+}
+
+function updateCompatibleDropHighlight(dropzone) {
+  if (compatibleDragState?.dropzone === dropzone) return;
+
+  compatibleDragState?.dropzone?.classList.remove('compatible-drop-hover');
+  if (dropzone) dropzone.classList.add('compatible-drop-hover');
+  if (compatibleDragState) compatibleDragState.dropzone = dropzone;
+}
+
+function finishCompatibleDrag() {
+  if (!compatibleDragState) return;
+
+  compatibleDragState.dropzone?.classList.remove('compatible-drop-hover');
+  compatibleDragState.sourceElement?.classList.remove('is-dragging');
+  compatibleDragState.ghost?.remove();
+  compatibleDragState = null;
+
+  document.removeEventListener('pointermove', onCompatiblePointerMove);
+  document.removeEventListener('pointerup', onCompatiblePointerUp);
+  document.removeEventListener('pointercancel', onCompatiblePointerCancel);
+}
+
+function handleCompatibleDrop(dragData, dropzone, wasTap) {
+  if (!dropzone) return;
+
+  if (dropzone.id === 'deck') {
+    if (dragData === 'DECK_DRAW_ACTION') {
+      if (wasTap) drawCard();
+      return;
+    }
+
+    moveCard(dragData, 'deck');
+    return;
+  }
+
+  if (dropzone.id === 'graveyardArea') {
+    if (dragData === 'DECK_DRAW_ACTION') {
+      burnTopCard();
+      return;
+    }
+
+    moveCard(dragData, 'free');
+    return;
+  }
+
+  if (dropzone.classList.contains('player-area')) {
+    const pid = parseInt(dropzone.dataset.player, 10);
+    if (!pid) return;
+
+    if (dragData === 'DECK_DRAW_ACTION') {
+      drawCard(pid);
+      return;
+    }
+
+    moveCard(dragData, 'player', pid);
+  }
+}
+
+function onCompatiblePointerMove(event) {
+  if (!compatibleDragState) return;
+
+  event.preventDefault();
+  const deltaX = event.clientX - compatibleDragState.startX;
+  const deltaY = event.clientY - compatibleDragState.startY;
+  const distance = Math.hypot(deltaX, deltaY);
+
+  if (distance > 6) compatibleDragState.hasMoved = true;
+
+  compatibleDragState.ghost.style.left = `${event.clientX}px`;
+  compatibleDragState.ghost.style.top = `${event.clientY}px`;
+
+  const dropzone = getCompatibleDropzone(event.clientX, event.clientY);
+  updateCompatibleDropHighlight(dropzone);
+}
+
+function onCompatiblePointerUp(event) {
+  if (!compatibleDragState) return;
+
+  event.preventDefault();
+  const { data, dropzone, hasMoved } = compatibleDragState;
+  const finalDropzone = dropzone || getCompatibleDropzone(event.clientX, event.clientY);
+  finishCompatibleDrag();
+  handleCompatibleDrop(data, finalDropzone, !hasMoved);
+}
+
+function onCompatiblePointerCancel() {
+  finishCompatibleDrag();
+}
+
+function startCompatiblePointerDrag(sourceElement, dragData, event) {
+  if (!isSamsungDragModeEnabled() || (event.button !== undefined && event.button !== 0)) return;
+
+  event.preventDefault();
+  hideCardTooltip();
+  finishCompatibleDrag();
+
+  compatibleDragState = {
+    data: dragData,
+    dropzone: null,
+    ghost: createCompatibleDragGhost(sourceElement, event),
+    hasMoved: false,
+    sourceElement,
+    startX: event.clientX,
+    startY: event.clientY
+  };
+
+  sourceElement.classList.add('is-dragging');
+  sourceElement.setPointerCapture?.(event.pointerId);
+  sourceElement.addEventListener('lostpointercapture', () => {
+    sourceElement.classList.remove('is-dragging');
+  }, { once: true });
+
+  document.addEventListener('pointermove', onCompatiblePointerMove, { passive: false });
+  document.addEventListener('pointerup', onCompatiblePointerUp, { passive: false });
+  document.addEventListener('pointercancel', onCompatiblePointerCancel, { passive: false });
+}
+
+function attachCompatiblePointerDrag(element, dragData) {
+  if (!element || element.dataset.compatibleDragBound === 'true') return;
+
+  element.dataset.compatibleDragBound = 'true';
+  element.addEventListener('pointerdown', (event) => {
+    startCompatiblePointerDrag(element, dragData, event);
+  }, { passive: false });
+}
+
 function setupDropzones() {
   // --- CONFIGURAÇÃO DO DECK (BARALHO) ---
   // Inicia a ação de compra ao arrastar o Deck
   deckEl.addEventListener('dragstart', (e) => {
+    if (isSamsungDragModeEnabled()) {
+      e.preventDefault();
+      return;
+    }
+
     hideCardTooltip();
     e.dataTransfer.setData('text/plain', 'DECK_DRAW_ACTION');
   });
@@ -966,7 +1195,9 @@ function setupDropzones() {
   };
 
   // Clique simples no Deck compra uma carta para o jogador local
-  deckEl.onclick = () => drawCard();
+  deckEl.onclick = () => {
+    if (!isSamsungDragModeEnabled()) drawCard();
+  };
   deckEl.onkeydown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -1010,6 +1241,9 @@ function setupDropzones() {
       moveCard(data, 'free');
     }
   };
+
+  attachCompatiblePointerDrag(deckEl, 'DECK_DRAW_ACTION');
+  refreshSamsungDragMode();
 }
 
 // =======================================================
@@ -1556,6 +1790,7 @@ function setupUI() {
   if (settingsBtn && settingsModal) {
     settingsBtn.onclick = () => {
       playSound('click');
+      updateSamsungDragButton();
       settingsModal.style.display = 'flex';
     };
     if (closeSettingsBtn) {
@@ -1567,6 +1802,15 @@ function setupUI() {
   }
 
   // Configuração de Efeitos Balatro no Deck Central
+  const toggleSamsungDragBtn = document.getElementById('toggleSamsungDragBtn');
+  if (toggleSamsungDragBtn) {
+    toggleSamsungDragBtn.onclick = () => {
+      playSound('click');
+      setSamsungDragMode(!isSamsungDragModeEnabled());
+    };
+    updateSamsungDragButton();
+  }
+
   const deckContainer = document.getElementById('deck');
   attachBalatroEffect(deckContainer, true);
   attachElementTooltip(deckContainer, 'Baralho');

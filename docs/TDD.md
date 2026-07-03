@@ -1214,7 +1214,26 @@ Essa estrategia evita duplicacao visual, mas recria muitos elementos em cada upd
 - adiciona duplo clique para devolver ao deck;
 - aplica efeito Balatro/tilt.
 
-#### 11.3.1 Leques adaptativos da mao e do cemiterio
+#### 11.3.1 Modo compativel de arraste
+
+O modo casual mantem o drag and drop HTML5 nativo como comportamento padrao. Esse fluxo continua sendo o mais fiel no Chrome, porque preserva a pre-visualizacao nativa da carta, a opacidade durante o arraste e o comportamento esperado de desktop/mobile quando o navegador implementa bem a API.
+
+Para dispositivos e navegadores com suporte inconsistente, especialmente Samsung Internet em celulares, existe uma opcao manual no modal de configuracoes:
+
+- botao `Compat.` (`#toggleSamsungDragBtn`);
+- estado salvo em `localStorage` com a chave `coupMasterSamsungDragEnabled`;
+- padrao sempre desativado;
+- quando ativo, adiciona `body.samsung-drag-enabled`;
+- desativa `draggable` das cartas e do deck para evitar conflito com o HTML5 drag nativo;
+- usa Pointer Events para criar um clone visual `.compatible-drag-ghost` centralizado no dedo/mouse;
+- identifica o destino real com `document.elementFromPoint()`;
+- destaca o alvo atual com `.compatible-drop-hover`;
+- suporta mover cartas para jogador, cemiterio ou deck;
+- suporta toque/arraste do deck para comprar carta ou queimar carta no cemiterio.
+
+Esse modo e uma camada de compatibilidade opt-in, nao um substituto completo do fluxo principal. Qualquer melhoria futura de drag/drop deve preservar o HTML5 drag como padrao e alterar o fallback apenas quando a opcao estiver ativa.
+
+#### 11.3.2 Leques adaptativos da mao e do cemiterio
 
 `calculateAdaptiveFanOverlap()` concentra a matematica compartilhada. `updateHandFanLayout()` e `updateGraveyardFanLayout()` aplicam o resultado em cada superficie:
 
@@ -1425,6 +1444,20 @@ Pontos importantes:
 - Existe um `@font-face` correto no inicio com `../assets/...`.
 - Existe um segundo `@font-face` mais abaixo com `assets/fonts/...`, relativo ao CSS, que provavelmente aponta para caminho incorreto (`css/assets/...`).
 - Tambem referencia `.woff` no inicio, arquivo nao encontrado no repositorio.
+
+### 15.3 `css/compat.css`
+
+Folha global carregada nas telas principais (`login.html`, `lobby.html`, `index.html`, `ranked-waiting.html`, `ranked.html`, `privacy.html` e `terms.html`).
+
+Responsabilidades:
+
+- aplicar `forced-color-adjust: none` de forma global para reduzir interferencias de navegadores/modos que forcam alto contraste;
+- declarar `color-scheme: dark` no documento;
+- remover highlight azul de toque com `-webkit-tap-highlight-color: transparent`;
+- reforcar background e texto dentro de `@media (forced-colors: active)`;
+- proteger controles, imagens, SVGs, canvas, videos e iframes contra recoloracao automatica.
+
+Essa folha existe para preservar a identidade visual do Coup Master em navegadores que alteram cores agressivamente, com foco especial no Samsung Internet. Ela deve continuar pequena e global; ajustes especificos de layout pertencem aos CSSs de cada tela/modo.
 
 ## 16. Assets
 

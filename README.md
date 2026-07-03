@@ -367,6 +367,12 @@ Durante o desenvolvimento deste projeto, foram aplicados conceitos como:
 - Design de sistemas multiplayer em tempo real
 - Gerenciamento de autenticação e persistência com Firebase
 
+## Compatibilidade
+
+O modo casual usa o drag and drop nativo do navegador como comportamento padrão. Para celulares com Samsung Internet, existe uma opção manual em `Configurações > Compat.` que ativa um fluxo alternativo de arraste baseado em Pointer Events. Essa opção vem desativada por padrão para preservar o comportamento atual no Google Chrome.
+
+O projeto também carrega `css/compat.css` nas telas principais para reduzir interferências de alto contraste forçado e recoloração automática em navegadores móveis.
+
 ## 🚀 Próximas Atualizações (Roadmap)
 
 - [ ] **Custom Deck Engine:** Sistema de importação de baralhos via JSON personalizado, permitindo temas e regras totalmente customizáveis.

@@ -1118,6 +1118,12 @@ h2 {
     line-height: 1;
 }
 
+#settingsModal .settings-control-btn.is-active {
+    border-color: rgba(30, 144, 255, 0.9);
+    color: #ffffff;
+    box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.25), 0 0 12px rgba(30, 144, 255, 0.16);
+}
+
 #openDeckConfigBtn {
     min-height: 36px;
     font-size: 14px;
@@ -1539,6 +1545,28 @@ h2 {
 
 .game-table .card:active {
     cursor: grabbing;
+}
+
+.samsung-drag-enabled .game-table .card,
+.samsung-drag-enabled .game-table .deck {
+    touch-action: none;
+    -webkit-user-drag: none;
+}
+
+.compatible-drag-ghost {
+    position: fixed;
+    z-index: 30000;
+    pointer-events: none;
+    opacity: 0.88;
+    transform: translate3d(-50%, -50%, 0) scale(1.04);
+    transform-origin: center;
+    filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.55));
+}
+
+.compatible-drop-hover {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+    box-shadow: 0 0 18px rgba(30, 144, 255, 0.35) !important;
 }
 
 .game-table .card.back {
