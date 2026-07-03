@@ -1095,26 +1095,28 @@ h2 {
 }
 
 #settingsModal .settings-control-btn {
-    --settings-control-width: 132px;
+    --settings-control-width: 120px;
     width: var(--settings-control-width);
     min-width: var(--settings-control-width);
     max-width: var(--settings-control-width);
-    min-height: 46px;
+    min-height: 42px;
     padding: 8px 12px;
-    gap: 8px;
+    gap: 0;
     justify-content: center;
     flex: 0 0 var(--settings-control-width);
     box-sizing: border-box;
+    text-align: center;
 }
 
 #settingsModal .settings-control-btn img {
-    flex: 0 0 auto;
+    display: none;
 }
 
 #settingsModal .settings-control-btn span {
-    min-width: 52px;
+    width: 100%;
+    min-width: 0;
     margin: 0;
-    text-align: left;
+    text-align: center;
     line-height: 1;
 }
 
@@ -1161,11 +1163,11 @@ h2 {
         --settings-control-width: 104px;
         min-height: 40px;
         padding: 7px 8px;
-        gap: 6px;
+        gap: 0;
     }
 
     #settingsModal .settings-control-btn span {
-        min-width: 44px;
+        min-width: 0;
     }
 
     #openDeckConfigBtn {

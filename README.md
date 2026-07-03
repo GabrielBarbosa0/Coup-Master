@@ -369,7 +369,7 @@ Durante o desenvolvimento deste projeto, foram aplicados conceitos como:
 
 ## Compatibilidade
 
-O modo casual usa o drag and drop nativo do navegador como comportamento padrão. Para celulares com Samsung Internet, existe uma opção manual em `Configurações > Compat.` que ativa um fluxo alternativo de arraste baseado em Pointer Events. Essa opção vem desativada por padrão para preservar o comportamento atual no Google Chrome.
+O modo casual usa o drag and drop nativo do navegador como comportamento padrão. Para celulares com Samsung Internet, existe uma opção manual em `Configurações > Compatibilidade` que ativa um fluxo alternativo de arraste baseado em Pointer Events. Essa opção vem desativada por padrão para preservar o comportamento atual no Google Chrome.
 
 O projeto também carrega `css/compat.css` nas telas principais para reduzir interferências de alto contraste forçado e recoloração automática em navegadores móveis.
 

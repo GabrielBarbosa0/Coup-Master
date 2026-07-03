@@ -1220,16 +1220,17 @@ O modo casual mantem o drag and drop HTML5 nativo como comportamento padrao. Ess
 
 Para dispositivos e navegadores com suporte inconsistente, especialmente Samsung Internet em celulares, existe uma opcao manual no modal de configuracoes:
 
-- botao `Compat.` (`#toggleSamsungDragBtn`);
+- botao `Compatibilidade` (`#toggleSamsungDragBtn`);
 - estado salvo em `localStorage` com a chave `coupMasterSamsungDragEnabled`;
 - padrao sempre desativado;
 - quando ativo, adiciona `body.samsung-drag-enabled`;
 - desativa `draggable` das cartas e do deck para evitar conflito com o HTML5 drag nativo;
-- usa Pointer Events para criar um clone visual `.compatible-drag-ghost` centralizado no dedo/mouse;
+- usa Pointer Events para criar um clone visual `.compatible-drag-ghost` centralizado no dedo/mouse, preservando tamanho e estilos calculados da carta original;
 - identifica o destino real com `document.elementFromPoint()`;
 - destaca o alvo atual com `.compatible-drop-hover`;
 - suporta mover cartas para jogador, cemiterio ou deck;
-- suporta toque/arraste do deck para comprar carta ou queimar carta no cemiterio.
+- suporta toque/arraste do deck para comprar carta ou queimar carta no cemiterio;
+- mantem o duplo clique das cartas funcionando, porque o fallback so ativa o clone visual apos movimento real do ponteiro.
 
 Esse modo e uma camada de compatibilidade opt-in, nao um substituto completo do fluxo principal. Qualquer melhoria futura de drag/drop deve preservar o HTML5 drag como padrao e alterar o fallback apenas quando a opcao estiver ativa.
 

@@ -1011,6 +1011,7 @@ function renderAll() {
  */
 function createCompatibleDragGhost(sourceElement, pointerEvent) {
   const sourceRect = sourceElement.getBoundingClientRect();
+  const computedStyle = window.getComputedStyle(sourceElement);
   const ghost = sourceElement.cloneNode(true);
 
   ghost.removeAttribute('id');
@@ -1018,11 +1019,36 @@ function createCompatibleDragGhost(sourceElement, pointerEvent) {
   ghost.classList.add('compatible-drag-ghost');
   ghost.style.width = `${sourceRect.width}px`;
   ghost.style.height = `${sourceRect.height}px`;
+  ghost.style.aspectRatio = computedStyle.aspectRatio;
+  ghost.style.backgroundImage = computedStyle.backgroundImage;
+  ghost.style.backgroundColor = computedStyle.backgroundColor;
+  ghost.style.backgroundSize = computedStyle.backgroundSize;
+  ghost.style.backgroundPosition = computedStyle.backgroundPosition;
+  ghost.style.backgroundRepeat = computedStyle.backgroundRepeat;
+  ghost.style.borderRadius = computedStyle.borderRadius;
+  ghost.style.border = computedStyle.border;
+  ghost.style.overflow = 'hidden';
   ghost.style.left = `${pointerEvent.clientX}px`;
   ghost.style.top = `${pointerEvent.clientY}px`;
+  ghost.style.setProperty('--tilt-x', '0deg');
+  ghost.style.setProperty('--tilt-y', '0deg');
+  ghost.style.setProperty('--card-scale', '1');
+  ghost.style.setProperty('--card-lift', '0px');
+  ghost.style.setProperty('--card-base-shift', '0px');
+  ghost.style.setProperty('--card-base-rotation', '0deg');
   document.body.appendChild(ghost);
 
   return ghost;
+}
+
+function activateCompatibleDrag(event) {
+  if (!compatibleDragState || compatibleDragState.activated) return;
+
+  event.preventDefault();
+  hideCardTooltip();
+  compatibleDragState.ghost = createCompatibleDragGhost(compatibleDragState.sourceElement, event);
+  compatibleDragState.activated = true;
+  compatibleDragState.sourceElement?.classList.add('is-dragging');
 }
 
 function getCompatibleDropzone(clientX, clientY) {
@@ -1108,12 +1134,18 @@ function handleCompatibleDrop(dragData, dropzone, wasTap) {
 function onCompatiblePointerMove(event) {
   if (!compatibleDragState) return;
 
-  event.preventDefault();
   const deltaX = event.clientX - compatibleDragState.startX;
   const deltaY = event.clientY - compatibleDragState.startY;
   const distance = Math.hypot(deltaX, deltaY);
 
-  if (distance > 6) compatibleDragState.hasMoved = true;
+  if (distance > 6) {
+    compatibleDragState.hasMoved = true;
+    activateCompatibleDrag(event);
+  }
+
+  if (!compatibleDragState?.activated || !compatibleDragState.ghost) return;
+
+  event.preventDefault();
 
   compatibleDragState.ghost.style.left = `${event.clientX}px`;
   compatibleDragState.ghost.style.top = `${event.clientY}px`;
@@ -1125,11 +1157,17 @@ function onCompatiblePointerMove(event) {
 function onCompatiblePointerUp(event) {
   if (!compatibleDragState) return;
 
-  event.preventDefault();
-  const { data, dropzone, hasMoved } = compatibleDragState;
-  const finalDropzone = dropzone || getCompatibleDropzone(event.clientX, event.clientY);
+  const { data, dropzone, activated, hasMoved } = compatibleDragState;
+  const finalDropzone = activated ? (dropzone || getCompatibleDropzone(event.clientX, event.clientY)) : null;
   finishCompatibleDrag();
-  handleCompatibleDrop(data, finalDropzone, !hasMoved);
+
+  if (!activated) {
+    if (data === 'DECK_DRAW_ACTION' && !hasMoved) drawCard();
+    return;
+  }
+
+  event.preventDefault();
+  handleCompatibleDrop(data, finalDropzone, false);
 }
 
 function onCompatiblePointerCancel() {
@@ -1137,23 +1175,25 @@ function onCompatiblePointerCancel() {
 }
 
 function startCompatiblePointerDrag(sourceElement, dragData, event) {
-  if (!isSamsungDragModeEnabled() || (event.button !== undefined && event.button !== 0)) return;
+  if (
+    !isSamsungDragModeEnabled()
+    || (event.button !== undefined && event.button !== 0)
+    || event.detail > 1
+  ) return;
 
-  event.preventDefault();
-  hideCardTooltip();
   finishCompatibleDrag();
 
   compatibleDragState = {
+    activated: false,
     data: dragData,
     dropzone: null,
-    ghost: createCompatibleDragGhost(sourceElement, event),
+    ghost: null,
     hasMoved: false,
     sourceElement,
     startX: event.clientX,
     startY: event.clientY
   };
 
-  sourceElement.classList.add('is-dragging');
   sourceElement.setPointerCapture?.(event.pointerId);
   sourceElement.addEventListener('lostpointercapture', () => {
     sourceElement.classList.remove('is-dragging');
@@ -2138,21 +2178,16 @@ const applyReligionVisibility = (shouldHide) => {
   const body = document.body;
 
   if (toggleReligionBtn) {
-    const img = toggleReligionBtn.querySelector('img');
     const span = toggleReligionBtn.querySelector('span');
 
     if (shouldHide) {
       // Estado OCULTO
       body.classList.add('hide-religion');
-      if (span) span.textContent = "Oculto";
-      toggleReligionBtn.style.opacity = '0.6';
-      if (img) img.src = 'assets/img/icons/visibility_off.svg';
+      if (span) span.textContent = "Invisível";
     } else {
       // Estado VISÍVEL
       body.classList.remove('hide-religion');
       if (span) span.textContent = "Visível";
-      toggleReligionBtn.style.opacity = '1';
-      if (img) img.src = 'assets/img/icons/eye.svg';
     }
   } else {
     // Fallback caso o botão não exista mas a configuração precise ser aplicada
