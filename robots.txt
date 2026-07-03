@@ -11,6 +11,8 @@ Disallow: /.git/
 Allow: /index.html
 Allow: /login.html
 Allow: /lobby.html
+Allow: /privacy.html
+Allow: /terms.html
 Allow: /img/
 
 # Indica o caminho do mapa do site para o Google

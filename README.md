@@ -164,6 +164,7 @@ Coup-Master/
 │   ├── 📂 sounds/              # Trilha sonora (bgm) e efeitos sonoros (vfx)
 ├── 📂 css/                     # Estilização e folhas de estilo
 │   ├── lobby.css               # Design da interface do menu e salas
+│   ├── legal.css               # Layout das páginas legais públicas
 │   ├── casual-mode.css         # Layout do tabuleiro 2D e responsividade mobile
 │   └── ranked-mode.css         # Layout dedicado do modo ranqueado
 ├── 📂 js/                      # Núcleo lógico do ecossistema JavaScript
@@ -185,6 +186,8 @@ Coup-Master/
 ├── 📄 index.html               # Tabuleiro principal do jogo em modo normal 2D
 ├── 📄 login.html               # Tela de autenticação Google/visitante
 ├── 📄 lobby.html               # Perfil autenticado, criação e entrada em salas
+├── 📄 privacy.html             # Política de Privacidade
+├── 📄 terms.html               # Termos de Serviço
 └── 📄 README.md                # Documentação técnica do projeto
 
 ```
@@ -197,6 +200,12 @@ Coup-Master/
 * **`js/gamemode/casual/`**: Concentra a engine visual da mesa bidimensional através do script `board-renderer.js`, responsável por manipular o DOM de forma reativa conforme as atualizações da partida.
 * **`js/gamemode/ranked/`**: Concentra o fluxo automatizado do modo ranqueado, incluindo regras, máquina de estados, renderização e integração Firebase.
 * **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
+
+### Documentos legais
+
+O projeto possui páginas públicas para a **Política de Privacidade** (`privacy.html`) e os **Termos de Serviço** (`terms.html`). Os links ficam no rodapé de `login.html` e `lobby.html`, fora das telas de partida e da sala de espera ranqueada, para manter o jogo limpo e ainda permitir consulta antes da entrada em salas.
+
+Esses textos são uma base operacional para o beta do Coup Master e devem passar por revisão jurídica antes de uso comercial ou coleta ampliada de dados.
 
 ---
 

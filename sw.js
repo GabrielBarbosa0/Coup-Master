@@ -1,9 +1,11 @@
-const CACHE_NAME = 'coup-master-pwa-v86';
+const CACHE_NAME = 'coup-master-pwa-v87';
 
 const APP_SHELL = [
   './',
   './login.html',
   './lobby.html',
+  './privacy.html',
+  './terms.html',
   './index.html',
   './ranked-waiting.html',
   './ranked.html',
@@ -11,6 +13,7 @@ const APP_SHELL = [
   './css/loading.css',
   './css/chat.css',
   './css/lobby.css',
+  './css/legal.css',
   './css/casual-mode.css',
   './js/pwa/pwa.js',
   './js/firebase/firebase.js',
@@ -34,6 +37,7 @@ const APP_SHELL = [
   './assets/img/icons/chat.svg',
   './assets/img/icons/music_note.svg',
   './assets/img/icons/feedback.svg',
+  './assets/img/icons/gavel.svg',
   './assets/img/icons/parchment.svg',
   './assets/img/icons/info.svg',
   './assets/img/icons/ghost.svg',

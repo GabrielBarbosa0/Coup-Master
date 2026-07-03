@@ -28,6 +28,20 @@
     </url>
 
     <url>
+        <loc>https://gabrielbarbosa0.github.io/Coup-Master/privacy.html</loc>
+        <lastmod>2026-07-03</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.4</priority>
+    </url>
+
+    <url>
+        <loc>https://gabrielbarbosa0.github.io/Coup-Master/terms.html</loc>
+        <lastmod>2026-07-03</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.4</priority>
+    </url>
+
+    <url>
         <loc>https://gabrielbarbosa0.github.io/Coup-Master/img/dlc3-actions.jpg</loc>
         <image:image>
             <image:loc>https://gabrielbarbosa0.github.io/Coup-Master/img/dlc3-actions.jpg</image:loc>

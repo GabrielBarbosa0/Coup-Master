@@ -88,13 +88,15 @@ flowchart LR
   Ranked --> RankedState
 ```
 
-O frontend tem cinco paginas principais:
+O frontend tem sete paginas principais:
 
 - `login.html`: tela dedicada de autenticacao com Google ou visitante anonimo.
 - `lobby.html`: perfil autenticado, criacao e entrada em salas.
 - `index.html`: tabuleiro do modo casual.
 - `ranked-waiting.html`: sala de espera/prontidao do modo ranqueado.
 - `ranked.html`: mesa dedicada ao modo ranqueado automatizado.
+- `privacy.html`: Politica de Privacidade publica, acessivel antes do login e do lobby.
+- `terms.html`: Termos de Servico publicos, acessiveis antes do login e do lobby.
 
 Os scripts sao carregados como arquivos globais com `defer`. Eles dependem da ordem no HTML, nao de imports ES Modules.
 
@@ -186,6 +188,8 @@ Coup-Master/
   index.html
   login.html
   lobby.html
+  privacy.html
+  terms.html
   ranked-waiting.html
   ranked.html
   manifest.webmanifest
@@ -1492,7 +1496,8 @@ Arquivos relacionados:
 Estado atual:
 
 - `robots.txt` aponta para sitemap.
-- `robots.txt` permite `/index.html`, `/lobby.html` e `/img/`.
+- `robots.txt` permite `/index.html`, `/login.html`, `/lobby.html`, `/privacy.html`, `/terms.html` e `/img/`.
+- `privacy.html` e `terms.html` estao no sitemap e sao linkados no rodape de `login.html` e `lobby.html`.
 - O projeto real usa `assets/img`, nao `/img`.
 - `sitemap.xml` referencia URLs em `/img/asilo.png` e `/img/dlc3-actions.jpg`, que nao correspondem aos assets reais.
 - `index.html` tem `og:image` com caminho incorreto.
