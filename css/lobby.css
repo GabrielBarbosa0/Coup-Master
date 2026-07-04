@@ -177,7 +177,6 @@ body::-webkit-scrollbar {
     width: 90%;
     max-width: 400px;
     padding: 26px 30px;
-    margin: 20px 0;
 
     /** * TRAVAS DE RESPONSIVIDADE VERTICAL:
      * Impede que a caixa estoure em telas baixas e oculta a barra de scroll 
@@ -1083,7 +1082,7 @@ input {
     padding: 8px 12px;
     border: 1px solid rgba(230, 238, 246, 0.13);
     border-radius: 8px;
-    background: rgba(23, 29, 38, 0.74);
+    background: rgba(35, 42, 51, 0.9);
     color: rgba(230, 238, 246, 0.74);
     font-size: 10px;
     font-weight: 800;
@@ -1109,10 +1108,163 @@ input {
     opacity: 0.78;
 }
 
+.lobby-legal-links {
+    position: static;
+    z-index: 1;
+    width: min(92vw, 360px);
+    margin: 18px auto 0;
+    transform: none;
+}
+
+.lobby-legal-links .legal-footer-link {
+    flex: 1 1 0;
+    max-width: 150px;
+}
+
 @media (max-height: 640px) {
-    .legal-footer {
+    .legal-footer:not(.lobby-legal-links) {
         position: static;
         margin: -6px auto 14px;
         transform: none;
+    }
+}
+
+/* Lobby autenticado: mantem card e links legais no fluxo, sem margem propria na caixa. */
+body.lobby-page {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    padding: clamp(10px, 2dvh, 22px) 12px;
+    gap: clamp(8px, 1.6dvh, 18px);
+    overflow: hidden;
+}
+
+.lobby-page .lobby-box {
+    width: min(92vw, 500px);
+    max-width: 400px;
+    max-height: calc(100dvh - 86px);
+    margin: 0;
+    padding: clamp(18px, 2.7dvh, 26px) clamp(22px, 3vw, 30px);
+}
+
+.lobby-page h1 {
+    font-size: 40px;
+    line-height: 1.35;
+    margin-bottom: clamp(8px, 1.5dvh, 16px);
+}
+
+.lobby-page #user-info {
+    margin-bottom: clamp(12px, 1.8dvh, 18px);
+}
+
+.lobby-page #user-info img {
+    width: clamp(52px, 6.5dvh, 68px);
+    height: clamp(52px, 6.5dvh, 68px);
+    margin-bottom: clamp(6px, 1dvh, 10px);
+}
+
+.lobby-page .welcome-text {
+    margin: 4px 0 clamp(10px, 1.5dvh, 14px);
+    font-size: clamp(14px, 1.7dvh, 16px);
+}
+
+.lobby-page #logout-btn,
+.lobby-page #join-room-btn,
+.lobby-page #create-room-btn {
+    min-height: clamp(42px, 5.2dvh, 50px);
+}
+
+.lobby-page #room-actions {
+    margin-top: clamp(8px, 1.5dvh, 12px);
+    padding-top: clamp(12px, 2dvh, 18px);
+}
+
+.lobby-page .game-mode-selector {
+    margin-bottom: clamp(8px, 1.4dvh, 12px);
+}
+
+.lobby-page .game-mode-selector legend {
+    margin-bottom: clamp(6px, 1dvh, 8px);
+}
+
+.lobby-page .game-mode-option-content {
+    min-height: clamp(48px, 6.8dvh, 58px);
+    padding: clamp(8px, 1.2dvh, 10px) 8px;
+}
+
+.lobby-page .ranked-mode-note {
+    margin: -2px 0 clamp(8px, 1.4dvh, 12px);
+}
+
+.lobby-page input {
+    margin-bottom: clamp(8px, 1.2dvh, 12px);
+}
+
+.lobby-page .room-actions button {
+    margin-bottom: clamp(8px, 1.2dvh, 10px);
+}
+
+.lobby-page .lobby-legal-links {
+    flex-shrink: 0;
+    margin: 0 auto;
+}
+
+@media (max-height: 760px) {
+    body.lobby-page {
+        padding-block: 10px;
+        gap: 10px;
+    }
+
+    .lobby-page .lobby-box {
+        max-height: calc(100dvh - 72px);
+        padding-block: 18px;
+    }
+}
+
+@media (max-height: 680px) {
+    body.lobby-page {
+        padding-block: 8px;
+        gap: 8px;
+    }
+
+    .lobby-page .lobby-box {
+        max-height: calc(100dvh - 64px);
+        padding: 14px 24px;
+    }
+
+    .lobby-page h1 {
+        font-size: 36px;
+        margin-bottom: 6px;
+    }
+
+    .lobby-page #user-info img {
+        width: 48px;
+        height: 48px;
+    }
+
+    .lobby-page .welcome-text,
+    .lobby-page{
+        font-size: 12px;
+    }
+
+    .lobby-page .game-mode-option-content {
+        min-height: 44px;
+    }
+
+    .lobby-page #logout-btn,
+    .lobby-page #join-room-btn,
+    .lobby-page #create-room-btn {
+        min-height: 40px;
+    }
+}
+
+@media (max-height: 560px) {
+    body.lobby-page {
+        justify-content: flex-start;
+        overflow-y: auto;
+    }
+
+    .lobby-page .lobby-box {
+        max-height: none;
     }
 }
