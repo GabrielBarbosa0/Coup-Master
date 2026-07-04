@@ -15,6 +15,11 @@ const playerStatsModal = document.getElementById('playerStatsModal');
 const closePlayerStatsModalBtn = document.getElementById('closePlayerStatsModalBtn');
 const playerStatsLoading = document.getElementById('playerStatsLoading');
 const playerStatsBody = document.getElementById('playerStatsBody');
+const leaderboardBtn = document.getElementById('leaderboardBtn');
+const leaderboardModal = document.getElementById('leaderboardModal');
+const closeLeaderboardModalBtn = document.getElementById('closeLeaderboardModalBtn');
+const leaderboardLoading = document.getElementById('leaderboardLoading');
+const leaderboardList = document.getElementById('leaderboardList');
 
 let currentLobbyUser = null;
 
@@ -158,6 +163,15 @@ function formatPercent(value) {
 function numberValue(value) {
     const number = Number(value);
     return Number.isFinite(number) ? number : 0;
+}
+
+function statNumberValue(value) {
+    if (typeof value === 'string') {
+        const match = value.match(/-?\d+(\.\d+)?/);
+        return match ? Number(match[0]) : 0;
+    }
+
+    return numberValue(value);
 }
 
 function getDefaultRankedStats(user) {
@@ -547,6 +561,131 @@ function renderPlayerStats(stats) {
     renderAchievements(merged);
 }
 
+function firstStatValue(source, keys, fallback = 0) {
+    if (!source) return fallback;
+
+    for (const key of keys) {
+        if (source[key] !== undefined && source[key] !== null) return source[key];
+    }
+
+    return fallback;
+}
+
+function normalizeLeaderboardEntry(uid, stats) {
+    const profileName = stats?.profile?.name || stats?.profile?.displayName;
+    const name = firstStatValue(stats, ['name', 'displayName', 'playerName', 'nome'], profileName || 'Jogador');
+    const games = statNumberValue(firstStatValue(stats, ['games', 'matches', 'played', 'jogos'], 0));
+    const wins = statNumberValue(firstStatValue(stats, ['wins', 'victories', 'vitorias', 'vitórias'], 0));
+    const losses = statNumberValue(firstStatValue(
+        stats,
+        ['losses', 'defeats', 'derrotas'],
+        Math.max(0, games - wins)
+    ));
+    const rawWinRate = firstStatValue(stats, ['winRate', 'taxaVitoria', 'taxaDeVitoria'], games ? wins / games : 0);
+    const winRateNumber = statNumberValue(rawWinRate);
+    const winRate = winRateNumber > 1 ? winRateNumber / 100 : winRateNumber;
+    const rankScore = statNumberValue(firstStatValue(stats, ['rankScore', 'score', 'points', 'pontos', 'rating'], 0));
+    const bestWinStreak = statNumberValue(firstStatValue(
+        stats,
+        ['bestWinStreak', 'bestStreak', 'maiorSequencia', 'maiorSequência'],
+        0
+    ));
+
+    return {
+        uid,
+        name,
+        games,
+        wins,
+        losses,
+        winRate,
+        rankScore,
+        bestWinStreak
+    };
+}
+
+function renderLeaderboard(entries) {
+    if (!leaderboardList) return;
+    leaderboardList.innerHTML = '';
+
+    if (!entries.length) {
+        const empty = document.createElement('li');
+        empty.className = 'leaderboard-empty';
+        empty.textContent = 'Nenhum jogador ranqueado encontrado ainda.';
+        leaderboardList.appendChild(empty);
+        leaderboardList.hidden = false;
+        return;
+    }
+
+    entries.forEach((entry, index) => {
+        const row = document.createElement('li');
+        row.className = `leaderboard-row${index < 3 ? ' is-top' : ''}`;
+
+        const rank = document.createElement('span');
+        rank.className = 'leaderboard-rank';
+        rank.textContent = String(index + 1);
+
+        const player = document.createElement('div');
+        player.className = 'leaderboard-player';
+
+        const playerName = document.createElement('strong');
+        playerName.textContent = entry.name || 'Jogador';
+
+        const playerSummary = document.createElement('small');
+        playerSummary.textContent = `${entry.games} jogo(s) disputado(s)`;
+
+        player.append(playerName, playerSummary);
+
+        const score = document.createElement('strong');
+        score.className = 'leaderboard-score';
+        score.textContent = `${entry.rankScore} pts`;
+
+        const metrics = document.createElement('div');
+        metrics.className = 'leaderboard-metrics';
+
+        [
+            ['Taxa', formatPercent(entry.winRate)],
+            ['Jogos', entry.games],
+            ['Vitórias', entry.wins],
+            ['Derrotas', entry.losses],
+            ['Melhor seq.', entry.bestWinStreak]
+        ].forEach(([label, value]) => {
+            const metric = document.createElement('span');
+            const metricLabel = document.createElement('em');
+            const metricValue = document.createElement('strong');
+
+            metricLabel.textContent = label;
+            metricValue.textContent = String(value);
+            metric.append(metricLabel, metricValue);
+            metrics.appendChild(metric);
+        });
+
+        row.append(rank, player, score, metrics);
+        leaderboardList.appendChild(row);
+    });
+
+    leaderboardList.hidden = false;
+}
+
+function fetchLeaderboardEntries() {
+    return db.ref('rankedStats').once('value').then((snapshot) => {
+        const entries = [];
+
+        snapshot.forEach((child) => {
+            const entry = normalizeLeaderboardEntry(child.key, child.val());
+            if (entry.games > 0 || entry.rankScore > 0) entries.push(entry);
+        });
+
+        return entries
+            .sort((a, b) => (
+                b.rankScore - a.rankScore ||
+                b.wins - a.wins ||
+                b.games - a.games ||
+                a.name.localeCompare(b.name)
+            ))
+            .slice(0, 50);
+    });
+}
+
 function openPlayerStatsModal() {
     if (!playerStatsModal || !currentLobbyUser) return;
     playerStatsModal.style.display = 'flex';
@@ -573,6 +712,36 @@ function closePlayerStatsModal() {
     if (playerStatsModal) playerStatsModal.style.display = 'none';
 }
 
+function openLeaderboardModal() {
+    if (!leaderboardModal) return;
+
+    leaderboardModal.style.display = 'flex';
+    if (leaderboardLoading) {
+        leaderboardLoading.hidden = false;
+        leaderboardLoading.textContent = 'Carregando classificação...';
+    }
+    if (leaderboardList) {
+        leaderboardList.hidden = true;
+        leaderboardList.innerHTML = '';
+    }
+
+    fetchLeaderboardEntries()
+        .then((entries) => {
+            if (leaderboardLoading) leaderboardLoading.hidden = true;
+            renderLeaderboard(entries);
+        })
+        .catch(() => {
+            if (leaderboardLoading) {
+                leaderboardLoading.hidden = false;
+                leaderboardLoading.textContent = 'Não foi possível carregar a classificação.';
+            }
+        });
+}
+
+function closeLeaderboardModal() {
+    if (leaderboardModal) leaderboardModal.style.display = 'none';
+}
+
 if (userPhotoImg) {
     userPhotoImg.addEventListener('click', openPlayerStatsModal);
     userPhotoImg.addEventListener('keydown', (event) => {
@@ -586,6 +755,16 @@ if (userPhotoImg) {
 closePlayerStatsModalBtn?.addEventListener('click', closePlayerStatsModal);
 playerStatsModal?.addEventListener('click', (event) => {
     if (event.target === playerStatsModal) closePlayerStatsModal();
+});
+
+leaderboardBtn?.addEventListener('click', openLeaderboardModal);
+closeLeaderboardModalBtn?.addEventListener('click', closeLeaderboardModal);
+leaderboardModal?.addEventListener('click', (event) => {
+    if (event.target === leaderboardModal) closeLeaderboardModal();
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeLeaderboardModal();
 });
 
 /**
