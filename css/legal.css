@@ -74,6 +74,18 @@ body.legal-page::-webkit-scrollbar-thumb {
     transform: translateY(-1px);
 }
 
+.legal-back-icon {
+    width: 38px;
+    min-width: 38px;
+    padding: 0;
+}
+
+.legal-back-icon img {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
+
 .legal-nav-group {
     display: flex;
     gap: 8px;
