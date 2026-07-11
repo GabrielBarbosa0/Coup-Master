@@ -1347,11 +1347,17 @@ input {
 }
 
 .lobby-legal-links {
-    position: static;
-    z-index: 1;
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    z-index: 14;
+    isolation: isolate;
     width: min(92vw, 360px);
     margin: 18px auto 0;
     transform: none;
+    align-self: center;
 }
 
 .lobby-legal-links .legal-footer-link {
@@ -1443,8 +1449,17 @@ body.lobby-page {
 }
 
 .lobby-page .lobby-legal-links {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
     flex-shrink: 0;
+    align-self: center;
+    width: min(92vw, 360px);
     margin: 0 auto;
+    transform: none;
+    z-index: 14;
 }
 
 @media (max-height: 760px) {

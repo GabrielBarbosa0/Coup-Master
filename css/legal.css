@@ -49,11 +49,14 @@ body.legal-page::-webkit-scrollbar-thumb {
 .legal-back,
 .legal-nav-link,
 .legal-print {
+    box-sizing: border-box;
     display: inline-flex;
     gap: 8px;
     align-items: center;
     justify-content: center;
+    width: auto;
     min-height: 38px;
+    margin: 0;
     padding: 9px 12px;
     border: 1px solid rgba(230, 238, 246, 0.16);
     border-radius: 8px;
@@ -61,8 +64,10 @@ body.legal-page::-webkit-scrollbar-thumb {
     color: var(--text);
     font-size: 12px;
     font-weight: 800;
+    line-height: 1.15;
     text-decoration: none;
     text-transform: uppercase;
+    white-space: nowrap;
     transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 
@@ -87,9 +92,16 @@ body.legal-page::-webkit-scrollbar-thumb {
 }
 
 .legal-nav-group {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     align-items: center;
+    width: min(100%, 460px);
+}
+
+.legal-nav-group .legal-nav-link,
+.legal-nav-group .legal-print {
+    width: 100%;
 }
 
 .legal-card {
@@ -232,8 +244,13 @@ body.legal-page::-webkit-scrollbar-thumb {
     }
 
     .legal-nav-group {
-        display: grid;
         grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    .legal-nav-link,
+    .legal-print {
+        min-height: 46px;
     }
 
     .legal-hero,
@@ -244,6 +261,12 @@ body.legal-page::-webkit-scrollbar-thumb {
 
     .legal-section {
         padding: 15px;
+    }
+}
+
+@media (max-width: 420px) {
+    .legal-nav-group {
+        grid-template-columns: 1fr;
     }
 }
 
