@@ -40,6 +40,10 @@ let cardFanLayoutFrame = null;
 const SAMSUNG_DRAG_STORAGE_KEY = 'coupMasterSamsungDragEnabled';
 let samsungDragEnabled = readLocalBoolean(SAMSUNG_DRAG_STORAGE_KEY);
 let compatibleDragState = null;
+const CASUAL_BALATRO_HOVER = Object.freeze({
+  tilt: 36,
+  glowOffset: 23.4
+});
 
 function readLocalBoolean(key) {
   try {
@@ -1303,13 +1307,13 @@ function attachBalatroEffect(element, isDeck = false) {
     const rect = element.getBoundingClientRect();
     const normalizedX = (e.clientX - rect.left) / rect.width - 0.5;
     const normalizedY = (e.clientY - rect.top) / rect.height - 0.5;
-    const rotateX = normalizedY * -18;
-    const rotateY = normalizedX * 18;
+    const rotateX = normalizedY * -CASUAL_BALATRO_HOVER.tilt;
+    const rotateY = normalizedX * CASUAL_BALATRO_HOVER.tilt;
 
     element.style.setProperty('--tilt-x', `${rotateX.toFixed(2)}deg`);
     element.style.setProperty('--tilt-y', `${rotateY.toFixed(2)}deg`);
-    element.style.setProperty('--glow-x', `${(-normalizedX * 14).toFixed(2)}px`);
-    element.style.setProperty('--glow-y', `${(-normalizedY * 14).toFixed(2)}px`);
+    element.style.setProperty('--glow-x', `${(-normalizedX * CASUAL_BALATRO_HOVER.glowOffset).toFixed(2)}px`);
+    element.style.setProperty('--glow-y', `${(-normalizedY * CASUAL_BALATRO_HOVER.glowOffset).toFixed(2)}px`);
     element.classList.add('is-tilting');
     element.closest('.slot')?.classList.add('is-active-card');
   });

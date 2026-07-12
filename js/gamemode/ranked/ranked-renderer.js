@@ -34,6 +34,10 @@
     const TENSION_FADE_OUT_MS = 1400;
     const TENSION_BGM_DUCK_RATIO = 0.18;
     const RANK_BGM_POSITION_KEY = 'rankBgmPosition';
+    const RANK_BALATRO_HOVER = Object.freeze({
+        tilt: 36,
+        glowOffset: 23.4
+    });
 
     const botNameIdeas = [
         'Augusto', 'Berenice', 'Cassandra', 'Dario', 'Eloisa', 'Fausto',
@@ -183,6 +187,33 @@
         });
         cardElement.addEventListener('mouseleave', hideRankCardTooltip);
         cardElement.addEventListener('blur', hideRankCardTooltip);
+    }
+
+    function attachRankCardBalatroEffect(cardElement) {
+        if (!cardElement) return;
+        cardElement.classList.add('rank-balatro-effect');
+
+        cardElement.addEventListener('mousemove', (event) => {
+            const rect = cardElement.getBoundingClientRect();
+            const normalizedX = (event.clientX - rect.left) / rect.width - 0.5;
+            const normalizedY = (event.clientY - rect.top) / rect.height - 0.5;
+            const rotateX = normalizedY * -RANK_BALATRO_HOVER.tilt;
+            const rotateY = normalizedX * RANK_BALATRO_HOVER.tilt;
+
+            cardElement.style.setProperty('--rank-tilt-x', `${rotateX.toFixed(2)}deg`);
+            cardElement.style.setProperty('--rank-tilt-y', `${rotateY.toFixed(2)}deg`);
+            cardElement.style.setProperty('--rank-glow-x', `${(-normalizedX * RANK_BALATRO_HOVER.glowOffset).toFixed(2)}px`);
+            cardElement.style.setProperty('--rank-glow-y', `${(-normalizedY * RANK_BALATRO_HOVER.glowOffset).toFixed(2)}px`);
+            cardElement.classList.add('is-tilting');
+        });
+
+        cardElement.addEventListener('mouseleave', () => {
+            cardElement.classList.remove('is-tilting');
+            cardElement.style.removeProperty('--rank-tilt-x');
+            cardElement.style.removeProperty('--rank-tilt-y');
+            cardElement.style.removeProperty('--rank-glow-x');
+            cardElement.style.removeProperty('--rank-glow-y');
+        });
     }
 
     function setupRankCardInteractions() {
@@ -704,6 +735,7 @@
         wrapper.dataset.previewImage = previewImage;
         wrapper.dataset.previewHidden = isVisible ? 'false' : 'true';
         attachRankCardTooltip(wrapper, label);
+        attachRankCardBalatroEffect(wrapper);
         wrapper.append(image);
         return wrapper;
     }

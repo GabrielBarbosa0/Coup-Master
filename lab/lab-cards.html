@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab Cards - Coup Master</title>
+  <style>
+    :root {
+      --bg: #12100d;
+      --panel: #1e1812;
+      --panel-2: #2a2118;
+      --line: rgba(255, 222, 173, 0.18);
+      --text: #f8ead4;
+      --muted: #bca98e;
+      --accent: #77d6ff;
+      --gold: #d7a84f;
+      --danger: #ff7d7d;
+      --card-w: 238px;
+      --tilt-x: 0deg;
+      --tilt-y: 0deg;
+      --card-scale: 1;
+      --card-lift: 0px;
+      --card-rotation: 0deg;
+      --perspective: 900px;
+      --glow-x: 0px;
+      --glow-y: 0px;
+      --glow-strength: 0.35;
+      --glare-x: 50%;
+      --glare-y: 50%;
+      --glare-opacity: 0;
+      --shine-opacity: 0;
+      --overlap: -68px;
+      --fan-step: 10deg;
+      --fan-lift: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(119, 214, 255, 0.11), transparent 28%),
+        radial-gradient(circle at 78% 20%, rgba(215, 168, 79, 0.14), transparent 24%),
+        linear-gradient(135deg, #100d0b 0%, #20170f 48%, #0f1114 100%);
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    .lab-shell {
+      display: grid;
+      grid-template-columns: minmax(290px, 370px) minmax(0, 1fr);
+      gap: 18px;
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .controls {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(30, 24, 18, 0.92);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38);
+      backdrop-filter: blur(8px);
+    }
+
+    .controls h1 {
+      margin: 0 0 4px;
+      color: #ffe4aa;
+      font-size: 1.28rem;
+      letter-spacing: 0;
+    }
+
+    .controls p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.38;
+      font-size: 0.93rem;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 10px;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .control-row label {
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+
+    .control-row output {
+      min-width: 58px;
+      color: var(--accent);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.9rem;
+    }
+
+    input[type="range"] {
+      grid-column: 1 / -1;
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .preset-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .preset-row button,
+    .copy-btn {
+      border: 1px solid rgba(255, 226, 174, 0.24);
+      border-radius: 6px;
+      color: var(--text);
+      background: #2b2218;
+      padding: 8px 9px;
+      cursor: pointer;
+    }
+
+    .preset-row button:hover,
+    .copy-btn:hover {
+      border-color: rgba(119, 214, 255, 0.72);
+      color: #ffffff;
+      background: #33291f;
+    }
+
+    .config-output {
+      width: 100%;
+      min-height: 132px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: #f5e3c8;
+      background: #100d0b;
+      padding: 10px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
+    .stage {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .stage-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 64px;
+      padding: 4px 4px 0;
+    }
+
+    .stage-header h2 {
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.6rem);
+      color: #ffe4aa;
+      letter-spacing: 0;
+    }
+
+    .stage-header span {
+      color: var(--muted);
+      font-size: 0.98rem;
+      text-align: right;
+    }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(230px, 1fr));
+      gap: 16px;
+    }
+
+    .test-zone {
+      min-height: 520px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 34%),
+        rgba(20, 16, 13, 0.78);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025), 0 16px 36px rgba(0, 0, 0, 0.3);
+    }
+
+    .test-zone h3 {
+      margin: 0 0 4px;
+      color: #ffe2a4;
+      font-size: 1.05rem;
+    }
+
+    .test-zone p {
+      min-height: 40px;
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
+
+    .card-table {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 390px;
+      padding: 34px 22px;
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at center, rgba(119, 214, 255, 0.08), transparent 52%),
+        linear-gradient(145deg, rgba(86, 44, 34, 0.45), rgba(18, 12, 10, 0.75));
+      perspective: var(--perspective);
+      overflow: visible;
+    }
+
+    .hand {
+      display: flex;
+      align-items: end;
+      justify-content: center;
+      min-width: min(100%, 520px);
+      min-height: 350px;
+      perspective: var(--perspective);
+      transform-style: preserve-3d;
+    }
+
+    .slot {
+      position: relative;
+      flex: 0 0 var(--card-w);
+      width: var(--card-w);
+      aspect-ratio: 2 / 3;
+      transition: z-index 0s 120ms;
+      transform: translateY(var(--slot-lift, 0px)) rotateZ(var(--slot-rotation, 0deg));
+      transform-origin: 50% 100%;
+    }
+
+    .slot + .slot {
+      margin-left: var(--overlap);
+    }
+
+    .slot.is-active {
+      z-index: 50;
+      transition-delay: 0s;
+    }
+
+    .card {
+      --tilt-x: 0deg;
+      --tilt-y: 0deg;
+      --card-scale: 1;
+      --card-lift: 0px;
+      --glow-x: 0px;
+      --glow-y: 0px;
+      --glare-x: 50%;
+      --glare-y: 50%;
+      --glare-opacity: 0;
+      --shine-opacity: 0;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border: 2px solid rgba(116, 160, 225, 0.92);
+      border-radius: 9px;
+      background-image: url("../assets/img/cards/base/duque.png");
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      cursor: crosshair;
+      overflow: hidden;
+      user-select: none;
+      transform:
+        perspective(var(--perspective))
+        translateY(var(--card-lift))
+        rotateX(var(--tilt-x))
+        rotateY(var(--tilt-y))
+        scale(var(--card-scale));
+      transform-style: preserve-3d;
+      transform-origin: center;
+      transition: transform var(--return-ms, 170ms) ease, filter 150ms ease, box-shadow 150ms ease;
+      will-change: transform, filter, box-shadow;
+      box-shadow:
+        0 12px 20px rgba(0, 0, 0, 0.44),
+        var(--glow-x) var(--glow-y) var(--glow-blur, 30px) rgba(91, 211, 255, var(--glow-strength));
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      pointer-events: none;
+      opacity: var(--glare-opacity);
+      background:
+        radial-gradient(circle at var(--glare-x) var(--glare-y), rgba(255, 255, 255, 0.72), rgba(119, 214, 255, 0.28) 18%, transparent 46%);
+      mix-blend-mode: screen;
+      transition: opacity 120ms ease;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      pointer-events: none;
+      opacity: var(--shine-opacity);
+      background:
+        linear-gradient(115deg, transparent 18%, rgba(255, 255, 255, 0.42) 32%, transparent 48%),
+        repeating-linear-gradient(105deg, rgba(119, 214, 255, 0.18) 0 8px, rgba(255, 105, 220, 0.16) 8px 14px, transparent 14px 22px);
+      transform: translateX(var(--shine-shift, 0px)) rotate(6deg);
+      mix-blend-mode: screen;
+      transition: opacity 140ms ease;
+    }
+
+    .card.is-tilting {
+      --card-scale: var(--hover-scale);
+      --card-lift: calc(var(--hover-lift) * -1px);
+      --glare-opacity: var(--active-glare);
+      --shine-opacity: var(--active-shine);
+      filter: brightness(var(--brightness)) saturate(var(--saturation));
+      box-shadow:
+        var(--glow-x) var(--glow-y) var(--glow-blur) rgba(91, 211, 255, var(--glow-strength)),
+        0 22px 38px rgba(0, 0, 0, 0.58);
+    }
+
+    .readout {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.77rem;
+    }
+
+    .readout div {
+      padding: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    @media (max-width: 1120px) {
+      .lab-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+        max-height: none;
+      }
+
+      .test-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .test-zone {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="lab-shell">
+    <aside class="controls">
+      <h1>Balatro Lab</h1>
+      <p>Teste isolado para calibrar tilt, brilho, crescimento e leque das cartas antes de levar o efeito para o jogo.</p>
+
+      <section class="control-group" aria-label="Presets">
+        <div class="preset-row">
+          <button type="button" data-preset="soft">Suave</button>
+          <button type="button" data-preset="current">Atual</button>
+          <button type="button" data-preset="custom">Teste</button>
+          <button type="button" data-preset="wild">Forte</button>
+        </div>
+      </section>
+
+      <section class="control-group" id="controlPanel"></section>
+
+      <section class="control-group">
+        <button class="copy-btn" type="button" id="copyConfigBtn">Copiar parametros</button>
+        <textarea class="config-output" id="configOutput" spellcheck="false"></textarea>
+      </section>
+    </aside>
+
+    <section class="stage">
+      <header class="stage-header">
+        <h2>Teste de perspectiva</h2>
+        <span>Passe o mouse sobre as cartas e ajuste os controles.</span>
+      </header>
+
+      <div class="test-grid">
+        <article class="test-zone">
+          <h3>Uma carta</h3>
+          <p>Verifica forca pura do tilt, brilho e crescimento sem interferencia de leque.</p>
+          <div class="card-table">
+            <div class="hand" data-count="1"></div>
+          </div>
+          <div class="readout" data-readout="1"></div>
+        </article>
+
+        <article class="test-zone">
+          <h3>Duas cartas</h3>
+          <p>Mostra como hover, z-index e overlap se comportam quando uma carta cobre parte da outra.</p>
+          <div class="card-table">
+            <div class="hand" data-count="2"></div>
+          </div>
+          <div class="readout" data-readout="2"></div>
+        </article>
+
+        <article class="test-zone">
+          <h3>Tres cartas</h3>
+          <p>Simula um leque pequeno para testar escala, elevacao e rotacao base.</p>
+          <div class="card-table">
+            <div class="hand" data-count="3"></div>
+          </div>
+          <div class="readout" data-readout="3"></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const controls = [
+      { key: "tilt", label: "Forca do tilt", min: 0, max: 36, step: 1, value: 30, unit: "deg" },
+      { key: "scale", label: "Crescimento no hover", min: 1, max: 1.45, step: 0.01, value: 1.22, unit: "x" },
+      { key: "lift", label: "Elevacao no hover", min: 0, max: 42, step: 1, value: 18, unit: "px" },
+      { key: "perspective", label: "Perspectiva 3D", min: 420, max: 1600, step: 10, value: 820, unit: "px" },
+      { key: "glow", label: "Forca do brilho", min: 0, max: 0.9, step: 0.01, value: 0.40, unit: "" },
+      { key: "glowBlur", label: "Tamanho do brilho", min: 0, max: 70, step: 1, value: 30, unit: "px" },
+      { key: "glare", label: "Reflexo central", min: 0, max: 0.85, step: 0.01, value: 0.00, unit: "" },
+      { key: "shine", label: "Faixa holografica", min: 0, max: 0.7, step: 0.01, value: 0.00, unit: "" },
+      { key: "brightness", label: "Brilho da carta", min: 0.8, max: 1.35, step: 0.01, value: 1.08, unit: "x" },
+      { key: "saturation", label: "Saturacao da carta", min: 0.8, max: 1.55, step: 0.01, value: 1.14, unit: "x" },
+      { key: "overlap", label: "Sobreposicao do leque", min: -150, max: 0, step: 1, value: -127, unit: "px" },
+      { key: "fanStep", label: "Rotacao do leque", min: 0, max: 20, step: 1, value: 2, unit: "deg" },
+      { key: "fanLift", label: "Curva do leque", min: 0, max: 32, step: 1, value: 8, unit: "px" },
+      { key: "returnMs", label: "Suavizacao retorno", min: 40, max: 420, step: 10, value: 40, unit: "ms" }
+    ];
+
+    const presets = {
+      soft: { tilt: 16, scale: 1.13, lift: 10, perspective: 960, glow: 0.24, glowBlur: 26, glare: 0.22, shine: 0.08, brightness: 1.04, saturation: 1.05, overlap: -54, fanStep: 6, fanLift: 5, returnMs: 170 },
+      current: { tilt: 18, scale: 1.18, lift: 8, perspective: 900, glow: 0.34, glowBlur: 26, glare: 0.16, shine: 0.02, brightness: 1.05, saturation: 1.08, overlap: -12, fanStep: 4, fanLift: 2, returnMs: 150 },
+      custom: { tilt: 30, scale: 1.22, lift: 18, perspective: 820, glow: 0.40, glowBlur: 30, glare: 0.00, shine: 0.00, brightness: 1.08, saturation: 1.14, overlap: -127, fanStep: 2, fanLift: 8, returnMs: 40 },
+      wild: { tilt: 32, scale: 1.32, lift: 28, perspective: 680, glow: 0.62, glowBlur: 54, glare: 0.68, shine: 0.34, brightness: 1.16, saturation: 1.28, overlap: -94, fanStep: 13, fanLift: 15, returnMs: 110 }
+    };
+
+    const state = Object.fromEntries(controls.map((control) => [control.key, control.value]));
+    const controlPanel = document.getElementById("controlPanel");
+    const output = document.getElementById("configOutput");
+
+    function formatValue(control, value) {
+      const number = Number(value);
+      const shown = control.step < 1 ? number.toFixed(2) : String(Math.round(number));
+      return `${shown}${control.unit}`;
+    }
+
+    function buildControls() {
+      controls.forEach((control) => {
+        const row = document.createElement("div");
+        row.className = "control-row";
+
+        const label = document.createElement("label");
+        label.htmlFor = `control-${control.key}`;
+        label.textContent = control.label;
+
+        const value = document.createElement("output");
+        value.htmlFor = label.htmlFor;
+        value.dataset.output = control.key;
+        value.textContent = formatValue(control, state[control.key]);
+
+        const input = document.createElement("input");
+        input.type = "range";
+        input.id = label.htmlFor;
+        input.min = control.min;
+        input.max = control.max;
+        input.step = control.step;
+        input.value = state[control.key];
+        input.dataset.key = control.key;
+        input.addEventListener("input", () => {
+          state[control.key] = Number(input.value);
+          value.textContent = formatValue(control, state[control.key]);
+          applyState();
+        });
+
+        row.append(label, value, input);
+        controlPanel.append(row);
+      });
+    }
+
+    function buildHands() {
+      document.querySelectorAll(".hand").forEach((hand) => {
+        const count = Number(hand.dataset.count || 1);
+        hand.replaceChildren();
+
+        for (let index = 0; index < count; index += 1) {
+          const slot = document.createElement("div");
+          slot.className = "slot";
+          slot.dataset.index = String(index);
+
+          const card = document.createElement("div");
+          card.className = "card";
+          card.tabIndex = 0;
+          card.setAttribute("aria-label", "Carta Duque para teste de perspectiva");
+
+          attachBalatroLabEffect(card);
+          slot.append(card);
+          hand.append(slot);
+        }
+      });
+    }
+
+    function applyState() {
+      document.documentElement.style.setProperty("--hover-scale", state.scale);
+      document.documentElement.style.setProperty("--hover-lift", state.lift);
+      document.documentElement.style.setProperty("--perspective", `${state.perspective}px`);
+      document.documentElement.style.setProperty("--glow-strength", state.glow);
+      document.documentElement.style.setProperty("--glow-blur", `${state.glowBlur}px`);
+      document.documentElement.style.setProperty("--active-glare", state.glare);
+      document.documentElement.style.setProperty("--active-shine", state.shine);
+      document.documentElement.style.setProperty("--brightness", state.brightness);
+      document.documentElement.style.setProperty("--saturation", state.saturation);
+      document.documentElement.style.setProperty("--overlap", `${state.overlap}px`);
+      document.documentElement.style.setProperty("--return-ms", `${state.returnMs}ms`);
+
+      document.querySelectorAll(".hand").forEach((hand) => {
+        const slots = [...hand.querySelectorAll(".slot")];
+        const middle = (slots.length - 1) / 2;
+        slots.forEach((slot, index) => {
+          const offset = index - middle;
+          const baseZ = index + 1;
+          slot.style.setProperty("--slot-rotation", `${offset * state.fanStep}deg`);
+          slot.style.setProperty("--slot-lift", `${Math.abs(offset) * state.fanLift}px`);
+          slot.dataset.baseZ = String(baseZ);
+          slot.style.zIndex = String(baseZ);
+        });
+        hand.dataset.maxBaseZ = String(slots.length);
+      });
+
+      output.value = makeConfigSnippet();
+      updateReadouts();
+    }
+
+    function attachBalatroLabEffect(card) {
+      card.addEventListener("mousemove", (event) => {
+        const rect = card.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+        const normalizedX = x - 0.5;
+        const normalizedY = y - 0.5;
+        const rotateX = normalizedY * -state.tilt;
+        const rotateY = normalizedX * state.tilt;
+        const glowX = -normalizedX * state.glowBlur * 0.78;
+        const glowY = -normalizedY * state.glowBlur * 0.78;
+
+        card.style.setProperty("--tilt-x", `${rotateX.toFixed(2)}deg`);
+        card.style.setProperty("--tilt-y", `${rotateY.toFixed(2)}deg`);
+        card.style.setProperty("--glow-x", `${glowX.toFixed(2)}px`);
+        card.style.setProperty("--glow-y", `${glowY.toFixed(2)}px`);
+        card.style.setProperty("--glare-x", `${(x * 100).toFixed(1)}%`);
+        card.style.setProperty("--glare-y", `${(y * 100).toFixed(1)}%`);
+        card.style.setProperty("--shine-shift", `${(normalizedX * 44).toFixed(1)}px`);
+        card.classList.add("is-tilting");
+        liftSlotToFront(card.closest(".slot"));
+      });
+
+      card.addEventListener("mouseleave", () => {
+        const slot = card.closest(".slot");
+        card.classList.remove("is-tilting");
+        restoreSlotLayer(slot);
+        ["--tilt-x", "--tilt-y", "--glow-x", "--glow-y", "--glare-x", "--glare-y", "--shine-shift"].forEach((prop) => {
+          card.style.removeProperty(prop);
+        });
+      });
+    }
+
+    function liftSlotToFront(slot) {
+      if (!slot) return;
+      const baseZ = Number(slot.dataset.baseZ || slot.style.zIndex || 1);
+      const maxBaseZ = Number(slot.parentElement?.dataset.maxBaseZ || baseZ);
+      slot.classList.add("is-active");
+
+      if (baseZ < maxBaseZ) {
+        slot.style.zIndex = String(maxBaseZ + 100);
+      }
+    }
+
+    function restoreSlotLayer(slot) {
+      if (!slot) return;
+      slot.classList.remove("is-active");
+      slot.style.zIndex = slot.dataset.baseZ || "";
+    }
+
+    function updateReadouts() {
+      document.querySelectorAll("[data-readout]").forEach((readout) => {
+        readout.replaceChildren();
+        [
+          ["tilt", `${state.tilt}deg`],
+          ["scale", state.scale.toFixed(2)],
+          ["lift", `${state.lift}px`],
+          ["overlap", `${state.overlap}px`]
+        ].forEach(([label, value]) => {
+          const item = document.createElement("div");
+          item.textContent = `${label}: ${value}`;
+          readout.append(item);
+        });
+      });
+    }
+
+    function makeConfigSnippet() {
+      return `const BALATRO_EFFECT = {
+  tilt: ${state.tilt},
+  scale: ${state.scale.toFixed(2)},
+  lift: ${state.lift},
+  perspective: ${state.perspective},
+  glowStrength: ${state.glow.toFixed(2)},
+  glowBlur: ${state.glowBlur},
+  glare: ${state.glare.toFixed(2)},
+  shine: ${state.shine.toFixed(2)},
+  brightness: ${state.brightness.toFixed(2)},
+  saturation: ${state.saturation.toFixed(2)},
+  overlap: ${state.overlap},
+  fanStep: ${state.fanStep},
+  fanLift: ${state.fanLift},
+  returnMs: ${state.returnMs}
+};`;
+    }
+
+    function applyPreset(name) {
+      Object.assign(state, presets[name]);
+      controls.forEach((control) => {
+        const input = document.querySelector(`[data-key="${control.key}"]`);
+        const value = document.querySelector(`[data-output="${control.key}"]`);
+        if (input) input.value = state[control.key];
+        if (value) value.textContent = formatValue(control, state[control.key]);
+      });
+      applyState();
+    }
+
+    document.querySelectorAll("[data-preset]").forEach((button) => {
+      button.addEventListener("click", () => applyPreset(button.dataset.preset));
+    });
+
+    document.getElementById("copyConfigBtn").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(output.value);
+      } catch (error) {
+        output.select();
+        document.execCommand("copy");
+      }
+    });
+
+    buildControls();
+    buildHands();
+    applyState();
+  </script>
+</body>
+
+</html>

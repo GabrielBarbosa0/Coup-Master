@@ -507,9 +507,14 @@ textarea::-moz-selection,
     justify-content: center;
     min-height: 82px;
     margin-top: 8px;
+    perspective: 820px;
 }
 
 .rank-card {
+    --rank-tilt-x: 0deg;
+    --rank-tilt-y: 0deg;
+    --rank-card-scale: 1;
+    --rank-card-lift: 0px;
     width: 62px;
     aspect-ratio: 2 / 3;
     display: block;
@@ -519,7 +524,14 @@ textarea::-moz-selection,
     border: 2px solid #4f6ea6;
     border-radius: 6px;
     background: #fff;
-    transition: transform 160ms ease, box-shadow 160ms ease;
+    transform: perspective(820px)
+        translateY(var(--rank-card-lift))
+        rotateX(var(--rank-tilt-x))
+        rotateY(var(--rank-tilt-y))
+        scale(var(--rank-card-scale));
+    transform-style: preserve-3d;
+    transition: transform 40ms ease, box-shadow 150ms ease, filter 150ms ease;
+    will-change: transform, box-shadow;
 }
 
 button.rank-card {
@@ -531,12 +543,29 @@ button.rank-card {
 }
 
 .rank-card:hover,
-.rank-card:focus-visible,
-.rank-card.is-selected {
+.rank-card:focus-visible {
     z-index: 5;
-    transform: translateY(-8px) scale(1.08);
     box-shadow: 0 0 15px rgba(30, 144, 255, 0.42);
     outline: 0;
+}
+
+.rank-card:focus-visible,
+.rank-card.is-selected {
+    --rank-card-scale: 1.08;
+    --rank-card-lift: -8px;
+    z-index: 5;
+    box-shadow: 0 0 15px rgba(30, 144, 255, 0.42);
+    outline: 0;
+}
+
+.rank-card.rank-balatro-effect.is-tilting {
+    --rank-card-scale: 1.22;
+    --rank-card-lift: -18px;
+    z-index: 8;
+    filter: brightness(1) saturate(1);
+    box-shadow:
+        var(--rank-glow-x, 0) var(--rank-glow-y, 0) 30px rgba(0, 191, 255, 0.4),
+        0 18px 34px rgba(0, 0, 0, 0.5);
 }
 
 .rank-card.is-revealed {

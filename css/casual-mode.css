@@ -1482,7 +1482,7 @@ h2 {
     width: 100%;
     padding: 2px 0 0;
     overflow: visible;
-    perspective: 900px;
+    perspective: 820px;
 }
 
 .game-table .slot {
@@ -1524,7 +1524,7 @@ h2 {
     background-size: cover;
     background-repeat: no-repeat;
     box-shadow: 0 7px 12px rgba(0, 0, 0, 0.28);
-    transform: perspective(900px)
+    transform: perspective(820px)
         translateY(calc(var(--card-base-shift) + var(--card-lift)))
         rotateZ(var(--card-base-rotation))
         rotateX(var(--tilt-x))
@@ -1532,7 +1532,7 @@ h2 {
         scale(var(--card-scale));
     transform-style: preserve-3d;
     transform-origin: center;
-    transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+    transition: transform 40ms ease, box-shadow 150ms ease, filter 150ms ease;
     will-change: transform, box-shadow;
 }
 
@@ -1583,23 +1583,23 @@ h2 {
 }
 
 .game-table .balatro-effect.is-tilting {
-    --card-scale: 1.18;
-    --card-lift: -8px;
+    --card-scale: 1.22;
+    --card-lift: -18px;
     --card-base-shift: 0px;
     --card-base-rotation: 0deg;
     z-index: 40;
-    filter: brightness(1.05) saturate(1.08);
+    filter: brightness(1) saturate(1);
     box-shadow:
-        var(--glow-x, 0) var(--glow-y, 0) 26px rgba(0, 191, 255, 0.34),
-        0 12px 24px rgba(0, 0, 0, 0.48);
+        var(--glow-x, 0) var(--glow-y, 0) 30px rgba(0, 191, 255, 0.4),
+        0 18px 34px rgba(0, 0, 0, 0.5);
 }
 
 .game-table .card.lifting {
-    transform: perspective(900px) translateY(-10px) rotateZ(5deg) scale(1.15) !important;
+    transform: perspective(820px) translateY(-10px) rotateZ(5deg) scale(1.15) !important;
 }
 
 .game-table .card.is-dragging {
-    transform: perspective(900px) scale(0.9) !important;
+    transform: perspective(820px) scale(0.9) !important;
 }
 
 .game-table .player-area.is-empty {

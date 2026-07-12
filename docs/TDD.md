@@ -156,6 +156,7 @@ Coup-Master/
     casual-mode.css
     ranked-mode.css
   docs/
+    ROADMAP.md
     TDD.md
   js/
     core/
@@ -179,6 +180,8 @@ Coup-Master/
       lobby-manager.js
     pwa/
       pwa.js
+  lab/
+    lab-cards.html
   marketing/
     banners/
     screenshots/
@@ -373,7 +376,21 @@ Pontos tecnicos importantes:
 
 - `og:image` aponta para `assets/img/ico-coup-master.png`, mas o arquivo real esta em `assets/img/logo/ico-coup-master.png`.
 - O HTML possui ids usados diretamente por JS global; renomear ids quebra comportamento.
-- A pasta `teste/mesa-2.0` permanece como referencia isolada; o runtime principal nao importa seus arquivos.
+- A pasta `lab/` concentra experimentos visuais isolados; o runtime principal nao importa seus arquivos.
+
+### 6.4 `lab/lab-cards.html`
+
+Responsabilidades:
+
+- Servir como laboratorio visual estatico para calibrar efeitos de perspectiva, hover, brilho, escala e composicao de cartas.
+- Permitir testes com uma, duas e tres cartas sem entrar em uma sala real.
+- Expor controles dinamicos para copiar parametros visuais antes de aplicar no modo casual ou ranqueado.
+
+Pontos tecnicos importantes:
+
+- A pagina nao participa do fluxo de produto, lobby, Firebase, PWA ou partidas reais.
+- Deve continuar isolada em `lab/` para evitar dependencia acidental do runtime principal.
+- Mudancas aprovadas nesse laboratorio precisam ser aplicadas explicitamente nos CSS/JS dos modos de jogo.
 
 ## 7. Scripts Globais e Contratos entre Arquivos
 
