@@ -1486,6 +1486,8 @@ h2 {
 }
 
 .game-table .slot {
+    --slot-base-rotation: 0deg;
+    --slot-base-shift: 0px;
     position: relative;
     z-index: 1;
     display: block;
@@ -1494,6 +1496,8 @@ h2 {
     height: auto;
     aspect-ratio: 2 / 3;
     border-radius: var(--card-radius);
+    transform: translateY(var(--slot-base-shift)) rotateZ(var(--slot-base-rotation));
+    transform-origin: 50% 100%;
     transition: z-index 0s 120ms;
 }
 

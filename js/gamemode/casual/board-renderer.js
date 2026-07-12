@@ -44,6 +44,10 @@ const CASUAL_BALATRO_HOVER = Object.freeze({
   tilt: 36,
   glowOffset: 23.4
 });
+const CASUAL_HAND_FAN = Object.freeze({
+  rotationStep: 0,
+  curveLift: 0
+});
 
 function readLocalBoolean(key) {
   try {
@@ -126,6 +130,15 @@ function updateHandFanLayout(handContainer) {
   const cardCount = slots.length;
 
   handContainer.dataset.cardCount = String(cardCount);
+
+  const middle = (cardCount - 1) / 2;
+  slots.forEach((slot, index) => {
+    const offset = index - middle;
+    const rotation = cardCount > 1 ? offset * CASUAL_HAND_FAN.rotationStep : 0;
+    const lift = cardCount > 1 ? Math.abs(offset) * CASUAL_HAND_FAN.curveLift : 0;
+    slot.style.setProperty('--slot-base-rotation', `${rotation.toFixed(2)}deg`);
+    slot.style.setProperty('--slot-base-shift', `${lift.toFixed(2)}px`);
+  });
 
   const overlap = calculateAdaptiveFanOverlap(handContainer, slots, {
     baseDesktop: 12,
