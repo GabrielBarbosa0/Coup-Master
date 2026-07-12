@@ -16,9 +16,24 @@
     let viewMode = 'game';
     let matchResultsModalDismissed = false;
     let matchResultsKey = '';
+    let previousSoundSnapshot = null;
+    let playedConquestKeys = new Set();
+    let rankBgmAudio = null;
+    let rankBgmGuard = null;
+    let rankMusicVolume = 0.1;
+    let tensionLayerActive = false;
+    let investigationLayerActive = false;
+    let tensionFadeToken = 0;
+    let investigationFadeToken = 0;
+    let bgmFadeToken = 0;
     let rankCardTooltipEl = null;
     let cardInteractionsBound = false;
     let rankProfileLoadKey = 0;
+
+    const TENSION_FADE_IN_MS = 900;
+    const TENSION_FADE_OUT_MS = 1400;
+    const TENSION_BGM_DUCK_RATIO = 0.18;
+    const RANK_BGM_POSITION_KEY = 'rankBgmPosition';
 
     const botNameIdeas = [
         'Augusto', 'Berenice', 'Cassandra', 'Dario', 'Eloisa', 'Fausto',
@@ -96,7 +111,7 @@
             }
         });
         bindModal('rankCharacterActionsBtn', 'rankActionsModal', '#closeRankActionsBtn', resetActionsGuide);
-        bindModal('rankSettingsBtn', 'rankSettingsModal', '#closeRankSettingsBtn');
+        bindModal('rankSettingsBtn', 'rankSettingsModal', '#closeRankSettingsBtn', null, { silent: true });
         bindModal('openRankFeedbackBtn', 'rankFeedbackModal', '#closeRankFeedbackBtn');
         bindRankPlayerProfileModal();
         bindRankPanel('openRankLogBtn', 'rankLogModal', '#closeRankLogBtn');
@@ -254,7 +269,6 @@
         flip?.setAttribute('aria-label', hidden ? 'Carta oculta ampliada' : `${label || 'Carta'} ampliada`);
         if (inner) inner.style.transform = 'rotateY(0deg)';
         modal.style.display = 'flex';
-        playRankSfx('card-slide');
     }
 
     function hideRankCardPreviewModal() {
@@ -270,15 +284,15 @@
         playRankSfx('card-slide');
     }
 
-    function bindModal(openId, modalId, closeSelector, onOpen) {
+    function bindModal(openId, modalId, closeSelector, onOpen, options = {}) {
         const modal = document.getElementById(modalId);
         document.getElementById(openId)?.addEventListener('click', () => {
-            playRankSfx('click');
+            if (!options.silent) playRankSfx('click');
             if (typeof onOpen === 'function') onOpen();
             showModal(modal);
         });
         modal?.querySelector(closeSelector)?.addEventListener('click', () => {
-            playRankSfx('click');
+            if (!options.silent) playRankSfx('click');
             hideModal(modal);
         });
     }
@@ -433,7 +447,6 @@
         const customToggle = document.getElementById('rankChooseAiPersonality');
 
         document.getElementById('openRankAddAiBtn')?.addEventListener('click', () => {
-            playRankSfx('click');
             fillRandomAiName();
             syncAiPersonalityFields();
             showModal(modal);
@@ -574,9 +587,11 @@
     }
 
     function render(nextState) {
+        const previousState = state;
         state = nextState;
         if (!state) return;
         hideLoading();
+        playStateSfx(previousState, state);
         renderPlayers();
         renderPhase();
         renderStarterDrawOverlay();
@@ -719,7 +734,7 @@
             const viewResults = element('button', 'rank-primary-btn', 'Ver resultado');
             viewResults.type = 'button';
             viewResults.addEventListener('click', () => {
-                playRankSfx('click');
+                playRankSfx('pop');
                 matchResultsModalDismissed = false;
                 renderMatchResultsModal(true);
             });
@@ -800,7 +815,6 @@
         addAi.type = 'button';
         addAi.disabled = players.length >= Rules.SETTINGS.maxPlayers;
         addAi.addEventListener('click', () => {
-            playRankSfx('click');
             fillRandomAiName();
             syncAiPersonalityFields();
             showModal(document.getElementById('rankAddAiModal'));
@@ -922,6 +936,7 @@
         heading.querySelector('h2').id = 'rankMatchResultsTitle';
         body.append(heading);
         renderMatchResults(body);
+        playConquestSfxForResults();
 
         if (forceOpen || !matchResultsModalDismissed) showModal(overlay);
         else hideModal(overlay);
@@ -941,7 +956,7 @@
         close.type = 'button';
         close.setAttribute('aria-label', 'Fechar resultado');
         close.addEventListener('click', () => {
-            playRankSfx('click');
+            playRankSfx('pop');
             matchResultsModalDismissed = true;
             hideModal(overlay);
         });
@@ -1329,7 +1344,6 @@
             event.preventDefault();
             const message = input.value.trim();
             if (!message) return;
-            playRankSfx('click');
             controller.sendChat(message);
             input.value = '';
         });
@@ -1348,16 +1362,19 @@
             ? root.CoupAudioGuard.createBackgroundAudioGuard(bgm, { button: musicBtn })
             : null;
 
+        rankBgmAudio = bgm;
+        rankBgmGuard = bgmGuard;
+        rankMusicVolume = normalizeVolume(musicVolume);
         root.rankSfxVolume = effectsVolume;
         if (bgm) {
-            bgm.volume = musicVolume;
-            if (bgmGuard) {
-                bgmGuard.play();
-            } else {
-                bgm.play()
-                    .then(() => musicBtn?.classList.remove('muted'))
-                    .catch(() => musicBtn?.classList.add('muted'));
-            }
+            restoreRankBgmPosition(bgm);
+            bgm.addEventListener('timeupdate', saveRankBgmPosition);
+            setRankBgmVolume(isAnyRankAmbienceActive() ? getDuckedBgmVolume() : rankMusicVolume);
+            resumeRankBgmPreservingPosition()
+                .then((played) => {
+                    if (played) musicBtn?.classList.remove('muted');
+                    else musicBtn?.classList.add('muted');
+                });
         }
         if (musicBtn && bgm) {
             musicBtn.addEventListener('click', () => {
@@ -1379,13 +1396,11 @@
             musicSlider.value = musicVolume;
             musicSlider.addEventListener('input', (event) => {
                 const value = normalizeVolume(event.target.value);
+                rankMusicVolume = value;
                 if (bgm) {
-                    if (bgmGuard) {
-                        bgmGuard.setVolume(value);
-                        if (value > 0) bgmGuard.play();
-                    } else {
-                        bgm.volume = value;
-                        if (value > 0) bgm.play().catch(() => null);
+                    setRankBgmVolume(isAnyRankAmbienceActive() ? getDuckedBgmVolume() : rankMusicVolume);
+                    if (value > 0) {
+                        resumeRankBgmPreservingPosition().catch(() => null);
                     }
                 }
                 localStorage.setItem('rankMusicVolume', String(value));
@@ -1396,6 +1411,7 @@
             effectsSlider.addEventListener('input', (event) => {
                 const value = normalizeVolume(event.target.value);
                 root.rankSfxVolume = value;
+                updateActiveAmbienceVolumes();
                 localStorage.setItem('rankEffectsVolume', String(value));
             });
         }
@@ -1413,6 +1429,413 @@
         sound.volume = normalizeVolume(root.rankSfxVolume);
         sound.currentTime = 0;
         sound.play().catch(() => null);
+    }
+
+    function setRankBgmVolume(value) {
+        const volume = normalizeVolume(value);
+        if (rankBgmGuard) {
+            rankBgmGuard.setVolume(volume);
+        } else if (rankBgmAudio) {
+            rankBgmAudio.volume = volume;
+        }
+    }
+
+    function getDuckedBgmVolume() {
+        return normalizeVolume(rankMusicVolume * TENSION_BGM_DUCK_RATIO);
+    }
+
+    function getAmbienceTargetVolume() {
+        return normalizeVolume(root.rankSfxVolume) * 0.9;
+    }
+
+    function isAnyRankAmbienceActive() {
+        return tensionLayerActive || investigationLayerActive;
+    }
+
+    function updateActiveAmbienceVolumes() {
+        [
+            ['tense-moment', tensionLayerActive],
+            ['suspense-investigation', investigationLayerActive]
+        ].forEach(([id, active]) => {
+            const audio = active ? document.getElementById(`rank-audio-${id}`) : null;
+            if (audio) audio.volume = getAmbienceTargetVolume();
+        });
+    }
+
+    function saveRankBgmPosition() {
+        if (!rankBgmAudio || !Number.isFinite(rankBgmAudio.currentTime)) return;
+        sessionStorage.setItem(RANK_BGM_POSITION_KEY, String(rankBgmAudio.currentTime));
+    }
+
+    function restoreRankBgmPosition(audio) {
+        const savedPosition = Number(sessionStorage.getItem(RANK_BGM_POSITION_KEY));
+        if (!Number.isFinite(savedPosition) || savedPosition <= 0) return;
+
+        const applyPosition = () => {
+            if (!Number.isFinite(audio.duration) || audio.duration <= 0) {
+                audio.currentTime = savedPosition;
+                return;
+            }
+            audio.currentTime = savedPosition % audio.duration;
+        };
+
+        try {
+            if (audio.readyState >= 1) applyPosition();
+            else audio.addEventListener('loadedmetadata', applyPosition, { once: true });
+        } catch (error) {
+            // Alguns navegadores recusam seek antes dos metadados.
+        }
+    }
+
+    function resumeRankBgmPreservingPosition() {
+        if (!rankBgmAudio || rankMusicVolume <= 0) return Promise.resolve(false);
+
+        const currentPosition = Number(rankBgmAudio.currentTime || 0);
+        const restorePositionIfReset = () => {
+            if (currentPosition > 0 && rankBgmAudio.currentTime < Math.max(0.1, currentPosition - 0.5)) {
+                try {
+                    rankBgmAudio.currentTime = currentPosition;
+                } catch (error) {
+                    // Falha de seek nao deve quebrar a mesa.
+                }
+            }
+        };
+
+        if (!rankBgmAudio.paused) {
+            return Promise.resolve(true);
+        }
+
+        const playPromise = rankBgmGuard
+            ? rankBgmGuard.play()
+            : rankBgmAudio.play().then(() => true).catch(() => false);
+
+        return playPromise.then((played) => {
+            if (played) restorePositionIfReset();
+            return played;
+        });
+    }
+
+    function fadeAudioVolume(audio, toVolume, durationMs, tokenName, onDone) {
+        if (!audio) return;
+        const fromVolume = Number(audio.volume || 0);
+        const targetVolume = normalizeVolume(toVolume);
+        const start = performance.now();
+        const token = incrementFadeToken(tokenName);
+
+        function step(now) {
+            const currentToken = getFadeToken(tokenName);
+            if (token !== currentToken) return;
+
+            const progress = durationMs <= 0 ? 1 : Math.min(1, (now - start) / durationMs);
+            const eased = 1 - ((1 - progress) ** 3);
+            const nextVolume = fromVolume + ((targetVolume - fromVolume) * eased);
+
+            if (tokenName === 'bgm') setRankBgmVolume(nextVolume);
+            else audio.volume = normalizeVolume(nextVolume);
+
+            if (progress < 1) {
+                requestAnimationFrame(step);
+                return;
+            }
+
+            if (typeof onDone === 'function') onDone();
+        }
+
+        requestAnimationFrame(step);
+    }
+
+    function incrementFadeToken(tokenName) {
+        if (tokenName === 'bgm') {
+            bgmFadeToken += 1;
+            return bgmFadeToken;
+        }
+        if (tokenName === 'investigation') {
+            investigationFadeToken += 1;
+            return investigationFadeToken;
+        }
+        tensionFadeToken += 1;
+        return tensionFadeToken;
+    }
+
+    function getFadeToken(tokenName) {
+        if (tokenName === 'bgm') return bgmFadeToken;
+        if (tokenName === 'investigation') return investigationFadeToken;
+        return tensionFadeToken;
+    }
+
+    function getAmbienceLayerActive(layerName) {
+        return layerName === 'investigation' ? investigationLayerActive : tensionLayerActive;
+    }
+
+    function setAmbienceLayerActive(layerName, active) {
+        if (layerName === 'investigation') {
+            investigationLayerActive = active;
+            return;
+        }
+        tensionLayerActive = active;
+    }
+
+    function fadeBgmForAmbience(durationMs) {
+        if (!rankBgmAudio) return;
+        fadeAudioVolume(
+            rankBgmAudio,
+            isAnyRankAmbienceActive() ? getDuckedBgmVolume() : rankMusicVolume,
+            durationMs,
+            'bgm'
+        );
+    }
+
+    function startAmbienceLayer(audioId, layerName) {
+        const audio = document.getElementById(`rank-audio-${audioId}`);
+        if (!audio) return;
+
+        if (getAmbienceLayerActive(layerName)) {
+            if (audio.paused) audio.play().catch(() => null);
+            return;
+        }
+
+        setAmbienceLayerActive(layerName, true);
+        audio.loop = true;
+        audio.volume = 0;
+        if (audio.paused) audio.currentTime = 0;
+        audio.play().catch(() => null);
+
+        fadeAudioVolume(audio, getAmbienceTargetVolume(), TENSION_FADE_IN_MS, layerName);
+        fadeBgmForAmbience(TENSION_FADE_IN_MS);
+    }
+
+    function stopAmbienceLayer(audioId, layerName) {
+        const audio = document.getElementById(`rank-audio-${audioId}`);
+        if (!audio || (!getAmbienceLayerActive(layerName) && audio.paused)) return;
+
+        setAmbienceLayerActive(layerName, false);
+        fadeAudioVolume(audio, 0, TENSION_FADE_OUT_MS, layerName, () => {
+            if (getAmbienceLayerActive(layerName)) return;
+            audio.pause();
+            audio.currentTime = 0;
+        });
+        fadeBgmForAmbience(TENSION_FADE_OUT_MS);
+    }
+
+    function startTensionLayer() {
+        startAmbienceLayer('tense-moment', 'tension');
+    }
+
+    function stopTensionLayer() {
+        stopAmbienceLayer('tense-moment', 'tension');
+    }
+
+    function syncTensionLayer(nextState) {
+        const shouldPlay = nextState?.phase === PHASES.INFLUENCE_LOSS && Boolean(nextState?.pendingLoss);
+        if (shouldPlay) startTensionLayer();
+        else stopTensionLayer();
+    }
+
+    function startInvestigationLayer() {
+        startAmbienceLayer('suspense-investigation', 'investigation');
+    }
+
+    function stopInvestigationLayer() {
+        stopAmbienceLayer('suspense-investigation', 'investigation');
+    }
+
+    function syncInvestigationLayer(nextState) {
+        const shouldPlay = nextState?.phase === PHASES.EXAMINE && Boolean(nextState?.pendingExamine);
+        if (shouldPlay) startInvestigationLayer();
+        else stopInvestigationLayer();
+    }
+
+    function getLatestLog(stateValue, type) {
+        const log = Array.isArray(stateValue?.log) ? stateValue.log : [];
+        for (let index = log.length - 1; index >= 0; index -= 1) {
+            if (log[index]?.type === type) return log[index];
+        }
+        return null;
+    }
+
+    function getLatestLogKey(stateValue, type) {
+        const entry = getLatestLog(stateValue, type);
+        if (!entry) return '';
+        return String(entry.id || `${entry.timestamp || ''}:${entry.turn || ''}:${entry.message || ''}`);
+    }
+
+    function getSoundSnapshot(stateValue) {
+        return {
+            actionId: stateValue?.pendingAction?.id || '',
+            actionType: stateValue?.pendingAction?.type || '',
+            phase: stateValue?.phase || '',
+            pendingLossKey: stateValue?.pendingLoss
+                ? [
+                    stateValue.pendingLoss.playerUid || '',
+                    stateValue.pendingLoss.reason || '',
+                    stateValue.pendingLoss.continuation || '',
+                    stateValue.deadline || ''
+                ].join('|')
+                : '',
+            pendingExamineKey: stateValue?.pendingExamine
+                ? [
+                    stateValue.pendingExamine.actorUid || '',
+                    stateValue.pendingExamine.targetUid || '',
+                    stateValue.pendingExamine.cardId || ''
+                ].join('|')
+                : '',
+            pendingExchangeKey: stateValue?.pendingExchange
+                ? [
+                    stateValue.pendingExchange.playerUid || '',
+                    (stateValue.pendingExchange.options || []).map((card) => card.id).join(','),
+                    stateValue.pendingExchange.keepCount || ''
+                ].join('|')
+                : '',
+            latestActionKey: getLatestLogKey(stateValue, 'action'),
+            latestActionMessage: getLatestLog(stateValue, 'action')?.message || '',
+            latestChallengeKey: getLatestLogKey(stateValue, 'challenge'),
+            latestChallengeResultKey: getLatestLogKey(stateValue, 'challenge-result'),
+            latestChallengeResultMessage: getLatestLog(stateValue, 'challenge-result')?.message || '',
+            latestBlockKey: getLatestLogKey(stateValue, 'block'),
+            latestLossKey: getLatestLogKey(stateValue, 'loss'),
+            status: stateValue?.status || '',
+            winnerUid: stateValue?.winnerUid || '',
+            finishedAt: stateValue?.finishedAt || ''
+        };
+    }
+
+    function playStateSfx(previousState, nextState) {
+        const next = getSoundSnapshot(nextState);
+        const previous = previousSoundSnapshot || getSoundSnapshot(previousState);
+        previousSoundSnapshot = next;
+        syncTensionLayer(nextState);
+        syncInvestigationLayer(nextState);
+
+        if (!previousState) return;
+
+        if (next.status === PHASES.FINISHED && previous.status !== PHASES.FINISHED) {
+            playRankSfx(next.winnerUid === currentUid ? 'victory' : 'defeat-dun');
+        }
+
+        if (next.latestChallengeKey && next.latestChallengeKey !== previous.latestChallengeKey) {
+            playRankSfx('challenge-suspensful');
+        }
+
+        if (next.latestBlockKey && next.latestBlockKey !== previous.latestBlockKey) {
+            playRankSfx('block-blades');
+        }
+
+        if (next.latestChallengeResultKey && next.latestChallengeResultKey !== previous.latestChallengeResultKey
+            && next.latestChallengeResultMessage.includes('provou')) {
+            playRankSfx('shuffle');
+            playRankSfx('card-slide');
+        }
+
+        if (next.phase === PHASES.INFLUENCE_LOSS && next.pendingLossKey && next.pendingLossKey !== previous.pendingLossKey) {
+            startTensionLayer();
+        }
+
+        if (next.phase === PHASES.EXCHANGE && next.pendingExchangeKey && next.pendingExchangeKey !== previous.pendingExchangeKey) {
+            playRankSfx('card-slide');
+        }
+
+        if (next.actionId && next.actionId !== previous.actionId) {
+            playActionStartSfx(next.actionType);
+        }
+
+        if (!next.actionId && next.latestActionKey && next.latestActionKey !== previous.latestActionKey) {
+            playImmediateActionSfx(next.latestActionMessage);
+        }
+
+        playActionResolutionSfx(previousState, nextState);
+        playDeckReturnSfx(previousState, nextState);
+    }
+
+    function playActionStartSfx(actionType) {
+        if (actionType === ACTIONS.ASSASSINATE) {
+            playRankSfx('ninja-star');
+        }
+    }
+
+    function playActionResolutionSfx(previousState, nextState) {
+        const previousAction = previousState?.pendingAction;
+        const nextAction = nextState?.pendingAction;
+        if (!previousAction || nextAction?.id === previousAction.id) return;
+
+        const actorBefore = Engine.getPlayer(previousState, previousAction.actorUid);
+        const actorAfter = Engine.getPlayer(nextState, previousAction.actorUid);
+        const targetBefore = previousAction.targetUid ? Engine.getPlayer(previousState, previousAction.targetUid) : null;
+        const targetAfter = previousAction.targetUid ? Engine.getPlayer(nextState, previousAction.targetUid) : null;
+
+        if (didCoinActionResolve(previousAction.type, actorBefore, actorAfter, targetBefore, targetAfter)) {
+            playRankSfx('coin');
+        }
+
+        if (previousAction.type === ACTIONS.COUP && targetBefore && targetAfter && countHiddenInfluences(targetAfter) < countHiddenInfluences(targetBefore)) {
+            playRankSfx('unity-sword');
+        }
+
+        if (previousAction.type === ACTIONS.ASSASSINATE && targetBefore && targetAfter && countHiddenInfluences(targetAfter) < countHiddenInfluences(targetBefore)) {
+            playRankSfx('knife');
+        }
+    }
+
+    function playImmediateActionSfx(message) {
+        if (message.includes('Renda')) {
+            playRankSfx('coin');
+        }
+    }
+
+    function playDeckReturnSfx(previousState, nextState) {
+        if (previousState?.phase === PHASES.EXCHANGE && !nextState?.pendingExchange) {
+            playRankSfx('shuffle');
+        }
+
+        const previousExamine = previousState?.pendingExamine;
+        if (previousState?.phase !== PHASES.EXAMINE || !previousExamine || nextState?.pendingExamine) return;
+
+        const targetAfter = Engine.getPlayer(nextState, previousExamine.targetUid);
+        const examinedStillInHand = (targetAfter?.influences || []).some((card) => card.id === previousExamine.cardId);
+        if (!examinedStillInHand) {
+            playRankSfx('shuffle');
+            playRankSfx('card-slide');
+        }
+    }
+
+    function didCoinActionResolve(actionType, actorBefore, actorAfter, targetBefore, targetAfter) {
+        if (!actorBefore || !actorAfter) return false;
+        const actorCoinDelta = Number(actorAfter.coins || 0) - Number(actorBefore.coins || 0);
+
+        if ([ACTIONS.INCOME, ACTIONS.FOREIGN_AID, ACTIONS.TAX].includes(actionType)) {
+            return actorCoinDelta > 0;
+        }
+
+        if (actionType === ACTIONS.STEAL && targetBefore && targetAfter) {
+            const targetCoinDelta = Number(targetAfter.coins || 0) - Number(targetBefore.coins || 0);
+            return actorCoinDelta > 0 && targetCoinDelta < 0;
+        }
+
+        return false;
+    }
+
+    function countHiddenInfluences(player) {
+        return (player?.influences || []).filter((card) => !card.revealed).length;
+    }
+
+    function playConquestSfxForResults() {
+        if (state?.status !== PHASES.FINISHED) return;
+        const result = Engine.buildMatchResults(state, Date.now())?.players?.[currentUid];
+        if (!result?.won) return;
+
+        const achievements = [
+            Number(result.matchStats?.coups || 0) > 0,
+            Number(result.matchStats?.assassinations || 0) > 0,
+            Number(result.matchStats?.successfulChallenges || 0) > 0,
+            Number(result.matchStats?.coinsStolen || 0) >= 4,
+            Number(result.performanceScore || 0) >= 35
+        ];
+        const hasConquest = achievements.some(Boolean);
+        const key = `${roomCode}:${state.matchId || state.finishedAt || state.winnerUid}:conquest`;
+
+        if (hasConquest && !playedConquestKeys.has(key)) {
+            playedConquestKeys.add(key);
+            window.setTimeout(() => playRankSfx('conquest'), 900);
+        }
     }
 
     function getChatMessageKey(message) {
@@ -1450,7 +1873,6 @@
 
         if (latestMessage?.uid !== currentUid) {
             chatBtn?.classList.add('chat-btn-has-unread');
-            playRankSfx('pop');
         }
 
         lastSeenChatMessageKey = latestKey;

@@ -452,7 +452,7 @@ function addBot() {
     }
     const botName = `BOT ${botCount + 1}`;
 
-    db.ref(`salas/${roomCode}/gameState/players/${botSlot}`).update({
+    return db.ref(`salas/${roomCode}/gameState/players/${botSlot}`).update({
       online: true,
       uid: 'bot-' + Date.now(),
       name: botName,
@@ -460,6 +460,10 @@ function addBot() {
       hand: [],
       score: 2,
       religion: (botSlot % 2 === 1) ? 'catolico' : 'protestante'
+    }).then(() => {
+      triggerSound('pop');
+    }).catch((error) => {
+      console.error('Erro ao adicionar bot:', error);
     });
   } else {
     // Feedback visual para sala lotada

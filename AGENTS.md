@@ -41,6 +41,16 @@ Leia `docs/TDD.md` antes de fazer mudancas estruturais.
 - Use UTF-8.
 - Prefira mudancas pequenas e focadas. Este projeto tem muito estado global; alteracoes amplas quebram facil.
 
+## Mensagens de Commit
+
+Siga o estilo ja usado no historico do repositorio:
+
+- Assunto no formato `tipo: titulo`, `tipo/escopo: titulo` ou `tipo(escopo): titulo`.
+- Use tipos como `feat`, `fix`, `style`, `docs`, `refactor` e `ci`, escolhendo o mais especifico para a mudanca.
+- Mantenha o titulo curto, tecnico e em portugues do Brasil.
+- Quando houver varias mudancas, adicione corpo com bullets iniciados por `-`.
+- Quando util, finalize com `Verificacoes:` e bullets dos comandos executados.
+
 ## Verificacao Minima
 
 Depois de alterar JavaScript, rode:

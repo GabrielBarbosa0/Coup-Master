@@ -609,6 +609,7 @@ function createCardElement(card) {
 
   // --- INTERAÇÕES ADICIONAIS ---
   el.addEventListener('dblclick', () => {
+    hideCardTooltip();
     returnCardToDeck(card.id);
   });
 
