@@ -583,6 +583,61 @@ function attachCardTooltip(element, card) {
 /**
  * CRIAÇÃO DE ELEMENTO DE CARTA (ATUALIZADA PARA NOVAS PASTAS)
  */
+function animateReturnCardToDeck(cardElement, cardId) {
+  if (!cardElement || !deckEl || cardElement.dataset.returningToDeck === 'true') return;
+
+  const sourceRect = cardElement.getBoundingClientRect();
+  const targetRect = deckEl.getBoundingClientRect();
+  if (!sourceRect.width || !sourceRect.height || !targetRect.width || !targetRect.height) {
+    returnCardToDeck(cardId);
+    return;
+  }
+
+  cardElement.dataset.returningToDeck = 'true';
+  cardElement.classList.add('is-returning-to-deck');
+
+  const ghost = cardElement.cloneNode(true);
+  const cardStyle = window.getComputedStyle(cardElement);
+  ghost.className = 'card-return-ghost';
+  ghost.removeAttribute('draggable');
+  ghost.style.left = `${sourceRect.left}px`;
+  ghost.style.top = `${sourceRect.top}px`;
+  ghost.style.width = `${sourceRect.width}px`;
+  ghost.style.height = `${sourceRect.height}px`;
+  ghost.style.border = cardStyle.border;
+  ghost.style.borderRadius = cardStyle.borderRadius;
+  ghost.style.backgroundColor = cardStyle.backgroundColor;
+  ghost.style.backgroundImage = cardStyle.backgroundImage;
+  ghost.style.backgroundPosition = cardStyle.backgroundPosition;
+  ghost.style.backgroundSize = cardStyle.backgroundSize;
+  ghost.style.backgroundRepeat = cardStyle.backgroundRepeat;
+  document.body.appendChild(ghost);
+
+  const targetX = targetRect.left + (targetRect.width / 2) - (sourceRect.left + (sourceRect.width / 2));
+  const targetY = targetRect.top + (targetRect.height / 2) - (sourceRect.top + (sourceRect.height / 2));
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const finishReturn = () => {
+    ghost.remove();
+    returnCardToDeck(cardId);
+  };
+
+  if (prefersReducedMotion || typeof ghost.animate !== 'function') {
+    finishReturn();
+    return;
+  }
+
+  ghost.animate([
+    { transform: 'translate3d(0, 0, 0) scale(1) rotate(0deg)', opacity: 1 },
+    { transform: `translate3d(${targetX * 0.72}px, ${targetY * 0.72 - 18}px, 0) scale(0.86) rotate(4deg)`, opacity: 0.96, offset: 0.72 },
+    { transform: `translate3d(${targetX}px, ${targetY}px, 0) scale(0.18) rotate(9deg)`, opacity: 0 }
+  ], {
+    duration: 430,
+    easing: 'cubic-bezier(0.22, 0.8, 0.22, 1)',
+    fill: 'forwards'
+  }).finished.then(finishReturn, finishReturn);
+}
+
 function createCardElement(card) {
 
   const el = document.createElement('div');
@@ -629,7 +684,7 @@ function createCardElement(card) {
   // --- INTERAÇÕES ADICIONAIS ---
   el.addEventListener('dblclick', () => {
     hideCardTooltip();
-    returnCardToDeck(card.id);
+    animateReturnCardToDeck(el, card.id);
   });
 
   attachBalatroEffect(el);
