@@ -38,7 +38,7 @@ let chatListenerReady = false;
 let lastSeenChatMessageKey = '';
 let cardFanLayoutFrame = null;
 const SAMSUNG_DRAG_STORAGE_KEY = 'coupMasterSamsungDragEnabled';
-let samsungDragEnabled = readLocalBoolean(SAMSUNG_DRAG_STORAGE_KEY);
+let samsungDragEnabled = readLocalBoolean(SAMSUNG_DRAG_STORAGE_KEY, true);
 let compatibleDragState = null;
 const CASUAL_BALATRO_HOVER = Object.freeze({
   tilt: 36,
@@ -49,11 +49,13 @@ const CASUAL_HAND_FAN = Object.freeze({
   curveLift: 0
 });
 
-function readLocalBoolean(key) {
+function readLocalBoolean(key, defaultValue = false) {
   try {
-    return localStorage.getItem(key) === 'true';
+    const storedValue = localStorage.getItem(key);
+    if (storedValue === null) return defaultValue;
+    return storedValue === 'true';
   } catch (error) {
-    return false;
+    return defaultValue;
   }
 }
 
