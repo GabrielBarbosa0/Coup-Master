@@ -34,6 +34,8 @@
     const TENSION_FADE_OUT_MS = 1400;
     const TENSION_BGM_DUCK_RATIO = 0.18;
     const RANK_BGM_POSITION_KEY = 'rankBgmPosition';
+    const DEFAULT_RANK_MUSIC_VOLUME = 0.1;
+    const DEFAULT_RANK_SFX_VOLUME = 0.2;
     const RANK_BALATRO_HOVER = Object.freeze({
         tilt: 36,
         glowOffset: 23.4
@@ -1386,10 +1388,8 @@
         const musicBtn = document.getElementById('rankMusicBtn');
         const musicSlider = document.getElementById('rankVolumeSlider');
         const effectsSlider = document.getElementById('rankEffectsVolumeSlider');
-        const savedMusic = Number(localStorage.getItem('rankMusicVolume'));
-        const savedEffects = Number(localStorage.getItem('rankEffectsVolume'));
-        const musicVolume = Number.isFinite(savedMusic) ? savedMusic : 0.1;
-        const effectsVolume = Number.isFinite(savedEffects) ? savedEffects : 1;
+        const musicVolume = readRankStoredVolume('rankMusicVolume', DEFAULT_RANK_MUSIC_VOLUME);
+        const effectsVolume = readRankStoredVolume('rankEffectsVolume', DEFAULT_RANK_SFX_VOLUME);
         const bgmGuard = bgm && root.CoupAudioGuard
             ? root.CoupAudioGuard.createBackgroundAudioGuard(bgm, { button: musicBtn })
             : null;
@@ -1397,7 +1397,7 @@
         rankBgmAudio = bgm;
         rankBgmGuard = bgmGuard;
         rankMusicVolume = normalizeVolume(musicVolume);
-        root.rankSfxVolume = effectsVolume;
+        root.rankSfxVolume = normalizeVolume(effectsVolume, DEFAULT_RANK_SFX_VOLUME);
         if (bgm) {
             restoreRankBgmPosition(bgm);
             bgm.addEventListener('timeupdate', saveRankBgmPosition);
@@ -1449,10 +1449,16 @@
         }
     }
 
-    function normalizeVolume(value) {
+    function normalizeVolume(value, fallback = 1) {
+        if (value === null || value === undefined || value === '') return fallback;
         const number = Number(value);
-        if (!Number.isFinite(number)) return 1;
+        if (!Number.isFinite(number)) return fallback;
         return Math.max(0, Math.min(1, number));
+    }
+
+    function readRankStoredVolume(key, fallback) {
+        const storedValue = localStorage.getItem(key);
+        return normalizeVolume(storedValue, fallback);
     }
 
     function playRankSfx(id) {

@@ -137,15 +137,22 @@ function withdrawAsylumCoins() {
 // === UTILITÁRIOS GLOBAIS DE ÁUDIO E SFX ===
 // =======================================================
 
-const DEFAULT_SFX_VOLUME = 1;
+const DEFAULT_SFX_VOLUME = 0.2;
 
 function normalizeVolume(value, fallback = DEFAULT_SFX_VOLUME) {
+  if (value === null || value === undefined || value === '') return fallback;
   const volume = Number(value);
   if (!Number.isFinite(volume)) return fallback;
   return Math.max(0, Math.min(1, volume));
 }
 
-window.sfxVolume = normalizeVolume(localStorage.getItem('sfxVolume'));
+function readStoredSfxVolume() {
+  const storedVolume = localStorage.getItem('sfxVolume');
+  if (storedVolume === '0') return DEFAULT_SFX_VOLUME;
+  return normalizeVolume(storedVolume);
+}
+
+window.sfxVolume = readStoredSfxVolume();
 
 function setSfxVolume(value) {
   const normalizedVolume = normalizeVolume(value);
