@@ -640,7 +640,6 @@
         const bySeat = new Map(Engine.getPlayers(state).map((player) => [player.seat, player]));
         const activeUid = Engine.getActiveUid(state);
         const drawCandidates = new Set(state.starterDraw?.candidates || []);
-        const drawWinnerUid = state.starterDraw?.winnerUid || null;
 
         for (let seat = 1; seat <= Rules.SETTINGS.maxPlayers; seat += 1) {
             const player = bySeat.get(seat);
@@ -656,13 +655,13 @@
             const slot = element('article', 'rank-player-slot');
             slot.style.setProperty('--draw-seat', seat);
             if (player.uid === currentUid) slot.classList.add('is-self');
-            if (player.uid === activeUid && state.status === 'active') slot.classList.add('is-active');
+            if (player.uid === activeUid && state.status === 'active' && state.phase !== PHASES.STARTER_DRAW) slot.classList.add('is-active');
             if (state.phase === PHASES.STARTER_DRAW && drawCandidates.has(player.uid)) slot.classList.add('is-draw-candidate');
-            if (state.phase === PHASES.STARTER_DRAW && player.uid === drawWinnerUid) slot.classList.add('is-draw-winner');
             if (player.eliminated) slot.classList.add('is-eliminated');
 
             const header = element('div', 'rank-player-header');
             const avatar = element('img', 'rank-player-avatar');
+            if (player.ai) avatar.classList.add('is-ai-avatar');
             avatar.src = player.photo || 'assets/img/icons/ghost.svg';
             avatar.alt = `Perfil de ${player.name || 'Jogador'}`;
             avatar.title = 'Ver perfil do jogador';
@@ -704,7 +703,6 @@
         if (player.eliminated) return 'Eliminado';
         if (player.ai && state.status === PHASES.WAITING) return player.ready ? 'IA pronta' : 'IA preparando-se';
         if (state.status === PHASES.WAITING) return player.ready ? 'Pronto' : 'Preparando-se';
-        if (state.phase === PHASES.STARTER_DRAW && player.uid === state.starterDraw?.winnerUid) return 'Sorteado';
         if (state.phase === PHASES.STARTER_DRAW) return 'No sorteio';
         if (player.uid === activeUid) return 'Em jogo';
         return player.connected ? 'Online' : 'Reconectando';
@@ -874,9 +872,9 @@
             if (!player) return;
             const chip = element('div', 'rank-starter-chip');
             chip.style.setProperty('--draw-index', index);
-            if (uid === starter?.uid) chip.classList.add('is-selected');
 
             const avatar = element('img');
+            if (player.ai) avatar.classList.add('is-ai-avatar');
             avatar.src = player.photo || 'assets/img/icons/ghost.svg';
             avatar.alt = '';
             avatar.referrerPolicy = 'no-referrer';
@@ -887,7 +885,7 @@
         const result = element(
             'strong',
             'rank-starter-result',
-            starter ? `${starter.name} abre a partida` : 'Escolhendo jogador...'
+            'Escolhendo jogador...'
         );
         panel.append(list, result);
         container.append(panel);
@@ -924,6 +922,7 @@
             if (player.uid === starter?.uid) chip.classList.add('is-winner');
 
             const avatar = element('img');
+            if (player.ai) avatar.classList.add('is-ai-avatar');
             avatar.src = player.photo || 'assets/img/icons/ghost.svg';
             avatar.alt = '';
             avatar.referrerPolicy = 'no-referrer';
