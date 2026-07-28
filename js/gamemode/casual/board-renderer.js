@@ -1091,6 +1091,7 @@ function createCompatibleDragGhost(sourceElement, pointerEvent) {
 
   ghost.removeAttribute('id');
   ghost.setAttribute('aria-hidden', 'true');
+  ghost.classList.remove('balatro-effect', 'is-tilting', 'is-dragging', 'lifting');
   ghost.classList.add('compatible-drag-ghost');
   ghost.style.width = `${sourceRect.width}px`;
   ghost.style.height = `${sourceRect.height}px`;
@@ -1111,9 +1112,21 @@ function createCompatibleDragGhost(sourceElement, pointerEvent) {
   ghost.style.setProperty('--card-lift', '0px');
   ghost.style.setProperty('--card-base-shift', '0px');
   ghost.style.setProperty('--card-base-rotation', '0deg');
+  ghost.style.removeProperty('--glow-x');
+  ghost.style.removeProperty('--glow-y');
   document.body.appendChild(ghost);
 
   return ghost;
+}
+
+function resetBalatroElement(element) {
+  if (!element) return;
+  element.classList.remove('is-tilting');
+  element.closest('.slot')?.classList.remove('is-active-card');
+  element.style.removeProperty('--tilt-x');
+  element.style.removeProperty('--tilt-y');
+  element.style.removeProperty('--glow-x');
+  element.style.removeProperty('--glow-y');
 }
 
 function activateCompatibleDrag(event) {
@@ -1121,6 +1134,8 @@ function activateCompatibleDrag(event) {
 
   event.preventDefault();
   hideCardTooltip();
+  resetBalatroElement(compatibleDragState.sourceElement);
+  compatibleDragState.sourceElement?.classList.add('is-compatible-drag-source');
   compatibleDragState.ghost = createCompatibleDragGhost(compatibleDragState.sourceElement, event);
   compatibleDragState.activated = true;
   compatibleDragState.sourceElement?.classList.add('is-dragging');
@@ -1162,6 +1177,8 @@ function finishCompatibleDrag() {
 
   compatibleDragState.dropzone?.classList.remove('compatible-drop-hover');
   compatibleDragState.sourceElement?.classList.remove('is-dragging');
+  compatibleDragState.sourceElement?.classList.remove('is-compatible-drag-source');
+  resetBalatroElement(compatibleDragState.sourceElement);
   compatibleDragState.ghost?.remove();
   compatibleDragState = null;
 
@@ -1374,9 +1391,14 @@ function attachBalatroEffect(element, isDeck = false) {
   element.classList.add('balatro-effect');
 
   element.addEventListener('mousemove', (e) => {
+    if (element.classList.contains('is-compatible-drag-source')) {
+      resetBalatroElement(element);
+      return;
+    }
+
     const rect = element.getBoundingClientRect();
-    const normalizedX = (e.clientX - rect.left) / rect.width - 0.5;
-    const normalizedY = (e.clientY - rect.top) / rect.height - 0.5;
+    const normalizedX = Math.max(-0.5, Math.min(0.5, (e.clientX - rect.left) / rect.width - 0.5));
+    const normalizedY = Math.max(-0.5, Math.min(0.5, (e.clientY - rect.top) / rect.height - 0.5));
     const rotateX = normalizedY * -CASUAL_BALATRO_HOVER.tilt;
     const rotateY = normalizedX * CASUAL_BALATRO_HOVER.tilt;
 
@@ -1389,12 +1411,7 @@ function attachBalatroEffect(element, isDeck = false) {
   });
 
   element.addEventListener('mouseleave', () => {
-    element.classList.remove('is-tilting');
-    element.closest('.slot')?.classList.remove('is-active-card');
-    element.style.removeProperty('--tilt-x');
-    element.style.removeProperty('--tilt-y');
-    element.style.removeProperty('--glow-x');
-    element.style.removeProperty('--glow-y');
+    resetBalatroElement(element);
   });
 }
 
