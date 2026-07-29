@@ -18,7 +18,7 @@ O backend efetivo e o Firebase:
 - Firebase Realtime Database guarda salas, estado da partida, jogadores, cartas, notificacoes e eventos de som.
 - As regras de seguranca do Firebase sao uma dependencia critica do produto, mas atualmente aparecem apenas no README, nao como arquivo versionado de infraestrutura.
 
-O estado tecnico atual e funcional para uma beta, mas altamente acoplado. A maior parte da regra de interface, renderizacao, efeitos visuais, modais, presets e interacoes vive em um unico arquivo grande: `js/gamemode/casual/board-renderer.js`. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
+O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, renderizacao, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, preferencias locais e presets de deck ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
 
 ## 2. Objetivos do Produto
 
@@ -174,6 +174,7 @@ Coup-Master/
         card-preview.js
         modal-service.js
         settings-service.js
+        deck-presets.js
         board-renderer.js
       ranked/
         ranked-engine.js
@@ -261,6 +262,7 @@ node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\settings-service.js
+node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -612,7 +614,6 @@ Responsabilidades:
 - Configurar fullscreen, configuracoes visuais e preferencias locais.
 - Renderizar jogadores, avatares, badges de religiao, maos, moedas e estado de admin.
 - Gerenciar quick actions.
-- Gerenciar preset de deck.
 - Gerenciar efeitos visuais restantes, como Balatro/tilt, e preferencias locais de UI.
 
 Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
@@ -623,7 +624,6 @@ Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
 - listeners;
 - configuracao de deck;
 - modais;
-- preferencias locais;
 - animacoes em `requestAnimationFrame`;
 - funcoes globais chamadas pelo HTML inline.
 
@@ -700,6 +700,24 @@ Contrato:
 - Preserva wrappers globais `isSamsungDragModeEnabled`, `updateSamsungDragButton`, `refreshSamsungDragMode` e `setSamsungDragMode` para compatibilidade com o renderer.
 - `board-renderer.js` chama `setupSamsungDragPreference({ playSound })` e `setupReligionVisibilityPreference({ playSound })`.
 - O modo de compatibilidade permanece baseado em Pointer Events e continua ativado por padrao quando nao ha preferencia salva.
+
+### 7.11 `js/gamemode/casual/deck-presets.js`
+
+Responsabilidades:
+
+- Centralizar presets de composicao do baralho casual.
+- Preencher inputs do modal de configuracao de deck em lote.
+- Manter grupos de cartas do jogo base, promocionais, DLC 1, DLC 2 e duelo.
+- Aplicar presets `standard`, `base_promo`, `base_dlc1`, `base_dlc2`, `caos`, `duel`, `test` e `clear`.
+- Controlar a abertura e fechamento do modal de duelo usado pelo preset `duel`.
+- Tocar feedback sonoro dos presets usando o `playSound` injetado pelo renderer.
+
+Contrato:
+
+- Expoe `window.CoupDeckPresets`.
+- Preserva wrappers globais `applyDeckPreset`, `confirmDuelPreset` e `closeDuelModal` porque `index.html` ainda usa handlers inline.
+- `board-renderer.js` chama `window.CoupDeckPresets.setup({ playSound })`.
+- O servico altera apenas os inputs do modal; a aplicacao real do deck continua passando por `resetTable(newConfig)`.
 
 ## 8. Modelo de Dados no Firebase
 
@@ -1917,6 +1935,7 @@ node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\settings-service.js
+node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -1997,7 +2016,7 @@ Refatoracoes recomendadas:
   - `modals.js`
   - `settings.js`
   - `effects.js`
-  - `deckPresets.js`
+  - `deck-presets.js`
 - Separar estado/mutacoes em servico:
   - `roomService`
   - `gameStateService`
@@ -2116,6 +2135,8 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/audio-service.js` | Audio casual, BGM, volume e sincronizacao SFX | Medio |
 | `js/gamemode/casual/card-preview.js` | Preview ampliado de cartas e flip do modal | Medio |
 | `js/gamemode/casual/modal-service.js` | Helpers compartilhados de abertura, fechamento e visibilidade de modais | Medio |
+| `js/gamemode/casual/settings-service.js` | Preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao | Medio |
+| `js/gamemode/casual/deck-presets.js` | Presets de composicao do baralho casual e duelo | Medio |
 | `js/gamemode/casual/board-renderer.js` | Renderizacao, UI, interacoes, efeitos | Muito alto |
 | `js/gamemode/ranked/ranked-rules.js` | Contratos de personagens, acoes e tempos | Alto |
 | `js/gamemode/ranked/ranked-engine.js` | Maquina de estados e resolucao das regras | Muito alto |
@@ -2205,6 +2226,7 @@ node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\settings-service.js
+node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
