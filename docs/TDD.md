@@ -18,7 +18,7 @@ O backend efetivo e o Firebase:
 - Firebase Realtime Database guarda salas, estado da partida, jogadores, cartas, notificacoes e eventos de som.
 - As regras de seguranca do Firebase sao uma dependencia critica do produto, mas atualmente aparecem apenas no README, nao como arquivo versionado de infraestrutura.
 
-O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, guias de regras, preferencias locais, presets de deck, renderizacao de cartas e renderizacao de jogadores ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
+O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, guias de regras, UI simples da sala, preferencias locais, presets de deck, renderizacao de cartas e renderizacao de jogadores ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
 
 ## 2. Objetivos do Produto
 
@@ -181,6 +181,7 @@ Coup-Master/
         spectator-service.js
         quick-actions.js
         settings-service.js
+        room-ui.js
         deck-presets.js
         drag-drop.js
         render-cards.js
@@ -279,6 +280,7 @@ node --check js\gamemode\casual\rules-guides.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
+node --check js\gamemode\casual\room-ui.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
@@ -630,9 +632,9 @@ Responsabilidades:
 - Mapear tipo de carta para pasta de asset.
 - Configurar drag and drop.
 - Configurar auto-scroll durante drag.
-- Configurar modais e botoes da UI.
-- Configurar fullscreen, configuracoes visuais e preferencias locais.
-- Injetar dependencias para `chat-service.js`, `board-status.js`, `visual-effects.js`, `admin-controls.js`, `rules-guides.js` e `quick-actions.js`.
+- Coordenar setup de modais e botoes da UI ainda nao extraidos.
+- Coordenar configuracoes visuais e preferencias locais.
+- Injetar dependencias para `chat-service.js`, `board-status.js`, `visual-effects.js`, `admin-controls.js`, `rules-guides.js`, `room-ui.js` e `quick-actions.js`.
 - Manter efeitos visuais restantes apenas quando ainda nao migrados para modulo proprio.
 
 Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
@@ -698,7 +700,7 @@ Contrato:
 
 - Expoe `window.CoupModal`.
 - `gameState.js` usa o servico em modais de espectador e sala cheia.
-- `chat-service.js` usa o servico para abrir e fechar o chat; `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `admin-controls.js` usa o servico para kick, reset, sala cheia e configuracao de deck; `rules-guides.js` usa o servico para guias e regras alternativas; `board-renderer.js` ainda usa o servico para feedback, configuracoes, tutorial e duelo.
+- `chat-service.js` usa o servico para abrir e fechar o chat; `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `admin-controls.js` usa o servico para kick, reset, sala cheia e configuracao de deck; `rules-guides.js` usa o servico para guias e regras alternativas; `room-ui.js` usa o servico para feedback e configuracoes; `board-renderer.js` ainda usa o servico para tutorial e duelo.
 - O servico nao muda estrutura HTML nem estilos dos modais; apenas centraliza as operacoes repetidas de exibicao.
 
 ### 7.10 `js/gamemode/casual/chat-service.js`
@@ -878,7 +880,29 @@ Contrato:
 - `board-renderer.js` chama `setupSamsungDragPreference({ playSound })` e `setupReligionVisibilityPreference({ playSound })`.
 - O modo de compatibilidade permanece baseado em Pointer Events e continua ativado por padrao quando nao ha preferencia salva.
 
-### 7.18 `js/gamemode/casual/deck-presets.js`
+### 7.18 `js/gamemode/casual/room-ui.js`
+
+Responsabilidades:
+
+- Centralizar handlers simples da sala casual que nao sao regra de jogo.
+- Controlar o botao de sair da sala e voltar para `lobby.html`.
+- Remover `currentRoomMode` do `sessionStorage` ao sair da sala.
+- Controlar fullscreen pelo botao `fullscreenBtn`.
+- Abrir e fechar `feedbackModal`.
+- Fechar `settingsModal` quando o feedback e aberto.
+- Abrir e fechar `settingsModal`.
+- Atualizar o estado visual do botao de compatibilidade antes de abrir as configuracoes.
+- Tocar feedback sonoro local usando `playSound` injetado.
+
+Contrato:
+
+- Expoe `window.CoupRoomUI`.
+- `board-renderer.js` chama `setup({ playSound, beforeOpenSettings })` durante `setupUI()`.
+- Usa `window.CoupModal` para abrir e fechar modais.
+- Nao acessa Firebase, nao altera cartas, moedas, jogadores ou deck.
+- Preferencias internas das configuracoes continuam em `settings-service.js`.
+
+### 7.19 `js/gamemode/casual/deck-presets.js`
 
 Responsabilidades:
 
@@ -896,7 +920,7 @@ Contrato:
 - `board-renderer.js` chama `window.CoupDeckPresets.setup({ playSound })`.
 - O servico altera apenas os inputs do modal; a aplicacao real do deck continua passando por `resetTable(newConfig)`.
 
-### 7.19 `js/gamemode/casual/drag-drop.js`
+### 7.20 `js/gamemode/casual/drag-drop.js`
 
 Responsabilidades:
 
@@ -918,7 +942,7 @@ Contrato:
 - `board-renderer.js` injeta elementos DOM, mutacoes de jogo, `isSamsungDragModeEnabled`, `refreshSamsungDragMode`, `resetBalatroElement` vindo de `window.CoupVisualEffects` e `hideCardTooltip`.
 - O modulo nao remove o legado HTML5; ele apenas move a configuracao para uma fronteira menor.
 
-### 7.20 `js/gamemode/casual/render-players.js`
+### 7.21 `js/gamemode/casual/render-players.js`
 
 Responsabilidades:
 
@@ -938,7 +962,7 @@ Contrato:
 - O servico nao acessa Firebase nem muta estado de jogo diretamente.
 - A limpeza das maos antes da renderizacao continua em `clearDOM()`.
 
-### 7.21 `js/gamemode/casual/render-cards.js`
+### 7.22 `js/gamemode/casual/render-cards.js`
 
 Responsabilidades:
 
@@ -2180,6 +2204,7 @@ node --check js\gamemode\casual\rules-guides.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
+node --check js\gamemode\casual\room-ui.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
@@ -2268,8 +2293,8 @@ Refatoracoes recomendadas:
   - `admin-controls.js`
   - `rules-guides.js`
   - `quick-actions.js`
-  - `settings.js`
-  - `effects.js`
+  - `settings-service.js`
+  - `room-ui.js`
   - `deck-presets.js`
 - Separar estado/mutacoes em servico:
   - `roomService`
@@ -2397,6 +2422,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/spectator-service.js` | Botao, modal e lista segura de alvos do espectador casual | Medio |
 | `js/gamemode/casual/quick-actions.js` | Perfil rapido, estatisticas ranqueadas e acoes rapidas casuais | Medio |
 | `js/gamemode/casual/settings-service.js` | Preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao | Medio |
+| `js/gamemode/casual/room-ui.js` | Sair da sala, fullscreen, feedback e configuracoes simples | Baixo/medio |
 | `js/gamemode/casual/deck-presets.js` | Presets de composicao do baralho casual e duelo | Medio |
 | `js/gamemode/casual/drag-drop.js` | Drag/drop HTML5 legado, fallback Pointer Events e dropzones do casual | Alto |
 | `js/gamemode/casual/render-cards.js` | Renderizacao visual de cartas, assets, tooltip e frente/verso | Alto |
@@ -2497,6 +2523,7 @@ node --check js\gamemode\casual\rules-guides.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
+node --check js\gamemode\casual\room-ui.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js

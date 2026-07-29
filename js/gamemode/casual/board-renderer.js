@@ -197,44 +197,10 @@ function setupUI() {
   });
 
 
-  // Feedback Modal
-  const feedbackModal = document.getElementById('feedbackModal');
-  const openFeedbackBtn = document.getElementById('openFeedbackBtn');
-  const closeFeedbackBtn = document.getElementById('closeFeedbackBtn');
-
-  if (openFeedbackBtn && feedbackModal) {
-    openFeedbackBtn.onclick = () => {
-      if (typeof playSound === 'function') playSound('click');
-      window.CoupModal?.open(feedbackModal);
-      // Opcional: fecha o modal de configurações ao abrir o de feedback
-      window.CoupModal?.close('settingsModal');
-    };
-  }
-
-  if (closeFeedbackBtn) {
-    closeFeedbackBtn.onclick = () => {
-      if (typeof playSound === 'function') playSound('click');
-      window.CoupModal?.close(feedbackModal);
-    };
-  }
-
-
-  // --- 2. CONTROLES DE AMBIENTE E TELA ---
-
-  // Alternância de Tela Cheia (Fullscreen)
-  const fullscreenBtn = document.getElementById('fullscreenBtn');
-  if (fullscreenBtn) {
-    fullscreenBtn.onclick = () => {
-      playSound('click');
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-          console.error(`Erro ao ativar tela cheia: ${err.message}`);
-        });
-      } else {
-        document.exitFullscreen();
-      }
-    };
-  }
+  window.CoupRoomUI?.setup({
+    playSound,
+    beforeOpenSettings: () => window.CoupCasualSettings?.updateSamsungDragButton()
+  });
 
   window.CoupCasualAudio?.setupBackgroundMusicControls();
 
@@ -260,25 +226,6 @@ function setupUI() {
 
 
   // --- 4. CONFIGURAÇÕES VISUAIS E CUSTOMIZAÇÃO ---
-
-  // Menu de Configurações (Abertura/Fechamento)
-  const settingsBtn = document.getElementById('settingsBtn');
-  const settingsModal = document.getElementById('settingsModal');
-  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-
-  if (settingsBtn && settingsModal) {
-    settingsBtn.onclick = () => {
-      playSound('click');
-      window.CoupCasualSettings?.updateSamsungDragButton();
-      window.CoupModal?.open(settingsModal);
-    };
-    if (closeSettingsBtn) {
-      closeSettingsBtn.onclick = () => {
-        playSound('click');
-        window.CoupModal?.close(settingsModal);
-      };
-    }
-  }
 
   window.CoupCasualSettings?.setupSamsungDragPreference({ playSound });
 
@@ -352,17 +299,6 @@ window.CoupBoardStatus?.setup({
 });
 
 window.CoupCasualSettings?.setupReligionVisibilityPreference({ playSound });
-
-// --- BOTÃO SAIR DA SALA ---
-const leaveRoomBtn = document.getElementById('leaveRoomBtn');
-if (leaveRoomBtn) {
-  leaveRoomBtn.onclick = () => {
-    if (typeof playSound === 'function') playSound('click');
-    sessionStorage.removeItem('currentRoomMode');
-    window.location.href = 'lobby.html'; // Retorna ao lobby
-  };
-}
-
 
 window.CoupCardPreview?.setup({
   getState: () => localGameState,
