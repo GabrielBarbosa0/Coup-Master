@@ -171,6 +171,7 @@ Coup-Master/
       game-modes.js
       casual/
         audio-service.js
+        card-preview.js
         board-renderer.js
       ranked/
         ranked-engine.js
@@ -255,6 +256,7 @@ node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
+node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -606,7 +608,6 @@ Responsabilidades:
 - Configurar fullscreen, configuracoes visuais e preferencias locais.
 - Renderizar jogadores, avatares, badges de religiao, maos, moedas e estado de admin.
 - Gerenciar quick actions.
-- Gerenciar preview de cartas.
 - Gerenciar preset de deck.
 - Gerenciar efeitos visuais restantes, como Balatro/tilt, e preferencias locais de UI.
 
@@ -639,6 +640,25 @@ Contrato:
 - Expoe `window.CoupCasualAudio`.
 - `gameState.js` preserva os wrappers globais `setSfxVolume`, `playSound` e `triggerSound` para compatibilidade com chamadas existentes.
 - `board-renderer.js` chama `window.CoupCasualAudio.setupBackgroundMusicControls()` durante `setupUI()`.
+
+### 7.8 `js/gamemode/casual/card-preview.js`
+
+Responsabilidades:
+
+- Centralizar o preview ampliado de cartas do modo casual.
+- Capturar `contextmenu` no desktop para abrir o modal ao clicar com botao direito em uma carta visivel.
+- Ignorar `touch` e `pen` para preservar o fluxo de arraste em dispositivos moveis/tablet.
+- Configurar imagem frontal do preview usando `getCardFolder(card.type)`.
+- Resetar o flip para a frente ao abrir o modal.
+- Fechar o modal pelo botao `closePreviewBtn`.
+- Alternar frente/verso no clique do `previewFlipCard`.
+- Tocar `card-slide` apenas no flip do preview, nao na abertura por botao direito.
+
+Contrato:
+
+- Expoe `window.CoupCardPreview`.
+- `board-renderer.js` injeta dependencias com `setup({ getState, findCardById, getCardFolder, shouldShowBack, playSound })`.
+- O bloqueio de menu de contexto em desktop foi preservado para manter o comportamento anterior.
 
 ## 8. Modelo de Dados no Firebase
 
@@ -1852,6 +1872,7 @@ node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
+node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -2049,6 +2070,7 @@ Estas invariantes devem ser preservadas:
 | `js/core/gameState.js` | Mutacoes e sincronizacao Firebase | Muito alto |
 | `js/lobby/lobby-manager.js` | Auth/lobby/salas/limpeza | Alto |
 | `js/gamemode/casual/audio-service.js` | Audio casual, BGM, volume e sincronizacao SFX | Medio |
+| `js/gamemode/casual/card-preview.js` | Preview ampliado de cartas e flip do modal | Medio |
 | `js/gamemode/casual/board-renderer.js` | Renderizacao, UI, interacoes, efeitos | Muito alto |
 | `js/gamemode/ranked/ranked-rules.js` | Contratos de personagens, acoes e tempos | Alto |
 | `js/gamemode/ranked/ranked-engine.js` | Maquina de estados e resolucao das regras | Muito alto |
@@ -2135,6 +2157,7 @@ node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
+node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
