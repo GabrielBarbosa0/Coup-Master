@@ -18,7 +18,7 @@ O backend efetivo e o Firebase:
 - Firebase Realtime Database guarda salas, estado da partida, jogadores, cartas, notificacoes e eventos de som.
 - As regras de seguranca do Firebase sao uma dependencia critica do produto, mas atualmente aparecem apenas no README, nao como arquivo versionado de infraestrutura.
 
-O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, guias de regras, UI simples da sala, controles do asilo, preferencias locais, presets de deck, renderizacao de cartas e renderizacao de jogadores ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
+O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, guias de regras, UI simples da sala, controles do asilo, tutorial inicial, preferencias locais, presets de deck, renderizacao de cartas e renderizacao de jogadores ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
 
 ## 2. Objetivos do Produto
 
@@ -183,6 +183,7 @@ Coup-Master/
         settings-service.js
         room-ui.js
         asylum-controls.js
+        tutorial-service.js
         deck-presets.js
         drag-drop.js
         render-cards.js
@@ -283,6 +284,7 @@ node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\room-ui.js
 node --check js\gamemode\casual\asylum-controls.js
+node --check js\gamemode\casual\tutorial-service.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
@@ -636,7 +638,7 @@ Responsabilidades:
 - Configurar auto-scroll durante drag.
 - Coordenar setup de modais e botoes da UI ainda nao extraidos.
 - Coordenar configuracoes visuais e preferencias locais.
-- Injetar dependencias para `chat-service.js`, `board-status.js`, `visual-effects.js`, `admin-controls.js`, `rules-guides.js`, `room-ui.js`, `asylum-controls.js` e `quick-actions.js`.
+- Injetar dependencias para `chat-service.js`, `board-status.js`, `visual-effects.js`, `admin-controls.js`, `rules-guides.js`, `room-ui.js`, `asylum-controls.js`, `tutorial-service.js` e `quick-actions.js`.
 - Manter efeitos visuais restantes apenas quando ainda nao migrados para modulo proprio.
 
 Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
@@ -702,7 +704,7 @@ Contrato:
 
 - Expoe `window.CoupModal`.
 - `gameState.js` usa o servico em modais de espectador e sala cheia.
-- `chat-service.js` usa o servico para abrir e fechar o chat; `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `admin-controls.js` usa o servico para kick, reset, sala cheia e configuracao de deck; `rules-guides.js` usa o servico para guias e regras alternativas; `room-ui.js` usa o servico para feedback e configuracoes; `board-renderer.js` ainda usa o servico para tutorial e duelo.
+- `chat-service.js` usa o servico para abrir e fechar o chat; `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `admin-controls.js` usa o servico para kick, reset, sala cheia e configuracao de deck; `rules-guides.js` usa o servico para guias e regras alternativas; `room-ui.js` usa o servico para feedback e configuracoes; `tutorial-service.js` usa o servico para o tutorial inicial; `board-renderer.js` ainda usa o servico para duelo.
 - O servico nao muda estrutura HTML nem estilos dos modais; apenas centraliza as operacoes repetidas de exibicao.
 
 ### 7.10 `js/gamemode/casual/chat-service.js`
@@ -923,7 +925,24 @@ Contrato:
 - Nao altera a renderizacao dos contadores; `board-status.js` continua atualizando `asylum-score` e `table-asylum-score`.
 - Nao altera as mutacoes reais; `gameState.js` continua sendo responsavel por `updateAsylumScore` e `withdrawAsylumCoins`.
 
-### 7.20 `js/gamemode/casual/deck-presets.js`
+### 7.20 `js/gamemode/casual/tutorial-service.js`
+
+Responsabilidades:
+
+- Centralizar o tutorial inicial do modo casual.
+- Abrir `tutorialModal` quando `sessionStorage.tutorialSeen` ainda nao existe.
+- Fechar o tutorial pelos botoes `closeTutorialBtn` e `startPlayBtn`.
+- Persistir `tutorialSeen = true` ao fechar o tutorial.
+- Falhar de forma silenciosa se `sessionStorage` estiver indisponivel.
+
+Contrato:
+
+- Expoe `window.CoupTutorial`.
+- `board-renderer.js` chama `setup()` durante `setupUI()`.
+- Usa `window.CoupModal` para abrir e fechar o modal.
+- Nao acessa Firebase, nao altera estado de jogo e nao toca em regras de sala.
+
+### 7.21 `js/gamemode/casual/deck-presets.js`
 
 Responsabilidades:
 
@@ -941,7 +960,7 @@ Contrato:
 - `board-renderer.js` chama `window.CoupDeckPresets.setup({ playSound })`.
 - O servico altera apenas os inputs do modal; a aplicacao real do deck continua passando por `resetTable(newConfig)`.
 
-### 7.21 `js/gamemode/casual/drag-drop.js`
+### 7.22 `js/gamemode/casual/drag-drop.js`
 
 Responsabilidades:
 
@@ -963,7 +982,7 @@ Contrato:
 - `board-renderer.js` injeta elementos DOM, mutacoes de jogo, `isSamsungDragModeEnabled`, `refreshSamsungDragMode`, `resetBalatroElement` vindo de `window.CoupVisualEffects` e `hideCardTooltip`.
 - O modulo nao remove o legado HTML5; ele apenas move a configuracao para uma fronteira menor.
 
-### 7.22 `js/gamemode/casual/render-players.js`
+### 7.23 `js/gamemode/casual/render-players.js`
 
 Responsabilidades:
 
@@ -983,7 +1002,7 @@ Contrato:
 - O servico nao acessa Firebase nem muta estado de jogo diretamente.
 - A limpeza das maos antes da renderizacao continua em `clearDOM()`.
 
-### 7.23 `js/gamemode/casual/render-cards.js`
+### 7.24 `js/gamemode/casual/render-cards.js`
 
 Responsabilidades:
 
@@ -1196,7 +1215,7 @@ Chaves:
 - `currentUID`
 - `currentName`
 - `currentPhoto`
-- `tutorialSeen`
+- `tutorialSeen`: controlado por `tutorial-service.js`
 
 Fluxo:
 
@@ -2227,6 +2246,7 @@ node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\room-ui.js
 node --check js\gamemode\casual\asylum-controls.js
+node --check js\gamemode\casual\tutorial-service.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
@@ -2318,6 +2338,7 @@ Refatoracoes recomendadas:
   - `settings-service.js`
   - `room-ui.js`
   - `asylum-controls.js`
+  - `tutorial-service.js`
   - `deck-presets.js`
 - Separar estado/mutacoes em servico:
   - `roomService`
@@ -2447,6 +2468,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/settings-service.js` | Preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao | Medio |
 | `js/gamemode/casual/room-ui.js` | Sair da sala, fullscreen, feedback e configuracoes simples | Baixo/medio |
 | `js/gamemode/casual/asylum-controls.js` | Duplo clique, botoes de moedas e tooltip do asilo casual | Baixo/medio |
+| `js/gamemode/casual/tutorial-service.js` | Tutorial inicial do casual e persistencia tutorialSeen | Baixo/medio |
 | `js/gamemode/casual/deck-presets.js` | Presets de composicao do baralho casual e duelo | Medio |
 | `js/gamemode/casual/drag-drop.js` | Drag/drop HTML5 legado, fallback Pointer Events e dropzones do casual | Alto |
 | `js/gamemode/casual/render-cards.js` | Renderizacao visual de cartas, assets, tooltip e frente/verso | Alto |
@@ -2549,6 +2571,7 @@ node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\room-ui.js
 node --check js\gamemode\casual\asylum-controls.js
+node --check js\gamemode\casual\tutorial-service.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js

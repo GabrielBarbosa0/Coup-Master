@@ -231,31 +231,7 @@ function setupUI() {
     playSound
   });
 
-  /**
- * Gerencia a exibição do tutorial inicial
- */
-  function checkTutorial() {
-    const tutorialModal = document.getElementById('tutorialModal');
-    const closeBtn = document.getElementById('closeTutorialBtn');
-    const startBtn = document.getElementById('startPlayBtn');
-
-    // Verifica se o tutorial já foi visto nesta sessão de navegador
-    const tutorialSeen = sessionStorage.getItem('tutorialSeen');
-
-    if (!tutorialSeen) {
-      window.CoupModal?.open(tutorialModal);
-    }
-
-    const closeAction = () => {
-      window.CoupModal?.close(tutorialModal);
-      sessionStorage.setItem('tutorialSeen', 'true'); // Salva para não mostrar de novo
-    };
-
-    if (closeBtn) closeBtn.onclick = closeAction;
-    if (startBtn) startBtn.onclick = closeAction;
-  }
-
-
+  window.CoupTutorial?.setup();
 
   document.querySelectorAll('.player-area').forEach(area => {
     const pid = parseInt(area.dataset.player);
@@ -265,8 +241,6 @@ function setupUI() {
     area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
   });
 
-
-  checkTutorial();
 }
 
 
