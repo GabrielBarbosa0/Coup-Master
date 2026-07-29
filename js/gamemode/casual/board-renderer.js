@@ -15,27 +15,6 @@ const asylumScoreEl = document.getElementById('asylum-score');
 const asylumPlusBtn = document.getElementById('asylum-plus');
 const asylumMinusBtn = document.getElementById('asylum-minus');
 
-const CHAT_MESSAGE_MAX_LENGTH = 240;
-const QUICK_CHAT_MESSAGES = [
-  'Contesto',
-  'Bloqueio',
-  'Sou o Duque',
-  'Sou o Capitão',
-  'Sou o Assassino',
-  'Sou a Condessa',
-  'Sou o Embaixador',
-  'Sou o Inquisidor',
-  'Taxar',
-  'Extorquir',
-  'Assassinar',
-  'Trocar',
-  'Investigar'
-];
-
-let chatMessages = [];
-let chatMessagesInitialized = false;
-let chatListenerReady = false;
-let lastSeenChatMessageKey = '';
 let cardFanLayoutFrame = null;
 const CASUAL_BALATRO_HOVER = Object.freeze({
   tilt: 36,
@@ -380,253 +359,6 @@ function setupAutoScroll() {
   });
 }
 
-function formatChatTime(timestamp) {
-  if (!timestamp) return '--:--';
-
-  return new Date(timestamp).toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-function getChatAuthorName() {
-  const playerName = localGameState?.players?.[myPlayerId]?.name;
-  return playerName || currentUser?.name || 'Jogador';
-}
-
-function getChatMessagesRef() {
-  return db.ref(`salas/${roomCode}/chatMessages`);
-}
-
-function openChatModal() {
-  const chatModal = document.getElementById('chatModal');
-  const chatBtn = document.getElementById('chatBtn');
-  const chatInput = document.getElementById('chatInput');
-
-  if (typeof playSound === 'function') playSound('click');
-  window.CoupModal?.open(chatModal);
-  if (chatBtn) {
-    chatBtn.classList.remove('chat-btn-has-unread');
-    chatBtn.classList.add('is-chat-open');
-  }
-  lastSeenChatMessageKey = getLastChatMessageKey();
-  window.setTimeout(() => chatInput?.focus(), 60);
-}
-
-function closeChatModal() {
-  const chatModal = document.getElementById('chatModal');
-  const chatBtn = document.getElementById('chatBtn');
-
-  if (typeof playSound === 'function') playSound('click');
-  window.CoupModal?.close(chatModal);
-  if (chatBtn) chatBtn.classList.remove('is-chat-open');
-}
-
-async function sendChatMessage({ text, type = 'text' }) {
-  const cleanText = String(text || '').trim().slice(0, CHAT_MESSAGE_MAX_LENGTH);
-  if (!cleanText || !roomCode || !currentUser?.uid) return;
-
-  const messageRef = getChatMessagesRef().push();
-  await messageRef.set({
-    id: messageRef.key,
-    type,
-    text: cleanText,
-    uid: currentUser.uid,
-    actorUid: currentUser.uid,
-    actorPid: myPlayerId || null,
-    displayName: getChatAuthorName(),
-    createdAt: firebase.database.ServerValue.TIMESTAMP
-  });
-}
-
-function getChatMessageKey(message) {
-  if (!message) return '';
-  return String(message.id || message.createdAt || `${message.uid || message.actorUid || ''}-${message.text || ''}`);
-}
-
-function getLastChatMessageKey() {
-  return getChatMessageKey(chatMessages[chatMessages.length - 1]);
-}
-
-function isOwnChatMessage(message) {
-  return message?.uid === currentUser?.uid || message?.actorUid === currentUser?.uid;
-}
-
-function isChatModalOpen() {
-  return Boolean(window.CoupModal?.isVisible('chatModal'));
-}
-
-function isModalVisible(modal) {
-  return Boolean(window.CoupModal?.isVisible(modal));
-}
-
-function syncFloatingChatButtonVisibility() {
-  const chatBtn = document.getElementById('chatBtn');
-  if (!chatBtn) return;
-
-  const hasBlockingModalOpen = Array
-    .from(document.querySelectorAll('.modal-overlay'))
-    .some(modal => modal.id !== 'chatModal' && isModalVisible(modal));
-
-  chatBtn.classList.toggle('is-hidden-by-modal', hasBlockingModalOpen);
-}
-
-function setupFloatingChatModalObserver() {
-  if (document.body?.dataset.floatingChatObserverBound === 'true') {
-    syncFloatingChatButtonVisibility();
-    return;
-  }
-
-  document.body.dataset.floatingChatObserverBound = 'true';
-
-  const observer = new MutationObserver(syncFloatingChatButtonVisibility);
-  document.querySelectorAll('.modal-overlay').forEach(modal => {
-    observer.observe(modal, {
-      attributes: true,
-      attributeFilter: ['class', 'style', 'hidden']
-    });
-  });
-
-  syncFloatingChatButtonVisibility();
-}
-
-function setChatMessages(messages = []) {
-  chatMessages = messages.slice(-60);
-  renderChatMessages();
-
-  const chatBtn = document.getElementById('chatBtn');
-  const latestMessage = chatMessages[chatMessages.length - 1];
-  const latestKey = getChatMessageKey(latestMessage);
-
-  if (!chatMessagesInitialized) {
-    lastSeenChatMessageKey = latestKey;
-    chatMessagesInitialized = true;
-    return;
-  }
-
-  if (!latestKey || latestKey === lastSeenChatMessageKey) return;
-
-  if (isChatModalOpen()) {
-    lastSeenChatMessageKey = latestKey;
-    chatBtn?.classList.remove('chat-btn-has-unread');
-    return;
-  }
-
-  if (chatMessagesInitialized
-    && !isOwnChatMessage(latestMessage)) {
-    chatBtn?.classList.add('chat-btn-has-unread');
-    if (typeof playSound === 'function') playSound('pop');
-  }
-
-  lastSeenChatMessageKey = latestKey;
-}
-
-function renderChatMessages() {
-  const chatMessagesList = document.getElementById('chatMessagesList');
-  if (!chatMessagesList) return;
-
-  chatMessagesList.innerHTML = '';
-  if (chatMessages.length === 0) {
-    const empty = document.createElement('p');
-    empty.className = 'chat-empty-message';
-    empty.textContent = 'Nenhuma mensagem ainda.';
-    chatMessagesList.append(empty);
-    return;
-  }
-
-  chatMessages.forEach((message) => {
-    const item = document.createElement('article');
-    item.className = 'chat-message';
-    if (message.uid === currentUser?.uid || message.actorUid === currentUser?.uid) {
-      item.classList.add('is-own');
-    }
-    if (message.type === 'quick') {
-      item.classList.add('is-quick');
-    }
-
-    const meta = document.createElement('div');
-    meta.className = 'chat-message-meta';
-    meta.textContent = `${message.displayName || message.actorName || 'Jogador'} · ${formatChatTime(message.createdAt)}`;
-
-    const text = document.createElement('p');
-    text.className = 'chat-message-text';
-    text.textContent = message.text || '';
-
-    item.append(meta, text);
-    chatMessagesList.append(item);
-  });
-
-  chatMessagesList.scrollTop = chatMessagesList.scrollHeight;
-}
-
-function setupRoomChat() {
-  const chatBtn = document.getElementById('chatBtn');
-  const closeChatBtn = document.getElementById('closeChatBtn');
-  const chatForm = document.getElementById('chatForm');
-  const chatInput = document.getElementById('chatInput');
-  const chatQuickMessages = document.getElementById('chatQuickMessages');
-
-  setupFloatingChatModalObserver();
-
-  if (chatBtn?.dataset.chatBound === 'true') return;
-  if (chatBtn) {
-    chatBtn.dataset.chatBound = 'true';
-    chatBtn.addEventListener('click', openChatModal);
-  }
-
-  if (closeChatBtn) {
-    closeChatBtn.addEventListener('click', closeChatModal);
-  }
-
-  if (chatForm) {
-    chatForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const text = chatInput?.value || '';
-      if (!text.trim()) return;
-
-      try {
-        if (chatInput) chatInput.value = '';
-        await sendChatMessage({ text, type: 'text' });
-      } catch (error) {
-        console.error('Erro ao enviar mensagem no chat:', error);
-      }
-    });
-  }
-
-  if (chatQuickMessages && chatQuickMessages.children.length === 0) {
-    QUICK_CHAT_MESSAGES.forEach((message) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'chat-quick-btn';
-      button.textContent = message;
-      button.addEventListener('click', () => {
-        sendChatMessage({ text: message, type: 'quick' })
-          .catch((error) => console.error('Erro ao enviar mensagem rápida:', error));
-      });
-      chatQuickMessages.append(button);
-    });
-  }
-
-  renderChatMessages();
-
-  if (!chatListenerReady && roomCode) {
-    chatListenerReady = true;
-    getChatMessagesRef().limitToLast(60).on('value', (snapshot) => {
-      const messages = [];
-      snapshot.forEach((childSnapshot) => {
-        const message = childSnapshot.val();
-        if (message?.text) {
-          messages.push({ ...message, id: message.id || childSnapshot.key });
-        }
-      });
-      messages.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-      setChatMessages(messages);
-    });
-  }
-}
-
-
-
 
 /**
  * INICIALIZAÇÃO DOS COMPONENTES DA INTERFACE
@@ -635,7 +367,17 @@ function setupRoomChat() {
 function setupUI() {
 
   // --- 1. MODAIS DE AVISO E SISTEMA ---
-  setupRoomChat();
+  window.CoupChat?.setup({
+    getState: () => localGameState,
+    getRoomCode: () => roomCode,
+    getCurrentUser: () => currentUser,
+    getMyPlayerId: () => myPlayerId,
+    getDatabase: () => window.db || (typeof db !== 'undefined' ? db : null),
+    getFirebase: () => window.firebase || (typeof firebase !== 'undefined' ? firebase : null),
+    playSound: (soundId) => {
+      if (typeof playSound === 'function') playSound(soundId);
+    }
+  });
 
   // Gerenciamento do Modal de Sala Cheia (Aviso de limite de Bots)
   const fullRoomModal = document.getElementById('fullRoomModal');

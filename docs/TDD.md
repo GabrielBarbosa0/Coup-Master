@@ -173,6 +173,7 @@ Coup-Master/
         audio-service.js
         card-preview.js
         modal-service.js
+        chat-service.js
         spectator-service.js
         quick-actions.js
         settings-service.js
@@ -266,6 +267,7 @@ node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
+node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
@@ -622,7 +624,7 @@ Responsabilidades:
 - Configurar auto-scroll durante drag.
 - Configurar modais e botoes da UI.
 - Configurar fullscreen, configuracoes visuais e preferencias locais.
-- Injetar dependencias para `quick-actions.js`.
+- Injetar dependencias para `chat-service.js` e `quick-actions.js`.
 - Gerenciar efeitos visuais restantes, como Balatro/tilt, e preferencias locais de UI.
 
 Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
@@ -688,10 +690,33 @@ Contrato:
 
 - Expoe `window.CoupModal`.
 - `gameState.js` usa o servico em modais de espectador e sala cheia.
-- `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `board-renderer.js` ainda usa o servico para chat, espectador, feedback, kick, reset, configuracoes, baralho, tutorial, guias e duelo.
+- `chat-service.js` usa o servico para abrir e fechar o chat; `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `board-renderer.js` ainda usa o servico para espectador, feedback, kick, reset, configuracoes, baralho, tutorial, guias e duelo.
 - O servico nao muda estrutura HTML nem estilos dos modais; apenas centraliza as operacoes repetidas de exibicao.
 
-### 7.10 `js/gamemode/casual/spectator-service.js`
+### 7.10 `js/gamemode/casual/chat-service.js`
+
+Responsabilidades:
+
+- Centralizar o chat em tempo real do modo casual.
+- Manter mensagens recentes da sala e renderizar `chatMessagesList`.
+- Enviar mensagens manuais e mensagens rapidas para `salas/{roomCode}/chatMessages`.
+- Preservar limite de 240 caracteres por mensagem.
+- Montar botoes de mensagens rapidas sem handlers inline.
+- Abrir e fechar `chatModal` usando `CoupModal`.
+- Controlar foco do input, estado visual `is-chat-open` e alerta `chat-btn-has-unread`.
+- Ocultar o botao flutuante do chat quando outro modal bloqueante esta aberto.
+- Tocar `pop` apenas quando chega mensagem de outro jogador enquanto o chat esta fechado.
+- Renderizar mensagens com `document.createElement` e `textContent`.
+
+Contrato:
+
+- Expoe `window.CoupChat`.
+- Preserva o wrapper global `setupRoomChat` para compatibilidade com codigo legado.
+- `board-renderer.js` injeta `localGameState`, `roomCode`, `currentUser`, `myPlayerId`, Firebase Database, Firebase API e `playSound`.
+- O servico acessa Firebase apenas no caminho de chat da sala atual.
+- O servico nao altera regras de jogo, moedas, cartas ou jogadores.
+
+### 7.11 `js/gamemode/casual/spectator-service.js`
 
 Responsabilidades:
 
@@ -711,7 +736,7 @@ Contrato:
 - O servico nao acessa Firebase diretamente; a escrita da notificacao continua em `requestSpectate`.
 - A regra visual de sempre exibir o botao de espectador foi preservada.
 
-### 7.11 `js/gamemode/casual/quick-actions.js`
+### 7.12 `js/gamemode/casual/quick-actions.js`
 
 Responsabilidades:
 
@@ -732,7 +757,7 @@ Contrato:
 - `render-players.js` apenas chama `openQuickActions(pid)` quando avatar ou nome sao acionados.
 - O servico nao renderiza slots de jogadores nem altera a mao diretamente.
 
-### 7.12 `js/gamemode/casual/settings-service.js`
+### 7.13 `js/gamemode/casual/settings-service.js`
 
 Responsabilidades:
 
@@ -751,7 +776,7 @@ Contrato:
 - `board-renderer.js` chama `setupSamsungDragPreference({ playSound })` e `setupReligionVisibilityPreference({ playSound })`.
 - O modo de compatibilidade permanece baseado em Pointer Events e continua ativado por padrao quando nao ha preferencia salva.
 
-### 7.13 `js/gamemode/casual/deck-presets.js`
+### 7.14 `js/gamemode/casual/deck-presets.js`
 
 Responsabilidades:
 
@@ -769,7 +794,7 @@ Contrato:
 - `board-renderer.js` chama `window.CoupDeckPresets.setup({ playSound })`.
 - O servico altera apenas os inputs do modal; a aplicacao real do deck continua passando por `resetTable(newConfig)`.
 
-### 7.14 `js/gamemode/casual/drag-drop.js`
+### 7.15 `js/gamemode/casual/drag-drop.js`
 
 Responsabilidades:
 
@@ -791,7 +816,7 @@ Contrato:
 - `board-renderer.js` injeta elementos DOM, mutacoes de jogo, `isSamsungDragModeEnabled`, `refreshSamsungDragMode`, `resetBalatroElement` e `hideCardTooltip`.
 - O modulo nao remove o legado HTML5; ele apenas move a configuracao para uma fronteira menor.
 
-### 7.15 `js/gamemode/casual/render-players.js`
+### 7.16 `js/gamemode/casual/render-players.js`
 
 Responsabilidades:
 
@@ -811,7 +836,7 @@ Contrato:
 - O servico nao acessa Firebase nem muta estado de jogo diretamente.
 - A limpeza das maos antes da renderizacao continua em `clearDOM()`.
 
-### 7.16 `js/gamemode/casual/render-cards.js`
+### 7.17 `js/gamemode/casual/render-cards.js`
 
 Responsabilidades:
 
@@ -1439,6 +1464,8 @@ Responsabilidades:
 
 `render-players.js` ficou responsavel por manter slots vazios, marcar jogador local, atualizar avatar/nome, renderizar badges de religiao, cartas da mao, moedas, destaque de espectador e a visibilidade progressiva dos slots mobile.
 
+`chat-service.js` ficou responsavel pelo chat flutuante do casual, incluindo listener Firebase, envio, mensagens rapidas, renderizacao segura e alerta de mensagens nao lidas.
+
 `quick-actions.js` ficou responsavel pelo perfil rapido acionado no avatar/nome, incluindo carregamento de estatisticas ranqueadas, alvo atual, botao de expulsao e execucao das acoes rapidas casuais.
 
 O codigo da sala deixou de ocupar um cabecalho exclusivo. Ele fica permanentemente visivel no rodape `.table-status`, inspirado no prototipo `teste/mesa-2.0`, e continua copiavel pelo botao `#roomCodeBtn`.
@@ -2037,6 +2064,7 @@ node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
+node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
@@ -2122,6 +2150,7 @@ Refatoracoes recomendadas:
   - `render-cards.js`
   - `drag-drop.js`
   - `modal-service.js`
+  - `chat-service.js`
   - `quick-actions.js`
   - `settings.js`
   - `effects.js`
@@ -2244,6 +2273,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/audio-service.js` | Audio casual, BGM, volume e sincronizacao SFX | Medio |
 | `js/gamemode/casual/card-preview.js` | Preview ampliado de cartas e flip do modal | Medio |
 | `js/gamemode/casual/modal-service.js` | Helpers compartilhados de abertura, fechamento e visibilidade de modais | Medio |
+| `js/gamemode/casual/chat-service.js` | Chat casual em tempo real, mensagens rapidas e alerta de nao lidas | Medio |
 | `js/gamemode/casual/spectator-service.js` | Botao, modal e lista segura de alvos do espectador casual | Medio |
 | `js/gamemode/casual/quick-actions.js` | Perfil rapido, estatisticas ranqueadas e acoes rapidas casuais | Medio |
 | `js/gamemode/casual/settings-service.js` | Preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao | Medio |
@@ -2339,6 +2369,7 @@ node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
+node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
