@@ -432,69 +432,13 @@ function renderAll() {
   }
 
 
-  // --- 1. LÓGICA DO SISTEMA DE ESPECTADOR (GHOST MODE) ---
-
-  const spectatorBtn = document.getElementById('spectatorBtn');
-  const spectatorModal = document.getElementById('spectatorModal');
-  const spectatorList = document.getElementById('spectator-list');
-  const spectatorHelperText = document.getElementById('spectator-helper-text');
-  const closeSpectatorModalBtn = document.getElementById('closeSpectatorModalBtn');
-
-  if (spectatorBtn && spectatorModal) {
-    const myHand = state.players[myPlayerId]?.hand || [];
-
-    // Exibe botão de modo espectador
-    spectatorBtn.style.setProperty('display', 'flex', 'important');
-
-    // Abertura do Modal e Listagem de Alvos
-    spectatorBtn.onclick = () => {
-      playSound('click');
-      spectatorList.innerHTML = '';
-      let availablePlayers = 0;
-
-      for (let i = 1; i <= MAX_PLAYERS; i++) {
-        const p = state.players[i];
-        // Só lista jogadores que possuem UID e não são o próprio usuário
-        if (p && p.uid && i !== myPlayerId) {
-          availablePlayers++;
-          const btn = document.createElement('div');
-          btn.className = 'spectator-target-btn';
-          btn.innerHTML = `
-          <img src="${p.photo || 'img/coup.png'}" alt="">
-          <span>${p.name || 'Jogador ' + i}</span>
-        `;
-          btn.onclick = () => {
-            playSound('pop');
-            requestSpectate(i); // Solicita permissão via Firebase
-            window.CoupModal?.close(spectatorModal);
-          };
-          spectatorList.appendChild(btn);
-        }
-      }
-
-      if (spectatorHelperText) {
-        spectatorHelperText.hidden = availablePlayers === 0;
-      }
-
-      spectatorList.classList.toggle('is-empty', availablePlayers === 0);
-
-      if (availablePlayers === 0) {
-        const emptyMessage = document.createElement('p');
-        emptyMessage.className = 'muted spectator-empty-message';
-        emptyMessage.textContent = 'Não tem jogadores disponíveis.';
-        spectatorList.appendChild(emptyMessage);
-      }
-      window.CoupModal?.open(spectatorModal);
-    };
-
-    // Botão de Fechamento do Modal
-    if (closeSpectatorModalBtn) {
-      closeSpectatorModalBtn.onclick = () => {
-        playSound('click');
-        window.CoupModal?.close(spectatorModal);
-      };
-    }
-  }
+  window.CoupSpectator?.renderSpectatorControls({
+    players: state.players,
+    myPlayerId,
+    maxPlayers: MAX_PLAYERS,
+    requestSpectate,
+    playSound
+  });
 
   // Limpa o tabuleiro antes de desenhar o novo estado.
   clearDOM();

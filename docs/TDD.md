@@ -173,6 +173,7 @@ Coup-Master/
         audio-service.js
         card-preview.js
         modal-service.js
+        spectator-service.js
         settings-service.js
         deck-presets.js
         drag-drop.js
@@ -264,6 +265,7 @@ node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
+node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
@@ -687,7 +689,27 @@ Contrato:
 - `board-renderer.js` usa o servico para quick actions, chat, espectador, feedback, kick, reset, configuracoes, baralho, tutorial, guias e duelo.
 - O servico nao muda estrutura HTML nem estilos dos modais; apenas centraliza as operacoes repetidas de exibicao.
 
-### 7.10 `js/gamemode/casual/settings-service.js`
+### 7.10 `js/gamemode/casual/spectator-service.js`
+
+Responsabilidades:
+
+- Centralizar o fluxo de espectador do modo casual.
+- Manter o botao `spectatorBtn` visivel como no comportamento atual.
+- Abrir e fechar `spectatorModal`.
+- Montar a lista de jogadores disponiveis para assistir.
+- Ignorar o proprio jogador local na lista.
+- Exibir estado vazio quando nao ha alvos disponiveis.
+- Solicitar permissao chamando `requestSpectate(targetPid)`.
+- Criar os itens da lista com `document.createElement` e `textContent`, evitando `innerHTML` com dados de jogador.
+
+Contrato:
+
+- Expoe `window.CoupSpectator`.
+- `board-renderer.js` chama `renderSpectatorControls({ players, myPlayerId, maxPlayers, requestSpectate, playSound })` durante `renderAll()`.
+- O servico nao acessa Firebase diretamente; a escrita da notificacao continua em `requestSpectate`.
+- A regra visual de sempre exibir o botao de espectador foi preservada.
+
+### 7.11 `js/gamemode/casual/settings-service.js`
 
 Responsabilidades:
 
@@ -706,7 +728,7 @@ Contrato:
 - `board-renderer.js` chama `setupSamsungDragPreference({ playSound })` e `setupReligionVisibilityPreference({ playSound })`.
 - O modo de compatibilidade permanece baseado em Pointer Events e continua ativado por padrao quando nao ha preferencia salva.
 
-### 7.11 `js/gamemode/casual/deck-presets.js`
+### 7.12 `js/gamemode/casual/deck-presets.js`
 
 Responsabilidades:
 
@@ -724,7 +746,7 @@ Contrato:
 - `board-renderer.js` chama `window.CoupDeckPresets.setup({ playSound })`.
 - O servico altera apenas os inputs do modal; a aplicacao real do deck continua passando por `resetTable(newConfig)`.
 
-### 7.12 `js/gamemode/casual/drag-drop.js`
+### 7.13 `js/gamemode/casual/drag-drop.js`
 
 Responsabilidades:
 
@@ -746,7 +768,7 @@ Contrato:
 - `board-renderer.js` injeta elementos DOM, mutacoes de jogo, `isSamsungDragModeEnabled`, `refreshSamsungDragMode`, `resetBalatroElement` e `hideCardTooltip`.
 - O modulo nao remove o legado HTML5; ele apenas move a configuracao para uma fronteira menor.
 
-### 7.13 `js/gamemode/casual/render-players.js`
+### 7.14 `js/gamemode/casual/render-players.js`
 
 Responsabilidades:
 
@@ -767,7 +789,7 @@ Contrato:
 - O servico nao acessa Firebase nem muta estado de jogo diretamente.
 - A limpeza das maos antes da renderizacao continua em `clearDOM()`.
 
-### 7.14 `js/gamemode/casual/render-cards.js`
+### 7.15 `js/gamemode/casual/render-cards.js`
 
 Responsabilidades:
 
@@ -1828,16 +1850,9 @@ Isso controla UI e algumas funcoes. Mas qualquer protecao real precisa existir n
 
 ### 18.4 XSS e HTML Dinamico
 
-O projeto usa `innerHTML` em alguns pontos. Um ponto sensivel e a lista de alvos do espectador:
+O projeto ainda deve evitar `innerHTML` com dados externos. A lista de alvos do espectador foi corrigida em `spectator-service.js` e agora cria os elementos com `document.createElement` e `textContent`.
 
-```js
-btn.innerHTML = `
-  <img src="${p.photo || 'img/coup.png'}" alt="">
-  <span>${p.name || 'Jogador ' + i}</span>
-`;
-```
-
-`p.name` e `p.photo` podem vir de dados de usuario/Firebase. O ideal e construir DOM com `textContent` e atribuir `src` de forma validada, evitando interpolar dados externos em HTML.
+Ao adicionar novas interfaces com dados vindos de Firebase/Auth, prefira sempre `textContent` e atributos definidos diretamente em elementos criados por DOM API.
 
 ### 18.5 Codigos de Sala
 
@@ -1969,7 +1984,7 @@ O codigo real usa:
 
 ### 21.7 Espectador Sempre Visivel
 
-README afirma que o botao de espectador e ocultado para quem ainda tem cartas. O codigo calcula `myHand`, mas força `spectatorBtn` visivel.
+O botao de espectador permanece sempre visivel no modo casual. Esse comportamento foi preservado em `spectator-service.js`, mas a regra de produto ainda pode ser revista se a intencao for ocultar o botao enquanto o jogador tem cartas.
 
 ### 21.8 Security Rules Nao Versionadas
 
@@ -1977,7 +1992,7 @@ Nao ha arquivo de regras Firebase no repositorio. README e insuficiente como fon
 
 ### 21.9 Dados Externos em `innerHTML`
 
-Nome/foto de jogadores entram em `innerHTML` na lista de espectadores. Deve ser sanitizado/refatorado para DOM seguro.
+A lista de espectadores foi migrada para DOM seguro em `spectator-service.js`. Ainda vale manter auditoria para evitar novos usos de `innerHTML` com dados externos em outras telas.
 
 ### 21.10 Logs de Producao
 
@@ -1998,6 +2013,7 @@ node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
+node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
@@ -2202,6 +2218,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/audio-service.js` | Audio casual, BGM, volume e sincronizacao SFX | Medio |
 | `js/gamemode/casual/card-preview.js` | Preview ampliado de cartas e flip do modal | Medio |
 | `js/gamemode/casual/modal-service.js` | Helpers compartilhados de abertura, fechamento e visibilidade de modais | Medio |
+| `js/gamemode/casual/spectator-service.js` | Botao, modal e lista segura de alvos do espectador casual | Medio |
 | `js/gamemode/casual/settings-service.js` | Preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao | Medio |
 | `js/gamemode/casual/deck-presets.js` | Presets de composicao do baralho casual e duelo | Medio |
 | `js/gamemode/casual/drag-drop.js` | Drag/drop HTML5 legado, fallback Pointer Events e dropzones do casual | Alto |
@@ -2273,7 +2290,7 @@ Custos:
 2. Remover `.write` ampla no nivel da sala ou restringir por filhos.
 3. Criar Firebase Emulator config.
 4. Trocar updates numericos por transacoes.
-5. Sanitizar `innerHTML` com dados de usuario.
+5. Auditar `innerHTML` remanescente e evitar dados de usuario interpolados em HTML.
 6. Corrigir HTML invalido.
 7. Corrigir caminhos de assets e SEO.
 8. Reduzir tamanho de audio/video.
@@ -2295,6 +2312,7 @@ node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
+node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js

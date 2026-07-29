@@ -26,6 +26,7 @@ Scripts principais:
 - `js/gamemode/casual/audio-service.js`: audio casual, volume de efeitos, BGM e sincronizacao SFX.
 - `js/gamemode/casual/card-preview.js`: preview ampliado de cartas e flip do modal.
 - `js/gamemode/casual/modal-service.js`: helpers compartilhados para abrir, fechar e consultar modais.
+- `js/gamemode/casual/spectator-service.js`: botao, modal e lista segura de alvos do modo espectador casual.
 - `js/gamemode/casual/settings-service.js`: preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao.
 - `js/gamemode/casual/deck-presets.js`: presets de composicao do baralho casual e duelo.
 - `js/gamemode/casual/drag-drop.js`: drag/drop legado HTML5, fallback Pointer Events e dropzones do casual.
@@ -73,6 +74,7 @@ node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
+node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
