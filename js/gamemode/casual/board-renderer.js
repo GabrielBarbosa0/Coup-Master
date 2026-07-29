@@ -289,16 +289,10 @@ function setupUI() {
 
   // --- 6. MODAL DE INFORMAÇÕES E REGRAS ---
 
-  const characterActionsBtn = document.getElementById('characterActionsBtn') || document.getElementById('infoBtn');
-  const infoModal = document.getElementById('infoModal');
-  const closeInfoBtn = document.getElementById('closeModalBtn');
-  const flipCard = document.querySelector('.flip-card');
-  const frontImg = flipCard ? flipCard.querySelector('.flip-card-front img') : null;
-  const backImg = flipCard ? flipCard.querySelector('.flip-card-back img') : null;
-
-  let currentRuleImages = [];
-  let currentRuleIndex = 0;
-
+  window.CoupRulesGuides?.setup({
+    getDeckConfig: () => localGameState.deckConfig || {},
+    playSound
+  });
 
   /**
  * Gerencia a exibição do tutorial inicial
@@ -325,135 +319,6 @@ function setupUI() {
   }
 
 
-
-  /**
-   * Gerencia a fila de imagens das cartas de ajuda (regras) baseada na composição atual do deck.
-   * Verifica a presença de personagens de diferentes DLCs (Promo, Revolução e Sombras do Asilo)
-   * para exibir apenas os guias de ações pertinentes aos jogadores na partida.
-   */
-
-  function calculateRuleImages() {
-    const config = localGameState.deckConfig || {};
-    let images = [];
-
-    // Definição dos grupos de cartas
-    const promoChars = ['bufao', 'benfeitor', 'burgues', 'burocrata'];
-    const revolutionChars = ['marionetista', 'diplomata', 'mercenario', 'bispo', 'tesoureiro', 'vigilante'];
-    const shadowsChars = ['pistoleiro', 'magnata', 'estrategista', 'ladrao', 'vigarista', 'xerife'];
-
-    // Verifica se há alguma carta de cada expansão no set atual
-    const hasPromo = promoChars.some(card => (config[card] || 0) > 0);
-    const hasRevolution = revolutionChars.some(card => (config[card] || 0) > 0);
-    const hasShadows = shadowsChars.some(card => (config[card] || 0) > 0);
-
-    // 1. Carta Base (Alternativa se houver Revolução)
-    if (hasRevolution) {
-      images.push('assets/img/guides/front-actions-alternative.png');
-    } else {
-      images.push('assets/img/guides/front-actions.png');
-    }
-
-    // 2. Adiciona as cartas de regras das DLCs detectadas
-    if (hasPromo) images.push('assets/img/guides/dlc-actions.png');
-    if (hasRevolution) images.push('assets/img/guides/dlc2-actions.png');
-    if (hasShadows) images.push('assets/img/guides/dlc3-actions.png'); // Nova carta de regras
-
-    // 3. Verso das cartas de ajuda
-    images.push('assets/img/guides/back-actions.png');
-
-    return images;
-  }
-
-
-  if (characterActionsBtn && infoModal) {
-    characterActionsBtn.onclick = () => {
-      playSound('click');
-      currentRuleImages = calculateRuleImages();
-      window.CoupModal?.open(infoModal);
-
-      if (flipCard) {
-        currentRuleIndex = 0;
-        flipCard.classList.remove('is-flipped');
-        frontImg.src = currentRuleImages[0];
-        backImg.src = currentRuleImages.length > 1 ? currentRuleImages[1] : currentRuleImages[0];
-      }
-    };
-
-    if (closeInfoBtn) closeInfoBtn.onclick = () => {
-      playSound('click');
-      window.CoupModal?.close(infoModal);
-    };
-
-    if (flipCard) {
-      flipCard.onclick = () => {
-        playSound('card-slide');
-        flipCard.classList.toggle('is-flipped');
-        currentRuleIndex = (currentRuleIndex + 1) % currentRuleImages.length;
-        setTimeout(() => {
-          const nextIndex = (currentRuleIndex + 1) % currentRuleImages.length;
-          if (flipCard.classList.contains('is-flipped')) {
-            frontImg.src = currentRuleImages[nextIndex];
-          } else {
-            backImg.src = currentRuleImages[nextIndex];
-          }
-        }, 500);
-      };
-    }
-  }
-
-  const altRulesBtn = document.getElementById('altRulesBtn');
-  const altRulesModal = document.getElementById('altRulesModal');
-  const closeAltRulesBtn = document.getElementById('closeAltRulesBtn');
-  const altFlipCard = document.getElementById('altRulesFlipCard');
-  const altFrontImg = altFlipCard ? altFlipCard.querySelector('.flip-card-front img') : null;
-  const altBackImg = altFlipCard ? altFlipCard.querySelector('.flip-card-back img') : null;
-
-  const altRuleImagesList = [
-    'assets/img/guides/alternative-rules1.png',
-    'assets/img/guides/alternative-rules2.png',
-    'assets/img/guides/alternative-rules3.png',
-    'assets/img/guides/alternative-rules4.png',
-    'assets/img/guides/alternative-rules5.png'
-  ];
-
-  let currentAltIndex = 0;
-
-  if (altRulesBtn && altRulesModal) {
-    altRulesBtn.onclick = () => {
-      playSound('click');
-      window.CoupModal?.open(altRulesModal);
-
-      if (altFlipCard) {
-        currentAltIndex = 0;
-        altFlipCard.classList.remove('is-flipped');
-        altFrontImg.src = altRuleImagesList[0];
-        altBackImg.src = altRuleImagesList[1];
-      }
-    };
-
-    if (closeAltRulesBtn) {
-      closeAltRulesBtn.onclick = () => {
-        playSound('click');
-        window.CoupModal?.close(altRulesModal);
-      };
-    }
-
-    if (altFlipCard) {
-      altFlipCard.onclick = () => {
-        playSound('card-slide');
-        altFlipCard.classList.toggle('is-flipped');
-        currentAltIndex = (currentAltIndex + 1) % altRuleImagesList.length;
-        setTimeout(() => {
-          const nextImageIndex = (currentAltIndex + 1) % altRuleImagesList.length;
-          if (altFlipCard.classList.contains('is-flipped')) {
-            altFrontImg.src = altRuleImagesList[nextImageIndex];
-          } else {
-            altBackImg.src = altRuleImagesList[nextImageIndex];
-          }
-        }, 500);
-      };
-    }
-  }
 
   document.querySelectorAll('.player-area').forEach(area => {
     const pid = parseInt(area.dataset.player);

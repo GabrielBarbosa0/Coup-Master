@@ -18,7 +18,7 @@ O backend efetivo e o Firebase:
 - Firebase Realtime Database guarda salas, estado da partida, jogadores, cartas, notificacoes e eventos de som.
 - As regras de seguranca do Firebase sao uma dependencia critica do produto, mas atualmente aparecem apenas no README, nao como arquivo versionado de infraestrutura.
 
-O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, preferencias locais, presets de deck, renderizacao de cartas e renderizacao de jogadores ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
+O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, guias de regras, preferencias locais, presets de deck, renderizacao de cartas e renderizacao de jogadores ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
 
 ## 2. Objetivos do Produto
 
@@ -177,6 +177,7 @@ Coup-Master/
         board-status.js
         visual-effects.js
         admin-controls.js
+        rules-guides.js
         spectator-service.js
         quick-actions.js
         settings-service.js
@@ -274,6 +275,7 @@ node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\board-status.js
 node --check js\gamemode\casual\visual-effects.js
 node --check js\gamemode\casual\admin-controls.js
+node --check js\gamemode\casual\rules-guides.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
@@ -630,7 +632,7 @@ Responsabilidades:
 - Configurar auto-scroll durante drag.
 - Configurar modais e botoes da UI.
 - Configurar fullscreen, configuracoes visuais e preferencias locais.
-- Injetar dependencias para `chat-service.js`, `board-status.js`, `visual-effects.js`, `admin-controls.js` e `quick-actions.js`.
+- Injetar dependencias para `chat-service.js`, `board-status.js`, `visual-effects.js`, `admin-controls.js`, `rules-guides.js` e `quick-actions.js`.
 - Manter efeitos visuais restantes apenas quando ainda nao migrados para modulo proprio.
 
 Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
@@ -696,7 +698,7 @@ Contrato:
 
 - Expoe `window.CoupModal`.
 - `gameState.js` usa o servico em modais de espectador e sala cheia.
-- `chat-service.js` usa o servico para abrir e fechar o chat; `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `admin-controls.js` usa o servico para kick, reset, sala cheia e configuracao de deck; `board-renderer.js` ainda usa o servico para espectador, feedback, configuracoes, tutorial, guias e duelo.
+- `chat-service.js` usa o servico para abrir e fechar o chat; `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `admin-controls.js` usa o servico para kick, reset, sala cheia e configuracao de deck; `rules-guides.js` usa o servico para guias e regras alternativas; `board-renderer.js` ainda usa o servico para feedback, configuracoes, tutorial e duelo.
 - O servico nao muda estrutura HTML nem estilos dos modais; apenas centraliza as operacoes repetidas de exibicao.
 
 ### 7.10 `js/gamemode/casual/chat-service.js`
@@ -794,7 +796,28 @@ Contrato:
 - As validacoes client-side permanecem apenas UX; `gameState.js` e regras Firebase continuam sendo a fronteira de seguranca real.
 - O servico nao acessa Firebase diretamente.
 
-### 7.14 `js/gamemode/casual/spectator-service.js`
+### 7.14 `js/gamemode/casual/rules-guides.js`
+
+Responsabilidades:
+
+- Centralizar os guias de acoes/personagens do modo casual.
+- Calcular a fila de imagens dos guias com base em `deckConfig`.
+- Alternar entre guia base e guia alternativo quando ha cartas da Revolucao.
+- Adicionar guias extras para cartas promocionais, Revolucao e Sombras do Asilo.
+- Controlar abertura e fechamento de `infoModal`.
+- Controlar abertura e fechamento de `altRulesModal`.
+- Manter o estado de flip dos guias sem deixar variaveis soltas no renderer.
+- Tocar feedback sonoro de clique e troca de carta usando `playSound` injetado.
+
+Contrato:
+
+- Expoe `window.CoupRulesGuides`.
+- Expoe `calculateRuleImages(deckConfig?)` para testes manuais e compatibilidade.
+- `board-renderer.js` chama `setup({ getDeckConfig, playSound })` durante `setupUI()`.
+- Usa `window.CoupModal` para abrir e fechar modais.
+- O servico nao acessa Firebase e nao altera estado de jogo.
+
+### 7.15 `js/gamemode/casual/spectator-service.js`
 
 Responsabilidades:
 
@@ -814,7 +837,7 @@ Contrato:
 - O servico nao acessa Firebase diretamente; a escrita da notificacao continua em `requestSpectate`.
 - A regra visual de sempre exibir o botao de espectador foi preservada.
 
-### 7.15 `js/gamemode/casual/quick-actions.js`
+### 7.16 `js/gamemode/casual/quick-actions.js`
 
 Responsabilidades:
 
@@ -836,7 +859,7 @@ Contrato:
 - `render-players.js` apenas chama `openQuickActions(pid)` quando avatar ou nome sao acionados.
 - O servico nao renderiza slots de jogadores nem altera a mao diretamente.
 
-### 7.16 `js/gamemode/casual/settings-service.js`
+### 7.17 `js/gamemode/casual/settings-service.js`
 
 Responsabilidades:
 
@@ -855,7 +878,7 @@ Contrato:
 - `board-renderer.js` chama `setupSamsungDragPreference({ playSound })` e `setupReligionVisibilityPreference({ playSound })`.
 - O modo de compatibilidade permanece baseado em Pointer Events e continua ativado por padrao quando nao ha preferencia salva.
 
-### 7.17 `js/gamemode/casual/deck-presets.js`
+### 7.18 `js/gamemode/casual/deck-presets.js`
 
 Responsabilidades:
 
@@ -873,7 +896,7 @@ Contrato:
 - `board-renderer.js` chama `window.CoupDeckPresets.setup({ playSound })`.
 - O servico altera apenas os inputs do modal; a aplicacao real do deck continua passando por `resetTable(newConfig)`.
 
-### 7.18 `js/gamemode/casual/drag-drop.js`
+### 7.19 `js/gamemode/casual/drag-drop.js`
 
 Responsabilidades:
 
@@ -895,7 +918,7 @@ Contrato:
 - `board-renderer.js` injeta elementos DOM, mutacoes de jogo, `isSamsungDragModeEnabled`, `refreshSamsungDragMode`, `resetBalatroElement` vindo de `window.CoupVisualEffects` e `hideCardTooltip`.
 - O modulo nao remove o legado HTML5; ele apenas move a configuracao para uma fronteira menor.
 
-### 7.19 `js/gamemode/casual/render-players.js`
+### 7.20 `js/gamemode/casual/render-players.js`
 
 Responsabilidades:
 
@@ -915,7 +938,7 @@ Contrato:
 - O servico nao acessa Firebase nem muta estado de jogo diretamente.
 - A limpeza das maos antes da renderizacao continua em `clearDOM()`.
 
-### 7.20 `js/gamemode/casual/render-cards.js`
+### 7.21 `js/gamemode/casual/render-cards.js`
 
 Responsabilidades:
 
@@ -1659,7 +1682,7 @@ Adicionar uma carta exige atualizar varios lugares:
 4. `getCardFolder(type)`.
 5. Inputs do modal de configuracao em `index.html`.
 6. Presets em `applyDeckPreset`.
-7. Grupos usados por `calculateRuleImages()`.
+7. Grupos usados por `CoupRulesGuides.calculateRuleImages()`.
 8. README/TDD, se comportamento mudar.
 
 ### 12.2 Presets Existentes
@@ -1884,7 +1907,7 @@ Arquivos usados:
 - `alternative-rules4.png`
 - `alternative-rules5.png`
 
-`calculateRuleImages()` escolhe quais cartas de regra mostrar com base em `deckConfig`.
+`CoupRulesGuides.calculateRuleImages()` escolhe quais cartas de regra mostrar com base em `deckConfig`.
 
 ### 16.3 Icones
 
@@ -2153,6 +2176,7 @@ node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\board-status.js
 node --check js\gamemode\casual\visual-effects.js
 node --check js\gamemode\casual\admin-controls.js
+node --check js\gamemode\casual\rules-guides.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
@@ -2242,6 +2266,7 @@ Refatoracoes recomendadas:
   - `board-status.js`
   - `visual-effects.js`
   - `admin-controls.js`
+  - `rules-guides.js`
   - `quick-actions.js`
   - `settings.js`
   - `effects.js`
@@ -2285,7 +2310,7 @@ Checklist:
 4. Atualizar `getCardFolder()`.
 5. Adicionar input no modal de configuracao em `index.html`.
 6. Atualizar presets em `applyDeckPreset`.
-7. Atualizar `calculateRuleImages()` se a carta pertence a um grupo que muda os guias.
+7. Atualizar `calculateRuleImages()` em `rules-guides.js` se a carta pertence a um grupo que muda os guias.
 8. Atualizar README/TDD se for carta publica.
 9. Rodar `node --check`.
 10. Testar criar deck com a carta e renderizar frente/verso.
@@ -2368,6 +2393,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/board-status.js` | Contadores do tabuleiro casual e copia do codigo da sala | Baixo/medio |
 | `js/gamemode/casual/visual-effects.js` | Efeito Balatro/tilt, leques de cartas e overlap visual | Medio |
 | `js/gamemode/casual/admin-controls.js` | Travas visuais e modais de host do casual | Medio |
+| `js/gamemode/casual/rules-guides.js` | Guias de acoes/personagens, regras alternativas e flip cards | Medio |
 | `js/gamemode/casual/spectator-service.js` | Botao, modal e lista segura de alvos do espectador casual | Medio |
 | `js/gamemode/casual/quick-actions.js` | Perfil rapido, estatisticas ranqueadas e acoes rapidas casuais | Medio |
 | `js/gamemode/casual/settings-service.js` | Preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao | Medio |
@@ -2467,6 +2493,7 @@ node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\board-status.js
 node --check js\gamemode\casual\visual-effects.js
 node --check js\gamemode\casual\admin-controls.js
+node --check js\gamemode\casual\rules-guides.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js

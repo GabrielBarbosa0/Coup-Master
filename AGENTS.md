@@ -30,6 +30,7 @@ Scripts principais:
 - `js/gamemode/casual/board-status.js`: contadores do tabuleiro casual e copia do codigo da sala.
 - `js/gamemode/casual/visual-effects.js`: efeito Balatro/tilt, leques de cartas e overlap visual.
 - `js/gamemode/casual/admin-controls.js`: travas visuais e modais de host do modo casual.
+- `js/gamemode/casual/rules-guides.js`: guias de acoes/personagens, regras alternativas e flip cards.
 - `js/gamemode/casual/spectator-service.js`: botao, modal e lista segura de alvos do modo espectador casual.
 - `js/gamemode/casual/quick-actions.js`: perfil rapido, estatisticas ranqueadas e acoes rapidas do casual.
 - `js/gamemode/casual/settings-service.js`: preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao.
@@ -83,6 +84,7 @@ node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\board-status.js
 node --check js\gamemode\casual\visual-effects.js
 node --check js\gamemode\casual\admin-controls.js
+node --check js\gamemode\casual\rules-guides.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
@@ -154,7 +156,7 @@ Atualize todos:
 - `getCardFolder()` em `js/gamemode/casual/render-cards.js`.
 - Inputs do modal de deck em `index.html`.
 - Presets em `js/gamemode/casual/deck-presets.js`.
-- Grupos de `calculateRuleImages()`, se afetar guias.
+- Grupos de `CoupRulesGuides.calculateRuleImages()` em `js/gamemode/casual/rules-guides.js`, se afetar guias.
 
 ## Ao Alterar UI do Tabuleiro
 

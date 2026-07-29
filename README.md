@@ -142,6 +142,7 @@ O projeto segue uma arquitetura modular com separação clara de responsabilidad
 - **js/gamemode/casual/board-status.js** → Contadores do tabuleiro casual e copia do codigo da sala
 - **js/gamemode/casual/visual-effects.js** → Efeito Balatro, leques de cartas e overlap visual
 - **js/gamemode/casual/admin-controls.js** → Controles visuais de host, kick, bots, reset e deck
+- **js/gamemode/casual/rules-guides.js** → Guias de acoes/personagens, regras alternativas e flip cards
 - **js/gamemode/casual/spectator-service.js** → Botao, modal e lista segura de alvos do espectador
 - **js/gamemode/casual/quick-actions.js** → Perfil rapido, estatisticas ranqueadas e acoes rapidas do casual
 - **js/gamemode/casual/settings-service.js** → Preferencias locais, compatibilidade de arraste e visibilidade de religiao
@@ -201,6 +202,7 @@ Coup-Master/
 │   │   │   ├── board-status.js # Contadores e codigo da sala
 │   │   │   ├── visual-effects.js # Efeito Balatro e leques
 │   │   │   ├── admin-controls.js # Controles de host do casual
+│   │   │   ├── rules-guides.js # Guias de regras e flip cards
 │   │   │   ├── spectator-service.js # Fluxo de espectador casual
 │   │   │   ├── quick-actions.js # Perfil rapido e acoes rapidas
 │   │   │   ├── settings-service.js # Preferencias locais do casual
@@ -234,7 +236,7 @@ Coup-Master/
 * **`assets/img/cards/`**: Organizado estrategicamente em subpastas (`base`, `promo`, `dlc1`, `dlc2`) para permitir que o motor do jogo (`board-renderer.js`) monte dinamicamente as URLs das texturas com base no tipo e na expansão configurada nos presets de baralho.
 * **`js/core/`**: Funciona como o motor lógico invisível do jogo. O `gameState.js` escuta e injeta alterações diretamente no Firebase, garantindo que o jogo funcione como um sandbox em tempo real.
 * **`js/firebase/`**: Centraliza a inicialização do Firebase e expõe `window.db` e `window.auth` para os demais scripts.
-* **`js/gamemode/casual/`**: Concentra a mesa casual. `board-renderer.js` manipula o DOM de forma reativa, `audio-service.js` centraliza BGM/efeitos, `card-preview.js` cuida do preview ampliado, `modal-service.js` padroniza modais, `chat-service.js` controla o chat em tempo real, `board-status.js` atualiza contadores e codigo da sala, `visual-effects.js` centraliza efeito Balatro e leques, `admin-controls.js` controla a UI de host, `spectator-service.js` controla o fluxo de espectador, `quick-actions.js` gerencia perfil rapido e acoes rapidas, `settings-service.js` centraliza preferencias locais, `deck-presets.js` concentra presets de baralho, `drag-drop.js` centraliza o arraste legado e compativel, `render-cards.js` monta as cartas visuais e `render-players.js` renderiza os slots de jogadores.
+* **`js/gamemode/casual/`**: Concentra a mesa casual. `board-renderer.js` manipula o DOM de forma reativa, `audio-service.js` centraliza BGM/efeitos, `card-preview.js` cuida do preview ampliado, `modal-service.js` padroniza modais, `chat-service.js` controla o chat em tempo real, `board-status.js` atualiza contadores e codigo da sala, `visual-effects.js` centraliza efeito Balatro e leques, `admin-controls.js` controla a UI de host, `rules-guides.js` gerencia guias de acoes/personagens e regras alternativas, `spectator-service.js` controla o fluxo de espectador, `quick-actions.js` gerencia perfil rapido e acoes rapidas, `settings-service.js` centraliza preferencias locais, `deck-presets.js` concentra presets de baralho, `drag-drop.js` centraliza o arraste legado e compativel, `render-cards.js` monta as cartas visuais e `render-players.js` renderiza os slots de jogadores.
 * **`js/gamemode/ranked/`**: Concentra o fluxo automatizado do modo ranqueado, incluindo regras, máquina de estados, renderização e integração Firebase.
 * **`js/ui/`**: Centraliza utilitarios de interface compartilhados, incluindo protecao de audio em background, bloqueio de selecao e renderizacao dos slots AdSense.
 * **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
