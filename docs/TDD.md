@@ -174,6 +174,7 @@ Coup-Master/
         card-preview.js
         modal-service.js
         spectator-service.js
+        quick-actions.js
         settings-service.js
         deck-presets.js
         drag-drop.js
@@ -266,6 +267,7 @@ node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\spectator-service.js
+node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
@@ -620,7 +622,7 @@ Responsabilidades:
 - Configurar auto-scroll durante drag.
 - Configurar modais e botoes da UI.
 - Configurar fullscreen, configuracoes visuais e preferencias locais.
-- Gerenciar quick actions.
+- Injetar dependencias para `quick-actions.js`.
 - Gerenciar efeitos visuais restantes, como Balatro/tilt, e preferencias locais de UI.
 
 Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
@@ -686,7 +688,7 @@ Contrato:
 
 - Expoe `window.CoupModal`.
 - `gameState.js` usa o servico em modais de espectador e sala cheia.
-- `board-renderer.js` usa o servico para quick actions, chat, espectador, feedback, kick, reset, configuracoes, baralho, tutorial, guias e duelo.
+- `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `board-renderer.js` ainda usa o servico para chat, espectador, feedback, kick, reset, configuracoes, baralho, tutorial, guias e duelo.
 - O servico nao muda estrutura HTML nem estilos dos modais; apenas centraliza as operacoes repetidas de exibicao.
 
 ### 7.10 `js/gamemode/casual/spectator-service.js`
@@ -709,7 +711,28 @@ Contrato:
 - O servico nao acessa Firebase diretamente; a escrita da notificacao continua em `requestSpectate`.
 - A regra visual de sempre exibir o botao de espectador foi preservada.
 
-### 7.11 `js/gamemode/casual/settings-service.js`
+### 7.11 `js/gamemode/casual/quick-actions.js`
+
+Responsabilidades:
+
+- Centralizar o modal de perfil rapido do modo casual.
+- Manter o alvo atual das acoes rapidas sem expor estado interno ao renderer.
+- Carregar estatisticas ranqueadas em `rankedStats/{uid}` quando o jogador possui UID.
+- Renderizar avatar, nome, status, partidas, vitorias, derrotas, taxa de vitoria e pontuacao ranqueada.
+- Controlar o botao de expulsao de jogador quando o usuario local e host.
+- Executar acoes rapidas casuais que alteram moedas: golpe, extorsao, assassinato e taxa.
+- Tocar feedback sonoro local/global reaproveitando `playSound`, `triggerSound` e `updateScore` injetados.
+- Fechar o modal e limpar o alvo atual depois de acoes processadas.
+
+Contrato:
+
+- Expoe `window.CoupQuickActions`.
+- Preserva wrappers globais `openQuickActions(pid)` e `executeAction(type)` porque `index.html` ainda usa handlers inline.
+- `board-renderer.js` injeta `localGameState`, `myPlayerId`, estado de host, Firebase Database, `updateScore`, `triggerSound` e `playSound`.
+- `render-players.js` apenas chama `openQuickActions(pid)` quando avatar ou nome sao acionados.
+- O servico nao renderiza slots de jogadores nem altera a mao diretamente.
+
+### 7.12 `js/gamemode/casual/settings-service.js`
 
 Responsabilidades:
 
@@ -728,7 +751,7 @@ Contrato:
 - `board-renderer.js` chama `setupSamsungDragPreference({ playSound })` e `setupReligionVisibilityPreference({ playSound })`.
 - O modo de compatibilidade permanece baseado em Pointer Events e continua ativado por padrao quando nao ha preferencia salva.
 
-### 7.12 `js/gamemode/casual/deck-presets.js`
+### 7.13 `js/gamemode/casual/deck-presets.js`
 
 Responsabilidades:
 
@@ -746,7 +769,7 @@ Contrato:
 - `board-renderer.js` chama `window.CoupDeckPresets.setup({ playSound })`.
 - O servico altera apenas os inputs do modal; a aplicacao real do deck continua passando por `resetTable(newConfig)`.
 
-### 7.13 `js/gamemode/casual/drag-drop.js`
+### 7.14 `js/gamemode/casual/drag-drop.js`
 
 Responsabilidades:
 
@@ -768,7 +791,7 @@ Contrato:
 - `board-renderer.js` injeta elementos DOM, mutacoes de jogo, `isSamsungDragModeEnabled`, `refreshSamsungDragMode`, `resetBalatroElement` e `hideCardTooltip`.
 - O modulo nao remove o legado HTML5; ele apenas move a configuracao para uma fronteira menor.
 
-### 7.14 `js/gamemode/casual/render-players.js`
+### 7.15 `js/gamemode/casual/render-players.js`
 
 Responsabilidades:
 
@@ -776,11 +799,10 @@ Responsabilidades:
 - Aplicar visibilidade progressiva dos slots mobile.
 - Preencher estados de slot vazio.
 - Criar cabecalho visual com avatar e nome.
-- Configurar abertura de acoes rapidas pelo avatar/nome.
+- Configurar abertura de acoes rapidas pelo avatar/nome usando a funcao injetada por `quick-actions.js`.
 - Renderizar badge de religiao e acionar `toggleReligion(pid)`.
 - Renderizar cartas da mao usando `createCardElement(card)` injetado por `render-cards.js`.
 - Atualizar moedas, jogador local e destaque de espectador.
-- Configurar fechamento do modal de acoes rapidas sem guardar estado interno.
 
 Contrato:
 
@@ -789,7 +811,7 @@ Contrato:
 - O servico nao acessa Firebase nem muta estado de jogo diretamente.
 - A limpeza das maos antes da renderizacao continua em `clearDOM()`.
 
-### 7.15 `js/gamemode/casual/render-cards.js`
+### 7.16 `js/gamemode/casual/render-cards.js`
 
 Responsabilidades:
 
@@ -1417,6 +1439,8 @@ Responsabilidades:
 
 `render-players.js` ficou responsavel por manter slots vazios, marcar jogador local, atualizar avatar/nome, renderizar badges de religiao, cartas da mao, moedas, destaque de espectador e a visibilidade progressiva dos slots mobile.
 
+`quick-actions.js` ficou responsavel pelo perfil rapido acionado no avatar/nome, incluindo carregamento de estatisticas ranqueadas, alvo atual, botao de expulsao e execucao das acoes rapidas casuais.
+
 O codigo da sala deixou de ocupar um cabecalho exclusivo. Ele fica permanentemente visivel no rodape `.table-status`, inspirado no prototipo `teste/mesa-2.0`, e continua copiavel pelo botao `#roomCodeBtn`.
 
 ### 11.2 Limpeza de DOM
@@ -2014,6 +2038,7 @@ node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\spectator-service.js
+node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
@@ -2096,7 +2121,8 @@ Refatoracoes recomendadas:
   - `render-players.js`
   - `render-cards.js`
   - `drag-drop.js`
-  - `modals.js`
+  - `modal-service.js`
+  - `quick-actions.js`
   - `settings.js`
   - `effects.js`
   - `deck-presets.js`
@@ -2219,6 +2245,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/card-preview.js` | Preview ampliado de cartas e flip do modal | Medio |
 | `js/gamemode/casual/modal-service.js` | Helpers compartilhados de abertura, fechamento e visibilidade de modais | Medio |
 | `js/gamemode/casual/spectator-service.js` | Botao, modal e lista segura de alvos do espectador casual | Medio |
+| `js/gamemode/casual/quick-actions.js` | Perfil rapido, estatisticas ranqueadas e acoes rapidas casuais | Medio |
 | `js/gamemode/casual/settings-service.js` | Preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao | Medio |
 | `js/gamemode/casual/deck-presets.js` | Presets de composicao do baralho casual e duelo | Medio |
 | `js/gamemode/casual/drag-drop.js` | Drag/drop HTML5 legado, fallback Pointer Events e dropzones do casual | Alto |
@@ -2313,6 +2340,7 @@ node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\spectator-service.js
+node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js

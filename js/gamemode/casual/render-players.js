@@ -219,16 +219,6 @@
     }
   }
 
-  function bindQuickActionsClose(onCloseQuickActions) {
-    const closeQuickActionsBtn = document.getElementById('closeQuickActionsBtn');
-    if (!closeQuickActionsBtn) return;
-
-    closeQuickActionsBtn.onclick = () => {
-      root.CoupModal?.close('quickActionsModal');
-      if (typeof onCloseQuickActions === 'function') onCloseQuickActions();
-    };
-  }
-
   function renderPlayers(options = {}) {
     const players = options.players || {};
     const maxPlayers = options.maxPlayers || 8;
@@ -241,8 +231,6 @@
         players
       });
     }
-
-    bindQuickActionsClose(options.onCloseQuickActions);
   }
 
   root.CoupRenderPlayers = {

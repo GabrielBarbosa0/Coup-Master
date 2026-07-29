@@ -163,211 +163,6 @@ function clearDOM() {
     .forEach(el => el.classList.remove('local-player'));
 }
 
-
-
-// Lógica das Ações Rápidas
-
-let quickActionTargetPid = null;
-let quickProfileLoadKey = 0;
-
-function quickProfileNumber(value) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : 0;
-}
-
-function quickProfilePercent(value) {
-  const number = quickProfileNumber(value);
-  const percent = number > 0 && number <= 1 ? number * 100 : number;
-  return `${Math.round(percent)}%`;
-}
-
-function setQuickProfileText(id, value) {
-  const node = document.getElementById(id);
-  if (node) node.textContent = value;
-}
-
-function getQuickProfileDatabase() {
-  if (window.db) return window.db;
-  if (typeof db !== 'undefined') return db;
-  return null;
-}
-
-function renderQuickPlayerProfile(player, stats, options = {}) {
-  const name = stats?.name || player?.name || 'Jogador';
-  const photo = stats?.photo || player?.photo || 'assets/img/icons/ghost.svg';
-  const games = quickProfileNumber(stats?.games);
-  const wins = quickProfileNumber(stats?.wins);
-  const losses = quickProfileNumber(stats?.losses);
-  const rankScore = quickProfileNumber(stats?.rankScore ?? stats?.score ?? stats?.points);
-  const status = options.status || (games
-    ? `${games} jogo(s) ranqueado(s) registrados.`
-    : 'Sem partidas ranqueadas registradas ainda.');
-
-  const avatar = document.getElementById('quickPlayerProfileAvatar');
-  const loading = document.getElementById('quickPlayerProfileLoading');
-  const statsGrid = document.getElementById('quickPlayerProfileStats');
-
-  if (avatar) {
-    avatar.src = photo;
-    avatar.alt = `Perfil de ${name}`;
-  }
-
-  setQuickProfileText('quickPlayerProfileName', name);
-  setQuickProfileText('quickPlayerProfileStatus', status);
-  setQuickProfileText('quickPlayerProfileGames', games);
-  setQuickProfileText('quickPlayerProfileWins', wins);
-  setQuickProfileText('quickPlayerProfileLosses', losses);
-  setQuickProfileText('quickPlayerProfileWinRate', quickProfilePercent(stats?.winRate));
-  setQuickProfileText('quickPlayerProfileScore', `${rankScore} pts`);
-
-  if (loading) loading.hidden = true;
-  if (statsGrid) statsGrid.hidden = false;
-}
-
-function setQuickPlayerProfileLoading(player) {
-  const loading = document.getElementById('quickPlayerProfileLoading');
-  const statsGrid = document.getElementById('quickPlayerProfileStats');
-  const avatar = document.getElementById('quickPlayerProfileAvatar');
-  const name = player?.name || 'Jogador';
-
-  if (avatar) {
-    avatar.src = player?.photo || 'assets/img/icons/ghost.svg';
-    avatar.alt = `Perfil de ${name}`;
-  }
-
-  setQuickProfileText('quickPlayerProfileName', name);
-  setQuickProfileText('quickPlayerProfileStatus', 'Carregando estatísticas...');
-  if (loading) {
-    loading.hidden = false;
-    loading.textContent = 'Carregando estatísticas...';
-  }
-  if (statsGrid) statsGrid.hidden = true;
-}
-
-function loadQuickPlayerRankedStats(player) {
-  const loadKey = ++quickProfileLoadKey;
-  setQuickPlayerProfileLoading(player);
-
-  if (!player?.uid) {
-    renderQuickPlayerProfile(player, null, {
-      status: 'Este jogador ainda não possui perfil ranqueado vinculado.'
-    });
-    return;
-  }
-
-  const database = getQuickProfileDatabase();
-  if (!database) {
-    renderQuickPlayerProfile(player, null, {
-      status: 'Não foi possível acessar as estatísticas agora.'
-    });
-    return;
-  }
-
-  database.ref(`rankedStats/${player.uid}`).once('value')
-    .then((snapshot) => {
-      if (loadKey !== quickProfileLoadKey) return;
-      renderQuickPlayerProfile(player, snapshot.val());
-    })
-    .catch(() => {
-      if (loadKey !== quickProfileLoadKey) return;
-      renderQuickPlayerProfile(player, null, {
-        status: 'Não foi possível carregar estatísticas.'
-      });
-    });
-}
-
-window.openQuickActions = (pid) => {
-  quickActionTargetPid = pid;
-  const modal = document.getElementById('quickActionsModal');
-  const title = document.getElementById('quickActionsTitle');
-  const kickBtn = document.getElementById('quickActionKickBtn');
-  const player = localGameState.players[pid];
-
-  if (modal && title && player) {
-    title.innerText = 'Perfil do jogador';
-    loadQuickPlayerRankedStats(player);
-
-    if (kickBtn) {
-      const canKick = Boolean(isAdmin && pid !== myPlayerId && (player.uid || player.online));
-      kickBtn.hidden = !canKick;
-      kickBtn.onclick = canKick ? () => {
-        const targetPid = quickActionTargetPid;
-        window.CoupModal?.close(modal);
-        quickActionTargetPid = null;
-        window.kickPlayer?.(targetPid);
-      } : null;
-    }
-
-    if (typeof playSound === 'function') playSound('click');
-    window.CoupModal?.open(modal);
-  }
-};
-
-window.executeAction = (type) => {
-  // Verifica se há um alvo e um jogador local definido
-  if (!quickActionTargetPid || !myPlayerId) return;
-
-  // Busca o estado atual dos envolvidos
-  const myPlayer = localGameState.players[myPlayerId];
-  const myScore = myPlayer ? (myPlayer.score || 0) : 0;
-  const targetPlayer = localGameState.players[quickActionTargetPid];
-  const targetScore = targetPlayer ? (targetPlayer.score || 0) : 0;
-
-  switch (type) {
-    case 'coup':
-      // 1. Verificação de saldo: Golpe exige no mínimo 7 moedas
-      if (myScore < 7) {
-        console.log("Saldo insuficiente para aplicar um Golpe de Estado.");
-        if (typeof playSound === 'function') playSound('click');
-        return; // Bloqueia a ação
-      }
-
-      // 2. Deduz as 7 moedas (silencia o som de moeda para usar o impacto)
-      updateScore(myPlayerId, -7, true);
-
-      // 3. Dispara som de impacto pesado globalmente
-      if (typeof triggerSound === 'function') triggerSound('unity-sword');
-      break;
-
-    case 'steal':
-      // REGRA: O Capitão só rouba se o alvo tiver 2 ou mais moedas
-      if (targetScore < 2) {
-        console.log("Ação cancelada: O alvo deve ter pelo menos 2 moedas.");
-        if (typeof playSound === 'function') playSound('click');
-        break;
-      }
-
-      // Executa o roubo de 2 moedas
-      updateScore(quickActionTargetPid, -2);
-      updateScore(myPlayerId, 2);
-      break;
-
-    case 'assassinate':
-      // Verifica se o jogador tem saldo para pagar o assassinato (3 moedas)
-      if (myScore < 3) {
-        console.log("Saldo insuficiente para assassinar.");
-        if (typeof playSound === 'function') playSound('click');
-        return;
-      }
-
-      // Deduz moedas e dispara o som de estrela ninja
-      updateScore(myPlayerId, -3, true);
-      if (typeof triggerSound === 'function') triggerSound('ninja-star');
-      break;
-
-    case 'tax':
-      // Duque recebe 3 moedas
-      updateScore(myPlayerId, 3);
-      break;
-  }
-
-  // Fecha o modal após qualquer ação processada
-  window.CoupModal?.close('quickActionsModal');
-  quickActionTargetPid = null;
-};
-
-
-
 /**
  * FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO
  * Sincroniza o estado do Firebase com a interface e aplica permissões de Host (isAdmin).
@@ -450,10 +245,7 @@ function renderAll() {
     createCardElement: window.CoupRenderCards?.createCardElement,
     updateHandFanLayout,
     toggleReligion,
-    openQuickActions: window.openQuickActions,
-    onCloseQuickActions: () => {
-      quickActionTargetPid = null;
-    }
+    openQuickActions: window.CoupQuickActions?.openQuickActions || window.openQuickActions
   });
 
   scheduleCardFanLayout();
@@ -550,6 +342,22 @@ window.CoupRenderCards?.setup({
   isSamsungDragModeEnabled,
   attachBalatroEffect,
   attachCompatiblePointerDrag: window.CoupDragDrop?.attachCompatiblePointerDrag
+});
+
+window.CoupQuickActions?.setup({
+  getState: () => localGameState,
+  getMyPlayerId: () => myPlayerId,
+  isAdmin: () => isAdmin,
+  getDatabase: () => window.db || (typeof db !== 'undefined' ? db : null),
+  updateScore: (...args) => {
+    if (typeof updateScore === 'function') updateScore(...args);
+  },
+  triggerSound: (soundId) => {
+    if (typeof triggerSound === 'function') triggerSound(soundId);
+  },
+  playSound: (soundId) => {
+    if (typeof playSound === 'function') playSound(soundId);
+  }
 });
 
 /**
