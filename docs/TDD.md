@@ -176,6 +176,7 @@ Coup-Master/
         chat-service.js
         board-status.js
         visual-effects.js
+        admin-controls.js
         spectator-service.js
         quick-actions.js
         settings-service.js
@@ -272,6 +273,7 @@ node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\board-status.js
 node --check js\gamemode\casual\visual-effects.js
+node --check js\gamemode\casual\admin-controls.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
@@ -628,7 +630,7 @@ Responsabilidades:
 - Configurar auto-scroll durante drag.
 - Configurar modais e botoes da UI.
 - Configurar fullscreen, configuracoes visuais e preferencias locais.
-- Injetar dependencias para `chat-service.js`, `board-status.js`, `visual-effects.js` e `quick-actions.js`.
+- Injetar dependencias para `chat-service.js`, `board-status.js`, `visual-effects.js`, `admin-controls.js` e `quick-actions.js`.
 - Manter efeitos visuais restantes apenas quando ainda nao migrados para modulo proprio.
 
 Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
@@ -694,7 +696,7 @@ Contrato:
 
 - Expoe `window.CoupModal`.
 - `gameState.js` usa o servico em modais de espectador e sala cheia.
-- `chat-service.js` usa o servico para abrir e fechar o chat; `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `board-renderer.js` ainda usa o servico para espectador, feedback, kick, reset, configuracoes, baralho, tutorial, guias e duelo.
+- `chat-service.js` usa o servico para abrir e fechar o chat; `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `admin-controls.js` usa o servico para kick, reset, sala cheia e configuracao de deck; `board-renderer.js` ainda usa o servico para espectador, feedback, configuracoes, tutorial, guias e duelo.
 - O servico nao muda estrutura HTML nem estilos dos modais; apenas centraliza as operacoes repetidas de exibicao.
 
 ### 7.10 `js/gamemode/casual/chat-service.js`
@@ -767,7 +769,32 @@ Contrato:
 - `drag-drop.js` recebe `resetBalatroElement` para limpar tilt durante o arraste compativel.
 - O servico nao altera estado de jogo e nao acessa Firebase.
 
-### 7.13 `js/gamemode/casual/spectator-service.js`
+### 7.13 `js/gamemode/casual/admin-controls.js`
+
+Responsabilidades:
+
+- Centralizar controles administrativos visuais do modo casual.
+- Aplicar travas visuais de host em `resetBtn`, `addBotBtn`, `openDeckConfigBtn`, `applyDeckConfigBtn` e inputs de configuracao de deck.
+- Ocultar adicionar bot quando o usuario nao e host ou quando a sala esta em modo ranqueado.
+- Bloquear aplicacao de deck para nao-host e para modo ranqueado.
+- Configurar abertura e fechamento do modal de confirmacao de reset.
+- Configurar abertura e fechamento do modal de kick.
+- Expor `window.kickPlayer(pid)` para a acao de remocao vinda do perfil rapido.
+- Configurar o botao de adicionar bot chamando `addBot()`.
+- Configurar o fechamento de `fullRoomModal`.
+- Sincronizar inputs do modal de deck com `localGameState.deckConfig`.
+- Ler inputs do modal de deck, normalizar valores entre 0 e 10 e chamar `resetTable(newConfig)`.
+
+Contrato:
+
+- Expoe `window.CoupAdminControls`.
+- `board-renderer.js` chama `renderAdminControls({ isAdmin, isRankedMode })` durante `renderAll()`.
+- `board-renderer.js` injeta `localGameState`, `myPlayerId`, `currentGameMode`, estado de host, `playSound`, `showError`, `resetTable`, `addBot` e `confirmKickAction`.
+- `quick-actions.js` continua chamando `window.kickPlayer(pid)`, agora definido pelo servico.
+- As validacoes client-side permanecem apenas UX; `gameState.js` e regras Firebase continuam sendo a fronteira de seguranca real.
+- O servico nao acessa Firebase diretamente.
+
+### 7.14 `js/gamemode/casual/spectator-service.js`
 
 Responsabilidades:
 
@@ -787,7 +814,7 @@ Contrato:
 - O servico nao acessa Firebase diretamente; a escrita da notificacao continua em `requestSpectate`.
 - A regra visual de sempre exibir o botao de espectador foi preservada.
 
-### 7.14 `js/gamemode/casual/quick-actions.js`
+### 7.15 `js/gamemode/casual/quick-actions.js`
 
 Responsabilidades:
 
@@ -805,10 +832,11 @@ Contrato:
 - Expoe `window.CoupQuickActions`.
 - Preserva wrappers globais `openQuickActions(pid)` e `executeAction(type)` porque `index.html` ainda usa handlers inline.
 - `board-renderer.js` injeta `localGameState`, `myPlayerId`, estado de host, Firebase Database, `updateScore`, `triggerSound` e `playSound`.
+- A acao de remocao usa `window.kickPlayer(pid)` definido por `admin-controls.js`.
 - `render-players.js` apenas chama `openQuickActions(pid)` quando avatar ou nome sao acionados.
 - O servico nao renderiza slots de jogadores nem altera a mao diretamente.
 
-### 7.15 `js/gamemode/casual/settings-service.js`
+### 7.16 `js/gamemode/casual/settings-service.js`
 
 Responsabilidades:
 
@@ -827,7 +855,7 @@ Contrato:
 - `board-renderer.js` chama `setupSamsungDragPreference({ playSound })` e `setupReligionVisibilityPreference({ playSound })`.
 - O modo de compatibilidade permanece baseado em Pointer Events e continua ativado por padrao quando nao ha preferencia salva.
 
-### 7.16 `js/gamemode/casual/deck-presets.js`
+### 7.17 `js/gamemode/casual/deck-presets.js`
 
 Responsabilidades:
 
@@ -845,7 +873,7 @@ Contrato:
 - `board-renderer.js` chama `window.CoupDeckPresets.setup({ playSound })`.
 - O servico altera apenas os inputs do modal; a aplicacao real do deck continua passando por `resetTable(newConfig)`.
 
-### 7.17 `js/gamemode/casual/drag-drop.js`
+### 7.18 `js/gamemode/casual/drag-drop.js`
 
 Responsabilidades:
 
@@ -867,7 +895,7 @@ Contrato:
 - `board-renderer.js` injeta elementos DOM, mutacoes de jogo, `isSamsungDragModeEnabled`, `refreshSamsungDragMode`, `resetBalatroElement` vindo de `window.CoupVisualEffects` e `hideCardTooltip`.
 - O modulo nao remove o legado HTML5; ele apenas move a configuracao para uma fronteira menor.
 
-### 7.18 `js/gamemode/casual/render-players.js`
+### 7.19 `js/gamemode/casual/render-players.js`
 
 Responsabilidades:
 
@@ -887,7 +915,7 @@ Contrato:
 - O servico nao acessa Firebase nem muta estado de jogo diretamente.
 - A limpeza das maos antes da renderizacao continua em `clearDOM()`.
 
-### 7.19 `js/gamemode/casual/render-cards.js`
+### 7.20 `js/gamemode/casual/render-cards.js`
 
 Responsabilidades:
 
@@ -1521,6 +1549,8 @@ Responsabilidades:
 
 `visual-effects.js` ficou responsavel pelo efeito Balatro/tilt, pelo reset visual usado no drag compativel e pelo calculo de overlap dos leques de mao e cemiterio.
 
+`admin-controls.js` ficou responsavel pelas travas visuais de host e pelos modais/handlers de reset, kick, bot e configuracao de deck, mantendo as mutacoes reais em `gameState.js`.
+
 `quick-actions.js` ficou responsavel pelo perfil rapido acionado no avatar/nome, incluindo carregamento de estatisticas ranqueadas, alvo atual, botao de expulsao e execucao das acoes rapidas casuais.
 
 O codigo da sala deixou de ocupar um cabecalho exclusivo. O rodape `.table-status`, inspirado no prototipo `teste/mesa-2.0`, esta preparado para exibir codigo da sala e contadores quando estiver ativo no HTML; a copia continua centralizada pelo botao `#roomCodeBtn`.
@@ -1649,7 +1679,7 @@ Presets globais expostos por `window.applyDeckPreset(presetType)`:
 
 O host abre configuracao de deck, ajusta inputs e clica em aplicar.
 
-`applyDeckConfigBtn.onclick`:
+`admin-controls.js` configura o clique em `applyDeckConfigBtn`:
 
 1. Checa `isAdmin`.
 2. Monta `newConfig` lendo `.card-config-item input`.
@@ -2122,6 +2152,7 @@ node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\board-status.js
 node --check js\gamemode\casual\visual-effects.js
+node --check js\gamemode\casual\admin-controls.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
@@ -2210,6 +2241,7 @@ Refatoracoes recomendadas:
   - `chat-service.js`
   - `board-status.js`
   - `visual-effects.js`
+  - `admin-controls.js`
   - `quick-actions.js`
   - `settings.js`
   - `effects.js`
@@ -2335,6 +2367,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/chat-service.js` | Chat casual em tempo real, mensagens rapidas e alerta de nao lidas | Medio |
 | `js/gamemode/casual/board-status.js` | Contadores do tabuleiro casual e copia do codigo da sala | Baixo/medio |
 | `js/gamemode/casual/visual-effects.js` | Efeito Balatro/tilt, leques de cartas e overlap visual | Medio |
+| `js/gamemode/casual/admin-controls.js` | Travas visuais e modais de host do casual | Medio |
 | `js/gamemode/casual/spectator-service.js` | Botao, modal e lista segura de alvos do espectador casual | Medio |
 | `js/gamemode/casual/quick-actions.js` | Perfil rapido, estatisticas ranqueadas e acoes rapidas casuais | Medio |
 | `js/gamemode/casual/settings-service.js` | Preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao | Medio |
@@ -2433,6 +2466,7 @@ node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\board-status.js
 node --check js\gamemode\casual\visual-effects.js
+node --check js\gamemode\casual\admin-controls.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js

@@ -6,7 +6,6 @@
 const deckEl = document.getElementById('deck');
 const graveyardArea = document.getElementById('graveyardArea');
 const graveyardCardsEl = graveyardArea?.querySelector('.graveyard-cards') || graveyardArea;
-const resetBtn = document.getElementById('resetBtn');
 
 window.CoupVisualEffects?.setup({
   getGraveyardCardsElement: () => graveyardCardsEl
@@ -48,14 +47,7 @@ function renderAll() {
   if (!state || !state.players) return;
 
 
-  // --- 1. TRAVAS DE ADMINISTRADOR (HOST) ---
-  // Referências aos elementos de controle global
-  const resetBtn = document.getElementById('resetBtn');
-  const addBotBtn = document.getElementById('addBotBtn');
-  const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
-  const applyDeckBtn = document.getElementById('applyDeckConfigBtn');
   const roomModeLabel = document.getElementById('roomModeLabel');
-  const configInputs = document.querySelectorAll('.card-config-item input');
   const isRankedMode = CoupGameModes.isRanked(currentGameMode);
 
   if (roomModeLabel) {
@@ -63,43 +55,10 @@ function renderAll() {
     roomModeLabel.textContent = CoupGameModes.getLabel(currentGameMode);
   }
 
-  // NOVO: Esconde ou mostra o botão de Reset baseado no status de Admin
-  if (resetBtn) {
-    resetBtn.style.display = isAdmin ? 'flex' : 'none';
-  }
-
-  // Visibilidade dos botões Reset e Adicionar Bot
-  if (addBotBtn) {
-    const botRow = addBotBtn.closest('.setting-row');
-    if (botRow) botRow.style.display = isAdmin && !isRankedMode ? 'flex' : 'none';
-  }
-
-  if (openDeckConfigBtn) {
-    const deckConfigRow = openDeckConfigBtn.closest('.setting-row');
-    if (deckConfigRow) deckConfigRow.style.display = isRankedMode ? 'none' : 'flex';
-  }
-
-  // Habilita ou desabilita os campos de texto do baralho em tempo real
-  configInputs.forEach(input => {
-    input.disabled = !isAdmin || isRankedMode;
+  window.CoupAdminControls?.renderAdminControls({
+    isAdmin,
+    isRankedMode
   });
-
-  // Configuração visual e funcional do botão de aplicar baralho
-  if (applyDeckBtn) {
-    if (isRankedMode) {
-      applyDeckBtn.disabled = true;
-      applyDeckBtn.style.background = '#555';
-      applyDeckBtn.textContent = 'Baralho padrão no modo ranqueado';
-    } else if (!isAdmin) {
-      applyDeckBtn.disabled = true;
-      applyDeckBtn.style.background = '#555'; // Cinza para indicar bloqueio
-      applyDeckBtn.textContent = 'Apenas o Host pode aplicar';
-    } else {
-      applyDeckBtn.disabled = false;
-      applyDeckBtn.style.background = ''; // Reseta para a cor original do CSS
-      applyDeckBtn.textContent = 'Aplicar e Resetar Jogo';
-    }
-  }
 
 
   window.CoupSpectator?.renderSpectatorControls({
@@ -223,16 +182,19 @@ function setupUI() {
     }
   });
 
-  // Gerenciamento do Modal de Sala Cheia (Aviso de limite de Bots)
-  const fullRoomModal = document.getElementById('fullRoomModal');
-  const closeFullRoomBtn = document.getElementById('closeFullRoomBtn');
-
-  if (closeFullRoomBtn && fullRoomModal) {
-    closeFullRoomBtn.onclick = () => {
-      playSound('click');
-      window.CoupModal?.close(fullRoomModal);
-    };
-  }
+  window.CoupAdminControls?.setup({
+    getState: () => localGameState,
+    getMyPlayerId: () => myPlayerId,
+    getCurrentGameMode: () => currentGameMode,
+    isAdmin: () => isAdmin,
+    playSound: (soundId) => {
+      if (typeof playSound === 'function') playSound(soundId);
+    },
+    showError,
+    resetTable,
+    addBot,
+    confirmKickAction
+  });
 
 
   // Feedback Modal
@@ -277,7 +239,7 @@ function setupUI() {
   window.CoupCasualAudio?.setupBackgroundMusicControls();
 
 
-  // --- 3. INTERAÇÕES DE JOGO (ASILO, KICK, BOTS) ---
+  // --- 3. INTERAÇÕES DE JOGO (ASILO) ---
 
   // Atalho de Gesto: Saque rápido do Asilo via clique duplo na imagem
   const asylumArea = document.getElementById('asylumArea');
@@ -295,95 +257,6 @@ function setupUI() {
     }
   }
 
-
-
-  // =======================================================
-  // === SISTEMA DE REMOÇÃO (KICK) ===
-  // =======================================================
-
-  /**
-   * Função global chamada pela ação de remover jogador.
-   * Define quem será expulso e abre o modal de confirmação.
-   */
-  window.kickPlayer = (pid) => {
-    const player = localGameState.players?.[pid];
-    const canKick = Boolean(isAdmin && pid !== myPlayerId && (player?.uid || player?.online));
-    if (!canKick) return;
-
-    // Sincroniza com a variável global 'pendingKickPid' do gameState.js
-    window.pendingKickPid = pid;
-
-    const modal = document.getElementById('kickPlayerModal');
-    const text = document.getElementById('kickPlayerText');
-
-    if (text && player) {
-      text.innerText = `Tem certeza que deseja remover ${player.name || 'o Jogador ' + pid} da sala?`;
-    }
-
-    if (modal) {
-      if (typeof playSound === 'function') playSound('click');
-      window.CoupModal?.open(modal);
-    }
-  };
-
-  // Configuração dos botões do Modal
-  const confirmKickBtn = document.getElementById('confirmKickBtn');
-  const cancelKickBtn = document.getElementById('cancelKickBtn');
-  const kickModal = document.getElementById('kickPlayerModal');
-
-  if (confirmKickBtn) {
-    confirmKickBtn.onclick = () => {
-      // Chamamos a ação principal que agora lida com cartas e remoção
-      confirmKickAction();
-      window.CoupModal?.close(kickModal);
-    };
-  }
-
-  if (cancelKickBtn) {
-    cancelKickBtn.onclick = () => {
-      window.CoupModal?.close(kickModal);
-      window.pendingKickPid = null; // Limpa a seleção global de segurança
-    };
-  }
-
-
-
-
-  // Modal Interno de Confirmação de Reset de Mesa
-  const confirmBtn = document.getElementById('confirmResetBtn');
-  const cancelBtn = document.getElementById('cancelResetBtn');
-  const resetModal = document.getElementById('resetModal');
-
-  if (resetBtn && resetModal) {
-    resetBtn.onclick = () => {
-      playSound('click');
-      window.CoupModal?.open(resetModal); // Abre a janelinha de confirmação
-    };
-  }
-
-  if (confirmBtn) {
-    confirmBtn.onclick = () => {
-      if (isAdmin) { // Checagem dupla de segurança
-        resetTable();
-        window.CoupModal?.close(resetModal);
-      } else {
-        window.CoupModal?.close(resetModal);
-        showError("Apenas o Host pode realizar esta ação.");
-      }
-    };
-  }
-
-  if (cancelBtn) {
-    cancelBtn.onclick = () => {
-      window.CoupModal?.close(resetModal);
-    };
-  }
-
-  // Botão de Adicionar Bot (Menu de Configurações)
-  const addBotBtn = document.getElementById('addBotBtn');
-  if (addBotBtn) {
-    addBotBtn.onclick = () => { addBot(); };
-  }
 
 
   // --- 4. CONFIGURAÇÕES VISUAIS E CUSTOMIZAÇÃO ---
@@ -412,84 +285,6 @@ function setupUI() {
   const deckContainer = document.getElementById('deck');
   window.CoupVisualEffects?.attachBalatroEffect(deckContainer, true);
   attachElementTooltip(deckContainer, 'Baralho');
-
-
-  // --- 5. CONFIGURAÇÃO DE BARALHO (HOST APENAS) ---
-
-  const configModal = document.getElementById('configModal');
-  const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
-  const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
-  const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
-  const configInputs = document.querySelectorAll('.card-config-item input');
-  const isRankedMode = CoupGameModes.isRanked(currentGameMode);
-
-  if (openDeckConfigBtn) {
-    const deckConfigRow = openDeckConfigBtn.closest('.setting-row');
-    if (deckConfigRow) deckConfigRow.style.display = isRankedMode ? 'none' : 'flex';
-  }
-
-  // Navegação para o Modal de Baralho
-  if (openDeckConfigBtn && configModal) {
-    openDeckConfigBtn.onclick = () => {
-      if (isRankedMode) return;
-
-      playSound('click');
-
-      // --- NOVO: Sincroniza os inputs com a configuração salva no Firebase ---
-      // Busca a configuração atual do estado local (ou a padrão se não existir)
-      const currentConfig = localGameState.deckConfig;
-
-      if (currentConfig) {
-        // Percorre todos os inputs do modal
-        configInputs.forEach(input => {
-          const cardType = input.dataset.card; // Pega o tipo da carta (ex: 'duque')
-
-          // Se o banco tiver um valor para essa carta, atualiza o campo de texto
-          if (currentConfig[cardType] !== undefined) {
-            input.value = currentConfig[cardType];
-          }
-        });
-      }
-
-      // Fecha o menu de configurações e abre o de baralho
-      window.CoupModal?.close(settingsModal);
-      window.CoupModal?.open(configModal);
-    };
-
-    if (closeConfigModalBtn) {
-      closeConfigModalBtn.onclick = () => {
-        playSound('click');
-        window.CoupModal?.close(configModal);
-        window.CoupModal?.open(settingsModal);
-      };
-    }
-  }
-
-  // Lógica de Permissão e Aplicação da Configuração (Apenas para o Host)
-  configInputs.forEach(input => {
-    input.disabled = !isAdmin || isRankedMode;
-  });
-
-  if (applyDeckConfigBtn) {
-    applyDeckConfigBtn.onclick = () => {
-      // Verificação extra de segurança
-      if (!isAdmin || isRankedMode) return;
-
-      playSound('click');
-      const newConfig = {};
-      const configInputs = document.querySelectorAll('.card-config-item input');
-
-      configInputs.forEach(input => {
-        let val = parseInt(input.value);
-        if (isNaN(val) || val < 0) val = 0;
-        if (val > 10) val = 10;
-        newConfig[input.dataset.card] = val;
-      });
-
-      resetTable(newConfig); // Aplica e reinicia a partida
-      window.CoupModal?.close(configModal);
-    };
-  }
 
 
   // --- 6. MODAL DE INFORMAÇÕES E REGRAS ---
