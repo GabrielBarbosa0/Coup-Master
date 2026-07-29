@@ -18,6 +18,11 @@
     <link rel="stylesheet" href="css/loading.css?v=selection-lock-v1">
     <link rel="stylesheet" href="css/ranked-mode.css?v=selection-lock-v1">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
+    <link rel="stylesheet" href="css/ads.css?v=ads-slots-v1">
+
+    <script id="coup-adsense-script" async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5483968891175594"
+        crossorigin="anonymous"></script>
 </head>
 
 <body data-rank-view="waiting">
@@ -56,6 +61,7 @@
         </section>
 
         <section id="rankPlayers" class="rank-players rank-waiting-players" aria-label="Jogadores da sala ranqueada"></section>
+        <section class="coup-ad-slot coup-ad-slot-rank-waiting" data-ad-slot-key="rankedWaiting" aria-label="Publicidade na sala de espera ranqueada"></section>
     </main>
 
     <div id="rankErrorModal" class="rank-modal-overlay" hidden>
@@ -129,6 +135,7 @@
     <script src="js/ui/selection-lock.js?v=selection-lock-v1" defer></script>
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
+    <script src="js/ui/ad-slots.js?v=ads-slots-v1" defer></script>
     <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>
     <script src="js/gamemode/ranked/ranked-rules.js?v=rank-stage-copy-v2" defer></script>
     <script src="js/gamemode/ranked/ranked-engine.js?v=rank-stage-copy-v2" defer></script>
