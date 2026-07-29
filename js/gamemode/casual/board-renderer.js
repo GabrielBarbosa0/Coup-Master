@@ -645,72 +645,6 @@ function createCardElement(card) {
  * Sincroniza o estado do Firebase com a interface e aplica permissões de Host (isAdmin).
  */
 
-function renderEmptyPlayerSlot(playerEl, pid) {
-  playerEl.style.removeProperty('display');
-  playerEl.classList.add('is-empty');
-  playerEl.setAttribute('aria-label', `Slot ${pid} vazio`);
-  playerEl.style.boxShadow = '';
-  playerEl.style.border = '';
-
-  const title = playerEl.querySelector('.player-title');
-  if (title) {
-    title.textContent = '';
-    title.style.cursor = 'default';
-    title.onclick = null;
-  }
-
-  const avatar = playerEl.querySelector('.player-avatar');
-  if (avatar) avatar.removeAttribute('src');
-
-  const religion = playerEl.querySelector('.religion-badge');
-  if (religion) religion.onclick = null;
-
-  const score = playerEl.querySelector('.score');
-  if (score) score.textContent = '0';
-
-  const hand = playerEl.querySelector('[data-hand]');
-  if (hand) {
-    const emptyLabel = document.createElement('div');
-    emptyLabel.className = 'empty-seat-label';
-    emptyLabel.textContent = 'Aguardando jogador';
-    hand.appendChild(emptyLabel);
-  }
-}
-
-function getVisibleMobileSeatLimit(players = {}) {
-  let highestOccupiedSlot = 0;
-
-  for (let pid = 1; pid <= MAX_PLAYERS; pid++) {
-    const player = players[pid];
-    if (player && (player.online || player.uid)) {
-      highestOccupiedSlot = pid;
-    }
-  }
-
-  const minimumVisibleSlots = 4;
-  const visibleSlots = Math.max(minimumVisibleSlots, highestOccupiedSlot);
-
-  return Math.min(MAX_PLAYERS, Math.ceil(visibleSlots / 2) * 2);
-}
-
-function applyMobileSeatVisibility(players = {}) {
-  const visibleLimit = getVisibleMobileSeatLimit(players);
-  const bottomRow = document.querySelector('.player-row-bottom');
-
-  for (let pid = 1; pid <= MAX_PLAYERS; pid++) {
-    const playerEl = document.getElementById(`player-${pid}`);
-    if (!playerEl) continue;
-
-    const shouldHideOnMobile = pid > visibleLimit;
-    playerEl.classList.toggle('mobile-seat-hidden', shouldHideOnMobile);
-    playerEl.setAttribute('aria-hidden', shouldHideOnMobile ? 'true' : 'false');
-  }
-
-  if (bottomRow) {
-    bottomRow.classList.toggle('mobile-row-hidden', visibleLimit <= 4);
-  }
-}
-
 function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
@@ -836,164 +770,21 @@ function renderAll() {
 
   // Limpa o tabuleiro antes de desenhar o novo estado.
   clearDOM();
-  applyMobileSeatVisibility(state.players);
 
-
-
-
-  // --- 2. RENDERIZAÇÃO DOS SLOTS DE JOGADORES ---
-
-
-  for (let pid = 1; pid <= MAX_PLAYERS; pid++) {
-    const playerEl = document.getElementById(`player-${pid}`);
-    if (!playerEl) continue;
-
-    playerEl.classList.add('player-seat');
-
-    const player = state.players[pid] || { online: false, hand: [], score: 0, religion: 'catolico', uid: null };
-
-    const isOccupied = Boolean(player.online || player.uid);
-    playerEl.style.removeProperty('display');
-    playerEl.classList.toggle('is-empty', !isOccupied);
-
-    if (!isOccupied) {
-      renderEmptyPlayerSlot(playerEl, pid);
-      continue;
+  window.CoupRenderPlayers?.renderPlayers({
+    players: state.players,
+    maxPlayers: MAX_PLAYERS,
+    myPlayerId,
+    createCardElement,
+    updateHandFanLayout,
+    toggleReligion,
+    openQuickActions: window.openQuickActions,
+    onCloseQuickActions: () => {
+      quickActionTargetPid = null;
     }
-
-    playerEl.setAttribute('aria-label', player.name || `Jogador ${pid}`);
-
-    // --- 2.1 IDENTIFICAÇÃO E CONTROLE DE MODERAÇÃO ---
-    if (pid === myPlayerId) {
-      playerEl.classList.add('local-player');
-    }
-
-    // --- 2.2 CABEÇALHO DO JOGADOR (AVATAR E NOME) ---
-    let headerEl = playerEl.querySelector('.player-header');
-    if (!headerEl) {
-      let titleDiv = playerEl.querySelector('.player-title');
-      if (!titleDiv) {
-        titleDiv = document.createElement('div');
-        titleDiv.className = 'player-title';
-      }
-
-      headerEl = document.createElement('div');
-      headerEl.className = 'player-header player-identity';
-
-      const img = document.createElement('img');
-      img.className = 'player-avatar';
-
-      // Mantém a identificação como primeira linha do slot.
-      playerEl.insertBefore(headerEl, playerEl.querySelector('.points'));
-      headerEl.appendChild(img);
-      headerEl.appendChild(titleDiv);
-    }
-
-    const avatarImg = headerEl.querySelector('.player-avatar');
-    const nameTxt = headerEl.querySelector('.player-title');
-
-    headerEl.classList.add('player-identity');
-    nameTxt?.classList.add('player-name');
-
-    if (avatarImg) {
-      avatarImg.src = player.photo || 'img/coup.png';
-      avatarImg.alt = `Perfil de ${player.name || 'Jogador ' + pid}`;
-      avatarImg.title = 'Ver perfil do jogador';
-      avatarImg.style.cursor = 'pointer';
-      avatarImg.tabIndex = 0;
-      avatarImg.onclick = (event) => {
-        event.stopPropagation();
-        if (typeof openQuickActions === 'function') openQuickActions(pid);
-      };
-      avatarImg.onkeydown = (event) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        event.preventDefault();
-        if (typeof openQuickActions === 'function') openQuickActions(pid);
-      };
-    }
-
-    if (nameTxt) {
-      nameTxt.textContent = player.name || `Jogador ${pid}`;
-
-      // NOVO: Gatilho para o Modal de Ações Rápidas
-      nameTxt.style.cursor = 'pointer'; // Feedback visual de clique
-      nameTxt.onclick = () => {
-        if (typeof openQuickActions === 'function') openQuickActions(pid);
-      };
-    }
-
-    // Atualização do ícone de religião
-
-    // --- 2.3 STATUS DE RELIGIÃO (MODO ÍCONE CIRCULAR) ---
-    let religionIcon = headerEl.querySelector('.religion-badge');
-
-    if (!religionIcon) {
-      religionIcon = document.createElement('img');
-      religionIcon.className = 'religion-badge';
-      // Insere o ícone logo após o nome do jogador no cabeçalho
-      headerEl.appendChild(religionIcon);
-    }
-
-    const isProtestante = player.religion === 'protestante';
-    // Utiliza os novos caminhos da estrutura de pastas refatorada 
-    const iconPath = isProtestante
-      ? 'assets/img/cards/religion/protestante-quadrado.png'
-      : 'assets/img/cards/religion/catolico-quadrado.png';
-
-    religionIcon.src = iconPath;
-    religionIcon.alt = player.religion;
-    religionIcon.title = isProtestante ? 'Protestante' : 'Católico';
-
-    // Permite clicar no ícone para trocar de religião, assim como antes
-    religionIcon.onclick = (e) => {
-      e.stopPropagation(); // Evita abrir o modal de ações rápidas ao clicar no ícone
-      toggleReligion(pid);
-    };
-
-    // --- 2.4 RENDERIZAÇÃO DA MÃO E PONTUAÇÃO ---
-    const handContainer = playerEl.querySelector('[data-hand]');
-    if (handContainer) {
-      player.hand?.forEach((card) => {
-        const slot = document.createElement('div');
-        slot.className = 'slot small';
-        const el = createCardElement(card);
-        el.classList.add('small');
-        slot.appendChild(el);
-        handContainer.appendChild(slot);
-      });
-
-      if (!player.hand || player.hand.length === 0) {
-        const slot = document.createElement('div');
-        slot.className = 'slot small';
-        handContainer.appendChild(slot);
-      }
-
-      updateHandFanLayout(handContainer);
-    }
-
-    const scoreEl = playerEl.querySelector('.score');
-    if (scoreEl) scoreEl.textContent = player.score || 0;
-
-    // --- INDICADOR DE ESPECTADOR ---
-    if (player?.spectators && player.spectators[myPlayerId]) {
-      playerEl.style.boxShadow = "0 0 8px #1e90ff";
-      playerEl.style.border = "2px solid #1e90ff";
-    } else {
-      playerEl.style.boxShadow = "";
-      playerEl.style.border = "";
-    }
-  }
+  });
 
   scheduleCardFanLayout();
-
-
-  const closeQuickActionsBtn = document.getElementById('closeQuickActionsBtn');
-  if (closeQuickActionsBtn) {
-    closeQuickActionsBtn.onclick = () => {
-      window.CoupModal?.close('quickActionsModal');
-      quickActionTargetPid = null;
-    };
-  }
 
 
 
