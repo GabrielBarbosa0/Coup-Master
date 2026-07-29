@@ -175,6 +175,7 @@ Coup-Master/
         modal-service.js
         chat-service.js
         board-status.js
+        visual-effects.js
         spectator-service.js
         quick-actions.js
         settings-service.js
@@ -270,6 +271,7 @@ node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\board-status.js
+node --check js\gamemode\casual\visual-effects.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
@@ -626,8 +628,8 @@ Responsabilidades:
 - Configurar auto-scroll durante drag.
 - Configurar modais e botoes da UI.
 - Configurar fullscreen, configuracoes visuais e preferencias locais.
-- Injetar dependencias para `chat-service.js`, `board-status.js` e `quick-actions.js`.
-- Gerenciar efeitos visuais restantes, como Balatro/tilt, e preferencias locais de UI.
+- Injetar dependencias para `chat-service.js`, `board-status.js`, `visual-effects.js` e `quick-actions.js`.
+- Manter efeitos visuais restantes apenas quando ainda nao migrados para modulo proprio.
 
 Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
 
@@ -741,7 +743,31 @@ Contrato:
 - O servico tolera elementos ausentes porque o rodape `.table-status` pode estar comentado no HTML.
 - O servico nao acessa Firebase e nao altera estado de jogo.
 
-### 7.12 `js/gamemode/casual/spectator-service.js`
+### 7.12 `js/gamemode/casual/visual-effects.js`
+
+Responsabilidades:
+
+- Centralizar efeitos visuais de cartas do modo casual.
+- Calcular overlap adaptativo dos leques de mao e cemiterio.
+- Atualizar `--hand-overlap` e `--graveyard-overlap`.
+- Aplicar rotacao e deslocamento base dos slots da mao.
+- Agendar recálculo dos leques com `requestAnimationFrame`.
+- Recalcular leques no `resize` da janela.
+- Aplicar e limpar o efeito Balatro/tilt em cartas e no deck.
+- Resetar variaveis CSS `--tilt-x`, `--tilt-y`, `--glow-x` e `--glow-y`.
+- Remover `.is-tilting` e `.is-active-card` quando o hover/drag termina.
+
+Contrato:
+
+- Expoe `window.CoupVisualEffects`.
+- Preserva wrappers globais `updateHandFanLayout`, `updateGraveyardFanLayout`, `scheduleCardFanLayout`, `resetBalatroElement` e `attachBalatroEffect`.
+- `board-renderer.js` injeta o container de cartas do cemiterio por `getGraveyardCardsElement`.
+- `render-players.js` recebe `updateHandFanLayout` para organizar as maos renderizadas.
+- `render-cards.js` recebe `attachBalatroEffect` para aplicar o hover 3D nas cartas criadas.
+- `drag-drop.js` recebe `resetBalatroElement` para limpar tilt durante o arraste compativel.
+- O servico nao altera estado de jogo e nao acessa Firebase.
+
+### 7.13 `js/gamemode/casual/spectator-service.js`
 
 Responsabilidades:
 
@@ -761,7 +787,7 @@ Contrato:
 - O servico nao acessa Firebase diretamente; a escrita da notificacao continua em `requestSpectate`.
 - A regra visual de sempre exibir o botao de espectador foi preservada.
 
-### 7.13 `js/gamemode/casual/quick-actions.js`
+### 7.14 `js/gamemode/casual/quick-actions.js`
 
 Responsabilidades:
 
@@ -782,7 +808,7 @@ Contrato:
 - `render-players.js` apenas chama `openQuickActions(pid)` quando avatar ou nome sao acionados.
 - O servico nao renderiza slots de jogadores nem altera a mao diretamente.
 
-### 7.14 `js/gamemode/casual/settings-service.js`
+### 7.15 `js/gamemode/casual/settings-service.js`
 
 Responsabilidades:
 
@@ -801,7 +827,7 @@ Contrato:
 - `board-renderer.js` chama `setupSamsungDragPreference({ playSound })` e `setupReligionVisibilityPreference({ playSound })`.
 - O modo de compatibilidade permanece baseado em Pointer Events e continua ativado por padrao quando nao ha preferencia salva.
 
-### 7.15 `js/gamemode/casual/deck-presets.js`
+### 7.16 `js/gamemode/casual/deck-presets.js`
 
 Responsabilidades:
 
@@ -819,7 +845,7 @@ Contrato:
 - `board-renderer.js` chama `window.CoupDeckPresets.setup({ playSound })`.
 - O servico altera apenas os inputs do modal; a aplicacao real do deck continua passando por `resetTable(newConfig)`.
 
-### 7.16 `js/gamemode/casual/drag-drop.js`
+### 7.17 `js/gamemode/casual/drag-drop.js`
 
 Responsabilidades:
 
@@ -838,10 +864,10 @@ Contrato:
 - Expoe `window.CoupDragDrop`.
 - Preserva o wrapper global `setupDropzones` chamado por `gameState.js`.
 - Preserva o wrapper global `attachCompatiblePointerDrag` para compatibilidade com codigo legado.
-- `board-renderer.js` injeta elementos DOM, mutacoes de jogo, `isSamsungDragModeEnabled`, `refreshSamsungDragMode`, `resetBalatroElement` e `hideCardTooltip`.
+- `board-renderer.js` injeta elementos DOM, mutacoes de jogo, `isSamsungDragModeEnabled`, `refreshSamsungDragMode`, `resetBalatroElement` vindo de `window.CoupVisualEffects` e `hideCardTooltip`.
 - O modulo nao remove o legado HTML5; ele apenas move a configuracao para uma fronteira menor.
 
-### 7.17 `js/gamemode/casual/render-players.js`
+### 7.18 `js/gamemode/casual/render-players.js`
 
 Responsabilidades:
 
@@ -857,11 +883,11 @@ Responsabilidades:
 Contrato:
 
 - Expoe `window.CoupRenderPlayers`.
-- `board-renderer.js` injeta `players`, `myPlayerId`, `MAX_PLAYERS`, `createCardElement` vindo de `window.CoupRenderCards`, `updateHandFanLayout`, `toggleReligion` e `openQuickActions`.
+- `board-renderer.js` injeta `players`, `myPlayerId`, `MAX_PLAYERS`, `createCardElement` vindo de `window.CoupRenderCards`, `updateHandFanLayout` vindo de `window.CoupVisualEffects`, `toggleReligion` e `openQuickActions`.
 - O servico nao acessa Firebase nem muta estado de jogo diretamente.
 - A limpeza das maos antes da renderizacao continua em `clearDOM()`.
 
-### 7.18 `js/gamemode/casual/render-cards.js`
+### 7.19 `js/gamemode/casual/render-cards.js`
 
 Responsabilidades:
 
@@ -872,13 +898,13 @@ Responsabilidades:
 - Criar e posicionar o tooltip flutuante de cartas e elementos do tabuleiro.
 - Aplicar listeners HTML5 de `dragstart` e `dragend` nas cartas.
 - Manter o duplo clique para devolver carta ao deck com animacao.
-- Injetar efeito Balatro recebido do renderer e Pointer Events de compatibilidade recebido de `drag-drop.js`.
+- Injetar efeito Balatro recebido de `visual-effects.js` e Pointer Events de compatibilidade recebido de `drag-drop.js`.
 
 Contrato:
 
 - Expoe `window.CoupRenderCards`.
 - Preserva wrappers globais `createCardElement`, `getCardFolder`, `shouldShowBack`, `attachElementTooltip`, `hideCardTooltip` e `getCardDisplayName` para compatibilidade com codigo legado.
-- `board-renderer.js` injeta `getState`, `getMyPlayerId`, `getDeckElement`, `returnCardToDeck`, `isSamsungDragModeEnabled`, `attachBalatroEffect` e `window.CoupDragDrop.attachCompatiblePointerDrag`.
+- `board-renderer.js` injeta `getState`, `getMyPlayerId`, `getDeckElement`, `returnCardToDeck`, `isSamsungDragModeEnabled`, `window.CoupVisualEffects.attachBalatroEffect` e `window.CoupDragDrop.attachCompatiblePointerDrag`.
 - `card-preview.js` recebe `getCardFolder` e `shouldShowBack` vindos de `window.CoupRenderCards`.
 
 ## 8. Modelo de Dados no Firebase
@@ -1493,6 +1519,8 @@ Responsabilidades:
 
 `board-status.js` ficou responsavel pelos contadores do tabuleiro e pela copia do codigo da sala, incluindo suporte ao rodape `.table-status` quando ele estiver ativo no HTML.
 
+`visual-effects.js` ficou responsavel pelo efeito Balatro/tilt, pelo reset visual usado no drag compativel e pelo calculo de overlap dos leques de mao e cemiterio.
+
 `quick-actions.js` ficou responsavel pelo perfil rapido acionado no avatar/nome, incluindo carregamento de estatisticas ranqueadas, alvo atual, botao de expulsao e execucao das acoes rapidas casuais.
 
 O codigo da sala deixou de ocupar um cabecalho exclusivo. O rodape `.table-status`, inspirado no prototipo `teste/mesa-2.0`, esta preparado para exibir codigo da sala e contadores quando estiver ativo no HTML; a copia continua centralizada pelo botao `#roomCodeBtn`.
@@ -1547,7 +1575,7 @@ Esse modo e uma camada de compatibilidade sobre o fluxo legado, nao um substitut
 
 #### 11.3.2 Leques adaptativos da mao e do cemiterio
 
-`calculateAdaptiveFanOverlap()` concentra a matematica compartilhada. `updateHandFanLayout()` e `updateGraveyardFanLayout()` aplicam o resultado em cada superficie:
+`visual-effects.js` concentra a matematica compartilhada em `calculateAdaptiveFanOverlap()`. `updateHandFanLayout()` e `updateGraveyardFanLayout()` aplicam o resultado em cada superficie:
 
 - mede a largura de layout da carta com `offsetWidth`, sem deixar a rotacao visual alterar o calculo;
 - mede a largura disponivel no slot do jogador ou no container `.graveyard-cards`;
@@ -1680,7 +1708,7 @@ O codigo chama `playSound('click')` em varios pontos, mas nao existe `<audio id=
 
 ### 14.1 Efeito Balatro/Tilt
 
-`attachBalatroEffect(element, isDeck)`:
+`visual-effects.js` centraliza `attachBalatroEffect(element, isDeck)`:
 
 - adiciona classe `balatro-effect`;
 - no mousemove calcula inclinacao por posicao relativa;
@@ -2093,6 +2121,7 @@ node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\board-status.js
+node --check js\gamemode\casual\visual-effects.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
@@ -2180,6 +2209,7 @@ Refatoracoes recomendadas:
   - `modal-service.js`
   - `chat-service.js`
   - `board-status.js`
+  - `visual-effects.js`
   - `quick-actions.js`
   - `settings.js`
   - `effects.js`
@@ -2304,6 +2334,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/modal-service.js` | Helpers compartilhados de abertura, fechamento e visibilidade de modais | Medio |
 | `js/gamemode/casual/chat-service.js` | Chat casual em tempo real, mensagens rapidas e alerta de nao lidas | Medio |
 | `js/gamemode/casual/board-status.js` | Contadores do tabuleiro casual e copia do codigo da sala | Baixo/medio |
+| `js/gamemode/casual/visual-effects.js` | Efeito Balatro/tilt, leques de cartas e overlap visual | Medio |
 | `js/gamemode/casual/spectator-service.js` | Botao, modal e lista segura de alvos do espectador casual | Medio |
 | `js/gamemode/casual/quick-actions.js` | Perfil rapido, estatisticas ranqueadas e acoes rapidas casuais | Medio |
 | `js/gamemode/casual/settings-service.js` | Preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao | Medio |
@@ -2401,6 +2432,7 @@ node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\chat-service.js
 node --check js\gamemode\casual\board-status.js
+node --check js\gamemode\casual\visual-effects.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
