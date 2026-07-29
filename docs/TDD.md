@@ -173,6 +173,7 @@ Coup-Master/
         audio-service.js
         card-preview.js
         modal-service.js
+        settings-service.js
         board-renderer.js
       ranked/
         ranked-engine.js
@@ -259,6 +260,7 @@ node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
+node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -680,6 +682,25 @@ Contrato:
 - `board-renderer.js` usa o servico para quick actions, chat, espectador, feedback, kick, reset, configuracoes, baralho, tutorial, guias e duelo.
 - O servico nao muda estrutura HTML nem estilos dos modais; apenas centraliza as operacoes repetidas de exibicao.
 
+### 7.10 `js/gamemode/casual/settings-service.js`
+
+Responsabilidades:
+
+- Centralizar preferencias locais do modo casual.
+- Ler e persistir booleanos em `localStorage`.
+- Controlar o estado do modo de compatibilidade de arraste (`coupMasterSamsungDragEnabled`).
+- Atualizar o botao `toggleSamsungDragBtn`, `aria-pressed`, estado visual e texto.
+- Aplicar `body.samsung-drag-enabled` e alternar `draggable` em cartas/deck sem mudar a logica de drag/drop.
+- Controlar a preferencia local de visibilidade de religiao (`hideReligion`).
+- Aplicar `body.hide-religion` e atualizar o texto do botao `toggleReligionBtn`.
+
+Contrato:
+
+- Expoe `window.CoupCasualSettings`.
+- Preserva wrappers globais `isSamsungDragModeEnabled`, `updateSamsungDragButton`, `refreshSamsungDragMode` e `setSamsungDragMode` para compatibilidade com o renderer.
+- `board-renderer.js` chama `setupSamsungDragPreference({ playSound })` e `setupReligionVisibilityPreference({ playSound })`.
+- O modo de compatibilidade permanece baseado em Pointer Events e continua ativado por padrao quando nao ha preferencia salva.
+
 ## 8. Modelo de Dados no Firebase
 
 ### 8.1 Estrutura de Sala
@@ -891,6 +912,7 @@ Usado para preferencias visuais locais:
 
 - `hideReligion`
 - `sfxVolume`
+- `coupMasterSamsungDragEnabled`
 
 Essas preferencias nao sao sincronizadas entre jogadores.
 
@@ -1323,13 +1345,13 @@ Essa estrategia evita duplicacao visual, mas recria muitos elementos em cada upd
 
 #### 11.3.1 Modo compativel de arraste
 
-O modo casual mantem o drag and drop HTML5 nativo como comportamento padrao. Esse fluxo continua sendo o mais fiel no Chrome, porque preserva a pre-visualizacao nativa da carta, a opacidade durante o arraste e o comportamento esperado de desktop/mobile quando o navegador implementa bem a API.
+O modo casual mantem o drag and drop HTML5 nativo como base historica do arraste. Esse fluxo preserva a pre-visualizacao nativa da carta, a opacidade durante o arraste e o comportamento esperado em navegadores que implementam bem a API.
 
 Para dispositivos e navegadores com suporte inconsistente, especialmente Samsung Internet em celulares, existe uma opcao manual no modal de configuracoes:
 
 - botao `Compatibilidade` (`#toggleSamsungDragBtn`);
 - estado salvo em `localStorage` com a chave `coupMasterSamsungDragEnabled`;
-- padrao sempre desativado;
+- padrao ativado quando nao ha preferencia salva;
 - quando ativo, adiciona `body.samsung-drag-enabled`;
 - desativa `draggable` das cartas e do deck para evitar conflito com o HTML5 drag nativo;
 - usa Pointer Events para criar um clone visual `.compatible-drag-ghost` centralizado no dedo/mouse, preservando tamanho e estilos calculados da carta original;
@@ -1894,6 +1916,7 @@ node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
+node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -2181,6 +2204,7 @@ node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
+node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js

@@ -37,8 +37,6 @@ let chatMessagesInitialized = false;
 let chatListenerReady = false;
 let lastSeenChatMessageKey = '';
 let cardFanLayoutFrame = null;
-const SAMSUNG_DRAG_STORAGE_KEY = 'coupMasterSamsungDragEnabled';
-let samsungDragEnabled = readLocalBoolean(SAMSUNG_DRAG_STORAGE_KEY, true);
 let compatibleDragState = null;
 const CASUAL_BALATRO_HOVER = Object.freeze({
   tilt: 36,
@@ -48,59 +46,6 @@ const CASUAL_HAND_FAN = Object.freeze({
   rotationStep: 0,
   curveLift: 0
 });
-
-function readLocalBoolean(key, defaultValue = false) {
-  try {
-    const storedValue = localStorage.getItem(key);
-    if (storedValue === null) return defaultValue;
-    return storedValue === 'true';
-  } catch (error) {
-    return defaultValue;
-  }
-}
-
-function writeLocalBoolean(key, value) {
-  try {
-    localStorage.setItem(key, value ? 'true' : 'false');
-  } catch (error) {
-    // Preferimos falhar de forma silenciosa para nao bloquear o jogo.
-  }
-}
-
-function isSamsungDragModeEnabled() {
-  return samsungDragEnabled;
-}
-
-function updateSamsungDragButton() {
-  const button = document.getElementById('toggleSamsungDragBtn');
-  if (!button) return;
-
-  button.setAttribute('aria-pressed', samsungDragEnabled ? 'true' : 'false');
-  button.classList.toggle('is-active', samsungDragEnabled);
-  button.title = samsungDragEnabled
-    ? 'Desativar arraste compatível com Samsung Internet'
-    : 'Ativar arraste compatível com Samsung Internet';
-
-  const label = button.querySelector('span');
-  if (label) label.textContent = samsungDragEnabled ? 'Ativo' : 'Inativo';
-}
-
-function refreshSamsungDragMode() {
-  document.body?.classList.toggle('samsung-drag-enabled', samsungDragEnabled);
-
-  document.querySelectorAll('.game-table .card').forEach((cardElement) => {
-    cardElement.draggable = !samsungDragEnabled;
-  });
-
-  if (deckEl) deckEl.draggable = !samsungDragEnabled;
-  updateSamsungDragButton();
-}
-
-function setSamsungDragMode(enabled) {
-  samsungDragEnabled = Boolean(enabled);
-  writeLocalBoolean(SAMSUNG_DRAG_STORAGE_KEY, samsungDragEnabled);
-  refreshSamsungDragMode();
-}
 
 function calculateAdaptiveFanOverlap(container, items, options) {
   if (!container || items.length < 2) return null;
@@ -1864,7 +1809,7 @@ function setupUI() {
   if (settingsBtn && settingsModal) {
     settingsBtn.onclick = () => {
       playSound('click');
-      updateSamsungDragButton();
+      window.CoupCasualSettings?.updateSamsungDragButton();
       window.CoupModal?.open(settingsModal);
     };
     if (closeSettingsBtn) {
@@ -1875,15 +1820,7 @@ function setupUI() {
     }
   }
 
-  // Configuração de Efeitos Balatro no Deck Central
-  const toggleSamsungDragBtn = document.getElementById('toggleSamsungDragBtn');
-  if (toggleSamsungDragBtn) {
-    toggleSamsungDragBtn.onclick = () => {
-      playSound('click');
-      setSamsungDragMode(!isSamsungDragModeEnabled());
-    };
-    updateSamsungDragButton();
-  }
+  window.CoupCasualSettings?.setupSamsungDragPreference({ playSound });
 
   const deckContainer = document.getElementById('deck');
   attachBalatroEffect(deckContainer, true);
@@ -2197,60 +2134,7 @@ if (roomCodeBtn) {
   };
 }
 
-// =======================================================
-// === SISTEMA DE VISIBILIDADE DE RELIGIÃO ===
-// =======================================================
-
-const toggleReligionBtn = document.getElementById('toggleReligionBtn');
-
-/**
- * APLICA A VISIBILIDADE DA RELIGIÃO
- * Controla as classes do body, textos do botão e ícones para ocultar ou 
- * mostrar as afiliações religiosas (Católico/Protestante) no tabuleiro.
- */
-const applyReligionVisibility = (shouldHide) => {
-  const body = document.body;
-
-  if (toggleReligionBtn) {
-    const span = toggleReligionBtn.querySelector('span');
-
-    if (shouldHide) {
-      // Estado OCULTO
-      body.classList.add('hide-religion');
-      if (span) span.textContent = "Invisível";
-    } else {
-      // Estado VISÍVEL
-      body.classList.remove('hide-religion');
-      if (span) span.textContent = "Visível";
-    }
-  } else {
-    // Fallback caso o botão não exista mas a configuração precise ser aplicada
-    if (shouldHide) body.classList.add('hide-religion');
-    else body.classList.remove('hide-religion');
-  }
-
-  // Persiste a preferência do usuário localmente
-  localStorage.setItem('hideReligion', shouldHide);
-};
-
-/**
- * INICIALIZAÇÃO E LISTENER DE VISIBILIDADE
- * Carrega a preferência salva no navegador e configura o botão de alternância.
- */
-if (toggleReligionBtn) {
-  // Busca valor salvo ou define como 'true' (oculto) por padrão
-  const storedValue = localStorage.getItem('hideReligion');
-  const storedReligionSetting = storedValue === null ? true : (storedValue === 'true');
-
-  applyReligionVisibility(storedReligionSetting);
-
-  // Alterna o estado ao clicar no botão
-  toggleReligionBtn.onclick = () => {
-    playSound('click');
-    const isCurrentlyHidden = document.body.classList.contains('hide-religion');
-    applyReligionVisibility(!isCurrentlyHidden);
-  };
-}
+window.CoupCasualSettings?.setupReligionVisibilityPreference({ playSound });
 
 // --- BOTÃO SAIR DA SALA ---
 const leaveRoomBtn = document.getElementById('leaveRoomBtn');
