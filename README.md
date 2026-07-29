@@ -34,6 +34,7 @@ com foco em escalabilidade e consistência de estado.
 - Sincronização: Event-driven via listeners em tempo real
 - Chat: mensagens em tempo real da sala com atalhos rápidos
 - PWA: manifest + service worker para instalação e cache de assets locais
+- Monetizacao: banner responsivo do Google AdSense na sala de espera ranqueada
 
 > O PWA melhora instalação, abertura em modo standalone e cache do shell. O multiplayer continua exigindo conexão com Firebase.
 
@@ -97,6 +98,7 @@ com foco em escalabilidade e consistência de estado.
 * **Interface Responsiva e Adaptável:** Ocultação automática do botão de espectador para jogadores que possuem cartas na mão.
 * **Sistema de Salas Privadas:** Criação e entrada em salas via códigos únicos de 4 dígitos com função de cópia rápida no cabeçalho.
 * **Modo Ranqueado Beta:** Tela e fluxo próprios para contas Google, sem host, com bots IA experimentais na sala de espera, turnos, custos, alvos, contestações, bloqueios, perdas de influência e tempos de resposta controlados pelo sistema. Rating e leaderboard continuam suspensos até existir validação autoritativa antifraude.
+* **Banner AdSense na Espera Ranqueada:** Slot responsivo de publicidade carregado apenas em `ranked-waiting.html`, antes da partida ativa.
 * **Controle de Áudio Integrado:** Música de fundo e efeitos sonoros sincronizados para ações como compra de cartas, moedas e impacto.
 * **Gestão de Bots:** Capacidade de adicionar bots para testes de mesa.
 * **Modais de Referência Rápida:** Visualização de guias de ações de personagens e regras alternativas através de cartas que giram (flip cards).
@@ -110,6 +112,7 @@ com foco em escalabilidade e consistência de estado.
 - **Backend (BaaS):** Firebase Realtime Database
 - **Autenticação:** Firebase Authentication (Google Provider + Anonymous Provider)
 - **Hospedagem:** GitHub Pages
+- **Monetizacao:** Google AdSense com bloco display responsivo na sala de espera ranqueada
 
 ---
 
@@ -134,6 +137,7 @@ O projeto segue uma arquitetura modular com separação clara de responsabilidad
 - **gameState.js** → Gerenciamento de estado e transações Firebase
 - **board-renderer.js** → Renderização da interface e interações
 - **lobby-manager.js** → Autenticação, criação e gerenciamento de salas
+- **js/ui/ad-slots.js** → Configuracao central dos slots Google AdSense
 
 Essa divisão garante escalabilidade, manutenibilidade e separação entre lógica de domínio e camada de apresentação.
 
@@ -163,6 +167,7 @@ Coup-Master/
 │   │   └── 📂 logo/            # Identidade visual e favicons do projeto
 │   ├── 📂 sounds/              # Trilha sonora (bgm) e efeitos sonoros (vfx)
 ├── 📂 css/                     # Estilização e folhas de estilo
+│   ├── ads.css                 # Slot responsivo de publicidade
 │   ├── lobby.css               # Design da interface do menu e salas
 │   ├── legal.css               # Layout das páginas legais públicas
 │   ├── casual-mode.css         # Layout do tabuleiro 2D e responsividade mobile
@@ -181,8 +186,12 @@ Coup-Master/
 │   │       ├── ranked-engine.js
 │   │       ├── ranked-renderer.js
 │   │       └── ranked-game.js
-│   └── 📂 lobby/
-│       └── lobby-manager.js    # Fluxo de criação, faxina e entrada de salas
+│   ├── 📂 lobby/
+│   │   └── lobby-manager.js    # Fluxo de criação, faxina e entrada de salas
+│   └── 📂 ui/
+│       ├── ad-slots.js         # Renderizacao dos slots AdSense
+│       ├── background-audio-guard.js
+│       └── selection-lock.js
 ├── 📄 index.html               # Tabuleiro principal do jogo em modo normal 2D
 ├── 📄 login.html               # Tela de autenticação Google/visitante
 ├── 📄 lobby.html               # Perfil autenticado, criação e entrada em salas
@@ -199,6 +208,7 @@ Coup-Master/
 * **`js/firebase/`**: Centraliza a inicialização do Firebase e expõe `window.db` e `window.auth` para os demais scripts.
 * **`js/gamemode/casual/`**: Concentra a engine visual da mesa bidimensional através do script `board-renderer.js`, responsável por manipular o DOM de forma reativa conforme as atualizações da partida.
 * **`js/gamemode/ranked/`**: Concentra o fluxo automatizado do modo ranqueado, incluindo regras, máquina de estados, renderização e integração Firebase.
+* **`js/ui/`**: Centraliza utilitarios de interface compartilhados, incluindo protecao de audio em background, bloqueio de selecao e renderizacao dos slots AdSense.
 * **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
 
 ### Documentos legais
@@ -206,6 +216,32 @@ Coup-Master/
 O projeto possui páginas públicas para a **Política de Privacidade** (`privacy.html`) e os **Termos de Serviço** (`terms.html`). Os links ficam no rodapé de `login.html` e `lobby.html`, fora das telas de partida e da sala de espera ranqueada, para manter o jogo limpo e ainda permitir consulta antes da entrada em salas.
 
 Esses textos são uma base operacional para o beta do Coup Master e devem passar por revisão jurídica antes de uso comercial ou coleta ampliada de dados.
+
+---
+
+### Monetizacao com AdSense
+
+O projeto possui um unico bloco de anuncio ativo no momento: um banner responsivo na sala de espera ranqueada (`ranked-waiting.html`). O lobby, a mesa casual, a mesa ranqueada ativa e o modal de resultado final nao exibem anuncios.
+
+Arquivos relacionados:
+
+- `ranked-waiting.html`: carrega `css/ads.css`, o snippet oficial do AdSense no `<head>` e o script `js/ui/ad-slots.js`.
+- `css/ads.css`: define o visual responsivo do slot e o estado placeholder.
+- `js/ui/ad-slots.js`: centraliza `ADSENSE_CLIENT` e `AD_SLOTS.rankedWaiting`.
+
+Configuracao atual:
+
+```javascript
+const ADSENSE_CLIENT = 'ca-pub-5483968891175594';
+
+const AD_SLOTS = {
+  rankedWaiting: '6425587327'
+};
+```
+
+Como o GitHub Pages do Coup Master usa caminho de projeto (`/Coup-Master`), o AdSense valida o dominio raiz `gabrielbarbosa0.github.io`. Para revisao do Google, mantenha tambem o repositorio raiz `gabrielbarbosa0.github.io` publicado com o snippet de verificacao do AdSense.
+
+Evite adicionar anuncios dentro da mesa ativa, sobre cartas, controles de turno, modais de decisao ou areas de clique frequente, para reduzir risco de clique acidental.
 
 ---
 

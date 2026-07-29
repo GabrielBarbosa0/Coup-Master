@@ -28,6 +28,7 @@ Scripts principais:
 - `js/gamemode/ranked/ranked-engine.js`: maquina de estados pura para turnos, contestacoes, bloqueios e eliminacoes.
 - `js/gamemode/ranked/ranked-game.js`: autenticacao, transacoes, presenca e listeners Firebase do ranqueado.
 - `js/gamemode/ranked/ranked-renderer.js`: interface e chat da tela ranqueada.
+- `js/ui/ad-slots.js`: configuracao e renderizacao dos slots Google AdSense.
 
 Leia `docs/TDD.md` antes de fazer mudancas estruturais.
 
@@ -88,6 +89,15 @@ Cuidados:
 - Evite operacoes destrutivas no banco de producao.
 - `cleanupOldRooms()` remove salas inativas; cuidado ao testar regras de escrita.
 - Dados de usuario vindos do Firebase/Auth devem ser tratados como externos.
+
+## Monetizacao e AdSense
+
+- O projeto possui um unico slot de anuncio ativo: banner responsivo na sala de espera ranqueada (`ranked-waiting.html`).
+- A configuracao do publisher e do slot fica centralizada em `js/ui/ad-slots.js`.
+- O estilo visual do slot fica em `css/ads.css`.
+- `ranked-waiting.html` tambem carrega o snippet oficial do AdSense no `<head>` para verificacao/publicacao.
+- Nao adicione anuncios dentro da mesa ativa, sobre cartas, botoes de acao, modais de decisao ou qualquer area que possa induzir clique acidental.
+- Para GitHub Pages em repositorio de projeto (`/Coup-Master`), o AdSense valida o dominio raiz `gabrielbarbosa0.github.io`; mantenha o repositorio raiz publicado com o snippet de verificacao enquanto a revisao estiver pendente.
 
 ## Invariantes de Jogo
 

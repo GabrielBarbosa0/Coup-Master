@@ -152,6 +152,7 @@ Coup-Master/
       soundtrack/
       vfx/
   css/
+    ads.css
     lobby.css
     casual-mode.css
     ranked-mode.css
@@ -180,6 +181,10 @@ Coup-Master/
       lobby-manager.js
     pwa/
       pwa.js
+    ui/
+      ad-slots.js
+      background-audio-guard.js
+      selection-lock.js
   lab/
     lab-cards.html
   marketing/
@@ -226,6 +231,7 @@ Observacao: a pasta existente no filesystem esta como `docs` em minusculo. Em Wi
 - Fonte local: `Tilda Script`.
 - Material Symbols via Google Fonts no tabuleiro, aparentemente para icone `info`.
 - Tally embed para feedback/bug report.
+- Google AdSense para monetizacao do banner responsivo na sala de espera ranqueada.
 - YouTube embed comentado no lobby.
 
 ### 5.4 Estado de Tooling
@@ -272,6 +278,30 @@ Estrategia do service worker:
 - assets locais usam stale-while-revalidate;
 - requisicoes externas, incluindo Firebase CDN/Auth/Realtime Database, nao sao interceptadas;
 - multiplayer offline nao e objetivo, pois salas, autenticacao e sincronizacao dependem de rede e Firebase.
+
+### 5.6 Monetizacao e AdSense
+
+O projeto possui uma integracao pontual com Google AdSense, mantendo a arquitetura estatica e sem adicionar dependencias de build.
+
+Estado atual:
+
+- existe um unico slot ativo de anuncio: banner responsivo na sala de espera ranqueada (`ranked-waiting.html`);
+- `ranked-waiting.html` carrega `css/ads.css`, o snippet oficial do AdSense no `<head>` e `js/ui/ad-slots.js`;
+- `js/ui/ad-slots.js` centraliza `ADSENSE_CLIENT = "ca-pub-5483968891175594"` e `AD_SLOTS.rankedWaiting = "6425587327"`;
+- `css/ads.css` define o visual do container, label `Publicidade`, placeholder e comportamento responsivo;
+- lobby, mesa casual, mesa ranqueada ativa e resultado final ranqueado nao exibem anuncios.
+
+O helper `js/ui/ad-slots.js` procura elementos `.coup-ad-slot[data-ad-slot-key]`, cria o `<ins class="adsbygoogle">` quando a configuracao existe e usa placeholder quando falta configuracao. Como `ranked-waiting.html` ja declara o script oficial no `<head>` com `id="coup-adsense-script"`, o helper evita injetar o script novamente.
+
+Observacao operacional:
+
+O projeto esta hospedado como GitHub Pages de repositorio em `https://gabrielbarbosa0.github.io/Coup-Master/`, mas o AdSense valida o site raiz `gabrielbarbosa0.github.io`. Para revisao do Google, existe a necessidade operacional de manter o repositorio raiz `gabrielbarbosa0.github.io` publicado com o snippet de verificacao do AdSense.
+
+Restricoes de produto:
+
+- nao posicionar anuncios sobre cartas, botoes de turno, botoes de confirmacao, modais de decisao ou areas de interacao frequente;
+- evitar anuncios na mesa ativa para nao induzir clique acidental durante a partida;
+- antes de expandir monetizacao, revisar politicas do AdSense e UX mobile.
 
 ## 6. Pontos de Entrada HTML
 
@@ -1086,6 +1116,7 @@ Regras atuais:
 - permite adicionar jogadores IA na sala de espera ranqueada para preencher slots antes da partida;
 - desenha seis lugares na sala de espera e inicia automaticamente com 2 a 6 jogadores quando todos marcam pronto;
 - exibe QR Code de convite na sala de espera, apontando para `ranked-waiting.html?room={codigo}`;
+- renderiza um banner responsivo AdSense abaixo da lista de jogadores, antes da partida ativa;
 - antes de iniciar, agenda uma contagem de 5 segundos para evitar que a sala comece instantaneamente por clique impulsivo em "Estou pronto";
 - ao sair da espera, cria deck, distribui influencias iniciais sem permitir Embaixador na mao inicial e entra em `starter-draw`, uma fase curta de sorteio visual em overlay que define aleatoriamente quem abre a partida;
 - quando o estado sai de `waiting`, `ranked-waiting.html` redireciona para `ranked.html`, que renderiza apenas a mesa ativa, as acoes e o registro oficial;
@@ -1476,6 +1507,22 @@ Responsabilidades:
 - proteger controles, imagens, SVGs, canvas, videos e iframes contra recoloracao automatica.
 
 Essa folha existe para preservar a identidade visual do Coup Master em navegadores que alteram cores agressivamente, com foco especial no Samsung Internet. Ela deve continuar pequena e global; ajustes especificos de layout pertencem aos CSSs de cada tela/modo.
+
+### 15.4 `css/ads.css`
+
+Folha compartilhada para slots de publicidade.
+
+Responsabilidades:
+
+- definir o container `.coup-ad-slot`;
+- limitar largura em `min(100%, 728px)`;
+- manter altura minima para banners responsivos;
+- exibir label `Publicidade`;
+- mostrar placeholder quando `js/ui/ad-slots.js` nao possui configuracao completa;
+- ocultar slots marcados como `data-ad-status="unfilled"`;
+- ajustar altura e margem em telas pequenas.
+
+No estado atual, essa folha e usada apenas por `ranked-waiting.html`.
 
 ## 16. Assets
 
@@ -1984,8 +2031,10 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/ranked/ranked-engine.js` | Maquina de estados e resolucao das regras | Muito alto |
 | `js/gamemode/ranked/ranked-game.js` | Coordenacao Firebase e presenca ranqueada | Muito alto |
 | `js/gamemode/ranked/ranked-renderer.js` | DOM, respostas, log, mao e chat ranqueados | Alto |
+| `js/ui/ad-slots.js` | Configuracao e renderizacao dos slots AdSense | Medio: depende de politica externa e dominio aprovado |
 | `css/casual-mode.css` | Layout e visual do jogo | Medio/alto |
 | `css/lobby.css` | Layout e visual do lobby | Medio |
+| `css/ads.css` | Visual do banner responsivo de anuncio | Baixo/medio |
 | `robots.txt` | Crawling | Baixo/medio |
 | `sitemap.xml` | SEO/indexacao | Baixo/medio |
 | `limpeza.json` | JSON vazio para limpeza manual | Alto se usado no lugar errado |
