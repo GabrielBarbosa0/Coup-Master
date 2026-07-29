@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coup-master-pwa-v88';
+const CACHE_NAME = 'coup-master-pwa-v89';
 
 const APP_SHELL = [
   './',
@@ -79,6 +79,11 @@ self.addEventListener('fetch', (event) => {
 
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
+  if (request.headers.has('range')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(request, './login.html'));
     return;
@@ -97,8 +102,8 @@ async function networkFirst(request, fallbackUrl) {
 
   try {
     const response = await fetch(request);
-    if (response.ok) {
-      cache.put(request, response.clone());
+    if (isCacheableResponse(response)) {
+      await cache.put(request, response.clone());
     }
     return response;
   } catch (error) {
@@ -114,8 +119,8 @@ async function staleWhileRevalidate(request) {
 
   const networkResponsePromise = fetch(request)
     .then((response) => {
-      if (response.ok) {
-        cache.put(request, response.clone());
+      if (isCacheableResponse(response)) {
+        cache.put(request, response.clone()).catch(() => null);
       }
       return response;
     })
@@ -125,4 +130,8 @@ async function staleWhileRevalidate(request) {
 
   const networkResponse = await networkResponsePromise;
   return networkResponse || Response.error();
+}
+
+function isCacheableResponse(response) {
+  return Boolean(response && response.status === 200);
 }

@@ -17,6 +17,24 @@ function playLocalSound(soundId) {
   if (typeof playSound === 'function') playSound(soundId);
 }
 
+function showCasualError(message) {
+  if (typeof window.showError === 'function') {
+    window.showError(message);
+    return;
+  }
+
+  const modal = document.getElementById('errorModal');
+  const text = document.getElementById('errorModalText');
+
+  if (modal && text) {
+    text.textContent = message;
+    modal.style.display = 'flex';
+    return;
+  }
+
+  alert(message);
+}
+
 function setupRenderServices() {
   window.CoupTableRender?.setup({
     createCardElement: (card) => window.CoupRenderCards?.createCardElement?.(card),
@@ -185,7 +203,7 @@ function setupAdminService() {
     getCurrentGameMode: () => currentGameMode,
     isAdmin: () => isAdmin,
     playSound: playLocalSound,
-    showError,
+    showError: showCasualError,
     resetTable,
     addBot,
     confirmKickAction

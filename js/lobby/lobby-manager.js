@@ -102,6 +102,17 @@ function openRoom(code, mode) {
     window.location.href = `${destination}?room=${code}`;
 }
 
+function readRoomMode(code) {
+    return db.ref(`salas/${code}/mode`).once('value').then((modeSnapshot) => {
+        if (modeSnapshot.exists()) return CoupGameModes.normalize(modeSnapshot.val());
+
+        return db.ref(`salas/${code}/gameState`).once('value').then((stateSnapshot) => {
+            if (!stateSnapshot.exists()) return null;
+            return CoupGameModes.fromRoom({ gameState: stateSnapshot.val() });
+        });
+    });
+}
+
 // Configuração do evento de fechamento do modal de erro
 const closeErrorBtn = document.getElementById('closeErrorModalBtn');
 if (closeErrorBtn) {
@@ -834,21 +845,24 @@ if (joinRoomBtn) {
             showError("O código da sala deve ter 4 caracteres.");
             return;
         }
-        // Verifica existência da sala no Firebase antes de redirecionar
-        db.ref(`salas/${code}`).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                const roomMode = CoupGameModes.fromRoom(snapshot.val());
+        readRoomMode(code)
+            .then((roomMode) => {
+                if (roomMode) {
+                    if (CoupGameModes.isRanked(roomMode) && isAnonymousSession()) {
+                        showError('O modo ranqueado exige login com uma conta Google.');
+                        return;
+                    }
 
-                if (CoupGameModes.isRanked(roomMode) && isAnonymousSession()) {
-                    showError('O modo ranqueado exige login com uma conta Google.');
+                    openRoom(code, roomMode);
                     return;
                 }
 
-                openRoom(code, roomMode);
-            } else {
                 showError(`A sala "${code}" não existe.`);
-            }
-        });
+            })
+            .catch((error) => {
+                console.error('Erro ao verificar sala:', error);
+                showError('Não foi possível verificar os dados da sala. Confira as regras do Firebase ou tente novamente.');
+            });
     };
 }
 
@@ -869,7 +883,7 @@ if (createRoomBtn) {
         const newCode = generateRoomCode();
         const currentUID = sessionStorage.getItem('currentUID'); //
 
-        db.ref(`salas/${newCode}`).once('value', (snapshot) => {
+        db.ref(`salas/${newCode}`).once('value').then((snapshot) => {
             if (snapshot.exists()) {
                 createRoomBtn.onclick();
                 return;
@@ -893,6 +907,9 @@ if (createRoomBtn) {
             }).catch(error => {
                 showError("Erro ao criar sala: " + error.message);
             });
+        }).catch((error) => {
+            console.error('Erro ao verificar código da nova sala:', error);
+            showError('Não foi possível verificar o código da nova sala.');
         });
     };
 }
@@ -974,7 +991,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function cleanupOldRooms() {
     const roomsRef = db.ref('salas');
 
-    roomsRef.once('value', (snapshot) => {
+    roomsRef.once('value').then((snapshot) => {
         if (!snapshot.exists()) return;
 
         const now = Date.now();
@@ -991,6 +1008,8 @@ function cleanupOldRooms() {
                     .catch(err => console.error("Erro ao deletar sala:", err));
             }
         });
+    }).catch((error) => {
+        console.warn('Limpeza de salas ignorada:', error?.message || error);
     });
 }
 

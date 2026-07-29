@@ -1,7 +1,7 @@
 @font-face {
     font-family: 'Tilda Script';
     src: url('../assets/fonts/tilda-script-bold.woff2') format('woff2'),
-        url('../assets/fonts/tilda-script-bold.woff') format('woff');
+        url('../assets/fonts/tilda-script-bold.otf') format('opentype');
     font-weight: bold;
     font-style: normal;
     font-display: swap;
@@ -220,10 +220,10 @@ body::-webkit-scrollbar {
 @font-face {
     font-family: 'Tilda Script';
 
-    /* 1. O segredo: apontar para a pasta 'assets/fonts/' */
+    /* 1. O segredo: apontar para a pasta '../assets/fonts/' */
     /* 2. Prioridade: WOFF2 primeiro (Melhor para Celular), depois OTF */
-    src: url('assets/fonts/tilda-script-bold.woff2') format('woff2'),
-        url('assets/fonts/tilda-script-bold.otf') format('opentype');
+    src: url('../assets/fonts/tilda-script-bold.woff2') format('woff2'),
+        url('../assets/fonts/tilda-script-bold.otf') format('opentype');
 
     font-weight: bold;
     font-style: normal;

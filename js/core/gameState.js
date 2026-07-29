@@ -31,7 +31,8 @@ let isDrawingCard = false;
 let lastSoundTimestamp = 0;
 let pendingKickPid = null;
 window.pendingKickPid = null;
-let currentGameMode = CoupGameModes.normalize(sessionStorage.getItem('currentRoomMode'));
+const storedRoomMode = sessionStorage.getItem('currentRoomMode');
+let currentGameMode = CoupGameModes.normalize(storedRoomMode);
 
 
 // =======================================================
@@ -728,32 +729,65 @@ function startGame() {
   if (typeof setupAutoScroll === "function") setupAutoScroll();
 }
 
+function getStoredRoomMode() {
+  const mode = sessionStorage.getItem('currentRoomMode');
+  if (mode === CoupGameModes.RANKED || mode === CoupGameModes.CASUAL) return mode;
+  return null;
+}
+
+function applyRoomMode(roomMode) {
+  currentGameMode = CoupGameModes.normalize(roomMode);
+  sessionStorage.setItem('currentRoomMode', currentGameMode);
+  document.body.dataset.roomMode = currentGameMode;
+}
+
+function readRoomMode() {
+  return db.ref(`salas/${roomCode}/mode`).once('value').then((modeSnapshot) => {
+    if (modeSnapshot.exists()) return CoupGameModes.normalize(modeSnapshot.val());
+
+    return db.ref(`salas/${roomCode}/gameState`).once('value').then((stateSnapshot) => {
+      if (!stateSnapshot.exists()) return null;
+      return CoupGameModes.fromRoom({ gameState: stateSnapshot.val() });
+    });
+  });
+}
+
+function continueWithRoomMode(roomMode) {
+  if (!roomMode) {
+    sessionStorage.setItem('lobbyError', `A sala "${roomCode}" não existe mais.`);
+    window.location.href = 'lobby.html';
+    return;
+  }
+
+  applyRoomMode(roomMode);
+
+  if (CoupGameModes.isRanked(currentGameMode) && currentUser.isAnonymous) {
+    sessionStorage.setItem('lobbyError', 'O modo ranqueado exige login com uma conta Google.');
+    window.location.href = 'lobby.html';
+    return;
+  }
+
+  if (CoupGameModes.isRanked(currentGameMode)) {
+    window.location.replace(`ranked-waiting.html?room=${roomCode}`);
+    return;
+  }
+
+  startGame();
+}
+
 function initializeGame() {
-  db.ref(`salas/${roomCode}`).once('value').then((snapshot) => {
-    if (!snapshot.exists()) {
-      sessionStorage.setItem('lobbyError', `A sala "${roomCode}" não existe mais.`);
-      window.location.href = 'lobby.html';
-      return;
-    }
-
-    currentGameMode = CoupGameModes.fromRoom(snapshot.val());
-    sessionStorage.setItem('currentRoomMode', currentGameMode);
-    document.body.dataset.roomMode = currentGameMode;
-
-    if (CoupGameModes.isRanked(currentGameMode) && currentUser.isAnonymous) {
-      sessionStorage.setItem('lobbyError', 'O modo ranqueado exige login com uma conta Google.');
-      window.location.href = 'lobby.html';
-      return;
-    }
-
-    if (CoupGameModes.isRanked(currentGameMode)) {
-      window.location.replace(`ranked-waiting.html?room=${roomCode}`);
-      return;
-    }
-
-    startGame();
+  readRoomMode().then((roomMode) => {
+    continueWithRoomMode(roomMode);
   }).catch((error) => {
     console.error('Erro ao carregar o modo da sala:', error);
+    const fallbackMode = getStoredRoomMode();
+
+    if (fallbackMode) {
+      console.warn('Usando modo da sala salvo na sessão por fallback:', fallbackMode);
+      continueWithRoomMode(fallbackMode);
+      return;
+    }
+
     sessionStorage.setItem('lobbyError', 'Não foi possível carregar os dados da sala.');
     window.location.href = 'lobby.html';
   });
