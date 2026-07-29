@@ -18,7 +18,7 @@ O backend efetivo e o Firebase:
 - Firebase Realtime Database guarda salas, estado da partida, jogadores, cartas, notificacoes e eventos de som.
 - As regras de seguranca do Firebase sao uma dependencia critica do produto, mas atualmente aparecem apenas no README, nao como arquivo versionado de infraestrutura.
 
-O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, preferencias locais, presets de deck e renderizacao de jogadores ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
+O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, preferencias locais, presets de deck, renderizacao de cartas e renderizacao de jogadores ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
 
 ## 2. Objetivos do Produto
 
@@ -175,6 +175,7 @@ Coup-Master/
         modal-service.js
         settings-service.js
         deck-presets.js
+        render-cards.js
         render-players.js
         board-renderer.js
       ranked/
@@ -264,6 +265,7 @@ node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
+node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
@@ -653,7 +655,7 @@ Responsabilidades:
 - Centralizar o preview ampliado de cartas do modo casual.
 - Capturar `contextmenu` no desktop para abrir o modal ao clicar com botao direito em uma carta visivel.
 - Ignorar `touch` e `pen` para preservar o fluxo de arraste em dispositivos moveis/tablet.
-- Configurar imagem frontal do preview usando `getCardFolder(card.type)`.
+- Configurar imagem frontal do preview usando `getCardFolder(card.type)` injetado por `render-cards.js`.
 - Resetar o flip para a frente ao abrir o modal.
 - Fechar o modal pelo botao `closePreviewBtn`.
 - Alternar frente/verso no clique do `previewFlipCard`.
@@ -662,7 +664,7 @@ Responsabilidades:
 Contrato:
 
 - Expoe `window.CoupCardPreview`.
-- `board-renderer.js` injeta dependencias com `setup({ getState, findCardById, getCardFolder, shouldShowBack, playSound })`.
+- `board-renderer.js` injeta dependencias com `setup({ getState, findCardById, getCardFolder, shouldShowBack, playSound })`, usando helpers vindos de `window.CoupRenderCards`.
 - O bloqueio de menu de contexto em desktop foi preservado para manter o comportamento anterior.
 
 ### 7.9 `js/gamemode/casual/modal-service.js`
@@ -730,16 +732,36 @@ Responsabilidades:
 - Criar cabecalho visual com avatar e nome.
 - Configurar abertura de acoes rapidas pelo avatar/nome.
 - Renderizar badge de religiao e acionar `toggleReligion(pid)`.
-- Renderizar cartas da mao usando `createCardElement(card)`.
+- Renderizar cartas da mao usando `createCardElement(card)` injetado por `render-cards.js`.
 - Atualizar moedas, jogador local e destaque de espectador.
 - Configurar fechamento do modal de acoes rapidas sem guardar estado interno.
 
 Contrato:
 
 - Expoe `window.CoupRenderPlayers`.
-- `board-renderer.js` injeta `players`, `myPlayerId`, `MAX_PLAYERS`, `createCardElement`, `updateHandFanLayout`, `toggleReligion` e `openQuickActions`.
+- `board-renderer.js` injeta `players`, `myPlayerId`, `MAX_PLAYERS`, `createCardElement` vindo de `window.CoupRenderCards`, `updateHandFanLayout`, `toggleReligion` e `openQuickActions`.
 - O servico nao acessa Firebase nem muta estado de jogo diretamente.
 - A limpeza das maos antes da renderizacao continua em `clearDOM()`.
+
+### 7.13 `js/gamemode/casual/render-cards.js`
+
+Responsabilidades:
+
+- Criar elementos `div.card` do modo casual.
+- Decidir frente/verso com base em localizacao, dono e permissao de espectador.
+- Mapear tipo de carta para pasta de asset (`base`, `promo`, `dlc1`, `dlc2`).
+- Centralizar nomes exibidos nos tooltips das cartas.
+- Criar e posicionar o tooltip flutuante de cartas e elementos do tabuleiro.
+- Aplicar listeners HTML5 de `dragstart` e `dragend` nas cartas.
+- Manter o duplo clique para devolver carta ao deck com animacao.
+- Injetar efeito Balatro e Pointer Events de compatibilidade recebidos do renderer.
+
+Contrato:
+
+- Expoe `window.CoupRenderCards`.
+- Preserva wrappers globais `createCardElement`, `getCardFolder`, `shouldShowBack`, `attachElementTooltip`, `hideCardTooltip` e `getCardDisplayName` para compatibilidade com codigo legado.
+- `board-renderer.js` injeta `getState`, `getMyPlayerId`, `getDeckElement`, `returnCardToDeck`, `isSamsungDragModeEnabled`, `attachBalatroEffect` e `attachCompatiblePointerDrag`.
+- `card-preview.js` recebe `getCardFolder` e `shouldShowBack` vindos de `window.CoupRenderCards`.
 
 ## 8. Modelo de Dados no Firebase
 
@@ -1364,6 +1386,8 @@ Essa estrategia evita duplicacao visual, mas recria muitos elementos em cada upd
 
 ### 11.3 Criacao de Carta
 
+`js/gamemode/casual/render-cards.js` concentra a criacao visual das cartas.
+
 `createCardElement(card)`:
 
 - cria `div.card`;
@@ -1414,6 +1438,8 @@ Esse modo e uma camada de compatibilidade opt-in, nao um substituto completo do 
 
 ### 11.4 Visibilidade de Carta
 
+`shouldShowBack(card)` vive em `render-cards.js` e recebe estado/jogador local por injecao do `board-renderer`.
+
 `shouldShowBack(card)`:
 
 - carta no deck: verso.
@@ -1425,17 +1451,15 @@ Esse modo e uma camada de compatibilidade opt-in, nao um substituto completo do 
 
 ### 11.5 Mapeamento de Asset de Carta
 
+`getCardFolder(type)` vive em `render-cards.js`.
+
 `getCardFolder(type)` retorna:
 
 - `base`: assassino, capitao, condessa, duque, embaixador, inquisidor.
-- `dlc1`: bispo, camaleao, diplomata, marionetista, mercenario, tesoureiro, vigilante.
+- `dlc1`: bispo, diplomata, marionetista, mercenario, tesoureiro, vigilante.
 - `dlc2`: estrategista, ladrao, magnata, pistoleiro, vigarista, xerife.
 - `promo`: benfeitor, bufao, burgues, burocrata.
 - fallback: `base`.
-
-Observacao:
-
-`camaleao` aparece no mapeamento, mas nao aparece em `CARD_TYPES` nem nos assets listados. Isso parece resquicio de versao anterior ou carta planejada.
 
 ## 12. Configuracao de Deck e Expansoes
 
@@ -1950,6 +1974,7 @@ node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
+node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
@@ -2026,7 +2051,7 @@ Refatoracoes recomendadas:
 
 - Separar `board-renderer.js` em:
   - `render-players.js`
-  - `renderCards.js`
+  - `render-cards.js`
   - `dragDrop.js`
   - `modals.js`
   - `settings.js`
@@ -2152,6 +2177,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/modal-service.js` | Helpers compartilhados de abertura, fechamento e visibilidade de modais | Medio |
 | `js/gamemode/casual/settings-service.js` | Preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao | Medio |
 | `js/gamemode/casual/deck-presets.js` | Presets de composicao do baralho casual e duelo | Medio |
+| `js/gamemode/casual/render-cards.js` | Renderizacao visual de cartas, assets, tooltip e frente/verso | Alto |
 | `js/gamemode/casual/render-players.js` | Renderizacao dos slots, maos, moedas, avatares e badges do casual | Alto |
 | `js/gamemode/casual/board-renderer.js` | Renderizacao, UI, interacoes, efeitos | Muito alto |
 | `js/gamemode/ranked/ranked-rules.js` | Contratos de personagens, acoes e tempos | Alto |
@@ -2243,6 +2269,7 @@ node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
+node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js

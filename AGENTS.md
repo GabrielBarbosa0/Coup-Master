@@ -28,6 +28,7 @@ Scripts principais:
 - `js/gamemode/casual/modal-service.js`: helpers compartilhados para abrir, fechar e consultar modais.
 - `js/gamemode/casual/settings-service.js`: preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao.
 - `js/gamemode/casual/deck-presets.js`: presets de composicao do baralho casual e duelo.
+- `js/gamemode/casual/render-cards.js`: renderizacao de cartas, frente/verso, tooltip e caminhos de assets.
 - `js/gamemode/casual/render-players.js`: renderizacao dos slots, avatares, maos, moedas e badges do casual.
 - `js/gamemode/casual/board-renderer.js`: renderizacao, DOM, modais, drag/drop e efeitos visuais.
 - `js/gamemode/ranked/ranked-rules.js`: personagens, acoes e tempos oficiais do ranqueado.
@@ -73,6 +74,7 @@ node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
+node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
@@ -135,7 +137,7 @@ Atualize todos:
 - `CARD_TYPES` em `js/core/rules.js`.
 - `createDefaultDeckConfig()`.
 - Asset PNG em `assets/img/cards/...`.
-- `getCardFolder()` em `board-renderer.js`.
+- `getCardFolder()` em `js/gamemode/casual/render-cards.js`.
 - Inputs do modal de deck em `index.html`.
 - Presets em `js/gamemode/casual/deck-presets.js`.
 - Grupos de `calculateRuleImages()`, se afetar guias.

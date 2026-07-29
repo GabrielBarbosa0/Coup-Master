@@ -370,277 +370,6 @@ window.executeAction = (type) => {
 
 
 /**
- * LÓGICA DE VISIBILIDADE DE CARTAS
- * Determina se uma carta deve exibir o seu verso (back) ou a sua face frontal.
- * Leva em conta a localização da carta e permissões de espectador (Ghost Mode).
- */
-function shouldShowBack(card) {
-  // Cartas no deck sempre mostram o verso
-  if (card.location === 'deck') return true;
-
-  // Cartas no cemitério (reveladas) sempre mostram a frente
-  if (card.location === 'free') return false;
-
-  // Lógica para cartas em posse de jogadores
-  if (card.location?.startsWith('player-')) {
-    const ownerId = card.owner;
-    const owner = localGameState.players ? localGameState.players[ownerId] : null;
-
-    // Verifica se o dono da carta permitiu que o usuário atual (espectador) veja sua mão
-    const isSpectatingThisOwner = owner && owner.spectators && owner.spectators[myPlayerId];
-
-    // Se você for o dono ou um espectador autorizado, vê a frente; caso contrário, vê o verso
-    if (ownerId === myPlayerId || isSpectatingThisOwner) {
-      return false; // Exibe a frente
-    }
-    return true; // Exibe o verso
-  }
-  return false;
-}
-
-
-/**
- * MAPEAMENTO DE DIRETÓRIOS POR TIPO DE CARTA
- * Retorna o subdiretório correto (base, dlc1, dlc2 ou promo) baseado no tipo da influência.
- */
-function getCardFolder(type) {
-  const t = type.toLowerCase();
-
-  // Categorias baseadas na nova estrutura de pastas
-  const base = ['assassino', 'capitao', 'condessa', 'duque', 'embaixador', 'inquisidor'];
-  const dlc1 = ['bispo', 'diplomata', 'marionetista', 'mercenario', 'tesoureiro', 'vigilante'];
-  const dlc2 = ['estrategista', 'ladrao', 'magnata', 'pistoleiro', 'vigarista', 'xerife'];
-  const promo = ['benfeitor', 'bufao', 'burgues', 'burocrata'];
-
-  if (base.includes(t)) return 'base';
-  if (dlc1.includes(t)) return 'dlc1';
-  if (dlc2.includes(t)) return 'dlc2';
-  if (promo.includes(t)) return 'promo';
-
-  return 'base'; // Fallback padrão
-}
-
-const CARD_DISPLAY_NAMES = {
-  duque: 'Duque',
-  capitao: 'Capitão',
-  assassino: 'Assassino',
-  embaixador: 'Embaixador',
-  condessa: 'Condessa',
-  inquisidor: 'Inquisidor',
-  benfeitor: 'Benfeitor',
-  bufao: 'Bufão',
-  burgues: 'Burguês',
-  burocrata: 'Burocrata',
-  vigilante: 'Vigilante',
-  mercenario: 'Mercenário',
-  bispo: 'Bispo',
-  tesoureiro: 'Tesoureiro',
-  diplomata: 'Diplomata',
-  marionetista: 'Marionetista',
-  pistoleiro: 'Pistoleiro',
-  magnata: 'Magnata',
-  estrategista: 'Estrategista',
-  ladrao: 'Ladrão',
-  vigarista: 'Vigarista',
-  xerife: 'Xerife'
-};
-
-function getCardDisplayName(type) {
-  if (!type) return 'Carta';
-
-  const normalizedType = String(type).toLowerCase();
-  return CARD_DISPLAY_NAMES[normalizedType] || normalizedType.charAt(0).toUpperCase() + normalizedType.slice(1);
-}
-
-let cardTooltipEl = null;
-
-function getCardTooltipElement() {
-  if (!cardTooltipEl) {
-    cardTooltipEl = document.createElement('div');
-    cardTooltipEl.id = 'cardTooltip';
-    cardTooltipEl.className = 'card-tooltip';
-    document.body.appendChild(cardTooltipEl);
-  }
-
-  return cardTooltipEl;
-}
-
-function positionCardTooltip(event) {
-  const tooltip = getCardTooltipElement();
-  const offset = 14;
-  const rect = tooltip.getBoundingClientRect();
-  let left = event.clientX + offset;
-  let top = event.clientY + offset;
-
-  if (left + rect.width > window.innerWidth - 8) {
-    left = event.clientX - rect.width - offset;
-  }
-
-  if (top + rect.height > window.innerHeight - 8) {
-    top = event.clientY - rect.height - offset;
-  }
-
-  tooltip.style.left = `${Math.max(8, left)}px`;
-  tooltip.style.top = `${Math.max(8, top)}px`;
-}
-
-function showCardTooltip(event, label) {
-  const tooltip = getCardTooltipElement();
-  tooltip.textContent = label;
-  tooltip.classList.add('is-visible');
-  positionCardTooltip(event);
-}
-
-function hideCardTooltip() {
-  if (cardTooltipEl) {
-    cardTooltipEl.classList.remove('is-visible');
-  }
-}
-
-function attachElementTooltip(element, label) {
-  if (!element || !label) return;
-  element.dataset.cardLabel = label;
-  element.setAttribute('aria-label', label);
-
-  if (element.dataset.tooltipBound === 'true') return;
-  element.dataset.tooltipBound = 'true';
-
-  element.addEventListener('mouseenter', (event) => {
-    showCardTooltip(event, label);
-  });
-
-  element.addEventListener('mousemove', (event) => {
-    if (cardTooltipEl?.classList.contains('is-visible')) {
-      positionCardTooltip(event);
-    }
-  });
-
-  element.addEventListener('mouseleave', hideCardTooltip);
-}
-
-function attachCardTooltip(element, card) {
-  const label = shouldShowBack(card) ? 'Carta oculta' : getCardDisplayName(card.type);
-  attachElementTooltip(element, label);
-}
-
-
-/**
- * CRIAÇÃO DE ELEMENTO DE CARTA (ATUALIZADA PARA NOVAS PASTAS)
- */
-function animateReturnCardToDeck(cardElement, cardId) {
-  if (!cardElement || !deckEl || cardElement.dataset.returningToDeck === 'true') return;
-
-  const sourceRect = cardElement.getBoundingClientRect();
-  const targetRect = deckEl.getBoundingClientRect();
-  if (!sourceRect.width || !sourceRect.height || !targetRect.width || !targetRect.height) {
-    returnCardToDeck(cardId);
-    return;
-  }
-
-  cardElement.dataset.returningToDeck = 'true';
-  cardElement.classList.add('is-returning-to-deck');
-
-  const ghost = cardElement.cloneNode(true);
-  const cardStyle = window.getComputedStyle(cardElement);
-  ghost.className = 'card-return-ghost';
-  ghost.removeAttribute('draggable');
-  ghost.style.left = `${sourceRect.left}px`;
-  ghost.style.top = `${sourceRect.top}px`;
-  ghost.style.width = `${sourceRect.width}px`;
-  ghost.style.height = `${sourceRect.height}px`;
-  ghost.style.border = cardStyle.border;
-  ghost.style.borderRadius = cardStyle.borderRadius;
-  ghost.style.backgroundColor = cardStyle.backgroundColor;
-  ghost.style.backgroundImage = cardStyle.backgroundImage;
-  ghost.style.backgroundPosition = cardStyle.backgroundPosition;
-  ghost.style.backgroundSize = cardStyle.backgroundSize;
-  ghost.style.backgroundRepeat = cardStyle.backgroundRepeat;
-  document.body.appendChild(ghost);
-
-  const targetX = targetRect.left + (targetRect.width / 2) - (sourceRect.left + (sourceRect.width / 2));
-  const targetY = targetRect.top + (targetRect.height / 2) - (sourceRect.top + (sourceRect.height / 2));
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  const finishReturn = () => {
-    ghost.remove();
-    returnCardToDeck(cardId);
-  };
-
-  if (prefersReducedMotion || typeof ghost.animate !== 'function') {
-    finishReturn();
-    return;
-  }
-
-  ghost.animate([
-    { transform: 'translate3d(0, 0, 0) scale(1) rotate(0deg)', opacity: 1 },
-    { transform: `translate3d(${targetX * 0.72}px, ${targetY * 0.72 - 18}px, 0) scale(0.86) rotate(4deg)`, opacity: 0.96, offset: 0.72 },
-    { transform: `translate3d(${targetX}px, ${targetY}px, 0) scale(0.18) rotate(9deg)`, opacity: 0 }
-  ], {
-    duration: 430,
-    easing: 'cubic-bezier(0.22, 0.8, 0.22, 1)',
-    fill: 'forwards'
-  }).finished.then(finishReturn, finishReturn);
-}
-
-function createCardElement(card) {
-
-  const el = document.createElement('div');
-  el.className = 'card';
-  el.draggable = !isSamsungDragModeEnabled();
-  el.dataset.cardId = card.id;
-
-  // --- DEFINIÇÃO DE APARÊNCIA (FRENTE/VERSO) ---
-  if (shouldShowBack(card)) {
-    el.classList.add('back');
-    // Agora o back.png está dentro da pasta base
-    el.style.backgroundImage = `url('./assets/img/cards/base/back.png')`;
-  } else {
-    // Identifica a pasta correta baseada no tipo
-    const folder = getCardFolder(card.type);
-    const imageUrl = `./assets/img/cards/${folder}/${card.type.toLowerCase()}.png`;
-    el.style.backgroundImage = `url('${imageUrl}')`;
-  }
-
-  // --- EVENTOS DE ARRASTAR (DRAG & DROP) ---
-  el.addEventListener('dragstart', (ev) => {
-    if (isSamsungDragModeEnabled()) {
-      ev.preventDefault();
-      return;
-    }
-
-    hideCardTooltip();
-    ev.dataTransfer.setData('text/plain', card.id);
-    ev.dataTransfer.effectAllowed = "move";
-    el.classList.add('lifting');
-
-    setTimeout(() => {
-      el.classList.remove('lifting');
-      el.classList.add('is-dragging');
-    }, 0);
-  });
-
-  el.addEventListener('dragend', () => {
-    el.classList.remove('lifting');
-    el.classList.remove('is-dragging');
-    hideCardTooltip();
-  });
-
-  // --- INTERAÇÕES ADICIONAIS ---
-  el.addEventListener('dblclick', () => {
-    hideCardTooltip();
-    animateReturnCardToDeck(el, card.id);
-  });
-
-  attachBalatroEffect(el);
-  attachCardTooltip(el, card);
-  attachCompatiblePointerDrag(el, card.id);
-
-  return el;
-}
-
-
-
-/**
  * FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO
  * Sincroniza o estado do Firebase com a interface e aplica permissões de Host (isAdmin).
  */
@@ -775,7 +504,7 @@ function renderAll() {
     players: state.players,
     maxPlayers: MAX_PLAYERS,
     myPlayerId,
-    createCardElement,
+    createCardElement: window.CoupRenderCards?.createCardElement,
     updateHandFanLayout,
     toggleReligion,
     openQuickActions: window.openQuickActions,
@@ -792,7 +521,8 @@ function renderAll() {
   // --- 4. RENDERIZAÇÃO DO TABULEIRO CENTRAL (ÁREA LIVRE / DECK) ---
   // Exibe as cartas que estão abertas no cemitério e atualiza contadores.
   state.freeCards?.forEach(card => {
-    const el = createCardElement(card);
+    const el = window.CoupRenderCards?.createCardElement(card);
+    if (!el) return;
     el.classList.add('small', 'graveyard-card');
     graveyardCardsEl?.appendChild(el);
   });
@@ -1149,6 +879,16 @@ function attachBalatroEffect(element, isDeck = false) {
     resetBalatroElement(element);
   });
 }
+
+window.CoupRenderCards?.setup({
+  getState: () => localGameState,
+  getMyPlayerId: () => myPlayerId,
+  getDeckElement: () => deckEl,
+  returnCardToDeck,
+  isSamsungDragModeEnabled,
+  attachBalatroEffect,
+  attachCompatiblePointerDrag
+});
 
 /**
  * ROLAGEM AUTOMÁTICA DURANTE DRAG
@@ -1941,8 +1681,8 @@ if (leaveRoomBtn) {
 window.CoupCardPreview?.setup({
   getState: () => localGameState,
   findCardById,
-  getCardFolder,
-  shouldShowBack,
+  getCardFolder: window.CoupRenderCards?.getCardFolder,
+  shouldShowBack: window.CoupRenderCards?.shouldShowBack,
   playSound
 });
 
