@@ -175,6 +175,7 @@ Coup-Master/
         modal-service.js
         settings-service.js
         deck-presets.js
+        drag-drop.js
         render-cards.js
         render-players.js
         board-renderer.js
@@ -265,6 +266,7 @@ node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
+node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
 node --check js\gamemode\casual\board-renderer.js
@@ -561,7 +563,7 @@ Principais grupos de funcoes:
 
 Contrato importante:
 
-`gameState.js` chama funcoes que sao definidas posteriormente em `board-renderer.js`, como `renderAll`, `setupUI`, `setupDropzones` e `setupAutoScroll`. Essas chamadas sao protegidas por `typeof`, mas a ordem continua importante para a experiencia. Como ambos usam `defer`, eles executam em ordem de declaracao no HTML.
+`gameState.js` chama funcoes globais definidas por scripts do modo casual, como `renderAll`, `setupUI`, `setupDropzones` e `setupAutoScroll`. `setupDropzones` hoje e preservado por `drag-drop.js`; as demais continuam coordenadas pelo renderer. Essas chamadas sao protegidas por `typeof`, mas a ordem continua importante para a experiencia. Como todos usam `defer`, eles executam em ordem de declaracao no HTML.
 
 ### 7.5 `js/lobby/lobby-manager.js`
 
@@ -722,7 +724,29 @@ Contrato:
 - `board-renderer.js` chama `window.CoupDeckPresets.setup({ playSound })`.
 - O servico altera apenas os inputs do modal; a aplicacao real do deck continua passando por `resetTable(newConfig)`.
 
-### 7.12 `js/gamemode/casual/render-players.js`
+### 7.12 `js/gamemode/casual/drag-drop.js`
+
+Responsabilidades:
+
+- Centralizar o drag/drop do modo casual sem remover o fluxo legado.
+- Manter o drag and drop HTML5 nativo para cartas e deck.
+- Configurar dropzones do deck, jogadores e cemiterio.
+- Mover cartas via `moveCard(cardId, targetLocation, targetPlayerId)`.
+- Comprar cartas via `drawCard(targetPid?)`.
+- Queimar carta do topo via `burnTopCard()`.
+- Manter o fallback de compatibilidade por Pointer Events quando `coupMasterSamsungDragEnabled` esta ativo.
+- Criar e limpar o clone visual `.compatible-drag-ghost`.
+- Expor `attachCompatiblePointerDrag(element, dragData)` para `render-cards.js`.
+
+Contrato:
+
+- Expoe `window.CoupDragDrop`.
+- Preserva o wrapper global `setupDropzones` chamado por `gameState.js`.
+- Preserva o wrapper global `attachCompatiblePointerDrag` para compatibilidade com codigo legado.
+- `board-renderer.js` injeta elementos DOM, mutacoes de jogo, `isSamsungDragModeEnabled`, `refreshSamsungDragMode`, `resetBalatroElement` e `hideCardTooltip`.
+- O modulo nao remove o legado HTML5; ele apenas move a configuracao para uma fronteira menor.
+
+### 7.13 `js/gamemode/casual/render-players.js`
 
 Responsabilidades:
 
@@ -743,7 +767,7 @@ Contrato:
 - O servico nao acessa Firebase nem muta estado de jogo diretamente.
 - A limpeza das maos antes da renderizacao continua em `clearDOM()`.
 
-### 7.13 `js/gamemode/casual/render-cards.js`
+### 7.14 `js/gamemode/casual/render-cards.js`
 
 Responsabilidades:
 
@@ -754,13 +778,13 @@ Responsabilidades:
 - Criar e posicionar o tooltip flutuante de cartas e elementos do tabuleiro.
 - Aplicar listeners HTML5 de `dragstart` e `dragend` nas cartas.
 - Manter o duplo clique para devolver carta ao deck com animacao.
-- Injetar efeito Balatro e Pointer Events de compatibilidade recebidos do renderer.
+- Injetar efeito Balatro recebido do renderer e Pointer Events de compatibilidade recebido de `drag-drop.js`.
 
 Contrato:
 
 - Expoe `window.CoupRenderCards`.
 - Preserva wrappers globais `createCardElement`, `getCardFolder`, `shouldShowBack`, `attachElementTooltip`, `hideCardTooltip` e `getCardDisplayName` para compatibilidade com codigo legado.
-- `board-renderer.js` injeta `getState`, `getMyPlayerId`, `getDeckElement`, `returnCardToDeck`, `isSamsungDragModeEnabled`, `attachBalatroEffect` e `attachCompatiblePointerDrag`.
+- `board-renderer.js` injeta `getState`, `getMyPlayerId`, `getDeckElement`, `returnCardToDeck`, `isSamsungDragModeEnabled`, `attachBalatroEffect` e `window.CoupDragDrop.attachCompatiblePointerDrag`.
 - `card-preview.js` recebe `getCardFolder` e `shouldShowBack` vindos de `window.CoupRenderCards`.
 
 ## 8. Modelo de Dados no Firebase
@@ -1401,6 +1425,8 @@ Essa estrategia evita duplicacao visual, mas recria muitos elementos em cada upd
 
 #### 11.3.1 Modo compativel de arraste
 
+`js/gamemode/casual/drag-drop.js` centraliza o arraste do modo casual.
+
 O modo casual mantem o drag and drop HTML5 nativo como base historica do arraste. Esse fluxo preserva a pre-visualizacao nativa da carta, a opacidade durante o arraste e o comportamento esperado em navegadores que implementam bem a API.
 
 Para dispositivos e navegadores com suporte inconsistente, especialmente Samsung Internet em celulares, existe uma opcao manual no modal de configuracoes:
@@ -1417,7 +1443,7 @@ Para dispositivos e navegadores com suporte inconsistente, especialmente Samsung
 - suporta toque/arraste do deck para comprar carta ou queimar carta no cemiterio;
 - mantem o duplo clique das cartas funcionando, porque o fallback so ativa o clone visual apos movimento real do ponteiro.
 
-Esse modo e uma camada de compatibilidade opt-in, nao um substituto completo do fluxo principal. Qualquer melhoria futura de drag/drop deve preservar o HTML5 drag como padrao e alterar o fallback apenas quando a opcao estiver ativa.
+Esse modo e uma camada de compatibilidade sobre o fluxo legado, nao um substituto completo do fluxo principal. Qualquer melhoria futura de drag/drop deve preservar o HTML5 drag como comportamento existente e alterar o fallback apenas quando a opcao estiver ativa.
 
 #### 11.3.2 Leques adaptativos da mao e do cemiterio
 
@@ -1974,6 +2000,7 @@ node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
+node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
 node --check js\gamemode\casual\board-renderer.js
@@ -2052,7 +2079,7 @@ Refatoracoes recomendadas:
 - Separar `board-renderer.js` em:
   - `render-players.js`
   - `render-cards.js`
-  - `dragDrop.js`
+  - `drag-drop.js`
   - `modals.js`
   - `settings.js`
   - `effects.js`
@@ -2177,6 +2204,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/modal-service.js` | Helpers compartilhados de abertura, fechamento e visibilidade de modais | Medio |
 | `js/gamemode/casual/settings-service.js` | Preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao | Medio |
 | `js/gamemode/casual/deck-presets.js` | Presets de composicao do baralho casual e duelo | Medio |
+| `js/gamemode/casual/drag-drop.js` | Drag/drop HTML5 legado, fallback Pointer Events e dropzones do casual | Alto |
 | `js/gamemode/casual/render-cards.js` | Renderizacao visual de cartas, assets, tooltip e frente/verso | Alto |
 | `js/gamemode/casual/render-players.js` | Renderizacao dos slots, maos, moedas, avatares e badges do casual | Alto |
 | `js/gamemode/casual/board-renderer.js` | Renderizacao, UI, interacoes, efeitos | Muito alto |
@@ -2269,6 +2297,7 @@ node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
+node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
 node --check js\gamemode\casual\board-renderer.js

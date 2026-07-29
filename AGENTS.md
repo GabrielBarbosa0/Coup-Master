@@ -28,6 +28,7 @@ Scripts principais:
 - `js/gamemode/casual/modal-service.js`: helpers compartilhados para abrir, fechar e consultar modais.
 - `js/gamemode/casual/settings-service.js`: preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao.
 - `js/gamemode/casual/deck-presets.js`: presets de composicao do baralho casual e duelo.
+- `js/gamemode/casual/drag-drop.js`: drag/drop legado HTML5, fallback Pointer Events e dropzones do casual.
 - `js/gamemode/casual/render-cards.js`: renderizacao de cartas, frente/verso, tooltip e caminhos de assets.
 - `js/gamemode/casual/render-players.js`: renderizacao dos slots, avatares, maos, moedas e badges do casual.
 - `js/gamemode/casual/board-renderer.js`: renderizacao, DOM, modais, drag/drop e efeitos visuais.
@@ -74,6 +75,7 @@ node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\deck-presets.js
+node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
 node --check js\gamemode\casual\board-renderer.js
