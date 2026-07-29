@@ -25,6 +25,7 @@ Scripts principais:
 - `js/lobby/lobby-manager.js`: lobby/salas/logout/limpeza.
 - `js/gamemode/casual/audio-service.js`: audio casual, volume de efeitos, BGM e sincronizacao SFX.
 - `js/gamemode/casual/card-preview.js`: preview ampliado de cartas e flip do modal.
+- `js/gamemode/casual/modal-service.js`: helpers compartilhados para abrir, fechar e consultar modais.
 - `js/gamemode/casual/board-renderer.js`: renderizacao, DOM, modais, drag/drop, presets e efeitos visuais.
 - `js/gamemode/ranked/ranked-rules.js`: personagens, acoes e tempos oficiais do ranqueado.
 - `js/gamemode/ranked/ranked-engine.js`: maquina de estados pura para turnos, contestacoes, bloqueios e eliminacoes.
@@ -66,6 +67,7 @@ node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
+node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js

@@ -172,6 +172,7 @@ Coup-Master/
       casual/
         audio-service.js
         card-preview.js
+        modal-service.js
         board-renderer.js
       ranked/
         ranked-engine.js
@@ -257,6 +258,7 @@ node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
+node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -659,6 +661,24 @@ Contrato:
 - Expoe `window.CoupCardPreview`.
 - `board-renderer.js` injeta dependencias com `setup({ getState, findCardById, getCardFolder, shouldShowBack, playSound })`.
 - O bloqueio de menu de contexto em desktop foi preservado para manter o comportamento anterior.
+
+### 7.9 `js/gamemode/casual/modal-service.js`
+
+Responsabilidades:
+
+- Centralizar helpers simples de modais do modo casual.
+- Abrir overlays com `display: flex` e remover `hidden`.
+- Fechar overlays com `display: none`.
+- Consultar visibilidade real via `getComputedStyle`.
+- Padronizar bindings simples de abrir/fechar por botao quando aplicavel.
+- Expor utilitario de texto para mensagens curtas.
+
+Contrato:
+
+- Expoe `window.CoupModal`.
+- `gameState.js` usa o servico em modais de espectador e sala cheia.
+- `board-renderer.js` usa o servico para quick actions, chat, espectador, feedback, kick, reset, configuracoes, baralho, tutorial, guias e duelo.
+- O servico nao muda estrutura HTML nem estilos dos modais; apenas centraliza as operacoes repetidas de exibicao.
 
 ## 8. Modelo de Dados no Firebase
 
@@ -1873,6 +1893,7 @@ node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
+node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -2071,6 +2092,7 @@ Estas invariantes devem ser preservadas:
 | `js/lobby/lobby-manager.js` | Auth/lobby/salas/limpeza | Alto |
 | `js/gamemode/casual/audio-service.js` | Audio casual, BGM, volume e sincronizacao SFX | Medio |
 | `js/gamemode/casual/card-preview.js` | Preview ampliado de cartas e flip do modal | Medio |
+| `js/gamemode/casual/modal-service.js` | Helpers compartilhados de abertura, fechamento e visibilidade de modais | Medio |
 | `js/gamemode/casual/board-renderer.js` | Renderizacao, UI, interacoes, efeitos | Muito alto |
 | `js/gamemode/ranked/ranked-rules.js` | Contratos de personagens, acoes e tempos | Alto |
 | `js/gamemode/ranked/ranked-engine.js` | Maquina de estados e resolucao das regras | Muito alto |
@@ -2158,6 +2180,7 @@ node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
 node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
+node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js

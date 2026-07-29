@@ -348,14 +348,14 @@ window.openQuickActions = (pid) => {
       kickBtn.hidden = !canKick;
       kickBtn.onclick = canKick ? () => {
         const targetPid = quickActionTargetPid;
-        modal.style.display = 'none';
+        window.CoupModal?.close(modal);
         quickActionTargetPid = null;
         window.kickPlayer?.(targetPid);
       } : null;
     }
 
     if (typeof playSound === 'function') playSound('click');
-    modal.style.display = 'flex';
+    window.CoupModal?.open(modal);
   }
 };
 
@@ -418,8 +418,7 @@ window.executeAction = (type) => {
   }
 
   // Fecha o modal após qualquer ação processada
-  const modal = document.getElementById('quickActionsModal');
-  if (modal) modal.style.display = 'none';
+  window.CoupModal?.close('quickActionsModal');
   quickActionTargetPid = null;
 };
 
@@ -860,7 +859,7 @@ function renderAll() {
           btn.onclick = () => {
             playSound('pop');
             requestSpectate(i); // Solicita permissão via Firebase
-            spectatorModal.style.display = 'none';
+            window.CoupModal?.close(spectatorModal);
           };
           spectatorList.appendChild(btn);
         }
@@ -878,14 +877,14 @@ function renderAll() {
         emptyMessage.textContent = 'Não tem jogadores disponíveis.';
         spectatorList.appendChild(emptyMessage);
       }
-      spectatorModal.style.display = 'flex';
+      window.CoupModal?.open(spectatorModal);
     };
 
     // Botão de Fechamento do Modal
     if (closeSpectatorModalBtn) {
       closeSpectatorModalBtn.onclick = () => {
         playSound('click');
-        spectatorModal.style.display = 'none';
+        window.CoupModal?.close(spectatorModal);
       };
     }
   }
@@ -1046,7 +1045,7 @@ function renderAll() {
   const closeQuickActionsBtn = document.getElementById('closeQuickActionsBtn');
   if (closeQuickActionsBtn) {
     closeQuickActionsBtn.onclick = () => {
-      document.getElementById('quickActionsModal').style.display = 'none';
+      window.CoupModal?.close('quickActionsModal');
       quickActionTargetPid = null;
     };
   }
@@ -1459,7 +1458,7 @@ function openChatModal() {
   const chatInput = document.getElementById('chatInput');
 
   if (typeof playSound === 'function') playSound('click');
-  if (chatModal) chatModal.style.display = 'flex';
+  window.CoupModal?.open(chatModal);
   if (chatBtn) {
     chatBtn.classList.remove('chat-btn-has-unread');
     chatBtn.classList.add('is-chat-open');
@@ -1473,7 +1472,7 @@ function closeChatModal() {
   const chatBtn = document.getElementById('chatBtn');
 
   if (typeof playSound === 'function') playSound('click');
-  if (chatModal) chatModal.style.display = 'none';
+  window.CoupModal?.close(chatModal);
   if (chatBtn) chatBtn.classList.remove('is-chat-open');
 }
 
@@ -1508,12 +1507,11 @@ function isOwnChatMessage(message) {
 }
 
 function isChatModalOpen() {
-  return document.getElementById('chatModal')?.style.display === 'flex';
+  return Boolean(window.CoupModal?.isVisible('chatModal'));
 }
 
 function isModalVisible(modal) {
-  if (!modal || modal.hidden) return false;
-  return window.getComputedStyle(modal).display !== 'none';
+  return Boolean(window.CoupModal?.isVisible(modal));
 }
 
 function syncFloatingChatButtonVisibility() {
@@ -1700,7 +1698,7 @@ function setupUI() {
   if (closeFullRoomBtn && fullRoomModal) {
     closeFullRoomBtn.onclick = () => {
       playSound('click');
-      fullRoomModal.style.display = 'none';
+      window.CoupModal?.close(fullRoomModal);
     };
   }
 
@@ -1713,16 +1711,16 @@ function setupUI() {
   if (openFeedbackBtn && feedbackModal) {
     openFeedbackBtn.onclick = () => {
       if (typeof playSound === 'function') playSound('click');
-      feedbackModal.style.display = 'flex';
+      window.CoupModal?.open(feedbackModal);
       // Opcional: fecha o modal de configurações ao abrir o de feedback
-      document.getElementById('settingsModal').style.display = 'none';
+      window.CoupModal?.close('settingsModal');
     };
   }
 
   if (closeFeedbackBtn) {
     closeFeedbackBtn.onclick = () => {
       if (typeof playSound === 'function') playSound('click');
-      feedbackModal.style.display = 'none';
+      window.CoupModal?.close(feedbackModal);
     };
   }
 
@@ -1792,7 +1790,7 @@ function setupUI() {
 
     if (modal) {
       if (typeof playSound === 'function') playSound('click');
-      modal.style.display = 'flex';
+      window.CoupModal?.open(modal);
     }
   };
 
@@ -1805,13 +1803,13 @@ function setupUI() {
     confirmKickBtn.onclick = () => {
       // Chamamos a ação principal que agora lida com cartas e remoção
       confirmKickAction();
-      if (kickModal) kickModal.style.display = 'none';
+      window.CoupModal?.close(kickModal);
     };
   }
 
   if (cancelKickBtn) {
     cancelKickBtn.onclick = () => {
-      if (kickModal) kickModal.style.display = 'none';
+      window.CoupModal?.close(kickModal);
       window.pendingKickPid = null; // Limpa a seleção global de segurança
     };
   }
@@ -1827,7 +1825,7 @@ function setupUI() {
   if (resetBtn && resetModal) {
     resetBtn.onclick = () => {
       playSound('click');
-      resetModal.style.display = 'flex'; // Abre a janelinha de confirmação
+      window.CoupModal?.open(resetModal); // Abre a janelinha de confirmação
     };
   }
 
@@ -1835,9 +1833,9 @@ function setupUI() {
     confirmBtn.onclick = () => {
       if (isAdmin) { // Checagem dupla de segurança
         resetTable();
-        if (resetModal) resetModal.style.display = 'none';
+        window.CoupModal?.close(resetModal);
       } else {
-        if (resetModal) resetModal.style.display = 'none';
+        window.CoupModal?.close(resetModal);
         showError("Apenas o Host pode realizar esta ação.");
       }
     };
@@ -1845,7 +1843,7 @@ function setupUI() {
 
   if (cancelBtn) {
     cancelBtn.onclick = () => {
-      if (resetModal) resetModal.style.display = 'none';
+      window.CoupModal?.close(resetModal);
     };
   }
 
@@ -1867,12 +1865,12 @@ function setupUI() {
     settingsBtn.onclick = () => {
       playSound('click');
       updateSamsungDragButton();
-      settingsModal.style.display = 'flex';
+      window.CoupModal?.open(settingsModal);
     };
     if (closeSettingsBtn) {
       closeSettingsBtn.onclick = () => {
         playSound('click');
-        settingsModal.style.display = 'none';
+        window.CoupModal?.close(settingsModal);
       };
     }
   }
@@ -1930,15 +1928,15 @@ function setupUI() {
       }
 
       // Fecha o menu de configurações e abre o de baralho
-      if (settingsModal) settingsModal.style.display = 'none';
-      configModal.style.display = 'flex';
+      window.CoupModal?.close(settingsModal);
+      window.CoupModal?.open(configModal);
     };
 
     if (closeConfigModalBtn) {
       closeConfigModalBtn.onclick = () => {
         playSound('click');
-        configModal.style.display = 'none';
-        settingsModal.style.display = 'flex';
+        window.CoupModal?.close(configModal);
+        window.CoupModal?.open(settingsModal);
       };
     }
   }
@@ -1965,7 +1963,7 @@ function setupUI() {
       });
 
       resetTable(newConfig); // Aplica e reinicia a partida
-      if (configModal) configModal.style.display = 'none';
+      window.CoupModal?.close(configModal);
     };
   }
 
@@ -1995,11 +1993,11 @@ function setupUI() {
     const tutorialSeen = sessionStorage.getItem('tutorialSeen');
 
     if (!tutorialSeen) {
-      if (tutorialModal) tutorialModal.style.display = 'flex';
+      window.CoupModal?.open(tutorialModal);
     }
 
     const closeAction = () => {
-      if (tutorialModal) tutorialModal.style.display = 'none';
+      window.CoupModal?.close(tutorialModal);
       sessionStorage.setItem('tutorialSeen', 'true'); // Salva para não mostrar de novo
     };
 
@@ -2052,7 +2050,7 @@ function setupUI() {
     characterActionsBtn.onclick = () => {
       playSound('click');
       currentRuleImages = calculateRuleImages();
-      infoModal.style.display = 'flex';
+      window.CoupModal?.open(infoModal);
 
       if (flipCard) {
         currentRuleIndex = 0;
@@ -2064,7 +2062,7 @@ function setupUI() {
 
     if (closeInfoBtn) closeInfoBtn.onclick = () => {
       playSound('click');
-      infoModal.style.display = 'none';
+      window.CoupModal?.close(infoModal);
     };
 
     if (flipCard) {
@@ -2104,7 +2102,7 @@ function setupUI() {
   if (altRulesBtn && altRulesModal) {
     altRulesBtn.onclick = () => {
       playSound('click');
-      altRulesModal.style.display = 'flex';
+      window.CoupModal?.open(altRulesModal);
 
       if (altFlipCard) {
         currentAltIndex = 0;
@@ -2117,7 +2115,7 @@ function setupUI() {
     if (closeAltRulesBtn) {
       closeAltRulesBtn.onclick = () => {
         playSound('click');
-        altRulesModal.style.display = 'none';
+        window.CoupModal?.close(altRulesModal);
       };
     }
 
@@ -2337,12 +2335,10 @@ window.applyDeckPreset = (presetType) => {
       case 'duel':
         // Em vez de preencher direto, abre o modal de escolha e interrompe o loop
         if (typeof playSound === 'function') playSound('click');
-        const dModal = document.getElementById('duelModal');
-        if (dModal) dModal.style.display = 'flex';
+        window.CoupModal?.open('duelModal');
 
         // Fecha o modal de configurações de fundo para não poluir a tela
-        const sModal = document.getElementById('settingsModal');
-        if (sModal) sModal.style.display = 'none';
+        window.CoupModal?.close('settingsModal');
         return;
 
       case 'test':
@@ -2392,13 +2388,12 @@ window.confirmDuelPreset = (chosenCard) => {
   // Fecha o modal de duelo e reabre o de configuração com os novos dados na tela
   closeDuelModal();
   const configModal = document.getElementById('configModal');
-  if (configModal) configModal.style.display = 'flex';
+  window.CoupModal?.open(configModal);
 };
 
 /**
  * FECHA O MODAL DE DUELO
  */
 window.closeDuelModal = () => {
-  const dModal = document.getElementById('duelModal');
-  if (dModal) dModal.style.display = 'none';
+  window.CoupModal?.close('duelModal');
 };

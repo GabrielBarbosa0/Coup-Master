@@ -56,15 +56,12 @@ function requestSpectate(targetPid) {
   });
 
   // Interface: Abre o feedback visual de "aguardando resposta"
-  const waitModal = document.getElementById('waitSpectateModal');
-  if (waitModal) {
-    waitModal.style.display = 'flex';
-  }
+  const waitModal = window.CoupModal?.open('waitSpectateModal');
 
   const closeBtn = document.getElementById('closeWaitModalBtn');
   if (closeBtn) {
     closeBtn.onclick = () => {
-      waitModal.style.display = 'none';
+      window.CoupModal?.close(waitModal);
     };
   }
 }
@@ -83,18 +80,18 @@ function setupNotificationListener() {
 
       if (modal && text) {
         text.innerText = `${data.fromName} deseja te assistir. Aceitar?`;
-        modal.style.display = 'flex';
+        window.CoupModal?.open(modal);
         playSound('pop'); // Alerta sonoro de solicitação
 
         // Resposta Positiva: Adiciona o espectador à lista do jogador
         document.getElementById('acceptSpectateBtn').onclick = () => {
           db.ref(`salas/${roomCode}/gameState/players/${myPlayerId}/spectators/${data.fromPid}`).set(data.fromName);
-          modal.style.display = 'none';
+          window.CoupModal?.close(modal);
         };
 
         // Resposta Negativa: Apenas fecha o modal
         document.getElementById('denySpectateBtn').onclick = () => {
-          modal.style.display = 'none';
+          window.CoupModal?.close(modal);
         };
       }
       // Limpa o registro para evitar repetições indesejadas
@@ -443,7 +440,7 @@ function addBot() {
     // Feedback visual para sala lotada
     const fullRoomModal = document.getElementById('fullRoomModal');
     if (fullRoomModal) {
-      fullRoomModal.style.display = 'flex';
+      window.CoupModal?.open(fullRoomModal);
     }
   }
 }

@@ -137,6 +137,7 @@ O projeto segue uma arquitetura modular com separação clara de responsabilidad
 - **gameState.js** → Gerenciamento de estado e transações Firebase
 - **js/gamemode/casual/audio-service.js** → Audio casual, BGM, volume e sincronizacao de efeitos
 - **js/gamemode/casual/card-preview.js** → Preview ampliado de cartas e flip do modal
+- **js/gamemode/casual/modal-service.js** → Helpers compartilhados de abertura e fechamento de modais
 - **board-renderer.js** → Renderização da interface e interações
 - **lobby-manager.js** → Autenticação, criação e gerenciamento de salas
 - **js/ui/ad-slots.js** → Configuracao central dos slots Google AdSense
@@ -184,6 +185,7 @@ Coup-Master/
 │   │   ├── 📂 casual/          # Scripts dedicados à mesa clássica casual
 │   │   │   ├── audio-service.js # Audio casual e sincronizacao SFX
 │   │   │   ├── card-preview.js # Preview ampliado de cartas
+│   │   │   ├── modal-service.js # Helpers compartilhados de modais
 │   │   │   └── board-renderer.js # Manipulador do DOM e renderizador do tabuleiro 2D
 │   │   └── 📂 ranked/          # Scripts dedicados ao modo ranqueado
 │   │       ├── ranked-rules.js
@@ -210,7 +212,7 @@ Coup-Master/
 * **`assets/img/cards/`**: Organizado estrategicamente em subpastas (`base`, `promo`, `dlc1`, `dlc2`) para permitir que o motor do jogo (`board-renderer.js`) monte dinamicamente as URLs das texturas com base no tipo e na expansão configurada nos presets de baralho.
 * **`js/core/`**: Funciona como o motor lógico invisível do jogo. O `gameState.js` escuta e injeta alterações diretamente no Firebase, garantindo que o jogo funcione como um sandbox em tempo real.
 * **`js/firebase/`**: Centraliza a inicialização do Firebase e expõe `window.db` e `window.auth` para os demais scripts.
-* **`js/gamemode/casual/`**: Concentra a mesa casual. `board-renderer.js` manipula o DOM de forma reativa, `audio-service.js` centraliza BGM/efeitos e `card-preview.js` cuida do preview ampliado das cartas.
+* **`js/gamemode/casual/`**: Concentra a mesa casual. `board-renderer.js` manipula o DOM de forma reativa, `audio-service.js` centraliza BGM/efeitos, `card-preview.js` cuida do preview ampliado e `modal-service.js` padroniza abertura/fechamento de modais.
 * **`js/gamemode/ranked/`**: Concentra o fluxo automatizado do modo ranqueado, incluindo regras, máquina de estados, renderização e integração Firebase.
 * **`js/ui/`**: Centraliza utilitarios de interface compartilhados, incluindo protecao de audio em background, bloqueio de selecao e renderizacao dos slots AdSense.
 * **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
