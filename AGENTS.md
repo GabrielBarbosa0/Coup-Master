@@ -41,6 +41,7 @@ Scripts principais:
 - `js/gamemode/casual/drag-drop.js`: drag/drop legado HTML5, fallback Pointer Events e dropzones do casual.
 - `js/gamemode/casual/render-cards.js`: renderizacao de cartas, frente/verso, tooltip e caminhos de assets.
 - `js/gamemode/casual/render-players.js`: renderizacao dos slots, avatares, maos, moedas e badges do casual.
+- `js/gamemode/casual/table-render.js`: renderizacao da area central, cemitério/freeCards e status do tabuleiro.
 - `js/gamemode/casual/board-renderer.js`: renderizacao, DOM, modais, drag/drop e efeitos visuais.
 - `js/gamemode/ranked/ranked-rules.js`: personagens, acoes e tempos oficiais do ranqueado.
 - `js/gamemode/ranked/ranked-engine.js`: maquina de estados pura para turnos, contestacoes, bloqueios e eliminacoes.
@@ -98,6 +99,7 @@ node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
+node --check js\gamemode\casual\table-render.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js

@@ -18,7 +18,7 @@ O backend efetivo e o Firebase:
 - Firebase Realtime Database guarda salas, estado da partida, jogadores, cartas, notificacoes e eventos de som.
 - As regras de seguranca do Firebase sao uma dependencia critica do produto, mas atualmente aparecem apenas no README, nao como arquivo versionado de infraestrutura.
 
-O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, guias de regras, UI simples da sala, controles do asilo, tutorial inicial, preferencias locais, presets de deck, renderizacao de cartas e renderizacao de jogadores ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
+O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, guias de regras, UI simples da sala, controles do asilo, tutorial inicial, preferencias locais, presets de deck, renderizacao de cartas, renderizacao de jogadores e area central da mesa ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
 
 ## 2. Objetivos do Produto
 
@@ -188,6 +188,7 @@ Coup-Master/
         drag-drop.js
         render-cards.js
         render-players.js
+        table-render.js
         board-renderer.js
       ranked/
         ranked-engine.js
@@ -289,6 +290,7 @@ node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
+node --check js\gamemode\casual\table-render.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -1022,6 +1024,26 @@ Contrato:
 - `board-renderer.js` injeta `getState`, `getMyPlayerId`, `getDeckElement`, `returnCardToDeck`, `isSamsungDragModeEnabled`, `window.CoupVisualEffects.attachBalatroEffect` e `window.CoupDragDrop.attachCompatiblePointerDrag`.
 - `card-preview.js` recebe `getCardFolder` e `shouldShowBack` vindos de `window.CoupRenderCards`.
 
+### 7.25 `js/gamemode/casual/table-render.js`
+
+Responsabilidades:
+
+- Centralizar a renderizacao da area central do tabuleiro casual.
+- Expor acesso aos elementos `deck`, `graveyardArea` e `.graveyard-cards`.
+- Limpar cartas renderizadas no cemiterio por `clearTable()`.
+- Renderizar `gameState.freeCards` como cartas pequenas no cemiterio.
+- Aplicar a classe `graveyard-card` nas cartas abertas da area central.
+- Acionar `updateGraveyardFanLayout()` depois de renderizar o cemiterio.
+- Chamar `board-status.js` para atualizar contadores do deck, cemiterio e asilo.
+
+Contrato:
+
+- Expoe `window.CoupTableRender`.
+- `board-renderer.js` chama `setup({ createCardElement, updateGraveyardFanLayout, renderStatus })` durante a carga do renderer.
+- `board-renderer.js` usa `getDeckElement()` e `getGraveyardArea()` para injetar DOM em `drag-drop.js` e `render-cards.js`.
+- `visual-effects.js` recebe `getGraveyardCardsElement()` para calcular o leque do cemiterio.
+- O modulo nao acessa Firebase e nao move cartas; ele apenas traduz `freeCards` em DOM.
+
 ## 8. Modelo de Dados no Firebase
 
 ### 8.1 Estrutura de Sala
@@ -1624,8 +1646,8 @@ Responsabilidades:
 5. Configurar modal de espectador.
 6. Limpar DOM dinamico.
 7. Delegar renderizacao dos slots para `window.CoupRenderPlayers.renderPlayers(...)`.
-8. Renderizar `freeCards`.
-9. Atualizar os contadores locais do deck e do asilo.
+8. Delegar renderizacao da area central para `window.CoupTableRender.renderTable(...)`.
+9. Atualizar os contadores locais do deck, cemiterio e asilo via `board-status.js`.
 10. Sincronizar o rodape compacto com codigo da sala, cartas no baralho, cartas no cemiterio e moedas no asilo.
 
 `render-players.js` ficou responsavel por manter slots vazios, marcar jogador local, atualizar avatar/nome, renderizar badges de religiao, cartas da mao, moedas, destaque de espectador e a visibilidade progressiva dos slots mobile.
@@ -1633,6 +1655,8 @@ Responsabilidades:
 `chat-service.js` ficou responsavel pelo chat flutuante do casual, incluindo listener Firebase, envio, mensagens rapidas, renderizacao segura e alerta de mensagens nao lidas.
 
 `board-status.js` ficou responsavel pelos contadores do tabuleiro e pela copia do codigo da sala, incluindo suporte ao rodape `.table-status` quando ele estiver ativo no HTML.
+
+`table-render.js` ficou responsavel por renderizar `freeCards` no cemiterio, limpar a area central e coordenar o fan do cemiterio com os contadores do tabuleiro.
 
 `visual-effects.js` ficou responsavel pelo efeito Balatro/tilt, pelo reset visual usado no drag compativel e pelo calculo de overlap dos leques de mao e cemiterio.
 
@@ -1647,7 +1671,7 @@ O codigo da sala deixou de ocupar um cabecalho exclusivo. O rodape `.table-statu
 `clearDOM()`:
 
 - limpa todos os elementos `[data-hand]`;
-- remove `.card` dentro de `.graveyard-cards`;
+- chama `CoupTableRender.clearTable()` para limpar `.card` dentro de `.graveyard-cards`;
 - remove todos os `.slot`;
 - remove classe `.local-player`.
 
@@ -2251,6 +2275,7 @@ node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
+node --check js\gamemode\casual\table-render.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -2340,6 +2365,7 @@ Refatoracoes recomendadas:
   - `asylum-controls.js`
   - `tutorial-service.js`
   - `deck-presets.js`
+  - `table-render.js`
 - Separar estado/mutacoes em servico:
   - `roomService`
   - `gameStateService`
@@ -2473,6 +2499,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/drag-drop.js` | Drag/drop HTML5 legado, fallback Pointer Events e dropzones do casual | Alto |
 | `js/gamemode/casual/render-cards.js` | Renderizacao visual de cartas, assets, tooltip e frente/verso | Alto |
 | `js/gamemode/casual/render-players.js` | Renderizacao dos slots, maos, moedas, avatares e badges do casual | Alto |
+| `js/gamemode/casual/table-render.js` | Renderizacao da area central, cemiterio/freeCards e status | Medio/alto |
 | `js/gamemode/casual/board-renderer.js` | Renderizacao, UI, interacoes, efeitos | Muito alto |
 | `js/gamemode/ranked/ranked-rules.js` | Contratos de personagens, acoes e tempos | Alto |
 | `js/gamemode/ranked/ranked-engine.js` | Maquina de estados e resolucao das regras | Muito alto |
@@ -2576,6 +2603,7 @@ node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
+node --check js\gamemode\casual\table-render.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js

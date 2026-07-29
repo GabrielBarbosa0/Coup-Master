@@ -2,13 +2,18 @@
 // === INTERFACE DO USUÁRIO E RENDERIZAÇÃO ===
 // =======================================================
 
+window.CoupTableRender?.setup({
+  createCardElement: (card) => window.CoupRenderCards?.createCardElement?.(card),
+  updateGraveyardFanLayout: () => window.CoupVisualEffects?.updateGraveyardFanLayout?.(),
+  renderStatus: (options) => window.CoupBoardStatus?.renderStatus?.(options)
+});
+
 // Variáveis DOM
-const deckEl = document.getElementById('deck');
-const graveyardArea = document.getElementById('graveyardArea');
-const graveyardCardsEl = graveyardArea?.querySelector('.graveyard-cards') || graveyardArea;
+const deckEl = window.CoupTableRender?.getDeckElement?.() || document.getElementById('deck');
+const graveyardArea = window.CoupTableRender?.getGraveyardArea?.() || document.getElementById('graveyardArea');
 
 window.CoupVisualEffects?.setup({
-  getGraveyardCardsElement: () => graveyardCardsEl
+  getGraveyardCardsElement: () => window.CoupTableRender?.getGraveyardCardsElement?.()
 });
 
 
@@ -26,8 +31,7 @@ function clearDOM() {
   // Limpa o conteúdo das mãos de todos os jogadores
   document.querySelectorAll('[data-hand]').forEach(h => h.innerHTML = '');
 
-  // Remove cartas espalhadas no cemitério
-  graveyardCardsEl?.querySelectorAll('.card').forEach(n => n.remove());
+  window.CoupTableRender?.clearTable();
 
   // Remove slots vazios remanescentes
   document.querySelectorAll('.slot').forEach(n => n.remove());
@@ -83,21 +87,7 @@ function renderAll() {
   });
 
   window.CoupVisualEffects?.scheduleCardFanLayout();
-
-
-
-
-  // --- 4. RENDERIZAÇÃO DO TABULEIRO CENTRAL (ÁREA LIVRE / DECK) ---
-  // Exibe as cartas que estão abertas no cemitério e atualiza contadores.
-  state.freeCards?.forEach(card => {
-    const el = window.CoupRenderCards?.createCardElement(card);
-    if (!el) return;
-    el.classList.add('small', 'graveyard-card');
-    graveyardCardsEl?.appendChild(el);
-  });
-  window.CoupVisualEffects?.updateGraveyardFanLayout();
-
-  window.CoupBoardStatus?.renderStatus({
+  window.CoupTableRender?.renderTable({
     state,
     roomCode
   });
