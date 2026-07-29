@@ -137,33 +137,8 @@ function withdrawAsylumCoins() {
 // === UTILITÁRIOS GLOBAIS DE ÁUDIO E SFX ===
 // =======================================================
 
-const DEFAULT_SFX_VOLUME = 0.2;
-
-function normalizeVolume(value, fallback = DEFAULT_SFX_VOLUME) {
-  if (value === null || value === undefined || value === '') return fallback;
-  const volume = Number(value);
-  if (!Number.isFinite(volume)) return fallback;
-  return Math.max(0, Math.min(1, volume));
-}
-
-function readStoredSfxVolume() {
-  const storedVolume = localStorage.getItem('sfxVolume');
-  if (storedVolume === '0') return DEFAULT_SFX_VOLUME;
-  return normalizeVolume(storedVolume);
-}
-
-window.sfxVolume = readStoredSfxVolume();
-
 function setSfxVolume(value) {
-  const normalizedVolume = normalizeVolume(value);
-  window.sfxVolume = normalizedVolume;
-  localStorage.setItem('sfxVolume', String(normalizedVolume));
-
-  document.querySelectorAll('audio[id^="audio-"]').forEach((audio) => {
-    audio.volume = normalizedVolume;
-  });
-
-  return normalizedVolume;
+  return window.CoupCasualAudio?.setSfxVolume(value) ?? 0.2;
 }
 
 /**
@@ -171,12 +146,7 @@ function setSfxVolume(value) {
  * Executa um arquivo de áudio presente no DOM baseado no ID fornecido.
  */
 function playSound(id) {
-  const sound = document.getElementById('audio-' + id);
-  if (sound) {
-    sound.volume = normalizeVolume(window.sfxVolume);
-    sound.currentTime = 0;
-    sound.play().catch(e => console.log("Erro ao tocar som:", e));
-  }
+  window.CoupCasualAudio?.playSound(id);
 }
 
 /**
@@ -185,10 +155,7 @@ function playSound(id) {
  * conectados ouçam o efeito simultaneamente.
  */
 function triggerSound(soundId) {
-  db.ref(`salas/${roomCode}/gameState/lastSFX`).set({
-    id: soundId,
-    timestamp: Date.now()
-  });
+  window.CoupCasualAudio?.triggerSound(soundId, { db, roomCode });
 }
 
 

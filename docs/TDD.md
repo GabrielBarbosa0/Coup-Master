@@ -170,6 +170,7 @@ Coup-Master/
     gamemode/
       game-modes.js
       casual/
+        audio-service.js
         board-renderer.js
       ranked/
         ranked-engine.js
@@ -253,6 +254,7 @@ node --check js\gamemode\game-modes.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
+node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -601,7 +603,7 @@ Responsabilidades:
 - Configurar drag and drop.
 - Configurar auto-scroll durante drag.
 - Configurar modais e botoes da UI.
-- Configurar audio, fullscreen, configuracoes visuais e preferencias locais.
+- Configurar fullscreen, configuracoes visuais e preferencias locais.
 - Renderizar jogadores, avatares, badges de religiao, maos, moedas e estado de admin.
 - Gerenciar quick actions.
 - Gerenciar preview de cartas.
@@ -615,11 +617,28 @@ Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
 - DOM imperative;
 - listeners;
 - configuracao de deck;
-- audio;
 - modais;
 - preferencias locais;
 - animacoes em `requestAnimationFrame`;
 - funcoes globais chamadas pelo HTML inline.
+
+### 7.7 `js/gamemode/casual/audio-service.js`
+
+Responsabilidades:
+
+- Centralizar volume padrao de efeitos e BGM do modo casual.
+- Ler e persistir `sfxVolume` em `localStorage`.
+- Aplicar volume em todos os audios `audio-*`.
+- Tocar efeitos locais por `playSound(id)` via wrapper de compatibilidade.
+- Sincronizar efeitos globais escrevendo `gameState.lastSFX` via `triggerSound(soundId)`.
+- Configurar botao de musica, slider de BGM e slider de efeitos no modal de configuracoes.
+- Integrar com `window.CoupAudioGuard` para impedir reinicio indevido da musica de fundo.
+
+Contrato:
+
+- Expoe `window.CoupCasualAudio`.
+- `gameState.js` preserva os wrappers globais `setSfxVolume`, `playSound` e `triggerSound` para compatibilidade com chamadas existentes.
+- `board-renderer.js` chama `window.CoupCasualAudio.setupBackgroundMusicControls()` durante `setupUI()`.
 
 ## 8. Modelo de Dados no Firebase
 
@@ -1378,7 +1397,7 @@ Aplicar configuracao sempre reseta a mesa.
 - `<audio id="bgmAudio" loop autoplay>`
 - `assets/sounds/soundtrack/bgm.mp3`
 
-`setupUI()`:
+`js/gamemode/casual/audio-service.js`:
 
 - define volume inicial `0.1`;
 - tenta tocar audio;
@@ -1406,6 +1425,8 @@ Efeitos definidos em HTML:
 `playSound(id)` toca localmente `audio-{id}`.
 
 `triggerSound(soundId)` escreve em `gameState.lastSFX` para todos ouvirem.
+
+As funcoes globais sao wrappers mantidos em `gameState.js`; a implementacao real fica em `window.CoupCasualAudio`.
 
 Observacao:
 
@@ -1830,6 +1851,7 @@ node --check js\gamemode\game-modes.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
+node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
@@ -2026,6 +2048,7 @@ Estas invariantes devem ser preservadas:
 | `js/core/rules.js` | Tipos de cartas e utilitarios de deck | Alto: fonte de verdade parcial |
 | `js/core/gameState.js` | Mutacoes e sincronizacao Firebase | Muito alto |
 | `js/lobby/lobby-manager.js` | Auth/lobby/salas/limpeza | Alto |
+| `js/gamemode/casual/audio-service.js` | Audio casual, BGM, volume e sincronizacao SFX | Medio |
 | `js/gamemode/casual/board-renderer.js` | Renderizacao, UI, interacoes, efeitos | Muito alto |
 | `js/gamemode/ranked/ranked-rules.js` | Contratos de personagens, acoes e tempos | Alto |
 | `js/gamemode/ranked/ranked-engine.js` | Maquina de estados e resolucao das regras | Muito alto |
@@ -2111,6 +2134,7 @@ node --check js\gamemode\game-modes.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
+node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js

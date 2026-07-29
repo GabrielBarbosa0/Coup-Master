@@ -23,6 +23,7 @@ Scripts principais:
 - `js/core/rules.js`: tipos de carta, criacao de deck e utilitarios.
 - `js/core/gameState.js`: conexao com sala, mutacoes e listeners do Firebase.
 - `js/lobby/lobby-manager.js`: lobby/salas/logout/limpeza.
+- `js/gamemode/casual/audio-service.js`: audio casual, volume de efeitos, BGM e sincronizacao SFX.
 - `js/gamemode/casual/board-renderer.js`: renderizacao, DOM, modais, drag/drop, presets e efeitos visuais.
 - `js/gamemode/ranked/ranked-rules.js`: personagens, acoes e tempos oficiais do ranqueado.
 - `js/gamemode/ranked/ranked-engine.js`: maquina de estados pura para turnos, contestacoes, bloqueios e eliminacoes.
@@ -62,6 +63,7 @@ node --check js\gamemode\game-modes.js
 node --check js\core\rules.js
 node --check js\core\gameState.js
 node --check js\lobby\lobby-manager.js
+node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\board-renderer.js
 node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js

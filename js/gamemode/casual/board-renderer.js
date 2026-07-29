@@ -1744,63 +1744,7 @@ function setupUI() {
     };
   }
 
-  // Configuração de Áudio (BGM e Volume)
-  const musicBtn = document.getElementById('musicBtn');
-  const bgmAudio = document.getElementById('bgmAudio');
-  const volumeSlider = document.getElementById('volumeSlider');
-  const effectsVolumeSlider = document.getElementById('effectsVolumeSlider');
-
-  if (bgmAudio) bgmAudio.volume = 0.1;
-  const bgmGuard = bgmAudio && window.CoupAudioGuard
-    ? window.CoupAudioGuard.createBackgroundAudioGuard(bgmAudio, { button: musicBtn })
-    : null;
-
-  if (musicBtn && bgmAudio) {
-    if (bgmGuard) {
-      bgmGuard.play();
-    } else {
-      bgmAudio.play()
-        .then(() => musicBtn.classList.remove('muted'))
-        .catch(() => musicBtn.classList.add('muted'));
-    }
-
-    musicBtn.onclick = () => {
-      if (bgmGuard) {
-        bgmGuard.toggle();
-        return;
-      }
-
-      if (bgmAudio.paused) {
-        bgmAudio.play()
-          .then(() => musicBtn.classList.remove('muted'))
-          .catch(() => musicBtn.classList.add('muted'));
-      } else {
-        bgmAudio.pause();
-        musicBtn.classList.add('muted');
-      }
-    };
-  }
-
-  if (volumeSlider && bgmAudio) {
-    volumeSlider.value = bgmAudio.volume;
-    volumeSlider.addEventListener('input', (e) => {
-      if (bgmGuard) {
-        bgmGuard.setVolume(e.target.value);
-        return;
-      }
-
-      bgmAudio.volume = e.target.value;
-    });
-  }
-
-  if (effectsVolumeSlider && typeof setSfxVolume === 'function') {
-    const currentSfxVolume = setSfxVolume(window.sfxVolume);
-    effectsVolumeSlider.value = currentSfxVolume;
-
-    effectsVolumeSlider.addEventListener('input', (e) => {
-      setSfxVolume(e.target.value);
-    });
-  }
+  window.CoupCasualAudio?.setupBackgroundMusicControls();
 
 
   // --- 3. INTERAÇÕES DE JOGO (ASILO, KICK, BOTS) ---
