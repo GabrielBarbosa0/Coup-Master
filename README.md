@@ -147,6 +147,7 @@ O projeto segue uma arquitetura modular com separação clara de responsabilidad
 - **js/gamemode/casual/quick-actions.js** → Perfil rapido, estatisticas ranqueadas e acoes rapidas do casual
 - **js/gamemode/casual/settings-service.js** → Preferencias locais, compatibilidade de arraste e visibilidade de religiao
 - **js/gamemode/casual/room-ui.js** → Sair da sala, fullscreen, feedback e configuracoes simples
+- **js/gamemode/casual/asylum-controls.js** → Duplo clique, botoes de moedas e tooltip do asilo
 - **js/gamemode/casual/deck-presets.js** → Presets de composicao do baralho casual e duelo
 - **js/gamemode/casual/drag-drop.js** → Drag/drop HTML5 legado, fallback Pointer Events e dropzones
 - **js/gamemode/casual/render-cards.js** → Renderizacao de cartas, assets, tooltips e frente/verso
@@ -208,6 +209,7 @@ Coup-Master/
 │   │   │   ├── quick-actions.js # Perfil rapido e acoes rapidas
 │   │   │   ├── settings-service.js # Preferencias locais do casual
 │   │   │   ├── room-ui.js # UI simples da sala casual
+│   │   │   ├── asylum-controls.js # Controles do asilo casual
 │   │   │   ├── deck-presets.js # Presets de baralho casual
 │   │   │   ├── drag-drop.js # Drag/drop legado e fallback compativel
 │   │   │   ├── render-cards.js # Renderizacao de cartas
@@ -238,7 +240,7 @@ Coup-Master/
 * **`assets/img/cards/`**: Organizado estrategicamente em subpastas (`base`, `promo`, `dlc1`, `dlc2`) para permitir que o motor do jogo (`board-renderer.js`) monte dinamicamente as URLs das texturas com base no tipo e na expansão configurada nos presets de baralho.
 * **`js/core/`**: Funciona como o motor lógico invisível do jogo. O `gameState.js` escuta e injeta alterações diretamente no Firebase, garantindo que o jogo funcione como um sandbox em tempo real.
 * **`js/firebase/`**: Centraliza a inicialização do Firebase e expõe `window.db` e `window.auth` para os demais scripts.
-* **`js/gamemode/casual/`**: Concentra a mesa casual. `board-renderer.js` manipula o DOM de forma reativa, `audio-service.js` centraliza BGM/efeitos, `card-preview.js` cuida do preview ampliado, `modal-service.js` padroniza modais, `chat-service.js` controla o chat em tempo real, `board-status.js` atualiza contadores e codigo da sala, `visual-effects.js` centraliza efeito Balatro e leques, `admin-controls.js` controla a UI de host, `rules-guides.js` gerencia guias de acoes/personagens e regras alternativas, `spectator-service.js` controla o fluxo de espectador, `quick-actions.js` gerencia perfil rapido e acoes rapidas, `settings-service.js` centraliza preferencias locais, `room-ui.js` agrupa sair da sala, fullscreen, feedback e configuracoes simples, `deck-presets.js` concentra presets de baralho, `drag-drop.js` centraliza o arraste legado e compativel, `render-cards.js` monta as cartas visuais e `render-players.js` renderiza os slots de jogadores.
+* **`js/gamemode/casual/`**: Concentra a mesa casual. `board-renderer.js` manipula o DOM de forma reativa, `audio-service.js` centraliza BGM/efeitos, `card-preview.js` cuida do preview ampliado, `modal-service.js` padroniza modais, `chat-service.js` controla o chat em tempo real, `board-status.js` atualiza contadores e codigo da sala, `visual-effects.js` centraliza efeito Balatro e leques, `admin-controls.js` controla a UI de host, `rules-guides.js` gerencia guias de acoes/personagens e regras alternativas, `spectator-service.js` controla o fluxo de espectador, `quick-actions.js` gerencia perfil rapido e acoes rapidas, `settings-service.js` centraliza preferencias locais, `room-ui.js` agrupa sair da sala, fullscreen, feedback e configuracoes simples, `asylum-controls.js` centraliza duplo clique, botoes e tooltip do asilo, `deck-presets.js` concentra presets de baralho, `drag-drop.js` centraliza o arraste legado e compativel, `render-cards.js` monta as cartas visuais e `render-players.js` renderiza os slots de jogadores.
 * **`js/gamemode/ranked/`**: Concentra o fluxo automatizado do modo ranqueado, incluindo regras, máquina de estados, renderização e integração Firebase.
 * **`js/ui/`**: Centraliza utilitarios de interface compartilhados, incluindo protecao de audio em background, bloqueio de selecao e renderizacao dos slots AdSense.
 * **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.

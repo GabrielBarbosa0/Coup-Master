@@ -35,6 +35,7 @@ Scripts principais:
 - `js/gamemode/casual/quick-actions.js`: perfil rapido, estatisticas ranqueadas e acoes rapidas do casual.
 - `js/gamemode/casual/settings-service.js`: preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao.
 - `js/gamemode/casual/room-ui.js`: sair da sala, fullscreen, feedback e abertura/fechamento de configuracoes.
+- `js/gamemode/casual/asylum-controls.js`: duplo clique, botoes de moedas e tooltip do asilo casual.
 - `js/gamemode/casual/deck-presets.js`: presets de composicao do baralho casual e duelo.
 - `js/gamemode/casual/drag-drop.js`: drag/drop legado HTML5, fallback Pointer Events e dropzones do casual.
 - `js/gamemode/casual/render-cards.js`: renderizacao de cartas, frente/verso, tooltip e caminhos de assets.
@@ -90,6 +91,7 @@ node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js
 node --check js\gamemode\casual\room-ui.js
+node --check js\gamemode\casual\asylum-controls.js
 node --check js\gamemode\casual\deck-presets.js
 node --check js\gamemode\casual\drag-drop.js
 node --check js\gamemode\casual\render-cards.js

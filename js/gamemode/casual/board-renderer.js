@@ -207,21 +207,11 @@ function setupUI() {
 
   // --- 3. INTERAÇÕES DE JOGO (ASILO) ---
 
-  // Atalho de Gesto: Saque rápido do Asilo via clique duplo na imagem
-  const asylumArea = document.getElementById('asylumArea');
-  if (asylumArea) {
-    const asylumImageWrapper = asylumArea.querySelector('.asylum-image-wrapper');
-    const asylumImage = asylumArea.querySelector('.asylum-image-wrapper img');
-    if (asylumImageWrapper) {
-      attachElementTooltip(asylumImageWrapper, 'Asilo');
-    }
-
-    if (asylumImage) {
-      asylumImage.ondblclick = () => {
-        withdrawAsylumCoins(); // Função no gameState.js
-      };
-    }
-  }
+  window.CoupAsylumControls?.setup({
+    updateAsylumScore,
+    withdrawAsylumCoins,
+    attachElementTooltip: window.CoupRenderCards?.attachElementTooltip || window.attachElementTooltip
+  });
 
 
 
@@ -274,12 +264,6 @@ function setupUI() {
     area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
     area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
   });
-
-
-  if (document.getElementById('asylum-plus')) {
-    document.getElementById('asylum-plus').onclick = () => updateAsylumScore(1);
-    document.getElementById('asylum-minus').onclick = () => updateAsylumScore(-1);
-  }
 
 
   checkTutorial();
