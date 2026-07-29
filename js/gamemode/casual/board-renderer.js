@@ -1,70 +1,117 @@
 // =======================================================
-// === INTERFACE DO USUÁRIO E RENDERIZAÇÃO ===
+// === COORDENADOR DA MESA CASUAL ===
 // =======================================================
 
-window.CoupTableRender?.setup({
-  createCardElement: (card) => window.CoupRenderCards?.createCardElement?.(card),
-  updateGraveyardFanLayout: () => window.CoupVisualEffects?.updateGraveyardFanLayout?.(),
-  renderStatus: (options) => window.CoupBoardStatus?.renderStatus?.(options)
-});
-
-// Variáveis DOM
 const deckEl = window.CoupTableRender?.getDeckElement?.() || document.getElementById('deck');
 const graveyardArea = window.CoupTableRender?.getGraveyardArea?.() || document.getElementById('graveyardArea');
 
-window.CoupVisualEffects?.setup({
-  getGraveyardCardsElement: () => window.CoupTableRender?.getGraveyardCardsElement?.()
-});
-
-
-// =======================================================
-// === FUNÇÕES DE RENDERIZAÇÃO ===
-// =======================================================
-
-
-/**
- * LIMPEZA DO DOM (RESET VISUAL)
- * Remove todos os elementos dinâmicos do tabuleiro antes de uma nova renderização.
- * Isso evita a duplicação de cartas e slots ao atualizar o estado do jogo.
- */
-function clearDOM() {
-  // Limpa o conteúdo das mãos de todos os jogadores
-  document.querySelectorAll('[data-hand]').forEach(h => h.innerHTML = '');
-
-  window.CoupTableRender?.clearTable();
-
-  // Remove slots vazios remanescentes
-  document.querySelectorAll('.slot').forEach(n => n.remove());
-
-  // Remove a marcação visual de "jogador local" para reatribuição
-  document.querySelectorAll('.player-area.local-player')
-    .forEach(el => el.classList.remove('local-player'));
+function getDatabase() {
+  return window.db || (typeof db !== 'undefined' ? db : null);
 }
 
-/**
- * FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO
- * Sincroniza o estado do Firebase com a interface e aplica permissões de Host (isAdmin).
- */
+function getFirebase() {
+  return window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
+}
 
-function renderAll() {
-  const state = localGameState;
-  if (!state || !state.players) return;
+function playLocalSound(soundId) {
+  if (typeof playSound === 'function') playSound(soundId);
+}
 
-
-  const roomModeLabel = document.getElementById('roomModeLabel');
-  const isRankedMode = CoupGameModes.isRanked(currentGameMode);
-
-  if (roomModeLabel) {
-    roomModeLabel.dataset.mode = currentGameMode;
-    roomModeLabel.textContent = CoupGameModes.getLabel(currentGameMode);
-  }
-
-  window.CoupAdminControls?.renderAdminControls({
-    isAdmin,
-    isRankedMode
+function setupRenderServices() {
+  window.CoupTableRender?.setup({
+    createCardElement: (card) => window.CoupRenderCards?.createCardElement?.(card),
+    updateGraveyardFanLayout: () => window.CoupVisualEffects?.updateGraveyardFanLayout?.(),
+    renderStatus: (options) => window.CoupBoardStatus?.renderStatus?.(options)
   });
 
+  window.CoupVisualEffects?.setup({
+    getGraveyardCardsElement: () => window.CoupTableRender?.getGraveyardCardsElement?.()
+  });
 
+  window.CoupRenderCards?.setup({
+    getState: () => localGameState,
+    getMyPlayerId: () => myPlayerId,
+    getDeckElement: () => deckEl,
+    returnCardToDeck,
+    isSamsungDragModeEnabled,
+    attachBalatroEffect: window.CoupVisualEffects?.attachBalatroEffect,
+    attachCompatiblePointerDrag: window.CoupDragDrop?.attachCompatiblePointerDrag
+  });
+}
+
+function setupInteractionServices() {
+  window.CoupDragDrop?.setup({
+    deckElement: deckEl,
+    graveyardArea,
+    drawCard,
+    moveCard,
+    burnTopCard,
+    isSamsungDragModeEnabled,
+    refreshSamsungDragMode,
+    resetBalatroElement: window.CoupVisualEffects?.resetBalatroElement,
+    hideCardTooltip: window.CoupRenderCards?.hideCardTooltip
+  });
+
+  window.CoupQuickActions?.setup({
+    getState: () => localGameState,
+    getMyPlayerId: () => myPlayerId,
+    isAdmin: () => isAdmin,
+    getDatabase,
+    updateScore: (...args) => {
+      if (typeof updateScore === 'function') updateScore(...args);
+    },
+    triggerSound: (soundId) => {
+      if (typeof triggerSound === 'function') triggerSound(soundId);
+    },
+    playSound: playLocalSound
+  });
+
+  window.CoupCardPreview?.setup({
+    getState: () => localGameState,
+    findCardById,
+    getCardFolder: window.CoupRenderCards?.getCardFolder,
+    shouldShowBack: window.CoupRenderCards?.shouldShowBack,
+    playSound
+  });
+}
+
+function setupHeaderServices() {
+  window.CoupBoardStatus?.setup({
+    getRoomCode: () => roomCode,
+    playSound: playLocalSound
+  });
+
+  window.CoupCasualSettings?.setupReligionVisibilityPreference({ playSound });
+  window.CoupDeckPresets?.setup({ playSound });
+}
+
+function clearDOM() {
+  document.querySelectorAll('[data-hand]').forEach((hand) => {
+    hand.innerHTML = '';
+  });
+
+  window.CoupTableRender?.clearTable();
+  document.querySelectorAll('.slot').forEach((slot) => slot.remove());
+  document.querySelectorAll('.player-area.local-player')
+    .forEach((playerArea) => playerArea.classList.remove('local-player'));
+}
+
+function renderRoomModeLabel() {
+  const roomModeLabel = document.getElementById('roomModeLabel');
+  if (!roomModeLabel) return;
+
+  roomModeLabel.dataset.mode = currentGameMode;
+  roomModeLabel.textContent = CoupGameModes.getLabel(currentGameMode);
+}
+
+function renderAdminControls() {
+  window.CoupAdminControls?.renderAdminControls({
+    isAdmin,
+    isRankedMode: CoupGameModes.isRanked(currentGameMode)
+  });
+}
+
+function renderSpectatorControls(state) {
   window.CoupSpectator?.renderSpectatorControls({
     players: state.players,
     myPlayerId,
@@ -72,10 +119,9 @@ function renderAll() {
     requestSpectate,
     playSound
   });
+}
 
-  // Limpa o tabuleiro antes de desenhar o novo estado.
-  clearDOM();
-
+function renderPlayers(state) {
   window.CoupRenderPlayers?.renderPlayers({
     players: state.players,
     maxPlayers: MAX_PLAYERS,
@@ -85,7 +131,9 @@ function renderAll() {
     toggleReligion,
     openQuickActions: window.CoupQuickActions?.openQuickActions || window.openQuickActions
   });
+}
 
+function renderTable(state) {
   window.CoupVisualEffects?.scheduleCardFanLayout();
   window.CoupTableRender?.renderTable({
     state,
@@ -93,167 +141,109 @@ function renderAll() {
   });
 }
 
+function renderAll() {
+  const state = localGameState;
+  if (!state || !state.players) return;
 
-window.CoupDragDrop?.setup({
-  deckElement: deckEl,
-  graveyardArea,
-  drawCard,
-  moveCard,
-  burnTopCard,
-  isSamsungDragModeEnabled,
-  refreshSamsungDragMode,
-  resetBalatroElement: window.CoupVisualEffects?.resetBalatroElement,
-  hideCardTooltip: window.CoupRenderCards?.hideCardTooltip
-});
+  renderRoomModeLabel();
+  renderAdminControls();
+  renderSpectatorControls(state);
+  clearDOM();
+  renderPlayers(state);
+  renderTable(state);
+}
 
-window.CoupRenderCards?.setup({
-  getState: () => localGameState,
-  getMyPlayerId: () => myPlayerId,
-  getDeckElement: () => deckEl,
-  returnCardToDeck,
-  isSamsungDragModeEnabled,
-  attachBalatroEffect: window.CoupVisualEffects?.attachBalatroEffect,
-  attachCompatiblePointerDrag: window.CoupDragDrop?.attachCompatiblePointerDrag
-});
-
-window.CoupQuickActions?.setup({
-  getState: () => localGameState,
-  getMyPlayerId: () => myPlayerId,
-  isAdmin: () => isAdmin,
-  getDatabase: () => window.db || (typeof db !== 'undefined' ? db : null),
-  updateScore: (...args) => {
-    if (typeof updateScore === 'function') updateScore(...args);
-  },
-  triggerSound: (soundId) => {
-    if (typeof triggerSound === 'function') triggerSound(soundId);
-  },
-  playSound: (soundId) => {
-    if (typeof playSound === 'function') playSound(soundId);
-  }
-});
-
-/**
- * ROLAGEM AUTOMÁTICA DURANTE DRAG
- * Permite que a página role para cima ou para baixo automaticamente quando 
- * o jogador arrasta uma carta para as extremidades da tela.
- */
 function setupAutoScroll() {
-  const threshold = 80; // Distância da borda para ativar o scroll
-  const speed = 15;     // Velocidade da rolagem
+  const threshold = 80;
+  const speed = 15;
 
-  window.addEventListener('dragover', (e) => {
-    const y = e.clientY;
+  window.addEventListener('dragover', (event) => {
+    const y = event.clientY;
     const viewportHeight = window.innerHeight;
 
-    // Rola para cima se estiver perto do topo
     if (y < threshold) window.scrollBy(0, -speed);
-    // Rola para baixo se estiver perto da base
-    else if (y > (viewportHeight - threshold)) window.scrollBy(0, speed);
+    else if (y > viewportHeight - threshold) window.scrollBy(0, speed);
   });
 }
 
-
-/**
- * INICIALIZAÇÃO DOS COMPONENTES DA INTERFACE
- * Configura listeners de clique, estados iniciais de modais e controles de áudio/vídeo.
- */
-function setupUI() {
-
-  // --- 1. MODAIS DE AVISO E SISTEMA ---
+function setupChatService() {
   window.CoupChat?.setup({
     getState: () => localGameState,
     getRoomCode: () => roomCode,
     getCurrentUser: () => currentUser,
     getMyPlayerId: () => myPlayerId,
-    getDatabase: () => window.db || (typeof db !== 'undefined' ? db : null),
-    getFirebase: () => window.firebase || (typeof firebase !== 'undefined' ? firebase : null),
-    playSound: (soundId) => {
-      if (typeof playSound === 'function') playSound(soundId);
-    }
+    getDatabase,
+    getFirebase,
+    playSound: playLocalSound
   });
+}
 
+function setupAdminService() {
   window.CoupAdminControls?.setup({
     getState: () => localGameState,
     getMyPlayerId: () => myPlayerId,
     getCurrentGameMode: () => currentGameMode,
     isAdmin: () => isAdmin,
-    playSound: (soundId) => {
-      if (typeof playSound === 'function') playSound(soundId);
-    },
+    playSound: playLocalSound,
     showError,
     resetTable,
     addBot,
     confirmKickAction
   });
+}
 
-
+function setupRoomUiService() {
   window.CoupRoomUI?.setup({
     playSound,
     beforeOpenSettings: () => window.CoupCasualSettings?.updateSamsungDragButton()
   });
+}
 
-  window.CoupCasualAudio?.setupBackgroundMusicControls();
-
-
-  // --- 3. INTERAÇÕES DE JOGO (ASILO) ---
-
+function setupAsylumService() {
   window.CoupAsylumControls?.setup({
     updateAsylumScore,
     withdrawAsylumCoins,
     attachElementTooltip: window.CoupRenderCards?.attachElementTooltip || window.attachElementTooltip
   });
+}
 
-
-
-  // --- 4. CONFIGURAÇÕES VISUAIS E CUSTOMIZAÇÃO ---
-
+function setupDeckSurface() {
   window.CoupCasualSettings?.setupSamsungDragPreference({ playSound });
+  window.CoupVisualEffects?.attachBalatroEffect(deckEl, true);
+  attachElementTooltip(deckEl, 'Baralho');
+}
 
-  const deckContainer = document.getElementById('deck');
-  window.CoupVisualEffects?.attachBalatroEffect(deckContainer, true);
-  attachElementTooltip(deckContainer, 'Baralho');
-
-
-  // --- 6. MODAL DE INFORMAÇÕES E REGRAS ---
-
+function setupRulesAndTutorial() {
   window.CoupRulesGuides?.setup({
     getDeckConfig: () => localGameState.deckConfig || {},
     playSound
   });
 
   window.CoupTutorial?.setup();
-
-  document.querySelectorAll('.player-area').forEach(area => {
-    const pid = parseInt(area.dataset.player);
-    const religionEl = area.querySelector('.religion-status');
-    if (religionEl) religionEl.addEventListener('click', () => toggleReligion(pid));
-    area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
-    area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
-  });
-
 }
 
+function setupPlayerCoinControls() {
+  document.querySelectorAll('.player-area').forEach((area) => {
+    const pid = parseInt(area.dataset.player, 10);
+    const religionEl = area.querySelector('.religion-status');
 
+    if (religionEl) religionEl.addEventListener('click', () => toggleReligion(pid));
+    area.querySelector('.plus')?.addEventListener('click', () => updateScore(pid, 1));
+    area.querySelector('.minus')?.addEventListener('click', () => updateScore(pid, -1));
+  });
+}
 
-// =======================================================
-// === INICIALIZAÇÃO E EVENTOS DE HEADER ===
-// =======================================================
+function setupUI() {
+  setupChatService();
+  setupAdminService();
+  setupRoomUiService();
+  window.CoupCasualAudio?.setupBackgroundMusicControls();
+  setupAsylumService();
+  setupDeckSurface();
+  setupRulesAndTutorial();
+  setupPlayerCoinControls();
+}
 
-window.CoupBoardStatus?.setup({
-  getRoomCode: () => roomCode,
-  playSound: (soundId) => {
-    if (typeof playSound === 'function') playSound(soundId);
-  }
-});
-
-window.CoupCasualSettings?.setupReligionVisibilityPreference({ playSound });
-
-window.CoupCardPreview?.setup({
-  getState: () => localGameState,
-  findCardById,
-  getCardFolder: window.CoupRenderCards?.getCardFolder,
-  shouldShowBack: window.CoupRenderCards?.shouldShowBack,
-  playSound
-});
-
-window.CoupDeckPresets?.setup({ playSound });
+setupRenderServices();
+setupInteractionServices();
+setupHeaderServices();

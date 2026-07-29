@@ -42,7 +42,7 @@ Scripts principais:
 - `js/gamemode/casual/render-cards.js`: renderizacao de cartas, frente/verso, tooltip e caminhos de assets.
 - `js/gamemode/casual/render-players.js`: renderizacao dos slots, avatares, maos, moedas e badges do casual.
 - `js/gamemode/casual/table-render.js`: renderizacao da area central, cemitério/freeCards e status do tabuleiro.
-- `js/gamemode/casual/board-renderer.js`: renderizacao, DOM, modais, drag/drop e efeitos visuais.
+- `js/gamemode/casual/board-renderer.js`: coordenador principal do casual; organiza setup dos modulos, `renderAll`, `clearDOM` e wrappers globais esperados por `gameState.js`.
 - `js/gamemode/ranked/ranked-rules.js`: personagens, acoes e tempos oficiais do ranqueado.
 - `js/gamemode/ranked/ranked-engine.js`: maquina de estados pura para turnos, contestacoes, bloqueios e eliminacoes.
 - `js/gamemode/ranked/ranked-game.js`: autenticacao, transacoes, presenca e listeners Firebase do ranqueado.
@@ -168,13 +168,13 @@ Atualize todos:
 
 ## Ao Alterar UI do Tabuleiro
 
-O arquivo `board-renderer.js` recria partes do DOM a cada `renderAll()`. Se adicionar listeners em elementos dinamicos, garanta que eles sejam recriados corretamente ou use delegacao.
+O fluxo casual recria partes do DOM a cada `renderAll()`, coordenado por `board-renderer.js` e executado pelos renderizadores menores. Se adicionar listeners em elementos dinamicos, garanta que eles sejam recriados corretamente ou use delegacao.
 
 Evite usar `innerHTML` com dados de jogador. Prefira `textContent` e criacao de elementos com `document.createElement`.
 
 ## Pontos Frágeis Conhecidos
 
-- `board-renderer.js` concentra responsabilidades demais.
+- `board-renderer.js` ainda e ponto sensivel por coordenar muitos modulos globais, mesmo apos a modularizacao.
 - `gameState.js` mistura mutacoes, conexao e algumas acoes de UI.
 - `updateScore` e `updateAsylumScore` usam `once` + `set`; ideal e transacao.
 - Algumas referencias de asset/SEO estao inconsistentes.

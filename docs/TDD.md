@@ -18,7 +18,7 @@ O backend efetivo e o Firebase:
 - Firebase Realtime Database guarda salas, estado da partida, jogadores, cartas, notificacoes e eventos de som.
 - As regras de seguranca do Firebase sao uma dependencia critica do produto, mas atualmente aparecem apenas no README, nao como arquivo versionado de infraestrutura.
 
-O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface, efeitos visuais e interacoes ainda vive em `js/gamemode/casual/board-renderer.js`, embora audio, preview de cartas, modais, guias de regras, UI simples da sala, controles do asilo, tutorial inicial, preferencias locais, presets de deck, renderizacao de cartas, renderizacao de jogadores e area central da mesa ja tenham sido extraidos para servicos menores. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas aumenta risco de regressao em qualquer alteracao media.
+O estado tecnico atual e funcional para uma beta, mas ainda altamente acoplado. A maior parte da regra de interface ja foi separada em modulos menores no modo casual: audio, preview de cartas, modais, guias de regras, UI simples da sala, controles do asilo, tutorial inicial, preferencias locais, presets de deck, renderizacao de cartas, renderizacao de jogadores e area central da mesa. O `board-renderer.js` permanece como coordenador principal, preservando `renderAll`, `setupUI` e `setupAutoScroll` para integracao com `gameState.js`. A sincronizacao e mutacao de jogo ficam concentradas em `js/core/gameState.js`. Essa simplicidade reduz friccao para editar rapido, mas ainda exige cuidado por causa do estado global compartilhado.
 
 ## 2. Objetivos do Produto
 
@@ -107,7 +107,7 @@ Ordem no tabuleiro:
 3. `js/pwa/pwa.js`: registra o service worker quando o navegador oferece suporte.
 4. `js/core/rules.js`: define tipos de carta e utilitarios globais.
 5. `js/core/gameState.js`: conecta sala, Firebase, estado e mutacoes.
-6. `js/gamemode/casual/board-renderer.js`: renderiza DOM e configura interacoes.
+6. `js/gamemode/casual/board-renderer.js`: coordena `renderAll`, `setupUI`, `setupAutoScroll` e setup dos modulos casuais.
 
 Ordem no ranqueado:
 
@@ -631,28 +631,16 @@ Observacao importante: a sala nasce com `gameState.status` e `gameState.createdA
 
 Responsabilidades:
 
-- Referenciar elementos DOM do tabuleiro.
-- Limpar e renderizar o DOM a partir de `localGameState`.
-- Criar elementos visuais de cartas.
-- Decidir se carta mostra frente ou verso.
-- Mapear tipo de carta para pasta de asset.
-- Configurar drag and drop.
-- Configurar auto-scroll durante drag.
-- Coordenar setup de modais e botoes da UI ainda nao extraidos.
-- Coordenar configuracoes visuais e preferencias locais.
-- Injetar dependencias para `chat-service.js`, `board-status.js`, `visual-effects.js`, `admin-controls.js`, `rules-guides.js`, `room-ui.js`, `asylum-controls.js`, `tutorial-service.js` e `quick-actions.js`.
-- Manter efeitos visuais restantes apenas quando ainda nao migrados para modulo proprio.
+- Permanecer com o nome historico `board-renderer.js`, sem renomear para evitar ruptura em referencias e commits.
+- Coordenar os modulos do modo casual sem concentrar a regra interna deles.
+- Preservar as funcoes globais esperadas por `gameState.js`: `renderAll`, `setupUI` e `setupAutoScroll`.
+- Configurar servicos de renderizacao, interacao e cabecalho.
+- Injetar dependencias para `chat-service.js`, `admin-controls.js`, `room-ui.js`, `asylum-controls.js`, `rules-guides.js`, `tutorial-service.js`, `drag-drop.js`, `render-cards.js`, `render-players.js`, `table-render.js`, `quick-actions.js`, `card-preview.js`, `settings-service.js`, `board-status.js`, `visual-effects.js` e `deck-presets.js`.
+- Executar `renderAll()` como fluxo fino: modo da sala, controles admin, espectador, limpeza, jogadores e mesa central.
+- Executar `setupUI()` como fluxo fino: chat, admin, sala, audio, asilo, deck, guias/tutorial e controles de moeda dos jogadores.
+- Manter `clearDOM()` apenas como limpeza coordenada de maos, area central, slots e destaque local.
 
-Esse arquivo e o principal ponto de risco de manutencao. Ele mistura:
-
-- renderizacao;
-- regra de visibilidade de carta;
-- DOM imperative;
-- listeners;
-- configuracao de deck;
-- modais;
-- animacoes em `requestAnimationFrame`;
-- funcoes globais chamadas pelo HTML inline.
+Esse arquivo ainda e ponto sensivel por depender de variaveis globais definidas em `gameState.js` e por coordenar muitos modulos via `window.*`, mas deixou de concentrar criacao visual de cartas, area central, preview, chat, guias, asilo, sala, tutorial, presets, quick actions e drag/drop.
 
 ### 7.7 `js/gamemode/casual/audio-service.js`
 
@@ -706,7 +694,7 @@ Contrato:
 
 - Expoe `window.CoupModal`.
 - `gameState.js` usa o servico em modais de espectador e sala cheia.
-- `chat-service.js` usa o servico para abrir e fechar o chat; `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `admin-controls.js` usa o servico para kick, reset, sala cheia e configuracao de deck; `rules-guides.js` usa o servico para guias e regras alternativas; `room-ui.js` usa o servico para feedback e configuracoes; `tutorial-service.js` usa o servico para o tutorial inicial; `board-renderer.js` ainda usa o servico para duelo.
+- `chat-service.js` usa o servico para abrir e fechar o chat; `quick-actions.js` usa o servico para abrir e fechar o perfil rapido; `admin-controls.js` usa o servico para kick, reset, sala cheia e configuracao de deck; `rules-guides.js` usa o servico para guias e regras alternativas; `room-ui.js` usa o servico para feedback e configuracoes; `tutorial-service.js` usa o servico para o tutorial inicial; `deck-presets.js` usa o servico para duelo.
 - O servico nao muda estrutura HTML nem estilos dos modais; apenas centraliza as operacoes repetidas de exibicao.
 
 ### 7.10 `js/gamemode/casual/chat-service.js`
@@ -750,7 +738,7 @@ Responsabilidades:
 Contrato:
 
 - Expoe `window.CoupBoardStatus`.
-- `board-renderer.js` chama `renderStatus({ state, roomCode })` durante `renderAll()`.
+- `table-render.js` chama `renderStatus({ state, roomCode })` durante `renderTable()`.
 - `board-renderer.js` injeta `roomCode` e `playSound` em `setup(...)`.
 - O servico tolera elementos ausentes porque o rodape `.table-status` pode estar comentado no HTML.
 - O servico nao acessa Firebase e nao altera estado de jogo.
@@ -773,7 +761,7 @@ Contrato:
 
 - Expoe `window.CoupVisualEffects`.
 - Preserva wrappers globais `updateHandFanLayout`, `updateGraveyardFanLayout`, `scheduleCardFanLayout`, `resetBalatroElement` e `attachBalatroEffect`.
-- `board-renderer.js` injeta o container de cartas do cemiterio por `getGraveyardCardsElement`.
+- `table-render.js` fornece o container de cartas do cemiterio por `getGraveyardCardsElement`.
 - `render-players.js` recebe `updateHandFanLayout` para organizar as maos renderizadas.
 - `render-cards.js` recebe `attachBalatroEffect` para aplicar o hover 3D nas cartas criadas.
 - `drag-drop.js` recebe `resetBalatroElement` para limpar tilt durante o arraste compativel.
@@ -2500,7 +2488,7 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/casual/render-cards.js` | Renderizacao visual de cartas, assets, tooltip e frente/verso | Alto |
 | `js/gamemode/casual/render-players.js` | Renderizacao dos slots, maos, moedas, avatares e badges do casual | Alto |
 | `js/gamemode/casual/table-render.js` | Renderizacao da area central, cemiterio/freeCards e status | Medio/alto |
-| `js/gamemode/casual/board-renderer.js` | Renderizacao, UI, interacoes, efeitos | Muito alto |
+| `js/gamemode/casual/board-renderer.js` | Coordenador principal do casual e wrappers globais de UI | Alto |
 | `js/gamemode/ranked/ranked-rules.js` | Contratos de personagens, acoes e tempos | Alto |
 | `js/gamemode/ranked/ranked-engine.js` | Maquina de estados e resolucao das regras | Muito alto |
 | `js/gamemode/ranked/ranked-game.js` | Coordenacao Firebase e presenca ranqueada | Muito alto |
