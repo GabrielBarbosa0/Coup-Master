@@ -27,6 +27,7 @@ Scripts principais:
 - `js/gamemode/casual/card-preview.js`: preview ampliado de cartas e flip do modal.
 - `js/gamemode/casual/modal-service.js`: helpers compartilhados para abrir, fechar e consultar modais.
 - `js/gamemode/casual/chat-service.js`: chat em tempo real do modo casual, atalhos e alerta de mensagens.
+- `js/gamemode/casual/board-status.js`: contadores do tabuleiro casual e copia do codigo da sala.
 - `js/gamemode/casual/spectator-service.js`: botao, modal e lista segura de alvos do modo espectador casual.
 - `js/gamemode/casual/quick-actions.js`: perfil rapido, estatisticas ranqueadas e acoes rapidas do casual.
 - `js/gamemode/casual/settings-service.js`: preferencias locais do casual, compatibilidade de arraste e visibilidade de religiao.
@@ -77,6 +78,7 @@ node --check js\gamemode\casual\audio-service.js
 node --check js\gamemode\casual\card-preview.js
 node --check js\gamemode\casual\modal-service.js
 node --check js\gamemode\casual\chat-service.js
+node --check js\gamemode\casual\board-status.js
 node --check js\gamemode\casual\spectator-service.js
 node --check js\gamemode\casual\quick-actions.js
 node --check js\gamemode\casual\settings-service.js

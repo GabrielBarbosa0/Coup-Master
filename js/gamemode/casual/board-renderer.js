@@ -3,17 +3,10 @@
 // =======================================================
 
 // Variáveis DOM
-const deckCountEl = document.getElementById('deck-count');
-const graveCountEl = document.getElementById('grave-count');
-const tableDeckCountEl = document.getElementById('table-deck-count');
-const tableAsylumScoreEl = document.getElementById('table-asylum-score');
 const deckEl = document.getElementById('deck');
 const graveyardArea = document.getElementById('graveyardArea');
 const graveyardCardsEl = graveyardArea?.querySelector('.graveyard-cards') || graveyardArea;
 const resetBtn = document.getElementById('resetBtn');
-const asylumScoreEl = document.getElementById('asylum-score');
-const asylumPlusBtn = document.getElementById('asylum-plus');
-const asylumMinusBtn = document.getElementById('asylum-minus');
 
 let cardFanLayoutFrame = null;
 const CASUAL_BALATRO_HOVER = Object.freeze({
@@ -242,15 +235,10 @@ function renderAll() {
   });
   updateGraveyardFanLayout();
 
-  const deckCount = state.deck?.length || 0;
-  const graveyardCount = state.freeCards?.length || 0;
-  const asylumScore = state.asylumScore || 0;
-
-  if (deckCountEl) deckCountEl.textContent = deckCount;
-  if (graveCountEl) graveCountEl.textContent = graveyardCount;
-  if (tableDeckCountEl) tableDeckCountEl.textContent = deckCount;
-  if (asylumScoreEl) asylumScoreEl.textContent = asylumScore;
-  if (tableAsylumScoreEl) tableAsylumScoreEl.textContent = asylumScore;
+  window.CoupBoardStatus?.renderStatus({
+    state,
+    roomCode
+  });
 }
 
 
@@ -840,42 +828,12 @@ function setupUI() {
 // === INICIALIZAÇÃO E EVENTOS DE HEADER ===
 // =======================================================
 
-/**
- * CONFIGURAÇÃO DO EXIBIDOR DE CÓDIGO DA SALA
- * Define o texto do código da sala no cabeçalho e gerencia a funcionalidade 
- * de copiar para a área de transferência ao clicar.
- */
-const roomHeader = document.getElementById('roomHeader');
-const roomCodeBtn = document.getElementById('roomCodeBtn');
-const roomCodeDisplay = document.getElementById('roomCodeDisplay');
-
-// Define o código da sala se o elemento e a variável existirem
-if (roomCodeDisplay && typeof roomCode !== 'undefined' && roomCode) {
-  roomCodeDisplay.textContent = roomCode;
-}
-
-// Configura o evento de clique para copiar o código da sala
-if (roomCodeBtn) {
-  roomCodeBtn.onclick = () => {
-    navigator.clipboard.writeText(roomCode).then(() => {
-      playSound('pop'); // Som de confirmação
-      roomHeader?.classList.add('copied');
-
-      const originalTitle = roomCodeBtn.title;
-      roomCodeBtn.title = 'Código copiado!';
-
-      // Reseta o estado visual do botão após 1.2 segundos
-      setTimeout(() => {
-        roomHeader?.classList.remove('copied');
-        roomCodeBtn.title = originalTitle;
-      }, 1200);
-    }).catch(err => {
-      console.error('Erro ao copiar:', err);
-      // Fallback em caso de falha na API de clipboard
-      alert("Código da sala: " + roomCode);
-    });
-  };
-}
+window.CoupBoardStatus?.setup({
+  getRoomCode: () => roomCode,
+  playSound: (soundId) => {
+    if (typeof playSound === 'function') playSound(soundId);
+  }
+});
 
 window.CoupCasualSettings?.setupReligionVisibilityPreference({ playSound });
 
