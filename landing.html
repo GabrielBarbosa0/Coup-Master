@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coup Master | Jogue Coup Online com Amigos</title>
+  <meta name="description" content="Jogue Coup online com amigos no navegador. Crie mesas casuais, teste expansões gratuitas, complete partidas com bots IA e dispute o modo ranqueado.">
+  <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07101a;
+      --bg-2: #0c1824;
+      --panel: #101d29;
+      --panel-2: #162638;
+      --line: rgba(227, 238, 250, 0.16);
+      --line-strong: rgba(227, 238, 250, 0.32);
+      --text: #f4ead8;
+      --muted: #aab9c8;
+      --blue: #2ea7ff;
+      --cyan: #73dcff;
+      --gold: #f2bd52;
+      --red: #db4f5a;
+      --green: #74ce93;
+      --shadow: 0 22px 70px rgba(0, 0, 0, 0.38);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(145deg, #07101a 0%, #0f2434 48%, #111217 100%);
+      background-size: 42px 42px, 42px 42px, auto;
+      overflow-x: hidden;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page-shell {
+      min-height: 100vh;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 14px 0;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: Cinzel, Georgia, serif;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand-mark img {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .nav-links a {
+      transition: color 160ms ease;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      color: var(--text);
+      outline: 0;
+    }
+
+    .hero {
+      position: relative;
+      min-height: min(760px, calc(100vh - 64px));
+      display: grid;
+      align-items: center;
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0 28px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(360px, 1.08fr);
+      align-items: center;
+      gap: clamp(26px, 5vw, 66px);
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 2;
+      max-width: 570px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 30px;
+      height: 2px;
+      background: var(--cyan);
+      content: "";
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: Cinzel, Georgia, serif;
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(52px, 10vw, 118px);
+      font-weight: 900;
+      text-transform: uppercase;
+      text-shadow: 0 8px 28px rgba(0, 0, 0, 0.46);
+    }
+
+    .hero-lead {
+      max-width: 520px;
+      margin: 20px 0 0;
+      color: var(--muted);
+      font-size: clamp(17px, 2.1vw, 22px);
+      font-weight: 700;
+      line-height: 1.48;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      transform: translateY(-2px);
+      outline: 0;
+    }
+
+    .btn.primary {
+      border-color: rgba(242, 189, 82, 0.82);
+      background: var(--gold);
+      color: #17130a;
+      box-shadow: 0 14px 34px rgba(242, 189, 82, 0.18);
+    }
+
+    .btn.secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 28px;
+      max-width: 500px;
+    }
+
+    .stat {
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(16, 29, 41, 0.74);
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .hero-art {
+      position: relative;
+      display: grid;
+      min-height: 530px;
+      place-items: center;
+      perspective: 1000px;
+    }
+
+    .crown-logo {
+      position: absolute;
+      top: 0;
+      right: 5%;
+      z-index: 5;
+      width: clamp(84px, 12vw, 136px);
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: rgba(7, 16, 26, 0.8);
+      box-shadow: var(--shadow);
+      transform: rotate(4deg);
+    }
+
+    .card-fan {
+      position: relative;
+      width: min(100%, 560px);
+      height: 440px;
+      transform-style: preserve-3d;
+    }
+
+    .hero-card {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: clamp(138px, 18vw, 210px);
+      aspect-ratio: 2 / 3;
+      border: 3px solid rgba(220, 236, 250, 0.86);
+      border-radius: 8px;
+      background: #fff center / cover no-repeat;
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.48);
+      transform-origin: 50% 105%;
+      transition: transform 220ms ease, filter 220ms ease;
+    }
+
+    .hero-card:nth-child(1) {
+      background-image: url("assets/img/cards/base/capitao.png");
+      transform: translate(-94%, -39%) rotate(-20deg);
+      z-index: 1;
+    }
+
+    .hero-card:nth-child(2) {
+      background-image: url("assets/img/cards/base/condessa.png");
+      transform: translate(-66%, -50%) rotate(-10deg);
+      z-index: 2;
+    }
+
+    .hero-card:nth-child(3) {
+      background-image: url("assets/img/cards/base/duque.png");
+      transform: translate(-50%, -58%) rotate(0deg) scale(1.06);
+      z-index: 5;
+    }
+
+    .hero-card:nth-child(4) {
+      background-image: url("assets/img/cards/base/assassino.png");
+      transform: translate(-33%, -50%) rotate(10deg);
+      z-index: 3;
+    }
+
+    .hero-card:nth-child(5) {
+      background-image: url("assets/img/cards/base/inquisidor.png");
+      transform: translate(-5%, -39%) rotate(20deg);
+      z-index: 1;
+    }
+
+    .card-fan:hover .hero-card {
+      filter: saturate(1.08) brightness(1.04);
+    }
+
+    .card-fan:hover .hero-card:nth-child(3) {
+      transform: translate(-50%, -62%) rotate(0deg) scale(1.12);
+    }
+
+    .hero-chip-row {
+      position: absolute;
+      left: 50%;
+      bottom: 36px;
+      z-index: 8;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      width: min(430px, 92%);
+      transform: translateX(-50%);
+    }
+
+    .hero-chip {
+      padding: 8px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: rgba(10, 22, 33, 0.9);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 900;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.24);
+    }
+
+    .content-section {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 54px 0;
+    }
+
+    .section-heading {
+      display: grid;
+      gap: 12px;
+      max-width: 720px;
+      margin-bottom: 24px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 64px);
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .feature-card {
+      min-height: 220px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(16, 29, 41, 0.72);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.22);
+    }
+
+    .feature-icon {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      margin-bottom: 22px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--panel-2);
+    }
+
+    .feature-icon img {
+      width: 24px;
+      height: 24px;
+      filter: brightness(0) invert(1);
+      opacity: 0.92;
+    }
+
+    .feature-card h3 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+
+    .feature-card p {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
+    .showcase {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .showcase-media {
+      position: relative;
+      min-height: 360px;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .showcase-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(1.08) contrast(1.02);
+    }
+
+    .showcase-panel {
+      display: grid;
+      align-content: center;
+      gap: 18px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(16, 29, 41, 0.78);
+    }
+
+    .mode-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .mode-list li {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .mode-list strong {
+      color: var(--text);
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      margin-top: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 18px rgba(242, 189, 82, 0.42);
+    }
+
+    .ranked-band {
+      border-block: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(219, 79, 90, 0.16), transparent 30%),
+        linear-gradient(270deg, rgba(46, 167, 255, 0.15), transparent 30%),
+        rgba(5, 10, 16, 0.36);
+    }
+
+    .ranked-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 22px;
+      align-items: center;
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 54px 0;
+    }
+
+    .ranked-badges {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .badge-card {
+      min-height: 128px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(16, 29, 41, 0.78);
+    }
+
+    .badge-card strong {
+      display: block;
+      color: var(--gold);
+      font-family: Cinzel, Georgia, serif;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .badge-card span {
+      display: block;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .cta-strip {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 20px;
+      padding: 24px;
+      border: 1px solid rgba(242, 189, 82, 0.36);
+      border-radius: 8px;
+      background: rgba(242, 189, 82, 0.08);
+    }
+
+    .cta-strip h2 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 52px);
+    }
+
+    .cta-strip p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .site-footer {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 26px 0 34px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      .site-header {
+        position: static;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        min-height: auto;
+        padding-top: 26px;
+      }
+
+      .hero-grid,
+      .showcase,
+      .ranked-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-copy {
+        max-width: none;
+      }
+
+      .hero-art {
+        min-height: 420px;
+        order: -1;
+      }
+
+      .card-fan {
+        height: 360px;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .site-header,
+      .hero,
+      .content-section,
+      .ranked-inner,
+      .site-footer {
+        width: min(100% - 24px, 1180px);
+      }
+
+      .brand-mark {
+        font-size: 15px;
+      }
+
+      .hero-actions {
+        display: grid;
+      }
+
+      .hero-stats,
+      .ranked-badges {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-art {
+        min-height: 330px;
+      }
+
+      .card-fan {
+        height: 300px;
+      }
+
+      .hero-card {
+        width: clamp(102px, 31vw, 140px);
+      }
+
+      .crown-logo {
+        width: 74px;
+      }
+
+      .showcase-media {
+        min-height: 230px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand-mark" href="login.html">
+        <img src="assets/img/logo/coup-master-192x192.png" alt="">
+        <span>Coup Master</span>
+      </a>
+      <nav class="nav-links" aria-label="Navegação da landing">
+        <a href="#modos">Modos</a>
+        <a href="#ranqueado">Ranqueado</a>
+        <a href="#jogar">Jogar</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Blefe online em tempo real</p>
+            <h1 id="hero-title">Coup Master</h1>
+            <p class="hero-lead">
+              Uma mesa digital para intriga, moedas, cartas ocultas e decisões que ficam melhores quando ninguém sabe se você está dizendo a verdade.
+            </p>
+            <div class="hero-actions">
+              <a class="btn primary" href="login.html">Jogar agora</a>
+              <a class="btn secondary" href="lobby.html">Entrar no lobby</a>
+            </div>
+            <div class="hero-stats" aria-label="Resumo do Coup Master">
+              <div class="stat">
+                <strong>DLCs</strong>
+                <span>expansões gratuitas no casual</span>
+              </div>
+              <div class="stat">
+                <strong>Decks</strong>
+                <span>base, promo, Revolução e Asilo</span>
+              </div>
+              <div class="stat">
+                <strong>Bots</strong>
+                <span>IA para completar a mesa</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-art" aria-hidden="true">
+            <!-- <img class="crown-logo" src="assets/img/logo/ico-coup-master.png" alt=""> -->
+            <div class="card-fan">
+              <span class="hero-card"></span>
+              <span class="hero-card"></span>
+              <span class="hero-card"></span>
+              <span class="hero-card"></span>
+              <span class="hero-card"></span>
+              <!-- <div class="hero-chip-row">
+                <span class="hero-chip">Conteste</span>
+                <span class="hero-chip">Bloqueie</span>
+                <span class="hero-chip">Blefe</span>
+              </div> -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="modos" class="content-section" aria-labelledby="modes-title">
+        <div class="section-heading">
+          <p class="eyebrow">Mesa, ranking e presença</p>
+          <h2 id="modes-title">Escolha o ritmo da conspiração.</h2>
+          <p>
+            O Coup Master combina uma mesa casual flexível com uma experiência ranqueada automatizada para partidas mais guiadas.
+          </p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div class="feature-icon"><img src="assets/img/icons/grid_view.svg" alt=""></div>
+            <h3>Casual sandbox</h3>
+            <p>Controle manual da mesa para grupos que gostam de adaptar regras, narrar jogadas e administrar o caos social.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon"><img src="assets/img/icons/trophy.svg" alt=""></div>
+            <h3>Ranqueado beta</h3>
+            <p>Turnos, contestações, bloqueios e eliminações conduzidos pelo motor de regras, com resultados e estatísticas.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon"><img src="assets/img/icons/chat.svg" alt=""></div>
+            <h3>Sala viva</h3>
+            <p>Chat, presença, som contextual, bots experimentais e convites por código para reunir a mesa sem instalação.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-section" aria-labelledby="table-title">
+        <div class="showcase">
+          <div class="showcase-media">
+            <img src="marketing/screenshots/Coup Mesa de Jogo.png" alt="Prévia da mesa de jogo do Coup Master">
+          </div>
+          <div class="showcase-panel">
+            <div class="section-heading">
+              <p class="eyebrow">Tabuleiro compartilhado</p>
+              <h2 id="table-title">A mesa responde junto com o grupo.</h2>
+              <p>Cartas, moedas, cemitério, asilo e jogadores acompanham a mesa em tempo real para todo mundo jogar no mesmo ritmo.</p>
+            </div>
+            <ul class="mode-list">
+              <li><span class="dot"></span><span><strong>Cartas ocultas:</strong> cada influência mantém seu segredo até ser revelada.</span></li>
+              <li><span class="dot"></span><span><strong>Movimento manual:</strong> arraste, devolva, compre e organize a mesa como faria presencialmente.</span></li>
+              <li><span class="dot"></span><span><strong>Compatível com mobile:</strong> controles e arraste alternativo para telas de toque.</span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="ranqueado" class="ranked-band" aria-labelledby="ranked-title">
+        <div class="ranked-inner">
+          <div class="section-heading">
+            <p class="eyebrow">Modo ranqueado</p>
+            <h2 id="ranked-title">Suba no ranking sem abandonar o blefe.</h2>
+            <p>
+              A partida ranqueada conduz sorteio inicial, respostas, desafios, bloqueios e resultados para transformar cada mesa em progresso de perfil.
+            </p>
+            <div class="hero-actions">
+              <a class="btn primary" href="lobby.html">Criar sala ranqueada</a>
+              <a class="btn secondary" href="ranked-waiting.html">Ver sala de espera</a>
+            </div>
+          </div>
+          <div class="ranked-badges" aria-label="Recursos do modo ranqueado">
+            <div class="badge-card">
+              <strong>Bots IA</strong>
+              <span>Bots experimentais para preencher a sala e testar partidas.</span>
+            </div>
+            <div class="badge-card">
+              <strong>Conquistas</strong>
+              <span>Marcos desbloqueáveis para vitórias, partidas, blefes e ações decisivas.</span>
+            </div>
+            <div class="badge-card">
+              <strong>Estatísticas</strong>
+              <span>Perfil ranqueado com vitórias, derrotas, pontos e histórico de desempenho.</span>
+            </div>
+            <div class="badge-card">
+              <strong>Resultados</strong>
+              <span>Tela final com pontuação, resumo da partida e destaques de cada jogador.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="jogar" class="content-section" aria-label="Chamada para jogar">
+        <div class="cta-strip">
+          <div>
+            <h2>Pronto para mentir com classe?</h2>
+            <p>Entre com Google ou visitante, crie uma sala e convide a mesa.</p>
+          </div>
+          <a class="btn primary" href="login.html">Abrir Coup Master</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      Coup Master é um projeto independente de mesa online inspirado em jogos de blefe, estratégia política e dedução social.
+    </footer>
+  </div>
+</body>
+
+</html>
