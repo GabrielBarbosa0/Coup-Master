@@ -43,7 +43,10 @@
 
     sound.volume = normalizeVolume(root.sfxVolume);
     sound.currentTime = 0;
-    sound.play().catch((error) => console.log('Erro ao tocar som:', error));
+    sound.play().catch((error) => {
+      if (error && error.name === 'AbortError') return;
+      console.log('Erro ao tocar som:', error);
+    });
   }
 
   function triggerSound(soundId, options = {}) {

@@ -1,4 +1,6 @@
-const CACHE_NAME = 'coup-master-pwa-v89';
+const CACHE_NAME = 'coup-master-pwa-v91';
+const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '::1', '[::1]'];
+const IS_LOCALHOST = LOCAL_HOSTNAMES.includes(new URL(self.location.href).hostname);
 
 const APP_SHELL = [
   './',
@@ -54,6 +56,11 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
+  if (IS_LOCALHOST) {
+    event.waitUntil(self.skipWaiting());
+    return;
+  }
+
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(APP_SHELL))
@@ -62,6 +69,16 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
+  if (IS_LOCALHOST) {
+    event.waitUntil(
+      caches.keys()
+        .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+        .then(() => self.registration.unregister())
+        .then(() => self.clients.claim())
+    );
+    return;
+  }
+
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(
@@ -74,13 +91,14 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  if (IS_LOCALHOST) return;
+
   const { request } = event;
   const url = new URL(request.url);
 
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
-  if (request.headers.has('range')) {
-    event.respondWith(fetch(request));
+  if (isDynamicAssetRequest(url) || request.headers.has('range')) {
     return;
   }
 
@@ -134,4 +152,9 @@ async function staleWhileRevalidate(request) {
 
 function isCacheableResponse(response) {
   return Boolean(response && response.status === 200);
+}
+
+function isDynamicAssetRequest(url) {
+  return url.pathname.includes('/assets/sounds/')
+    || url.pathname.includes('/assets/img/cards/');
 }
