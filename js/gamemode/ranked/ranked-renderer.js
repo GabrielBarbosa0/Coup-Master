@@ -43,9 +43,9 @@
 
     const botNameIdeas = [
         'Augusto', 'Berenice', 'Cassandra', 'Dario', 'Eloisa', 'Fausto',
-        'Gael', 'Helena', 'Icaro', 'Jandira', 'Livia', 'Mauro',
+        'Gael', 'Helena', 'Icaro', 'Dama do Véu', 'Barão Âmbar', 'Mauro',
         'Nadia', 'Otavio', 'Pilar', 'Quintino', 'Rafaela', 'Silas',
-        'Tarsila', 'Ulisses', 'Valentina', 'Xavier', 'Yara', 'Zeca',
+        'Véu Carmesim', 'Ulisses', 'Valentina', 'Xavier', 'Lady Lótus', 'Zeca',
         'Duque Cinzento', 'Capitão Falso', 'Condessa Fria', 'Inquisidor Mudo',
         'Baronesa Vesper', 'Lorde Sombra', 'Dama Fortuna', 'Arauto Azul',
         'Marquês Oculto', 'Visconde Sete', 'Oráculo da Corte', 'Máscara Rubra',
