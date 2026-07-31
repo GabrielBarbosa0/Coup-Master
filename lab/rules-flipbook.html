@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Flipbook - Coup Master Lab</title>
+  <link rel="icon" href="../assets/img/logo/favicon-coup-master.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07101a;
+      --panel: #111d2a;
+      --paper: #f3e7cf;
+      --paper-dark: #dfc99e;
+      --ink: #1c1a17;
+      --muted: #76664e;
+      --line: rgba(37, 29, 19, 0.18);
+      --blue: #2ea7ff;
+      --gold: #f0bf4a;
+      --red: #8b2f2b;
+      --shadow: rgba(0, 0, 0, 0.34);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: #f9eed9;
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(46, 167, 255, 0.24), transparent 28%),
+        radial-gradient(circle at 80% 16%, rgba(240, 191, 74, 0.18), transparent 26%),
+        linear-gradient(135deg, #050b12 0%, var(--bg) 44%, #101720 100%);
+    }
+
+    .lab-shell {
+      width: min(100% - 32px, 1240px);
+      margin: 0 auto;
+      padding: 26px 0 34px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: inherit;
+      text-decoration: none;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .brand img {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+    }
+
+    .lab-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border: 1px solid rgba(244, 234, 216, 0.22);
+      border-radius: 8px;
+      color: #f9eed9;
+      text-decoration: none;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      font-family: Cinzel, serif;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 780px;
+      font-size: clamp(34px, 6vw, 74px);
+      line-height: 0.92;
+    }
+
+    .intro p:last-child {
+      max-width: 680px;
+      margin: 14px 0 0;
+      color: #c8d6e3;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .reader-status {
+      min-width: 162px;
+      padding: 12px 14px;
+      border: 1px solid rgba(244, 234, 216, 0.16);
+      border-radius: 8px;
+      color: #c8d6e3;
+      text-align: center;
+      background: rgba(17, 29, 42, 0.72);
+    }
+
+    .reader-status strong {
+      display: block;
+      color: #fff4df;
+      font-family: Cinzel, serif;
+      font-size: 24px;
+    }
+
+    .manual-stage {
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr) 74px;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .nav-button {
+      width: 64px;
+      height: 64px;
+      border: 1px solid rgba(244, 234, 216, 0.22);
+      border-radius: 50%;
+      color: #fff4df;
+      font-size: 34px;
+      font-weight: 900;
+      background: rgba(17, 29, 42, 0.86);
+      box-shadow: 0 16px 36px var(--shadow);
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, opacity 160ms ease;
+    }
+
+    .nav-button:hover:not(:disabled) {
+      border-color: rgba(46, 167, 255, 0.8);
+      transform: translateY(-2px);
+    }
+
+    .nav-button:disabled {
+      cursor: default;
+      opacity: 0.32;
+    }
+
+    .book-wrap {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 680px;
+      padding: 28px;
+      border: 1px solid rgba(244, 234, 216, 0.12);
+      border-radius: 8px;
+      background: rgba(17, 29, 42, 0.72);
+      box-shadow: 0 26px 70px rgba(0, 0, 0, 0.32);
+      perspective: 2400px;
+    }
+
+    .book {
+      position: relative;
+      width: min(100%, 900px);
+      aspect-ratio: 1.42;
+      transform-style: preserve-3d;
+    }
+
+    .static-page,
+    .sheet {
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+    }
+
+    .static-page {
+      left: 0;
+      z-index: 0;
+    }
+
+    .sheet {
+      right: 0;
+      z-index: var(--z, 10);
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      transition: transform 720ms cubic-bezier(0.2, 0.78, 0.2, 1);
+    }
+
+    .sheet.flipped {
+      transform: rotateY(-180deg);
+    }
+
+    .page-face {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      padding: clamp(22px, 3vw, 38px);
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.22), transparent 18%, transparent 88%, rgba(96, 64, 24, 0.025)),
+        var(--paper);
+      border: 1px solid rgba(52, 38, 21, 0.2);
+      box-shadow: none;
+      backface-visibility: hidden;
+    }
+
+    .page-face.back {
+      transform: rotateY(180deg);
+      background:
+        linear-gradient(270deg, rgba(255, 255, 255, 0.2), transparent 18%, transparent 88%, rgba(96, 64, 24, 0.025)),
+        var(--paper);
+    }
+
+    .page-face.character-page {
+      padding: clamp(14px, 2vw, 24px);
+    }
+
+    .page-face::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(92, 65, 35, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(92, 65, 35, 0.035) 1px, transparent 1px);
+      background-size: 20px 20px;
+      mix-blend-mode: multiply;
+    }
+
+    .page-content {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .page-kicker {
+      color: var(--red);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .page-content h2 {
+      color: #261b10;
+      font-size: clamp(22px, 3vw, 42px);
+      line-height: 1;
+    }
+
+    .page-content h3 {
+      margin-top: 6px;
+      color: #392413;
+      font-size: clamp(17px, 2.2vw, 24px);
+    }
+
+    .page-content p,
+    .page-content li {
+      color: #33291d;
+      font-size: clamp(12px, 1.4vw, 15px);
+      line-height: 1.48;
+    }
+
+    .page-content p {
+      margin: 0;
+    }
+
+    .page-content ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .rule-box {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.36);
+    }
+
+    .rule-box strong {
+      color: #7f2825;
+    }
+
+    .page-content.dense {
+      gap: 9px;
+    }
+
+    .page-content.dense .rule-box {
+      padding: 9px 10px;
+    }
+
+    .page-content.dense p,
+    .page-content.dense li {
+      font-size: clamp(10.5px, 1.12vw, 13px);
+      line-height: 1.38;
+    }
+
+    .rule-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .rule-grid.single {
+      grid-template-columns: 1fr;
+    }
+
+    .character-spread {
+      gap: 12px;
+    }
+
+    .character-spread h2 {
+      font-size: clamp(20px, 2.5vw, 30px);
+    }
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 9px;
+      min-height: 0;
+    }
+
+    .character-card {
+      display: grid;
+      grid-template-columns: minmax(86px, 30%) minmax(0, 1fr);
+      gap: 9px;
+      min-height: 0;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.38);
+    }
+
+    .character-card.single {
+      grid-template-columns: minmax(118px, 34%) minmax(0, 1fr);
+      grid-template-rows: 1fr;
+    }
+
+    .character-art {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .character-art-frame {
+      width: 100%;
+      max-height: 158px;
+      aspect-ratio: 0.68;
+      overflow: hidden;
+      border: 1px solid rgba(52, 38, 21, 0.18);
+      border-radius: 10px;
+      background: rgba(250, 242, 220, 0.78);
+      filter: drop-shadow(0 12px 16px rgba(49, 32, 12, 0.22));
+    }
+
+    .character-art-frame.square {
+      aspect-ratio: 1;
+    }
+
+    .character-card.single .character-art-frame {
+      max-height: 250px;
+      align-self: start;
+    }
+
+    .character-info {
+      min-width: 0;
+    }
+
+    .character-info h3 {
+      margin: 0 0 3px;
+      font-size: clamp(16px, 2vw, 21px);
+    }
+
+    .character-subtitle {
+      display: block;
+      margin-bottom: 5px;
+      color: #8a322d;
+      font-size: 9.5px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .character-info p {
+      margin-bottom: 4px;
+      font-size: clamp(9.8px, 1vw, 11.6px);
+      line-height: 1.28;
+    }
+
+    .character-info p strong {
+      color: #7f2825;
+    }
+
+    .lore-text {
+      color: #5f4a32;
+      font-style: italic;
+    }
+
+    .manual-note {
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.34);
+    }
+
+    .rules-spread {
+      gap: 12px;
+    }
+
+    .rules-spread h2 {
+      font-size: clamp(22px, 2.8vw, 34px);
+    }
+
+    .rules-list {
+      display: grid;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .rules-list.two-columns {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .rule-entry {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.38);
+    }
+
+    .rule-entry h3 {
+      margin: 0 0 6px;
+      color: #392413;
+      font-size: clamp(15px, 1.8vw, 20px);
+    }
+
+    .rule-entry p,
+    .rule-entry li {
+      font-size: clamp(10.5px, 1.12vw, 13px);
+      line-height: 1.38;
+    }
+
+    .rule-entry ul {
+      margin: 0;
+      padding-left: 17px;
+    }
+
+    .rule-entry strong {
+      color: #7f2825;
+    }
+
+    .cover-page {
+      justify-content: center;
+      text-align: center;
+      background:
+        radial-gradient(circle at 50% 28%, rgba(240, 191, 74, 0.34), transparent 34%),
+        linear-gradient(135deg, #f7ecd3, #d9bd81);
+    }
+
+    .cover-logo {
+      width: 112px;
+      height: 112px;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    .cover-page h2 {
+      font-size: clamp(34px, 5vw, 62px);
+    }
+
+    .page-number {
+      margin-top: auto;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .pill-button {
+      min-height: 42px;
+      padding: 0 16px;
+      border: 1px solid rgba(244, 234, 216, 0.22);
+      border-radius: 8px;
+      color: #fff4df;
+      font: inherit;
+      font-weight: 800;
+      background: rgba(17, 29, 42, 0.84);
+      cursor: pointer;
+    }
+
+    .pill-button.is-active {
+      border-color: rgba(240, 191, 74, 0.82);
+      color: #07101a;
+      background: var(--gold);
+    }
+
+    .note {
+      max-width: 780px;
+      margin: 18px auto 0;
+      color: #aab9c8;
+      font-size: 13px;
+      line-height: 1.65;
+      text-align: center;
+    }
+
+    @media (max-width: 860px) {
+      .intro {
+        grid-template-columns: 1fr;
+      }
+
+      .manual-stage {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-button {
+        display: none;
+      }
+
+      .book-wrap {
+        min-height: auto;
+        padding: 14px;
+      }
+
+      .book {
+        width: min(100%, 460px);
+        aspect-ratio: 0.72;
+      }
+
+      .book::before {
+        display: none;
+      }
+
+      .static-page {
+        display: none;
+      }
+
+      .sheet {
+        left: 0;
+        right: auto;
+        width: 100%;
+        transform-origin: left center;
+      }
+
+      .sheet.flipped {
+        transform: rotateY(-180deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="lab-shell">
+    <header class="topbar">
+      <a class="brand" href="../landing.html">
+        <img src="../assets/img/logo/coup-master-192x192.png" alt="">
+        <span>Coup Master</span>
+      </a>
+      <a class="lab-link" href="landing.html">Voltar ao lab</a>
+    </header>
+
+    <section class="intro">
+      <div>
+        <p class="eyebrow">Protótipo de manual</p>
+        <h1>Regras em formato flipbook.</h1>
+        <p>
+          Um laboratório em HTML para testar leitura de regras com efeito de livro, sem iframe externo e sem depender de PDF.
+        </p>
+      </div>
+      <div class="reader-status" aria-live="polite">
+        <span>Página</span>
+        <strong id="pageStatus">1</strong>
+      </div>
+    </section>
+
+    <main class="manual-stage">
+      <button class="nav-button" id="prevBtn" type="button" aria-label="Página anterior">&lsaquo;</button>
+
+      <section class="book-wrap" aria-label="Manual de regras em formato flipbook">
+        <div class="book" id="book">
+          <div class="static-page">
+            <article class="page-face">
+              <div class="page-content cover-page">
+                <img class="cover-logo" src="../assets/img/logo/coup-master-192x192.png" alt="">
+                <span class="page-kicker">Coup Master</span>
+                <h2>Manual de Regras</h2>
+                <p>Promoções, Reforma e variantes para mesa casual.</p>
+                <span class="page-number">Página 1</span>
+              </div>
+            </article>
+          </div>
+
+          <div class="sheet" style="--z: 7;">
+            <article class="page-face front">
+              <div class="page-content">
+                <span class="page-kicker">Sumário</span>
+                <h2>Como usar este manual</h2>
+                <p>Este protótipo usa páginas HTML comuns. O conteúdo pode virar um manual oficial, um guia rápido ou uma central de regras alternativa.</p>
+                <div class="rule-box">
+                  <p><strong>Teste:</strong> use os botões laterais, os botões inferiores ou as setas do teclado para virar páginas.</p>
+                </div>
+                <h3>Conteúdo inicial</h3>
+                <ul>
+                  <li>Ações dos personagens base e variações com Inquisidor.</li>
+                  <li>Influências do Palácio, Revolução e Asilo.</li>
+                  <li>Cartas promocionais: Bufão, Burocrata, Burguês e Benfeitor.</li>
+                  <li>A Reforma: religiões, conversão, asilo e corrupção.</li>
+                  <li>A Inquisição: Inquisidor e marcador de subversão.</li>
+                </ul>
+                <span class="page-number">Página 2</span>
+              </div>
+            </article>
+            <article class="page-face back">
+              <div class="page-content dense">
+                <span class="page-kicker">Ações de personagens</span>
+                <h2>Base & Inquisidor</h2>
+                <div class="rule-grid">
+                  <div class="rule-box">
+                    <p><strong>Duque - Taxar:</strong> pegue 3 moedas do tesouro central. Não pode ser bloqueado.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Capitão - Extorquir:</strong> pegue 2 moedas de um oponente. Pode ser bloqueado por Capitão, Embaixador ou Bufão.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Assassino - Assassinar:</strong> pague 3 moedas e escolha um oponente para perder 1 influência. Pode ser bloqueado pela Condessa.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Condessa - Persuasão:</strong> bloqueia qualquer Assassinato direcionado a você. Não pode ser bloqueada.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Embaixador - Trocar:</strong> pegue 2 cartas e devolva 2 cartas para o deck. Não pode ser bloqueado.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Inquisidor:</strong> compre 1 carta e devolva 1 carta ao baralho, ou investigue uma carta de outro jogador e force ou não a troca.</p>
+                  </div>
+                </div>
+                <span class="page-number">Página 3</span>
+              </div>
+            </article>
+          </div>
+
+          <div class="sheet" style="--z: 6;">
+            <article class="page-face front">
+              <div class="page-content dense">
+                <span class="page-kicker">Variação de bloqueios</span>
+                <h2>Base com expansões</h2>
+                <div class="rule-grid">
+                  <div class="rule-box">
+                    <p><strong>Duque:</strong> Taxar pega 3 moedas e também bloqueia Tributação do Tesoureiro contra si.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Assassino:</strong> Assassinar pode ser bloqueado pela Condessa ou pelo Diplomata.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Condessa:</strong> bloqueia Assassinato direcionado a você e a Negociação do Diplomata.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Inquisidor:</strong> Investigar pode ser bloqueado pelo Bispo.</p>
+                  </div>
+                </div>
+                <p>Use esta página quando o baralho estiver misturando cartas base com Revolução, Asilo ou personagens promocionais.</p>
+                <span class="page-number">Página 4</span>
+              </div>
+            </article>
+            <article class="page-face back">
+              <div class="page-content dense">
+                <span class="page-kicker">Influências do Palácio</span>
+                <h2>Promoções</h2>
+                <div class="rule-grid">
+                  <div class="rule-box">
+                    <p><strong>Bufão - Desordem:</strong> pegue 1 carta do deck e 1 de um adversário; troque uma delas por uma sua e devolva as outras. Bloqueia Extorsão e Desordem.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Burocrata - Cooperação:</strong> pegue 3 moedas do Tesouro Central e entregue 1 moeda para um adversário. Bloqueia Ajuda Externa.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Benfeitor - Redistribuição:</strong> tira 3 moedas do jogador mais rico e entrega ao mais pobre. Benfeitores podem bloquear a ação.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Burguês - Dividendos:</strong> pega 4 moedas. Declarantes não contestados recebem 1 moeda do jogador ativo.</p>
+                  </div>
+                </div>
+                <span class="page-number">Página 5</span>
+              </div>
+            </article>
+          </div>
+
+          <div class="sheet" style="--z: 5;">
+            <article class="page-face front">
+              <div class="page-content dense">
+                <span class="page-kicker">Influências da Revolução</span>
+                <h2>Controle e pacto</h2>
+                <div class="rule-grid single">
+                  <div class="rule-box">
+                    <p><strong>Marionetista - Puxar Fios:</strong> pague 3 moedas e escolha um jogador; você decide a próxima ação dele, exceto Golpe de Estado. O efeito termina após essa ação ou se o Marionetista morrer.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Diplomata - Negociar:</strong> pague 2 moedas e escolha dois jogadores. Até seu próximo turno, eles não podem usar ações um contra o outro. Pode ser bloqueado pela Condessa.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Diplomata - Interceder:</strong> bloqueia Execução Bruta contra si.</p>
+                  </div>
+                </div>
+                <span class="page-number">Página 6</span>
+              </div>
+            </article>
+            <article class="page-face back">
+              <div class="page-content dense">
+                <span class="page-kicker">Influências da Revolução</span>
+                <h2>Pressão e punição</h2>
+                <div class="rule-grid single">
+                  <div class="rule-box">
+                    <p><strong>Mercenário - Execução Bruta:</strong> pague 5 moedas para eliminar qualquer carta. Pode ser bloqueado pelo Diplomata.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Tesoureiro - Tributação:</strong> ganhe 2 moedas; todos os outros jogadores pagam 1 moeda ao banco. Pode ser bloqueado pelo Duque.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Bispo - Expurgar:</strong> pague 2 moedas. O alvo revela uma influência, envia ao cemitério e compra nova carta. Bloqueia Inquisidor contra si.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Vigilante - Vingança:</strong> cobre 2 moedas de quem usou ação ofensiva contra você desde seu último turno. Se não puder pagar, revela uma influência.</p>
+                  </div>
+                </div>
+                <span class="page-number">Página 7</span>
+              </div>
+            </article>
+          </div>
+
+          <div class="sheet" style="--z: 4;">
+            <article class="page-face front">
+              <div class="page-content dense">
+                <span class="page-kicker">Influências do Asilo</span>
+                <h2>Risco e dinheiro</h2>
+                <div class="rule-grid single">
+                  <div class="rule-box">
+                    <p><strong>Pistoleiro - Cabeça a Prêmio:</strong> pague 2 moedas e escolha um alvo. Outro jogador pode pagar 2 moedas para fazer o alvo perder 1 influência. Pode ser bloqueado pelo Xerife.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Magnata - Suborno:</strong> troque uma carta com o baralho. Você pode pagar X moedas para comprar X cartas extras, escolher uma e devolver o restante.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Estrategista - Manobra:</strong> receba 2 moedas e troque uma de suas cartas com outro jogador.</p>
+                  </div>
+                </div>
+                <span class="page-number">Página 8</span>
+              </div>
+            </article>
+            <article class="page-face back">
+              <div class="page-content dense">
+                <span class="page-kicker">Influências do Asilo</span>
+                <h2>Crime e contenção</h2>
+                <div class="rule-grid single">
+                  <div class="rule-box">
+                    <p><strong>Ladrão - Roubo:</strong> pegue 1 moeda de cada jogador. Outros Ladrões bloqueiam o roubo contra si.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Vigarista - Fortuna Arriscada:</strong> dobre suas moedas, até o máximo de 5. Se for contestado e perder, entregue todas as moedas ao desafiante.</p>
+                  </div>
+                  <div class="rule-box">
+                    <p><strong>Xerife - Procurado:</strong> pague 1 moeda e escolha um jogador. Até seu próximo turno, ações ofensivas dele que custem moedas custam 2 a mais. Bloqueia Cabeça a Prêmio contra qualquer jogador.</p>
+                  </div>
+                </div>
+                <span class="page-number">Página 9</span>
+              </div>
+            </article>
+          </div>
+
+          <div class="sheet" style="--z: 3;">
+            <article class="page-face front">
+              <div class="page-content">
+                <span class="page-kicker">Promocionais</span>
+                <h2>Bufão & Burocrata</h2>
+                <p>Você pode jogar com um ou dois personagens promocionais.</p>
+                <ul>
+                  <li>Com o Bufão, remova as 3 cartas de Embaixador e substitua por 3 cartas de Bufão.</li>
+                  <li>Com o Burocrata, remova as 3 cartas de Duque e substitua por 3 cartas de Burocrata.</li>
+                  <li>Para efeitos que mencionam Embaixador ou Duque, considere Bufão ou Burocrata.</li>
+                </ul>
+                <div class="rule-box">
+                  <p><strong>Bufão - Desordem:</strong> compre 1 carta do Baralho da Corte e uma carta de um adversário escolhida por ele. Troque, devolva uma carta ao baralho e outra ao adversário.</p>
+                </div>
+                <div class="rule-box">
+                  <p><strong>Burocrata - Cooperação:</strong> pegue 3 moedas do Tesouro Central e entregue 1 moeda para um adversário.</p>
+                </div>
+                <span class="page-number">Página 10</span>
+              </div>
+            </article>
+            <article class="page-face back">
+              <div class="page-content">
+                <span class="page-kicker">Promocionais</span>
+                <h2>Burguês & Benfeitor</h2>
+                <p>Você pode jogar com um ou dois personagens promocionais.</p>
+                <ul>
+                  <li>Com o Benfeitor, remova as 3 cartas de Embaixador e substitua por 3 cartas de Benfeitor.</li>
+                  <li>Com o Burguês, remova as 3 cartas de Duque e substitua por 3 cartas de Burguês.</li>
+                  <li>Para efeitos que mencionam Embaixador ou Duque, considere Benfeitor ou Burguês.</li>
+                </ul>
+                <div class="rule-box">
+                  <p><strong>Benfeitor - Redistribuição:</strong> pegue 3 moedas do jogador com mais moedas e entregue ao jogador com menos moedas.</p>
+                </div>
+                <div class="rule-box">
+                  <p><strong>Burguês - Dividendos:</strong> pegue 4 moedas. Outros jogadores podem declarar Burguês e receber 1 moeda do jogador ativo se não forem contestados com sucesso.</p>
+                </div>
+                <span class="page-number">Página 11</span>
+              </div>
+            </article>
+          </div>
+
+          <div class="sheet" style="--z: 2;">
+            <article class="page-face front">
+              <div class="page-content">
+                <span class="page-kicker">Expansão</span>
+                <h2>A Reforma</h2>
+                <p>A Reforma adiciona religiões ao jogo: Católicos e Protestantes. Exceto pelas mudanças abaixo, o modo de jogar e vencer permanece o mesmo.</p>
+                <h3>Preparação</h3>
+                <ul>
+                  <li>Coloque a carta Asilo no centro da mesa.</li>
+                  <li>Dê a cada jogador uma carta de Religião.</li>
+                  <li>O primeiro jogador escolhe uma religião e os demais alternam em sentido horário.</li>
+                </ul>
+                <h3>Restrição</h3>
+                <p>Um jogador não pode aplicar Golpe de Estado, Assassinar, Extorquir ou bloquear Ajuda Externa de outro jogador da mesma religião, a menos que todos estejam na mesma religião.</p>
+                <span class="page-number">Página 12</span>
+              </div>
+            </article>
+            <article class="page-face back">
+              <div class="page-content">
+                <span class="page-kicker">A Reforma</span>
+                <h2>Ações adicionais</h2>
+                <div class="rule-box">
+                  <p><strong>Conversão:</strong> pague 1 moeda para mudar sua religião ou 2 moedas para mudar a religião de outro jogador. As moedas vão para o Asilo.</p>
+                </div>
+                <div class="rule-box">
+                  <p><strong>Corrupção:</strong> alegue não possuir o Duque e pegue todas as moedas do Asilo. Qualquer jogador pode contestar.</p>
+                </div>
+                <p>Se o jogador contestado possuir o Duque, ele perde a contestação, devolve as moedas ao Asilo e perde uma influência.</p>
+                <p>Se não possuir o Duque, ele revela suas influências, o desafiante perde uma influência e as cartas reveladas são substituídas aleatoriamente.</p>
+                <span class="page-number">Página 13</span>
+              </div>
+            </article>
+          </div>
+
+          <div class="sheet" style="--z: 1;">
+            <article class="page-face front">
+              <div class="page-content">
+                <span class="page-kicker">Variante</span>
+                <h2>A Inquisição</h2>
+                <p>Substitua o Embaixador pelo Inquisidor e coloque o marcador no centro da mesa com o lado do Inquisidor virado para cima.</p>
+                <h3>Marcador</h3>
+                <p>O marcador determina o comportamento do Duque. Na face dos Duques, o jogo funciona com as regras normais.</p>
+                <div class="rule-box">
+                  <p><strong>Inquisidor:</strong> quando alguém usa Taxas do Duque, outro jogador pode reivindicar o Inquisidor. O Duque paga 1 moeda para esse jogador e recebe apenas 2 moedas do Tesouro Central.</p>
+                </div>
+                <p>Se mais de um jogador reivindicar o Inquisidor, quem tiver menos dinheiro tem preferência. Em empate, o Duque escolhe.</p>
+                <span class="page-number">Página 14</span>
+              </div>
+            </article>
+            <article class="page-face back">
+              <div class="page-content cover-page">
+                <span class="page-kicker">Ação geral</span>
+                <h2>Subverter</h2>
+                <p>Pague 1 moeda para o Tesouro Central e vire o marcador.</p>
+                <div class="rule-box">
+                  <p><strong>Próximo passo:</strong> este lab pode virar um manual completo com índice, imagens das cartas, páginas por expansão e exportação futura para PDF.</p>
+                </div>
+                <span class="page-number">Página 15</span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <button class="nav-button" id="nextBtn" type="button" aria-label="Próxima página">&rsaquo;</button>
+    </main>
+
+    <div class="controls" aria-label="Navegação rápida">
+      <button class="pill-button is-active" type="button" data-page="0">Capa</button>
+      <button class="pill-button" type="button" data-page="1">Personagens</button>
+      <button class="pill-button" type="button" data-page="5">Revolução</button>
+      <button class="pill-button" type="button" data-page="7">Asilo</button>
+      <button class="pill-button" type="button" data-page="9">Promos</button>
+      <button class="pill-button" type="button" data-page="11">Reforma</button>
+      <button class="pill-button" type="button" data-page="13">Inquisição</button>
+    </div>
+
+    <p class="note">
+      Observação: este protótipo é uma alternativa ao iframe de PDF. Ele mantém o conteúdo em HTML, facilita revisão de texto e pode ser integrado depois ao Coup Master.
+    </p>
+  </div>
+
+  <script>
+    const book = document.getElementById('book');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageStatus = document.getElementById('pageStatus');
+    const controls = document.querySelector('.controls');
+    const flipDurationMs = 720;
+    let sheets = [];
+    let quickButtons = [];
+    let totalPages = 1;
+    let currentPage = 0;
+    let depthTimer = null;
+
+    const rulePages = [
+      {
+        type: 'rules',
+        kicker: 'Regras do jogo',
+        title: 'Objetivo e influência',
+        columns: 1,
+        entries: [
+          {
+            title: 'Objetivo',
+            body: 'Seja o último jogador com pelo menos uma influência viva. Cada jogador começa com cartas ocultas, moedas e a liberdade de blefar sobre quais personagens possui.'
+          },
+          {
+            title: 'Influências',
+            body: 'Suas cartas viradas para baixo representam sua influência na corte. Quando perde uma influência, escolha uma carta para revelar. Cartas reveladas permanecem visíveis e não podem mais ser usadas.'
+          },
+          {
+            title: 'Blefe e contestação',
+            body: 'Você pode declarar uma ação de personagem mesmo sem possuir aquela carta. Outros jogadores podem contestar. Se você provar a influência, troca a carta revelada por uma nova do baralho; se estiver blefando, perde uma influência.'
+          }
+        ]
+      },
+      {
+        type: 'rules',
+        kicker: 'Preparação',
+        title: 'Montando a mesa',
+        columns: 1,
+        entries: [
+          {
+            title: 'Baralho da Corte',
+            body: 'Use o baralho base ou escolha módulos de expansão no modo casual. Em uma partida padrão, embaralhe as influências e entregue 2 cartas ocultas para cada jogador.'
+          },
+          {
+            title: 'Moedas',
+            body: 'Cada jogador começa com 2 moedas. O tesouro central fica disponível para renda, ajuda externa, taxas e pagamentos de ações.'
+          },
+          {
+            title: 'Mesa casual e ranqueado',
+            body: 'No casual, a mesa funciona como sandbox e os jogadores aplicam as regras socialmente. No ranqueado, o sistema automatiza turnos, respostas, bloqueios, desafios e resultado.'
+          }
+        ]
+      },
+      {
+        type: 'rules',
+        kicker: 'Turno',
+        title: 'Ações gerais',
+        columns: 2,
+        entries: [
+          {
+            title: 'Renda',
+            body: 'Pegue 1 moeda do tesouro central. Não pode ser bloqueada ou contestada.'
+          },
+          {
+            title: 'Ajuda Externa',
+            body: 'Pegue 2 moedas do tesouro central. Pode ser bloqueada por quem declarar Duque.'
+          },
+          {
+            title: 'Golpe de Estado',
+            body: 'Pague 7 moedas e escolha um jogador para perder 1 influência. Não pode ser bloqueado ou contestado.'
+          },
+          {
+            title: 'Golpe obrigatório',
+            body: 'Ao começar seu turno com 10 moedas ou mais, você deve aplicar Golpe de Estado.'
+          }
+        ]
+      },
+      {
+        type: 'rules',
+        kicker: 'Turno',
+        title: 'Ações de personagem',
+        columns: 1,
+        entries: [
+          {
+            title: 'Declarar personagem',
+            body: 'Ações como Taxar, Extorquir, Assassinar, Trocar e Investigar exigem declarar a influência correspondente. A declaração pode ser verdadeira ou blefada.'
+          },
+          {
+            title: 'Janela de resposta',
+            body: 'Depois de uma declaração, os outros jogadores podem contestar a influência, declarar um bloqueio válido ou aceitar a ação.'
+          },
+          {
+            title: 'Resolver ação',
+            body: 'Se ninguém contestar ou bloquear, a ação acontece. Se houver bloqueio, o bloqueio também pode ser contestado antes da ação ser cancelada.'
+          }
+        ]
+      },
+      {
+        type: 'rules',
+        kicker: 'Contestação',
+        title: 'Desafios e prova',
+        columns: 1,
+        entries: [
+          {
+            title: 'Contestando uma ação',
+            body: 'Um jogador pode desafiar quem declarou uma influência. O jogador desafiado revela uma carta correspondente ou admite o blefe.'
+          },
+          {
+            title: 'Se a declaração era verdadeira',
+            body: 'O desafiante perde uma influência. Quem provou a carta embaralha essa influência no baralho e compra uma substituta.'
+          },
+          {
+            title: 'Se era blefe',
+            body: 'O jogador que blefou perde uma influência. Depois disso, a mesa continua conforme a ação, bloqueio ou continuação indicada pela regra.'
+          }
+        ]
+      },
+      {
+        type: 'rules',
+        kicker: 'Bloqueios',
+        title: 'Ações contrárias',
+        columns: 2,
+        entries: [
+          {
+            title: 'Duque',
+            body: 'Bloqueia Ajuda Externa. No ranqueado atual, qualquer jogador pode declarar esse bloqueio.'
+          },
+          {
+            title: 'Condessa',
+            body: 'Bloqueia Assassinato direcionado a você.'
+          },
+          {
+            title: 'Capitão',
+            body: 'Bloqueia Extorsão quando você é o alvo.'
+          },
+          {
+            title: 'Embaixador/Inquisidor',
+            body: 'Bloqueiam Extorsão quando você é o alvo.'
+          }
+        ]
+      },
+      {
+        type: 'rules',
+        kicker: 'Eliminação',
+        title: 'Perda de influência e vitória',
+        columns: 1,
+        entries: [
+          {
+            title: 'Revelar carta',
+            body: 'Quando perde uma influência, o jogador escolhe uma de suas cartas ocultas e a revela. Essa carta deixa de contar para ações e bloqueios.'
+          },
+          {
+            title: 'Eliminação',
+            body: 'Um jogador com todas as influências reveladas está eliminado. Ele permanece como parte da história da mesa, mas não executa novas ações.'
+          },
+          {
+            title: 'Fim da partida',
+            body: 'A partida termina quando apenas um jogador ainda possui influência oculta.'
+          }
+        ]
+      },
+      {
+        type: 'rules',
+        kicker: 'Módulos',
+        title: 'Promos e expansões',
+        columns: 1,
+        entries: [
+          {
+            title: 'Personagens promocionais',
+            body: 'Bufão e Benfeitor substituem o Embaixador em seus módulos. Burocrata e Burguês substituem o Duque. Para efeitos que mencionam a carta substituída, use o personagem escolhido.'
+          },
+          {
+            title: 'A Reforma',
+            body: 'Adiciona religiões, Asilo, Conversão e Corrupção. Jogadores da mesma religião não podem aplicar Golpe, Assassinar, Extorquir ou bloquear Ajuda Externa entre si, a menos que todos estejam na mesma religião.'
+          },
+          {
+            title: 'Revolução e Asilo',
+            body: 'Adicionam personagens com ações mais fortes, bloqueios específicos e efeitos de controle. Use as fichas de personagens deste manual como referência de mesa.'
+          }
+        ]
+      }
+    ];
+
+    const characterPages = [
+      {
+        kicker: 'Manual de personagens',
+        title: 'Como ler as fichas',
+        note: 'Cada personagem combina presença visual, habilidade, bloqueio e um trecho curto de lore. A ideia é transformar o manual em uma referência de mesa e também em uma pequena galeria do mundo de Coup Master.',
+        items: [
+          {
+            name: 'Influência',
+            subtitle: 'A carta que você declara',
+            image: '../assets/img/cards/base/back.png',
+            ability: 'Use a habilidade quando declarar possuir aquela influência.',
+            block: 'Bloqueios dependem da ação recebida e podem ser contestados.',
+            lore: 'Na corte, uma carta nunca é só uma carta. É um favor, uma ameaça e uma mentira esperando o momento certo.'
+          }
+        ]
+      },
+      {
+        kicker: 'Baralho base',
+        title: 'Poder e extorsão',
+        items: [
+          {
+            name: 'Duque',
+            subtitle: 'O senhor dos impostos',
+            image: '../assets/img/cards/base/duque.png',
+            ability: 'Taxar: pegue 3 moedas do tesouro central.',
+            block: 'Bloqueia Ajuda Externa de qualquer jogador. Com Revolução, também bloqueia Tributação do Tesoureiro contra si.',
+            lore: 'O Duque não pede recursos; ele os recolhe. Cada moeda que atravessa a cidade parece passar primeiro por suas mãos.'
+          },
+          {
+            name: 'Capitão',
+            subtitle: 'O dono das rotas sujas',
+            image: '../assets/img/cards/base/capitao.png',
+            ability: 'Extorquir: pegue até 2 moedas de um oponente.',
+            block: 'Bloqueia Extorsão direcionada a você no fluxo ranqueado atual.',
+            lore: 'O Capitão sabe onde cada navio atraca, onde cada guarda aceita suborno e onde cada rival esconde sua bolsa.'
+          }
+        ]
+      },
+      {
+        kicker: 'Baralho base',
+        title: 'Morte e proteção',
+        items: [
+          {
+            name: 'Assassino',
+            subtitle: 'A lâmina sem brasão',
+            image: '../assets/img/cards/base/assassino.png',
+            ability: 'Assassinar: pague 3 moedas e escolha um oponente para perder 1 influência.',
+            block: 'Pode ser bloqueado pela Condessa. Com Revolução, também pode ser bloqueado pelo Diplomata em efeitos específicos.',
+            lore: 'Ninguém sabe seu nome verdadeiro. Sabe-se apenas que portas trancadas não costumam atrasá-lo.'
+          },
+          {
+            name: 'Condessa',
+            subtitle: 'A muralha dos salões',
+            image: '../assets/img/cards/base/condessa.png',
+            ability: 'Persuasão: bloqueia qualquer assassinato direcionado a você.',
+            block: 'Também bloqueia a Negociação do Diplomata nas regras da Revolução.',
+            lore: 'A Condessa vence antes da ameaça chegar perto. Um convite dela pode salvar sua vida ou assinar sua sentença.'
+          }
+        ]
+      },
+      {
+        kicker: 'Baralho base',
+        title: 'Segredos e investigação',
+        items: [
+          {
+            name: 'Embaixador',
+            subtitle: 'O arquiteto das trocas',
+            image: '../assets/img/cards/base/embaixador.png',
+            ability: 'Trocar: pegue 2 cartas e devolva 2 cartas para o deck.',
+            block: 'Bloqueia Extorsão direcionada a você.',
+            lore: 'O Embaixador nunca entrega uma resposta direta. Ele prefere oferecer duas opções e esconder a terceira na manga.'
+          },
+          {
+            name: 'Inquisidor',
+            subtitle: 'O olhar que abre mãos',
+            image: '../assets/img/cards/base/inquisidor.png',
+            ability: 'Trocar: compre 1 carta e devolva 1. Investigar: olhe uma carta de outro jogador e force ou não a troca.',
+            block: 'Bloqueia Extorsão direcionada a você. Com Revolução, pode ter Investigar bloqueado pelo Bispo.',
+            lore: 'O Inquisidor não precisa levantar a voz. Basta encarar tempo suficiente para que o segredo pareça querer confessar.'
+          }
+        ]
+      },
+      {
+        kicker: 'Influências do Palácio',
+        title: 'Caos e burocracia',
+        items: [
+          {
+            name: 'Bufão',
+            subtitle: 'O erro que sorri',
+            image: '../assets/img/cards/promo/bufao.png',
+            ability: 'Desordem: pegue 1 carta do deck e 1 de um adversário; troque uma delas por uma sua e devolva as outras.',
+            block: 'Bloqueia Extorsão e Desordem quando você é o alvo.',
+            lore: 'O Bufão sabe que uma corte séria demais é fácil de derrubar. Ele troca cartas como quem troca o sentido de uma piada.'
+          },
+          {
+            name: 'Burocrata',
+            subtitle: 'O carimbo da ruína',
+            image: '../assets/img/cards/promo/burocrata.png',
+            ability: 'Cooperação: pegue 3 moedas do Tesouro Central e entregue 1 moeda para um adversário.',
+            block: 'Bloqueia Ajuda Externa.',
+            lore: 'O Burocrata não nega favores; ele apenas exige formulários, selos e tempo suficiente para transformar urgência em dívida.'
+          }
+        ]
+      },
+      {
+        kicker: 'Influências do Palácio',
+        title: 'Riqueza e redistribuição',
+        items: [
+          {
+            name: 'Benfeitor',
+            subtitle: 'A caridade afiada',
+            image: '../assets/img/cards/promo/benfeitor.png',
+            ability: 'Redistribuição: tire 3 moedas do jogador mais rico e entregue ao mais pobre. Em empate, o jogador ativo escolhe.',
+            block: 'Qualquer jogador que declarar Benfeitor pode bloquear Redistribuição, cancelando a ação.',
+            lore: 'O Benfeitor chama de justiça aquilo que seus inimigos chamam de confisco. Curiosamente, ambos costumam estar certos.'
+          },
+          {
+            name: 'Burguês',
+            subtitle: 'O mercado em pessoa',
+            image: '../assets/img/cards/promo/burgues.png',
+            ability: 'Dividendos: pegue 4 moedas. Declarantes de Burguês não contestados recebem 1 moeda do jogador ativo.',
+            block: 'Não possui bloqueio direto nesta ficha.',
+            lore: 'O Burguês não precisa de título nobre quando todos na mesa dependem de crédito, comida e silêncio comprado.'
+          }
+        ]
+      },
+      {
+        kicker: 'Influências da Revolução',
+        title: 'Controle e pacto',
+        items: [
+          {
+            name: 'Marionetista',
+            subtitle: 'O mestre dos fios',
+            image: '../assets/img/cards/dlc1/marionetista.png',
+            ability: 'Puxar Fios: pague 3 moedas e escolha um jogador; você decide a próxima ação dele, exceto Golpe de Estado.',
+            block: 'Não possui bloqueio direto nesta ficha.',
+            lore: 'O Marionetista raramente aparece. Quando alguém age contra a própria vontade, todos lembram que ele existe.'
+          },
+          {
+            name: 'Diplomata',
+            subtitle: 'O tratado com dentes',
+            image: '../assets/img/cards/dlc1/diplomata.png',
+            ability: 'Negociar: pague 2 moedas e escolha dois jogadores. Até seu próximo turno, eles não podem usar ações um contra o outro.',
+            block: 'Interceder: bloqueia Execução Bruta contra si. Sua Negociação pode ser bloqueada pela Condessa.',
+            lore: 'O Diplomata transforma guerra em pausa, pausa em vantagem e vantagem em uma assinatura difícil de recusar.'
+          }
+        ]
+      },
+      {
+        kicker: 'Influências da Revolução',
+        title: 'Força e tributo',
+        items: [
+          {
+            name: 'Mercenário',
+            subtitle: 'A espada sem pátria',
+            image: '../assets/img/cards/dlc1/mercenario.png',
+            ability: 'Execução Bruta: pague 5 moedas para eliminar qualquer carta.',
+            block: 'Pode ser bloqueado pelo Diplomata.',
+            lore: 'O Mercenário não discute legitimidade. Ele pergunta quem paga, quem cai e se a porta deve ficar aberta.'
+          },
+          {
+            name: 'Tesoureiro',
+            subtitle: 'O contador da revolta',
+            image: '../assets/img/cards/dlc1/tesoureiro.png',
+            ability: 'Tributação: ganhe 2 moedas; todos os outros jogadores pagam 1 moeda ao banco.',
+            block: 'Pode ser bloqueado pelo Duque contra si.',
+            lore: 'O Tesoureiro acredita que toda revolução precisa de caixa. E toda caixa precisa de alguém que saiba onde apertar.'
+          }
+        ]
+      },
+      {
+        kicker: 'Influências da Revolução',
+        title: 'Purga e vingança',
+        items: [
+          {
+            name: 'Bispo',
+            subtitle: 'A fé como sentença',
+            image: '../assets/img/cards/dlc1/bispo.png',
+            ability: 'Expurgar: pague 2 moedas. O alvo revela uma influência, coloca no cemitério e compra uma nova carta.',
+            block: 'Bloqueia ações do Inquisidor contra si.',
+            lore: 'O Bispo sabe que confissões forçadas são úteis, mas confissões públicas são inesquecíveis.'
+          },
+          {
+            name: 'Vigilante',
+            subtitle: 'A justiça que espera',
+            image: '../assets/img/cards/dlc1/vigilante.png',
+            ability: 'Vingança: cobre 2 moedas de quem usou ação ofensiva contra você desde seu último turno. Se não puder pagar, revela uma influência.',
+            block: 'Não possui bloqueio direto nesta ficha.',
+            lore: 'O Vigilante não impede a primeira agressão. Ele prefere garantir que todos assistam ao preço da segunda.'
+          }
+        ]
+      },
+      {
+        kicker: 'Influências do Asilo',
+        title: 'Contrato e suborno',
+        items: [
+          {
+            name: 'Pistoleiro',
+            subtitle: 'O preço na cabeça',
+            image: '../assets/img/cards/dlc2/pistoleiro.png',
+            ability: 'Cabeça a Prêmio: pague 2 moedas e escolha um alvo. Outro jogador pode pagar 2 moedas para o alvo perder 1 influência.',
+            block: 'Pode ser bloqueado pelo Xerife.',
+            lore: 'O Pistoleiro nunca precisa atirar primeiro. Às vezes basta informar o valor certo à pessoa errada.'
+          },
+          {
+            name: 'Magnata',
+            subtitle: 'O dono das portas laterais',
+            image: '../assets/img/cards/dlc2/magnata.png',
+            ability: 'Suborno: troque uma carta com o baralho. Você pode pagar X moedas para comprar X cartas extras, escolher uma e devolver o restante.',
+            block: 'Não possui bloqueio direto nesta ficha.',
+            lore: 'O Magnata compra silêncio, oportunidade e versões alternativas da verdade. O recibo nunca chega ao livro-caixa.'
+          }
+        ]
+      },
+      {
+        kicker: 'Influências do Asilo',
+        title: 'Manobra e roubo',
+        items: [
+          {
+            name: 'Estrategista',
+            subtitle: 'A troca calculada',
+            image: '../assets/img/cards/dlc2/estrategista.png',
+            ability: 'Manobra: receba 2 moedas e troque uma de suas cartas com outro jogador.',
+            block: 'Não possui bloqueio direto nesta ficha.',
+            lore: 'O Estrategista vence pequenas batalhas que ninguém percebe até que o mapa inteiro já tenha mudado.'
+          },
+          {
+            name: 'Ladrão',
+            subtitle: 'A mão no bolso da corte',
+            image: '../assets/img/cards/dlc2/ladrao.png',
+            ability: 'Roubo: pegue 1 moeda de cada jogador.',
+            block: 'Outros Ladrões bloqueiam o Roubo contra si.',
+            lore: 'O Ladrão não rouba fortunas. Ele prefere pequenas ausências, repetidas até virarem uma crise política.'
+          }
+        ]
+      },
+      {
+        kicker: 'Influências do Asilo',
+        title: 'Risco e lei',
+        items: [
+          {
+            name: 'Vigarista',
+            subtitle: 'A moeda no ar',
+            image: '../assets/img/cards/dlc2/vigarista.png',
+            ability: 'Fortuna Arriscada: dobre suas moedas, até o máximo de 5.',
+            block: 'Se for contestado e perder, entregue todas as suas moedas ao desafiante.',
+            lore: 'O Vigarista chama azar de falta de coragem. Até hoje, a cidade não decidiu se ele é sortudo ou convincente demais.'
+          },
+          {
+            name: 'Xerife',
+            subtitle: 'A ordem armada',
+            image: '../assets/img/cards/dlc2/xerife.png',
+            ability: 'Procurado: pague 1 moeda e escolha um jogador. Até seu próximo turno, ações ofensivas dele que custem moedas custam 2 a mais.',
+            block: 'Bloqueia Cabeça a Prêmio contra qualquer jogador.',
+            lore: 'O Xerife não promete justiça plena. Promete apenas que certas violências sairão caras demais para parecerem fáceis.'
+          }
+        ]
+      },
+      {
+        kicker: 'Expansão',
+        title: 'A Reforma',
+        items: [
+          {
+            name: 'Asilo',
+            subtitle: 'O cofre dos convertidos',
+            image: '../assets/img/cards/religion/asilo.png',
+            shape: 'square',
+            ability: 'Conversão: pague 1 moeda para mudar sua religião ou 2 moedas para mudar a religião de outro jogador.',
+            block: 'Corrupção: alegue não possuir o Duque e pegue todas as moedas do Asilo. A alegação pode ser contestada.',
+            lore: 'O Asilo guarda moedas, pecados e promessas de fé. Ninguém sabe ao certo qual dessas coisas pesa mais.'
+          }
+        ]
+      },
+      {
+        kicker: 'Variante',
+        title: 'A Inquisição',
+        items: [
+          {
+            name: 'Marcador do Inquisidor',
+            subtitle: 'A face que muda o Duque',
+            image: '../assets/img/cards/base/inquisidor.png',
+            ability: 'Subverter: pague 1 moeda para o Tesouro Central e vire o marcador.',
+            block: 'Quando o marcador favorece o Inquisidor, a Taxa do Duque pode render 2 moedas ao Duque e 1 moeda ao Inquisidor declarado, se a reivindicação sobreviver à contestação.',
+            lore: 'Quando o marcador gira, a cidade aprende que até o imposto pode mudar de dono antes de chegar ao cofre.'
+          }
+        ]
+      }
+    ];
+
+    function clampPage(page) {
+      return Math.max(0, Math.min(totalPages - 1, page));
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function renderCharacter(character, single = false) {
+      const shapeClass = character.shape === 'square' ? ' square' : '';
+      return `
+        <article class="character-card ${single ? 'single' : ''}">
+          <div class="character-art-frame${shapeClass}">
+            <img class="character-art" src="${escapeHtml(character.image)}" alt="Carta ${escapeHtml(character.name)}">
+          </div>
+          <div class="character-info">
+            <h3>${escapeHtml(character.name)}</h3>
+            <span class="character-subtitle">${escapeHtml(character.subtitle)}</span>
+            <p><strong>Habilidade:</strong> ${escapeHtml(character.ability)}</p>
+            <p><strong>Bloqueio:</strong> ${escapeHtml(character.block)}</p>
+            <p class="lore-text">${escapeHtml(character.lore)}</p>
+          </div>
+        </article>`;
+    }
+
+    function renderRuleEntry(entry) {
+      return `
+        <article class="rule-entry">
+          <h3>${escapeHtml(entry.title)}</h3>
+          <p>${escapeHtml(entry.body)}</p>
+        </article>`;
+    }
+
+    function renderRulePage(page, pageNumber) {
+      return `
+        <div class="page-content rules-spread dense">
+          <span class="page-kicker">${escapeHtml(page.kicker)}</span>
+          <h2>${escapeHtml(page.title)}</h2>
+          <div class="rules-list ${page.columns === 2 ? 'two-columns' : ''}">
+            ${page.entries.map((entry) => renderRuleEntry(entry)).join('')}
+          </div>
+          <span class="page-number">Página ${pageNumber}</span>
+        </div>`;
+    }
+
+    function renderPage(page, pageNumber) {
+      if (page.type === 'rules') return renderRulePage(page, pageNumber);
+
+      const single = page.items.length === 1;
+      return `
+        <div class="page-content character-spread dense">
+          <span class="page-kicker">${escapeHtml(page.kicker)}</span>
+          <h2>${escapeHtml(page.title)}</h2>
+          ${page.note ? `<p class="manual-note">${escapeHtml(page.note)}</p>` : ''}
+          <div class="character-grid ${single ? 'single' : ''}">
+            ${page.items.map((character) => renderCharacter(character, single)).join('')}
+          </div>
+          <span class="page-number">Página ${pageNumber}</span>
+        </div>`;
+    }
+
+    function renderBook() {
+      const generatedSheets = [];
+      const manualPages = [...rulePages, ...characterPages];
+
+      for (let index = 0; index < manualPages.length; index += 2) {
+        const frontPage = manualPages[index];
+        const backPage = manualPages[index + 1] || {
+          kicker: 'Próximo passo',
+          title: 'Manual em evolução',
+          note: 'Este lab agora tem a estrutura base para imagens, habilidades, bloqueios e lore. O próximo refinamento pode trabalhar composição visual, paginação editorial e textos definitivos.',
+          items: []
+        };
+
+        generatedSheets.push(`
+          <div class="sheet">
+            <article class="page-face front character-page">${renderPage(frontPage, index + 2)}</article>
+            <article class="page-face back character-page">${renderPage(backPage, index + 3)}</article>
+          </div>`);
+      }
+
+      book.innerHTML = `
+        <div class="static-page">
+          <article class="page-face">
+            <div class="page-content cover-page">
+              <img class="cover-logo" src="../assets/img/logo/coup-master-192x192.png" alt="">
+              <span class="page-kicker">Coup Master</span>
+              <h2>Manual de Regras</h2>
+              <p>Regras gerais, expansões, personagens, habilidades, bloqueios e lore para consulta de mesa.</p>
+              <span class="page-number">Página 1</span>
+            </div>
+          </article>
+        </div>
+        ${generatedSheets.join('')}`;
+
+      sheets = Array.from(document.querySelectorAll('.sheet'));
+      totalPages = sheets.length * 2 + 1;
+
+      const characterStartPage = rulePages.length;
+      controls.innerHTML = [
+        ['Capa', 0],
+        ['Regras', 1],
+        ['Turno', 3],
+        ['Desafios', 5],
+        ['Expansões', 7],
+        ['Personagens', characterStartPage],
+        ['Palácio', characterStartPage + 4],
+        ['Revolução', characterStartPage + 6],
+        ['Asilo', characterStartPage + 9]
+      ].map(([label, page]) => (
+        `<button class="pill-button" type="button" data-page="${page}">${label}</button>`
+      )).join('');
+
+      quickButtons = Array.from(document.querySelectorAll('[data-page]'));
+      quickButtons.forEach((button) => {
+        button.addEventListener('click', () => updateBook(Number(button.dataset.page)));
+      });
+    }
+
+    function updateBook(page) {
+      const previousPage = currentPage;
+      const previousFlippedSheets = Math.floor((previousPage + 1) / 2);
+      currentPage = clampPage(page);
+      const flippedSheets = Math.floor((currentPage + 1) / 2);
+      const activeSheetIndex = getActiveSheetIndex(previousFlippedSheets, flippedSheets);
+
+      window.clearTimeout(depthTimer);
+      setSheetDepths(activeSheetIndex);
+
+      window.requestAnimationFrame(() => {
+        sheets.forEach((sheet, index) => {
+          sheet.classList.toggle('flipped', index < flippedSheets);
+        });
+
+        depthTimer = window.setTimeout(() => {
+          setSheetDepths();
+        }, flipDurationMs);
+      });
+
+      prevBtn.disabled = currentPage === 0;
+      nextBtn.disabled = currentPage === totalPages - 1;
+      pageStatus.textContent = `${currentPage + 1} / ${totalPages}`;
+
+      quickButtons.forEach((button, index) => {
+        const targetPage = Number(button.dataset.page);
+        const nextTarget = quickButtons[index + 1]
+          ? Number(quickButtons[index + 1].dataset.page)
+          : totalPages;
+        button.classList.toggle('is-active', currentPage >= targetPage && currentPage < nextTarget);
+      });
+    }
+
+    function getActiveSheetIndex(previousFlippedSheets, flippedSheets) {
+      if (flippedSheets > previousFlippedSheets) return flippedSheets - 1;
+      if (flippedSheets < previousFlippedSheets) return flippedSheets;
+      return null;
+    }
+
+    function setSheetDepths(activeSheetIndex = null) {
+      sheets.forEach((sheet, index) => {
+        const isFlipped = sheet.classList.contains('flipped');
+        sheet.style.zIndex = isFlipped
+          ? index + 1
+          : sheets.length - index;
+      });
+
+      if (activeSheetIndex === null || !sheets[activeSheetIndex]) return;
+      sheets[activeSheetIndex].style.zIndex = sheets.length + 2;
+    }
+
+    prevBtn.addEventListener('click', () => updateBook(currentPage - 2));
+    nextBtn.addEventListener('click', () => updateBook(currentPage + 2));
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') updateBook(currentPage - 2);
+      if (event.key === 'ArrowRight') updateBook(currentPage + 2);
+    });
+
+    renderBook();
+    updateBook(0);
+  </script>
+</body>
+
+</html>
