@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card Physics Lab - Coup Master</title>
+  <style>
+    :root {
+      --bg: #10130f;
+      --panel: #1b211b;
+      --panel-2: #242c23;
+      --line: rgba(224, 211, 169, 0.18);
+      --text: #f4eddc;
+      --muted: #b7ac92;
+      --gold: #d8ae52;
+      --blue: #6dc5ff;
+      --green: #88d28b;
+      --danger: #ff7b7b;
+      --shadow: rgba(0, 0, 0, 0.42);
+      --card-w: 150px;
+      --card-h: 210px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at 12% 14%, rgba(109, 197, 255, 0.12), transparent 28%),
+        radial-gradient(circle at 76% 18%, rgba(216, 174, 82, 0.16), transparent 26%),
+        linear-gradient(135deg, #0d100d 0%, #1c2019 50%, #10151a 100%);
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .lab-shell {
+      display: grid;
+      grid-template-columns: minmax(294px, 370px) minmax(0, 1fr);
+      gap: 18px;
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .controls {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(27, 33, 27, 0.94);
+      box-shadow: 0 18px 44px var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .controls h1,
+    .play-area h2 {
+      margin: 0;
+      font-size: 1.45rem;
+      line-height: 1.1;
+    }
+
+    .controls p,
+    .play-area p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .control-row {
+      display: grid;
+      gap: 7px;
+    }
+
+    .control-label {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+
+    .control-value {
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--gold);
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .button-row button,
+    .copy-button {
+      min-height: 40px;
+      border: 1px solid rgba(216, 174, 82, 0.42);
+      border-radius: 6px;
+      color: var(--text);
+      background: rgba(216, 174, 82, 0.14);
+      cursor: pointer;
+    }
+
+    .button-row button:hover,
+    .copy-button:hover {
+      background: rgba(216, 174, 82, 0.24);
+    }
+
+    .copy-button {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .config-output {
+      min-height: 132px;
+      resize: vertical;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--text);
+      background: rgba(0, 0, 0, 0.22);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .play-area {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto minmax(480px, 1fr) auto;
+      gap: 14px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(27, 33, 27, 0.72);
+    }
+
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .metric {
+      min-width: 94px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.16);
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 2px;
+      color: var(--text);
+      font-size: 1rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stage {
+      position: relative;
+      min-height: 540px;
+      overflow: hidden;
+      border: 1px solid rgba(109, 197, 255, 0.28);
+      border-radius: 8px;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        radial-gradient(circle at center, rgba(109, 197, 255, 0.08), transparent 38%),
+        rgba(9, 15, 20, 0.84);
+      background-size: 34px 34px, 34px 34px, auto, auto;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 22px 56px var(--shadow);
+      touch-action: none;
+      user-select: none;
+    }
+
+    .stage::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(74%, 760px);
+      height: 46%;
+      transform: translate(-50%, -50%);
+      border: 1px dashed rgba(244, 237, 220, 0.14);
+      border-radius: 999px;
+      pointer-events: none;
+    }
+
+    .card {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: var(--card-w);
+      height: var(--card-h);
+      transform-origin: center;
+      border-radius: 10px;
+      filter: drop-shadow(0 18px 20px rgba(0, 0, 0, 0.32));
+      cursor: grab;
+      will-change: transform, filter;
+      touch-action: none;
+    }
+
+    .card.is-dragging {
+      cursor: grabbing;
+      filter: drop-shadow(0 28px 28px rgba(0, 0, 0, 0.46));
+    }
+
+    .card-shell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      transform-style: preserve-3d;
+      overflow: hidden;
+      background: #e8ddc6;
+      box-shadow: inset 0 0 0 2px rgba(29, 42, 80, 0.34);
+    }
+
+    .card img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      object-fit: cover;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    .card-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: var(--glare-opacity, 0);
+      background:
+        radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 42%), rgba(255, 255, 255, 0.62), transparent 20%),
+        linear-gradient(115deg, transparent 16%, rgba(255, 255, 255, 0.32), transparent 42%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .card-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      box-shadow: inset 0 0 20px rgba(109, 197, 255, var(--edge-glow, 0.08));
+      pointer-events: none;
+    }
+
+    .slot {
+      position: absolute;
+      width: var(--card-w);
+      height: var(--card-h);
+      border: 1px dashed rgba(244, 237, 220, 0.16);
+      border-radius: 10px;
+      transform-origin: center;
+      pointer-events: none;
+    }
+
+    .status-bar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .status-pill {
+      min-height: 52px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(27, 33, 27, 0.72);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .status-pill strong {
+      display: block;
+      margin-top: 3px;
+      color: var(--text);
+      font-size: 1rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 980px) {
+      .lab-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+        max-height: none;
+      }
+
+      .play-area {
+        grid-template-rows: auto minmax(470px, auto) auto;
+      }
+    }
+
+    @media (max-width: 680px) {
+      :root {
+        --card-w: 112px;
+        --card-h: 157px;
+      }
+
+      .lab-shell {
+        padding: 10px;
+      }
+
+      .toolbar,
+      .status-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        display: grid;
+      }
+
+      .metrics {
+        justify-content: stretch;
+      }
+
+      .metric {
+        flex: 1 1 120px;
+      }
+
+      .stage {
+        min-height: 460px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="lab-shell">
+    <aside class="controls" aria-label="Controles do efeito">
+      <h1>Card Physics Lab</h1>
+      <p>Ajuste a mola, o balanço e a repulsão. Arraste uma carta sobre as outras para testar a interação.</p>
+
+      <div class="control-group" id="controlGroup"></div>
+
+      <div class="control-group">
+        <div class="button-row">
+          <button type="button" id="resetBtn">Resetar</button>
+          <button type="button" id="shuffleBtn">Embaralhar</button>
+        </div>
+        <button class="copy-button" type="button" id="copyBtn">Copiar parâmetros</button>
+        <textarea class="config-output" id="configOutput" readonly aria-label="Configuração atual"></textarea>
+      </div>
+    </aside>
+
+    <section class="play-area" aria-label="Mesa de teste de física de cartas">
+      <div class="toolbar">
+        <div>
+          <h2>Mesa de interação</h2>
+          <p>Arraste uma carta, solte e veja como ela retorna para o leque.</p>
+        </div>
+        <div class="metrics" aria-live="polite">
+          <div class="metric">Carta ativa<strong id="activeCard">nenhuma</strong></div>
+          <div class="metric">Velocidade<strong id="speedValue">0 px/s</strong></div>
+          <div class="metric">Repulsão<strong id="pushValue">0</strong></div>
+        </div>
+      </div>
+
+      <div class="stage" id="stage">
+      </div>
+
+      <div class="status-bar">
+        <div class="status-pill">Mola<strong id="springStatus">0.24</strong></div>
+        <div class="status-pill">Amortecimento<strong id="dampingStatus">0.82</strong></div>
+        <div class="status-pill">Repulsão<strong id="repelStatus">72</strong></div>
+        <div class="status-pill">Tilt máximo<strong id="tiltStatus">24deg</strong></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const stage = document.getElementById('stage');
+    const controlGroup = document.getElementById('controlGroup');
+    const configOutput = document.getElementById('configOutput');
+    const activeCardLabel = document.getElementById('activeCard');
+    const speedValue = document.getElementById('speedValue');
+    const pushValue = document.getElementById('pushValue');
+    const springStatus = document.getElementById('springStatus');
+    const dampingStatus = document.getElementById('dampingStatus');
+    const repelStatus = document.getElementById('repelStatus');
+    const tiltStatus = document.getElementById('tiltStatus');
+
+    const cardsData = [
+      { id: 'duque', label: 'Duque', src: '../assets/img/cards/base/duque.png' },
+      { id: 'capitao', label: 'Capitão', src: '../assets/img/cards/base/capitao.png' },
+      { id: 'assassino', label: 'Assassino', src: '../assets/img/cards/base/assassino.png' },
+      { id: 'condessa', label: 'Condessa', src: '../assets/img/cards/base/condessa.png' },
+      { id: 'embaixador', label: 'Embaixador', src: '../assets/img/cards/base/embaixador.png' },
+      { id: 'inquisidor', label: 'Inquisidor', src: '../assets/img/cards/base/inquisidor.png' }
+    ];
+
+    const defaults = {
+      spring: 0.24,
+      damping: 0.82,
+      pointerLag: 0.36,
+      tiltMax: 24,
+      swing: 0.08,
+      lift: 36,
+      dragScale: 1.12,
+      returnScale: 1,
+      repelForce: 72,
+      repelRadius: 178,
+      fanGap: 84,
+      fanCurve: 18,
+      fanRotation: 4,
+      friction: 0.88,
+      glare: 0.32
+    };
+
+    const controls = [
+      { key: 'spring', label: 'Força da mola', min: 0.06, max: 0.46, step: 0.01 },
+      { key: 'damping', label: 'Amortecimento', min: 0.62, max: 0.94, step: 0.01 },
+      { key: 'pointerLag', label: 'Atraso do mouse', min: 0.12, max: 0.76, step: 0.01 },
+      { key: 'tiltMax', label: 'Rotação máxima', min: 0, max: 46, step: 1, suffix: 'deg' },
+      { key: 'swing', label: 'Balanço por velocidade', min: 0, max: 0.18, step: 0.01 },
+      { key: 'lift', label: 'Elevação ao arrastar', min: 0, max: 84, step: 1, suffix: 'px' },
+      { key: 'dragScale', label: 'Escala ao arrastar', min: 1, max: 1.28, step: 0.01 },
+      { key: 'repelForce', label: 'Força de repulsão', min: 0, max: 160, step: 1 },
+      { key: 'repelRadius', label: 'Raio de colisão', min: 80, max: 280, step: 1, suffix: 'px' },
+      { key: 'fanGap', label: 'Espaço do leque', min: 46, max: 128, step: 1, suffix: 'px' },
+      { key: 'fanCurve', label: 'Curva do leque', min: 0, max: 62, step: 1, suffix: 'px' },
+      { key: 'fanRotation', label: 'Rotação do leque', min: 0, max: 12, step: 0.5, suffix: 'deg' },
+      { key: 'friction', label: 'Atrito pós-soltura', min: 0.72, max: 0.98, step: 0.01 },
+      { key: 'glare', label: 'Reflexo por movimento', min: 0, max: 0.8, step: 0.01 }
+    ];
+
+    const settings = { ...defaults };
+    const cards = [];
+    let dragged = null;
+    let pointer = { x: 0, y: 0 };
+    let lastTime = performance.now();
+    let totalPush = 0;
+    let layoutVersion = 0;
+    let cardSize = { width: 150, height: 210 };
+
+    function formatValue(control) {
+      const value = settings[control.key];
+      const decimals = control.step < 1 ? 2 : 0;
+      return `${Number(value).toFixed(decimals)}${control.suffix || ''}`;
+    }
+
+    function createControls() {
+      controls.forEach((control) => {
+        const row = document.createElement('label');
+        row.className = 'control-row';
+        row.htmlFor = `control-${control.key}`;
+
+        const label = document.createElement('span');
+        label.className = 'control-label';
+        label.innerHTML = `<span>${control.label}</span><span class="control-value" id="value-${control.key}">${formatValue(control)}</span>`;
+
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.id = `control-${control.key}`;
+        input.min = control.min;
+        input.max = control.max;
+        input.step = control.step;
+        input.value = settings[control.key];
+        input.addEventListener('input', () => {
+          settings[control.key] = Number(input.value);
+          document.getElementById(`value-${control.key}`).textContent = formatValue(control);
+          updateLayoutTargets();
+          updateOutput();
+        });
+
+        row.append(label, input);
+        controlGroup.appendChild(row);
+      });
+    }
+
+    function createCards() {
+      cardsData.forEach((data, index) => {
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        stage.appendChild(slot);
+
+        const el = document.createElement('article');
+        el.className = 'card';
+        el.dataset.cardId = data.id;
+        el.setAttribute('aria-label', `Carta ${data.label}`);
+        el.innerHTML = `
+          <div class="card-shell">
+            <img src="${data.src}" alt="${data.label}" draggable="false">
+          </div>
+        `;
+        stage.appendChild(el);
+
+        const card = {
+          ...data,
+          index,
+          el,
+          slot,
+          x: 0,
+          y: 0,
+          vx: 0,
+          vy: 0,
+          tx: 0,
+          ty: 0,
+          baseX: 0,
+          baseY: 0,
+          angle: 0,
+          angleVelocity: 0,
+          baseAngle: 0,
+          scale: 1,
+          targetScale: 1,
+          pushX: 0,
+          pushY: 0,
+          pointerOffsetX: 0,
+          pointerOffsetY: 0,
+          isDragging: false
+        };
+
+        el.addEventListener('pointerdown', (event) => startDrag(event, card));
+        cards.push(card);
+      });
+    }
+
+    function stagePoint(event) {
+      const rect = stage.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+    }
+
+    function startDrag(event, card) {
+      event.preventDefault();
+      pointer = stagePoint(event);
+      dragged = card;
+      card.isDragging = true;
+      card.pointerOffsetX = pointer.x - card.x;
+      card.pointerOffsetY = pointer.y - card.y;
+      card.el.classList.add('is-dragging');
+      card.el.setPointerCapture(event.pointerId);
+      activeCardLabel.textContent = card.label;
+      bringToFront(card);
+    }
+
+    function moveDrag(event) {
+      if (!dragged) {
+        return;
+      }
+      pointer = stagePoint(event);
+    }
+
+    function endDrag(event) {
+      if (!dragged) {
+        return;
+      }
+      dragged.el.releasePointerCapture(event.pointerId);
+      dragged.el.classList.remove('is-dragging');
+      dragged.isDragging = false;
+      dragged.targetScale = settings.returnScale;
+      dragged = null;
+      activeCardLabel.textContent = 'nenhuma';
+      updateStacking();
+    }
+
+    function bringToFront(card) {
+      cards.forEach((item) => {
+        item.el.style.zIndex = item === card ? 100 : 10 + item.index;
+      });
+    }
+
+    function updateStacking() {
+      cards.forEach((card) => {
+        card.el.style.zIndex = 10 + card.index;
+      });
+    }
+
+    function updateLayoutTargets() {
+      const rect = stage.getBoundingClientRect();
+      cardSize = {
+        width: Number(getComputedStyle(document.documentElement).getPropertyValue('--card-w').replace('px', '')),
+        height: Number(getComputedStyle(document.documentElement).getPropertyValue('--card-h').replace('px', ''))
+      };
+      const totalWidth = cardSize.width + settings.fanGap * (cards.length - 1);
+      const startX = (rect.width - totalWidth) / 2;
+      const centerIndex = (cards.length - 1) / 2;
+      const baseY = Math.max(130, rect.height * 0.58);
+
+      cards.forEach((card, index) => {
+        const spread = index - centerIndex;
+        const curve = Math.abs(spread) * settings.fanCurve;
+        card.baseX = startX + index * settings.fanGap;
+        card.baseY = baseY + curve;
+        card.baseAngle = spread * settings.fanRotation;
+
+        if (layoutVersion === 0) {
+          card.x = card.baseX;
+          card.y = card.baseY;
+          card.angle = card.baseAngle;
+        }
+
+        card.slot.style.transform = `translate3d(${card.baseX}px, ${card.baseY}px, 0) rotate(${card.baseAngle}deg)`;
+      });
+
+      layoutVersion += 1;
+    }
+
+    function updatePhysics(delta) {
+      totalPush = 0;
+
+      cards.forEach((card) => {
+        card.pushX = 0;
+        card.pushY = 0;
+      });
+
+      if (dragged) {
+        const draggedCenterX = dragged.x + cardSize.width / 2;
+        const draggedCenterY = dragged.y + cardSize.height / 2;
+
+        cards.forEach((card) => {
+          if (card === dragged) {
+            return;
+          }
+
+          const centerX = card.x + cardSize.width / 2;
+          const centerY = card.y + cardSize.height / 2;
+          const dx = centerX - draggedCenterX;
+          const dy = centerY - draggedCenterY;
+          const distance = Math.max(1, Math.hypot(dx, dy));
+          const overlap = Math.max(0, settings.repelRadius - distance);
+
+          if (overlap > 0) {
+            const strength = (overlap / settings.repelRadius) * settings.repelForce;
+            const biasY = dy < 0 ? -0.38 : 0.38;
+            card.pushX += (dx / distance) * strength;
+            card.pushY += (dy / distance + biasY) * strength * 0.55;
+            totalPush += strength;
+          }
+        });
+      }
+
+      cards.forEach((card) => {
+        if (card.isDragging) {
+          const pointerTargetX = pointer.x - card.pointerOffsetX;
+          const pointerTargetY = pointer.y - card.pointerOffsetY - settings.lift;
+          card.tx += (pointerTargetX - card.tx) * settings.pointerLag;
+          card.ty += (pointerTargetY - card.ty) * settings.pointerLag;
+          card.targetScale = settings.dragScale;
+        } else {
+          card.tx = card.baseX + card.pushX;
+          card.ty = card.baseY + card.pushY;
+          card.targetScale = settings.returnScale;
+        }
+
+        const springX = (card.tx - card.x) * settings.spring;
+        const springY = (card.ty - card.y) * settings.spring;
+        card.vx = (card.vx + springX) * settings.damping;
+        card.vy = (card.vy + springY) * settings.damping;
+
+        if (!card.isDragging) {
+          card.vx *= settings.friction;
+          card.vy *= settings.friction;
+        }
+
+        card.x += card.vx * delta;
+        card.y += card.vy * delta;
+
+        const velocityTilt = Math.max(-settings.tiltMax, Math.min(settings.tiltMax, card.vx * settings.swing));
+        const targetAngle = card.baseAngle + velocityTilt + card.pushX * 0.035;
+        card.angleVelocity = (card.angleVelocity + (targetAngle - card.angle) * 0.16) * 0.78;
+        card.angle += card.angleVelocity * delta;
+        card.scale += (card.targetScale - card.scale) * 0.18;
+
+        const speed = Math.hypot(card.vx, card.vy);
+        const glareOpacity = Math.min(settings.glare, speed / 46 * settings.glare);
+        const glareX = 50 + Math.max(-35, Math.min(35, card.vx * 0.34));
+        const glareY = 42 + Math.max(-28, Math.min(28, card.vy * 0.26));
+        const edgeGlow = Math.min(0.42, speed / 120);
+
+        card.el.style.setProperty('--glare-opacity', glareOpacity.toFixed(3));
+        card.el.style.setProperty('--glare-x', `${glareX.toFixed(1)}%`);
+        card.el.style.setProperty('--glare-y', `${glareY.toFixed(1)}%`);
+        card.el.style.setProperty('--edge-glow', edgeGlow.toFixed(3));
+        card.el.style.transform = `translate3d(${card.x}px, ${card.y}px, 0) rotate(${card.angle}deg) scale(${card.scale})`;
+      });
+    }
+
+    function updateMetrics() {
+      const activeSpeed = dragged ? Math.round(Math.hypot(dragged.vx, dragged.vy) * 60) : 0;
+      speedValue.textContent = `${activeSpeed} px/s`;
+      pushValue.textContent = Math.round(totalPush).toString();
+      springStatus.textContent = settings.spring.toFixed(2);
+      dampingStatus.textContent = settings.damping.toFixed(2);
+      repelStatus.textContent = Math.round(settings.repelForce).toString();
+      tiltStatus.textContent = `${Math.round(settings.tiltMax)}deg`;
+    }
+
+    function tick(now) {
+      const delta = Math.min(2.2, (now - lastTime) / 16.667);
+      lastTime = now;
+      updatePhysics(delta);
+      updateMetrics();
+      requestAnimationFrame(tick);
+    }
+
+    function updateOutput() {
+      const lines = Object.keys(defaults).map((key) => {
+        const value = settings[key];
+        return `  ${key}: ${Number.isInteger(value) ? value : value.toFixed(2)}`;
+      });
+      configOutput.value = `const CARD_PHYSICS = {\n${lines.join(',\n')}\n};`;
+    }
+
+    function resetSettings() {
+      Object.assign(settings, defaults);
+      controls.forEach((control) => {
+        const input = document.getElementById(`control-${control.key}`);
+        input.value = settings[control.key];
+        document.getElementById(`value-${control.key}`).textContent = formatValue(control);
+      });
+      updateLayoutTargets();
+      updateOutput();
+    }
+
+    function shufflePositions() {
+      cards.forEach((card) => {
+        card.vx += (Math.random() - 0.5) * 32;
+        card.vy += (Math.random() - 0.5) * 22;
+        card.angleVelocity += (Math.random() - 0.5) * 9;
+      });
+    }
+
+    async function copyConfig() {
+      updateOutput();
+      try {
+        await navigator.clipboard.writeText(configOutput.value);
+        document.getElementById('copyBtn').textContent = 'Copiado';
+        setTimeout(() => {
+          document.getElementById('copyBtn').textContent = 'Copiar parâmetros';
+        }, 1200);
+      } catch (error) {
+        configOutput.select();
+      }
+    }
+
+    stage.addEventListener('pointermove', moveDrag);
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+    window.addEventListener('resize', updateLayoutTargets);
+    document.getElementById('resetBtn').addEventListener('click', resetSettings);
+    document.getElementById('shuffleBtn').addEventListener('click', shufflePositions);
+    document.getElementById('copyBtn').addEventListener('click', copyConfig);
+
+    createControls();
+    createCards();
+    updateStacking();
+    updateLayoutTargets();
+    updateOutput();
+    requestAnimationFrame((now) => {
+      lastTime = now;
+      requestAnimationFrame(tick);
+    });
+  </script>
+</body>
+
+</html>
