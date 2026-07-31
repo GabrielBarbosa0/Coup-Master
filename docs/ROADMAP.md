@@ -564,6 +564,19 @@ Minha sugestao de ordem pratica:
 - Narracao dinamica com IA em tempo real.
 - Marketplace de decks customizados.
 - Rating competitivo com premios antes de backend autoritativo.
+- Suporte a controle/gamepad na Web.
+
+  Ideia distante: usar a Gamepad API do navegador para permitir navegacao por controle em cartas, acoes, botoes e modais. A implementacao nao deve comecar pelo casual completo, porque a mesa possui muitos elementos interativos, chat, configuracoes e fluxos manuais. O caminho mais seguro e prototipar primeiro em `lab/` ou em um futuro Modo Duelo, onde ha menos jogadores, menos cartas ativas e decisoes mais focadas.
+
+  Possivel escopo inicial:
+
+  - navegar entre cartas ativas com direcional/analogico;
+  - confirmar selecao com botao principal;
+  - cancelar/voltar com botao secundario;
+  - abrir preview de carta;
+  - navegar entre acoes de turno;
+  - dar foco visivel para o elemento selecionado;
+  - testar compatibilidade com controles Xbox, PlayStation e genericos.
 
 Esses itens podem ser interessantes no futuro, mas agora custariam mais do que entregam.
 
