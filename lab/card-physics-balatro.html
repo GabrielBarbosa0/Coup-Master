@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Card Physics Lab - Coup Master</title>
+  <title>Card Physics + Balatro Lab - Coup Master</title>
   <style>
     :root {
       --bg: #10130f;
@@ -228,6 +228,17 @@
     }
 
     .card {
+      --tilt-x: 0deg;
+      --tilt-y: 0deg;
+      --glow-x: 0px;
+      --glow-y: 0px;
+      --glare-opacity: 0;
+      --glare-x: 50%;
+      --glare-y: 42%;
+      --shine-opacity: 0;
+      --shine-shift: 0px;
+      --brightness: 1;
+      --saturation: 1;
       position: absolute;
       left: 0;
       top: 0;
@@ -239,6 +250,7 @@
       cursor: grab;
       will-change: transform, filter;
       touch-action: none;
+      perspective: var(--perspective, 820px);
     }
 
     .card.is-dragging {
@@ -252,9 +264,17 @@
       height: 100%;
       border-radius: 10px;
       transform-style: preserve-3d;
+      transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+      transition: transform var(--return-ms, 120ms) ease, filter var(--return-ms, 120ms) ease;
       overflow: hidden;
       background: #e8ddc6;
       box-shadow: inset 0 0 0 2px rgba(29, 42, 80, 0.34);
+      filter: brightness(var(--brightness)) saturate(var(--saturation));
+    }
+
+    .card.is-hovering .card-shell,
+    .card.is-dragging .card-shell {
+      transition-duration: 28ms;
     }
 
     .card img {
@@ -286,7 +306,12 @@
       inset: 0;
       border-radius: inherit;
       border: 1px solid rgba(255, 255, 255, 0.42);
-      box-shadow: inset 0 0 20px rgba(109, 197, 255, var(--edge-glow, 0.08));
+      opacity: 1;
+      background: linear-gradient(105deg, transparent 18%, rgba(255, 255, 255, var(--shine-opacity)) 48%, transparent 72%);
+      transform: translateX(var(--shine-shift)) rotate(5deg);
+      box-shadow:
+        inset 0 0 20px rgba(109, 197, 255, var(--edge-glow, 0.08)),
+        var(--glow-x) var(--glow-y) var(--glow-blur, 26px) rgba(109, 197, 255, var(--glow-strength, 0.22));
       pointer-events: none;
     }
 
@@ -376,8 +401,8 @@
 <body>
   <main class="lab-shell">
     <aside class="controls" aria-label="Controles do efeito">
-      <h1>Card Physics Lab</h1>
-      <p>Ajuste a mola, o balanço e a repulsão. Arraste uma carta sobre as outras para testar a interação.</p>
+      <h1>Physics + Balatro Lab</h1>
+      <p>Ajuste física, colisão, perspectiva 3D e brilho. Arraste uma carta ou passe o mouse para testar os efeitos combinados.</p>
 
       <div class="control-group" id="controlGroup"></div>
 
@@ -391,11 +416,11 @@
       </div>
     </aside>
 
-    <section class="play-area" aria-label="Mesa de teste de física de cartas">
+    <section class="play-area" aria-label="Mesa híbrida de física e perspectiva de cartas">
       <div class="toolbar">
         <div>
-          <h2>Mesa de interação</h2>
-          <p>Arraste uma carta, solte e veja como ela retorna para o leque.</p>
+          <h2>Mesa híbrida</h2>
+          <p>Arraste para testar inércia/repulsão e mova o cursor sobre a carta para testar perspectiva/glow.</p>
         </div>
         <div class="metrics" aria-live="polite">
           <div class="metric">Carta ativa<strong id="activeCard">nenhuma</strong></div>
@@ -411,7 +436,7 @@
         <div class="status-pill">Mola<strong id="springStatus">0.18</strong></div>
         <div class="status-pill">Amortecimento<strong id="dampingStatus">0.86</strong></div>
         <div class="status-pill">Repulsão<strong id="repelStatus">72</strong></div>
-        <div class="status-pill">Tilt máximo<strong id="tiltStatus">32deg</strong></div>
+        <div class="status-pill">Tilt 3D<strong id="tiltStatus">36deg</strong></div>
       </div>
     </section>
   </main>
@@ -441,26 +466,36 @@
       spring: 0.18,
       damping: 0.86,
       pointerLag: 0.28,
-      tiltMax: 32,
+      tiltMax: 36,
       swing: 0.13,
-      lift: 36,
-      dragScale: 1.12,
+      lift: 18,
+      dragScale: 1.22,
       returnScale: 1,
       repelForce: 72,
       repelRadius: 178,
       fanGap: 84,
-      fanCurve: 18,
-      fanRotation: 4,
+      fanCurve: 0,
+      fanRotation: 0,
       friction: 0.88,
-      glare: 0.32
+      glare: 0,
+      perspective: 820,
+      balatroTilt: 36,
+      glowStrength: 0.40,
+      glowBlur: 30,
+      shine: 0,
+      brightness: 1,
+      saturation: 1,
+      returnMs: 40
     };
 
     const controls = [
       { key: 'spring', label: 'Força da mola', min: 0.06, max: 0.46, step: 0.01 },
       { key: 'damping', label: 'Amortecimento', min: 0.62, max: 0.94, step: 0.01 },
       { key: 'pointerLag', label: 'Atraso do mouse', min: 0.12, max: 0.76, step: 0.01 },
-      { key: 'tiltMax', label: 'Rotação máxima', min: 0, max: 46, step: 1, suffix: 'deg' },
+      { key: 'tiltMax', label: 'Rotação física máxima', min: 0, max: 46, step: 1, suffix: 'deg' },
       { key: 'swing', label: 'Balanço por velocidade', min: 0, max: 0.18, step: 0.01 },
+      { key: 'balatroTilt', label: 'Tilt 3D do cursor', min: 0, max: 42, step: 1, suffix: 'deg' },
+      { key: 'perspective', label: 'Perspectiva 3D', min: 480, max: 1400, step: 10, suffix: 'px' },
       { key: 'lift', label: 'Elevação ao arrastar', min: 0, max: 84, step: 1, suffix: 'px' },
       { key: 'dragScale', label: 'Escala ao arrastar', min: 1, max: 1.28, step: 0.01 },
       { key: 'repelForce', label: 'Força de repulsão', min: 0, max: 160, step: 1 },
@@ -469,7 +504,13 @@
       { key: 'fanCurve', label: 'Curva do leque', min: 0, max: 62, step: 1, suffix: 'px' },
       { key: 'fanRotation', label: 'Rotação do leque', min: 0, max: 12, step: 0.5, suffix: 'deg' },
       { key: 'friction', label: 'Atrito pós-soltura', min: 0.72, max: 0.98, step: 0.01 },
-      { key: 'glare', label: 'Reflexo por movimento', min: 0, max: 0.8, step: 0.01 }
+      { key: 'glare', label: 'Reflexo por movimento', min: 0, max: 0.8, step: 0.01 },
+      { key: 'glowStrength', label: 'Força do glow', min: 0, max: 0.85, step: 0.01 },
+      { key: 'glowBlur', label: 'Tamanho do glow', min: 0, max: 70, step: 1, suffix: 'px' },
+      { key: 'shine', label: 'Faixa holográfica', min: 0, max: 0.7, step: 0.01 },
+      { key: 'brightness', label: 'Brilho da imagem', min: 0.8, max: 1.35, step: 0.01 },
+      { key: 'saturation', label: 'Saturação da imagem', min: 0.8, max: 1.55, step: 0.01 },
+      { key: 'returnMs', label: 'Retorno do tilt', min: 30, max: 300, step: 10, suffix: 'ms' }
     ];
 
     const settings = { ...defaults };
@@ -555,12 +596,60 @@
           pushY: 0,
           pointerOffsetX: 0,
           pointerOffsetY: 0,
+          hoverX: 0.5,
+          hoverY: 0.5,
+          isHovering: false,
           isDragging: false
         };
 
         el.addEventListener('pointerdown', (event) => startDrag(event, card));
+        el.addEventListener('pointerenter', (event) => {
+          card.isHovering = true;
+          card.el.classList.add('is-hovering');
+          updateBalatroTilt(card, event);
+        });
+        el.addEventListener('pointermove', (event) => updateBalatroTilt(card, event));
+        el.addEventListener('pointerleave', () => {
+          card.isHovering = false;
+          card.el.classList.remove('is-hovering');
+          if (!card.isDragging) {
+            resetBalatroTilt(card);
+          }
+        });
         cards.push(card);
       });
+    }
+
+    function updateBalatroTilt(card, event) {
+      const rect = card.el.getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+      const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+      card.hoverX = x;
+      card.hoverY = y;
+      const normalizedX = x - 0.5;
+      const normalizedY = y - 0.5;
+      const rotateX = normalizedY * -settings.balatroTilt;
+      const rotateY = normalizedX * settings.balatroTilt;
+      const glowX = -normalizedX * settings.glowBlur * 0.78;
+      const glowY = -normalizedY * settings.glowBlur * 0.78;
+
+      card.el.style.setProperty('--tilt-x', `${rotateX.toFixed(2)}deg`);
+      card.el.style.setProperty('--tilt-y', `${rotateY.toFixed(2)}deg`);
+      card.el.style.setProperty('--glow-x', `${glowX.toFixed(2)}px`);
+      card.el.style.setProperty('--glow-y', `${glowY.toFixed(2)}px`);
+      card.el.style.setProperty('--glare-x', `${(x * 100).toFixed(1)}%`);
+      card.el.style.setProperty('--glare-y', `${(y * 100).toFixed(1)}%`);
+      card.el.style.setProperty('--shine-shift', `${(normalizedX * 44).toFixed(1)}px`);
+    }
+
+    function resetBalatroTilt(card) {
+      card.el.style.setProperty('--tilt-x', '0deg');
+      card.el.style.setProperty('--tilt-y', '0deg');
+      card.el.style.setProperty('--glow-x', '0px');
+      card.el.style.setProperty('--glow-y', '0px');
+      card.el.style.setProperty('--glare-x', '50%');
+      card.el.style.setProperty('--glare-y', '42%');
+      card.el.style.setProperty('--shine-shift', '0px');
     }
 
     function stagePoint(event) {
@@ -580,6 +669,7 @@
       card.pointerOffsetY = pointer.y - card.y;
       card.el.classList.add('is-dragging');
       card.el.setPointerCapture(event.pointerId);
+      updateBalatroTilt(card, event);
       activeCardLabel.textContent = card.label;
       bringToFront(card);
     }
@@ -589,6 +679,7 @@
         return;
       }
       pointer = stagePoint(event);
+      updateBalatroTilt(dragged, event);
     }
 
     function endDrag(event) {
@@ -599,6 +690,9 @@
       dragged.el.classList.remove('is-dragging');
       dragged.isDragging = false;
       dragged.targetScale = settings.returnScale;
+      if (!dragged.isHovering) {
+        resetBalatroTilt(dragged);
+      }
       dragged = null;
       activeCardLabel.textContent = 'nenhuma';
       updateStacking();
@@ -714,15 +808,26 @@
         card.scale += (card.targetScale - card.scale) * 0.18;
 
         const speed = Math.hypot(card.vx, card.vy);
-        const glareOpacity = Math.min(settings.glare, speed / 46 * settings.glare);
+        const isVisuallyActive = card.isHovering || card.isDragging;
+        const velocityGlare = speed / 46 * settings.glare;
+        const glareOpacity = Math.min(0.95, velocityGlare + (isVisuallyActive ? settings.glare : 0));
         const glareX = 50 + Math.max(-35, Math.min(35, card.vx * 0.34));
         const glareY = 42 + Math.max(-28, Math.min(28, card.vy * 0.26));
         const edgeGlow = Math.min(0.42, speed / 120);
 
+        card.el.style.setProperty('--perspective', `${settings.perspective}px`);
         card.el.style.setProperty('--glare-opacity', glareOpacity.toFixed(3));
-        card.el.style.setProperty('--glare-x', `${glareX.toFixed(1)}%`);
-        card.el.style.setProperty('--glare-y', `${glareY.toFixed(1)}%`);
+        if (!isVisuallyActive) {
+          card.el.style.setProperty('--glare-x', `${glareX.toFixed(1)}%`);
+          card.el.style.setProperty('--glare-y', `${glareY.toFixed(1)}%`);
+        }
         card.el.style.setProperty('--edge-glow', edgeGlow.toFixed(3));
+        card.el.style.setProperty('--glow-strength', settings.glowStrength.toFixed(3));
+        card.el.style.setProperty('--glow-blur', `${settings.glowBlur}px`);
+        card.el.style.setProperty('--shine-opacity', isVisuallyActive ? settings.shine.toFixed(3) : '0');
+        card.el.style.setProperty('--brightness', settings.brightness.toFixed(3));
+        card.el.style.setProperty('--saturation', settings.saturation.toFixed(3));
+        card.el.style.setProperty('--return-ms', `${settings.returnMs}ms`);
         card.el.style.transform = `translate3d(${card.x}px, ${card.y}px, 0) rotate(${card.angle}deg) scale(${card.scale})`;
       });
     }
@@ -734,7 +839,7 @@
       springStatus.textContent = settings.spring.toFixed(2);
       dampingStatus.textContent = settings.damping.toFixed(2);
       repelStatus.textContent = Math.round(settings.repelForce).toString();
-      tiltStatus.textContent = `${Math.round(settings.tiltMax)}deg`;
+      tiltStatus.textContent = `${Math.round(settings.balatroTilt)}deg`;
     }
 
     function tick(now) {
@@ -750,7 +855,7 @@
         const value = settings[key];
         return `  ${key}: ${Number.isInteger(value) ? value : value.toFixed(2)}`;
       });
-      configOutput.value = `const CARD_PHYSICS = {\n${lines.join(',\n')}\n};`;
+      configOutput.value = `const CARD_PHYSICS_BALATRO = {\n${lines.join(',\n')}\n};`;
     }
 
     function resetSettings() {
