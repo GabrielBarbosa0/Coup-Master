@@ -39,7 +39,7 @@
 
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
-  <link rel="stylesheet" href="css/casual-mode.css?v=selection-lock-v1">
+  <link rel="stylesheet" href="css/casual-mode.css?v=share-room-v1">
   <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
   <link rel="stylesheet" href="css/loading.css?v=selection-lock-v1">
   <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
@@ -73,6 +73,10 @@
         <div class="controls toolbar-group game-controls">
           <button id="musicBtn" class="musicBtn" title="Música de Fundo"><img src="assets/img/icons/music_note.svg"
               alt="Música"></button>
+
+          <button id="shareRoomBtn" class="shareRoomBtn" title="Compartilhar Sala">
+            <img src="assets/img/icons/share.svg" alt="Compartilhar">
+          </button>
 
           <button id="openFeedbackBtn" class="feedbackBtn" title="Enviar Feedback / Bug">
             <img src="assets/img/icons/feedback.svg" alt="Feedback">
@@ -297,6 +301,27 @@
         <input id="chatInput" type="text" maxlength="240" autocomplete="off" placeholder="Mensagem">
         <button id="sendChatBtn" class="settings-action-btn" type="submit">Enviar</button>
       </form>
+    </div>
+  </div>
+
+  <div id="shareRoomModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content standard-modal-content share-room-modal-content">
+      <button id="closeShareRoomBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+      <h2>Compartilhar Sala</h2>
+
+      <div class="share-room-code-panel" aria-label="Código da sala">
+        <span class="share-room-label">Código</span>
+        <strong id="shareRoomCode">...</strong>
+      </div>
+
+      <div class="share-room-qr-frame">
+        <img id="shareRoomQr" src="" alt="QR Code da sala">
+      </div>
+
+      <div class="share-room-actions">
+        <button id="copyShareCodeBtn" class="icon-btn" type="button">COPIAR CÓDIGO</button>
+        <button id="copyShareLinkBtn" class="icon-btn" type="button">COPIAR LINK</button>
+      </div>
     </div>
   </div>
 
@@ -756,7 +781,7 @@
   <script src="js/gamemode/casual/audio-service.js?v=casual-audio-service-v1" defer></script>
   <script src="js/gamemode/casual/modal-service.js?v=casual-modal-service-v1" defer></script>
   <script src="js/gamemode/casual/chat-service.js?v=casual-chat-service-v1" defer></script>
-  <script src="js/gamemode/casual/board-status.js?v=casual-board-status-v1" defer></script>
+  <script src="js/gamemode/casual/board-status.js?v=casual-board-status-share-v1" defer></script>
   <script src="js/gamemode/casual/visual-effects.js?v=casual-visual-effects-v1" defer></script>
   <script src="js/gamemode/casual/admin-controls.js?v=casual-admin-controls-v1" defer></script>
   <script src="js/gamemode/casual/rules-guides.js?v=casual-rules-guides-v1" defer></script>
