@@ -1,41 +1,39 @@
-﻿(function initializeRankedGame(root) {
-    const Rules = root.CoupRankedRules;
-    const Engine = root.CoupRankedEngine;
-    const Renderer = root.CoupRankedRenderer;
+(function initializePersonalizedGame(root) {
+    const Rules = root.CoupPersonalizedRules;
+    const Engine = root.CoupPersonalizedEngine;
+    const Renderer = root.CoupPersonalizedRenderer;
     const params = new URLSearchParams(root.location.search);
     const roomCode = (params.get('room') || '').trim().toUpperCase();
     const viewMode = document.body?.dataset.rankView || 'game';
 
     let currentUser = null;
-    let rankedState = null;
-    let rankedStateRef = null;
+    let personalizedState = null;
+    let personalizedStateRef = null;
+    let roomHostUid = null;
     let presenceDisconnect = null;
     let deadlineAdvancePending = false;
-    let statsCommitPending = false;
     let botActionPending = false;
-    let matchmakingPending = false;
 
     const BOT_DECISION_MIN_DELAY_MS = 3600;
     const BOT_DECISION_RANDOM_DELAY_MS = 1200;
-    const MATCHMAKING_TICK_MS = 650;
 
     function redirectToLobby(message) {
         if (message) sessionStorage.setItem('lobbyError', message);
         root.location.href = 'lobby.html';
     }
 
-    function navigateToRankedView(destination) {
+    function navigateToPersonalizedView(destination) {
         root.location.href = `${destination}?room=${encodeURIComponent(roomCode)}`;
     }
 
     function redirectIfWrongView(state) {
         const shouldBeWaiting = state?.status === Rules.PHASES.WAITING;
         if (shouldBeWaiting && viewMode !== 'waiting') {
-            navigateToRankedView('ranked-waiting.html');
+            navigateToPersonalizedView('personalized-waiting.html');
             return true;
         }
         if (!shouldBeWaiting && viewMode === 'waiting') {
-            navigateToRankedView('ranked.html');
+            navigateToPersonalizedView('personalized.html');
             return true;
         }
         return false;
@@ -50,10 +48,10 @@
     }
 
     function transaction(mutator, options = {}) {
-        if (!rankedStateRef) return Promise.reject(new Error('Partida ainda não conectada.'));
+        if (!personalizedStateRef) return Promise.reject(new Error('Partida ainda não conectada.'));
         let mutationError = null;
 
-        return rankedStateRef.transaction((current) => {
+        return personalizedStateRef.transaction((current) => {
             mutationError = null;
             if (!current) return;
             try {
@@ -88,23 +86,35 @@
         completeExchange: (cardIds) => transaction((state) => Engine.completeExchange(state, currentUser.uid, cardIds)),
         completeExamine: (replace) => transaction((state) => Engine.completeExamine(state, currentUser.uid, replace)),
         addAiPlayer: (options) => transaction((state) => Engine.addAiPlayer(state, options)),
+        canRemovePlayer: (player) => Boolean(
+            personalizedState?.status === Rules.PHASES.WAITING
+            && roomHostUid
+            && currentUser?.uid === roomHostUid
+            && player?.uid
+            && player.uid !== currentUser.uid
+        ),
+        removePlayer: (targetUid) => transaction((state) => (
+            Engine.removeWaitingPlayer(state, currentUser.uid, targetUid, { hostUid: roomHostUid })
+        )),
         restartMatch,
         sendChat,
         leaveRoom
     };
 
-    function joinRankedRoom(user) {
+    function joinPersonalizedRoom(user) {
         const roomRef = db.ref(`salas/${roomCode}`);
         return roomRef.once('value').then((snapshot) => {
             if (!snapshot.exists()) throw new Error('A sala informada não existe.');
             const room = snapshot.val();
-            if (!root.CoupGameModes.isRanked(root.CoupGameModes.fromRoom(room))) {
-                throw new Error('Esta sala pertence ao modo casual.');
+            if (!root.CoupGameModes.isPersonalized(root.CoupGameModes.fromRoom(room))) {
+                throw new Error('Esta sala não pertence ao modo Sala Personalizada.');
             }
 
-            rankedStateRef = roomRef.child('rankedState');
+            roomHostUid = room.hostUID || null;
+
+            personalizedStateRef = roomRef.child('personalizedState');
             let joinError = null;
-            return rankedStateRef.transaction((current) => {
+            return personalizedStateRef.transaction((current) => {
                 joinError = null;
                 const state = current || Engine.createState();
                 try {
@@ -116,8 +126,8 @@
                 }
             }).then((result) => {
                 if (joinError) throw joinError;
-                if (!result.committed) throw new Error('Não foi possível entrar na partida ranqueada.');
-                sessionStorage.setItem('currentRoomMode', root.CoupGameModes.RANKED);
+                if (!result.committed) throw new Error('Não foi possível entrar na sala personalizada.');
+                sessionStorage.setItem('currentRoomMode', root.CoupGameModes.PERSONALIZED);
                 setupRealtimeListeners();
                 setupPresence();
                 db.ref(`salas/${roomCode}/lastActivity`).set(Date.now());
@@ -126,18 +136,15 @@
     }
 
     function setupRealtimeListeners() {
-        rankedStateRef.on('value', (snapshot) => {
-            rankedState = snapshot.val();
-            if (!rankedState?.players?.[currentUser.uid]) {
-                redirectToLobby('Você não faz mais parte desta sala ranqueada.');
+        personalizedStateRef.on('value', (snapshot) => {
+            personalizedState = snapshot.val();
+            if (!personalizedState?.players?.[currentUser.uid]) {
+                redirectToLobby('Você não faz mais parte desta sala personalizada.');
                 return;
             }
-            if (redirectIfWrongView(rankedState)) return;
-            Renderer.render(rankedState);
+            if (redirectIfWrongView(personalizedState)) return;
+            Renderer.render(personalizedState);
             Renderer.setConnectionStatus('Sincronizado');
-            if (rankedState.status === Rules.PHASES.FINISHED) {
-                persistRankedMatchResults(rankedState);
-            }
         }, () => {
             Renderer.setConnectionStatus('Sem conexão', false);
         });
@@ -153,7 +160,7 @@
     }
 
     function setupPresence() {
-        const connectedRef = rankedStateRef.child(`players/${currentUser.uid}/connected`);
+        const connectedRef = personalizedStateRef.child(`players/${currentUser.uid}/connected`);
         presenceDisconnect = connectedRef.onDisconnect();
         presenceDisconnect.set(false);
         connectedRef.set(true);
@@ -171,127 +178,9 @@
         }).catch((error) => Renderer.showError(error.message));
     }
 
-    function calculateWilsonLowerBound(wins, games) {
-        if (!games) return 0;
-        const z = 1.96;
-        const ratio = wins / games;
-        const denominator = 1 + ((z * z) / games);
-        const center = ratio + ((z * z) / (2 * games));
-        const margin = z * Math.sqrt((ratio * (1 - ratio) + ((z * z) / (4 * games))) / games);
-        return Math.max(0, (center - margin) / denominator);
-    }
-
-    function normalizeRankedStats(current, player, result, now) {
-        const previous = current && typeof current === 'object' ? current : {};
-        const countedRooms = previous.countedRooms && typeof previous.countedRooms === 'object'
-            ? { ...previous.countedRooms }
-            : {};
-
-        const resultKey = result.resultKey || `${roomCode}_${result.matchId || result.endedAt || now}`;
-
-        if (countedRooms[resultKey] || (!result.matchId && countedRooms[roomCode])) {
-            return {
-                ...previous,
-                name: player.name || previous.name || 'Jogador',
-                photo: player.photo || previous.photo || 'assets/img/icons/ghost.svg',
-                updatedAt: now
-            };
-        }
-
-        const match = player.matchStats || {};
-        const matchScore = Number(player.performanceScore || 0);
-        const hadPreviousGames = Number(previous.games || 0) > 0;
-        const games = Number(previous.games || 0) + 1;
-        const wins = Number(previous.wins || 0) + (player.won ? 1 : 0);
-        const losses = Number(previous.losses || 0) + (player.won ? 0 : 1);
-        const currentWinStreak = player.won ? Number(previous.currentWinStreak || 0) + 1 : 0;
-        const bestWinStreak = Math.max(Number(previous.bestWinStreak || 0), currentWinStreak);
-        const successfulChallenges = Number(previous.successfulChallenges || 0) + Number(match.successfulChallenges || 0);
-        const challenges = Number(previous.challenges || 0) + Number(match.challenges || 0);
-        const winRate = games ? wins / games : 0;
-        const challengeAccuracy = challenges ? successfulChallenges / challenges : 0;
-        const wilsonScore = calculateWilsonLowerBound(wins, games);
-        countedRooms[resultKey] = result.endedAt || now;
-
-        return {
-            schemaVersion: 1,
-            uid: player.uid,
-            name: player.name || previous.name || 'Jogador',
-            photo: player.photo || previous.photo || 'assets/img/icons/ghost.svg',
-            games,
-            wins,
-            losses,
-            winRate,
-            currentWinStreak,
-            bestWinStreak,
-            rankScore: Math.round(wilsonScore * 1000),
-            confidenceLowerBound: wilsonScore,
-            performancePoints: Number(previous.performancePoints || 0) + matchScore,
-            bestMatchScore: hadPreviousGames ? Math.max(Number(previous.bestMatchScore || 0), matchScore) : matchScore,
-            worstMatchScore: hadPreviousGames ? Math.min(Number(previous.worstMatchScore || 0), matchScore) : matchScore,
-            actions: Number(previous.actions || 0) + Number(match.actions || 0),
-            bluffs: Number(previous.bluffs || 0) + Number(match.bluffs || 0),
-            provenBluffs: Number(previous.provenBluffs || 0) + Number(match.provenBluffs || 0),
-            blockedActions: Number(previous.blockedActions || 0) + Number(match.blockedActions || 0),
-            honestGames: Number(previous.honestGames || 0) + (Number(match.bluffs || 0) === 0 ? 1 : 0),
-            challenges,
-            successfulChallenges,
-            failedChallenges: Number(previous.failedChallenges || 0) + Number(match.failedChallenges || 0),
-            challengeAccuracy,
-            coups: Number(previous.coups || 0) + Number(match.coups || 0),
-            assassinations: Number(previous.assassinations || 0) + Number(match.assassinations || 0),
-            steals: Number(previous.steals || 0) + Number(match.steals || 0),
-            coinsStolen: Number(previous.coinsStolen || 0) + Number(match.coinsStolen || 0),
-            lastRoomCode: roomCode,
-            lastMatchAt: result.endedAt || now,
-            countedRooms,
-            updatedAt: now
-        };
-    }
-
-    function updatePlayerRankedStats(player, result, now) {
-        return db.ref(`rankedStats/${player.uid}`).transaction((current) => (
-            normalizeRankedStats(current, player, result, now)
-        ));
-    }
-
-    function updateCurrentUserRankedStats(result, now) {
-        const player = result?.players?.[currentUser.uid];
-        if (!player) return Promise.resolve(null);
-        return updatePlayerRankedStats(player, result, now);
-    }
-
-    function persistRankedMatchResults(state) {
-        if (statsCommitPending || !state.winnerUid) return;
-
-        const now = Date.now();
-        const result = {
-            ...Engine.buildMatchResults(state, now),
-            roomCode,
-            resultKey: `${roomCode}_${state.matchId || state.finishedAt || now}`,
-            committedBy: currentUser.uid,
-            committedAt: now
-        };
-
-        statsCommitPending = true;
-        db.ref(`rankedResults/${result.resultKey}`).transaction((current) => {
-            return current || result;
-        }).then((transactionResult) => {
-            const savedResult = transactionResult.snapshot?.val?.() || result;
-            return updateCurrentUserRankedStats(savedResult, now);
-        }).catch((error) => {
-            console.error('Erro ao persistir estatísticas ranqueadas:', error);
-            return updateCurrentUserRankedStats(result, now).catch((statsError) => {
-                console.error('Erro ao persistir estatísticas do jogador:', statsError);
-            });
-        }).finally(() => {
-            statsCommitPending = false;
-        });
-    }
-
     function restartMatch() {
         return transaction((state) => Engine.restartMatch(state))
-            .then(() => navigateToRankedView('ranked-waiting.html'))
+            .then(() => navigateToPersonalizedView('personalized-waiting.html'))
             .catch(() => null);
     }
 
@@ -301,9 +190,9 @@
             root.location.href = 'lobby.html';
         };
 
-        if (!rankedStateRef || !rankedState || rankedState.status !== Rules.PHASES.WAITING) {
-            if (rankedStateRef && currentUser) {
-                rankedStateRef.child(`players/${currentUser.uid}/connected`).set(false).finally(finishNavigation);
+        if (!personalizedStateRef || !personalizedState || personalizedState.status !== Rules.PHASES.WAITING) {
+            if (personalizedStateRef && currentUser) {
+                personalizedStateRef.child(`players/${currentUser.uid}/connected`).set(false).finally(finishNavigation);
             } else finishNavigation();
             return;
         }
@@ -559,7 +448,7 @@
 
     function startBotDriver() {
         root.setInterval(() => {
-            if (!hasPendingBotDecision(rankedState) || botActionPending) return;
+            if (!hasPendingBotDecision(personalizedState) || botActionPending) return;
             botActionPending = true;
             root.setTimeout(() => {
                 transaction((state) => {
@@ -574,24 +463,10 @@
         }, 900);
     }
 
-    function startMatchmakingDriver() {
-        root.setInterval(() => {
-            if (viewMode !== 'waiting' || !rankedState || rankedState.status !== Rules.PHASES.WAITING || matchmakingPending) return;
-            matchmakingPending = true;
-            transaction((state) => {
-                if (!Engine.advanceMatchmaking(state, Date.now())) {
-                    throw new Error('Nenhum avanço de matchmaking pendente.');
-                }
-            }, { silent: true }).catch(() => null).finally(() => {
-                matchmakingPending = false;
-            });
-        }, MATCHMAKING_TICK_MS);
-    }
-
     function startTimers() {
         root.setInterval(() => {
             Renderer.updateClock(Date.now());
-            if (!rankedState?.deadline || Date.now() < rankedState.deadline || deadlineAdvancePending) return;
+            if (!personalizedState?.deadline || Date.now() < personalizedState.deadline || deadlineAdvancePending) return;
             deadlineAdvancePending = true;
             transaction((state) => Engine.advanceExpired(state, Date.now()), { silent: true })
                 .catch(() => null)
@@ -603,7 +478,7 @@
 
     function boot() {
         if (!roomCode || roomCode.length !== 4) {
-            redirectToLobby('Código de sala ranqueada inválido.');
+            redirectToLobby('Código de sala personalizada inválido.');
             return;
         }
 
@@ -613,17 +488,16 @@
                 return;
             }
             if (user.isAnonymous) {
-                redirectToLobby('O modo ranqueado exige login com uma conta Google.');
+                redirectToLobby('A Sala Personalizada exige login com uma conta Google.');
                 return;
             }
 
             currentUser = user;
             Renderer.init({ controller, currentUid: user.uid, roomCode });
-            joinRankedRoom(user).catch((error) => redirectToLobby(error.message));
+            joinPersonalizedRoom(user).catch((error) => redirectToLobby(error.message));
         });
         startTimers();
         startBotDriver();
-        startMatchmakingDriver();
     }
 
     boot();

@@ -590,13 +590,27 @@ button {
 }
 
 .game-mode-selector {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    display: block;
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
     margin: 0 0 14px;
     padding: 0;
     border: 0;
+}
+
+.game-mode-options-scroll {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+    -webkit-overflow-scrolling: touch;
 }
 
 .game-mode-selector legend {
@@ -612,6 +626,7 @@ button {
 
 .game-mode-option {
     position: relative;
+    flex: 0 0 150px;
     min-width: 0;
     cursor: pointer;
 }
@@ -641,7 +656,8 @@ button {
 
 .game-mode-option-content strong {
     color: var(--text);
-    font-size: 13px;
+    font-size: 12px;
+    white-space: nowrap;
 }
 
 .game-mode-option-content small {
@@ -663,6 +679,20 @@ button {
 .game-mode-option input:disabled + .game-mode-option-content {
     cursor: not-allowed;
     opacity: 0.45;
+}
+
+.game-mode-options-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.game-mode-options-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.game-mode-options-scroll::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
 }
 
 .ranked-mode-note {

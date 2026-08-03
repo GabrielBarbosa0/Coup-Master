@@ -370,6 +370,7 @@ textarea::-moz-selection,
 }
 
 .rank-player-slot {
+    position: relative;
     min-height: 138px;
     padding: 10px;
     border: 1px solid var(--rank-border);
@@ -478,6 +479,38 @@ textarea::-moz-selection,
 
 .rank-players.is-waiting-view .rank-player-name {
     font-size: 14px;
+}
+
+.rank-remove-player-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: grid;
+    width: 15px;
+    height: 15px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    place-items: center;
+    opacity: 0.78;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.rank-remove-player-btn:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+.rank-remove-player-btn:focus-visible {
+    outline: 2px solid rgba(255, 59, 59, 0.72);
+    outline-offset: 2px;
+}
+
+.rank-remove-player-btn img {
+    width: 10px;
+    height: 10px;
+    filter: brightness(0) saturate(100%) invert(41%) sepia(96%) saturate(2279%) hue-rotate(331deg) brightness(102%) contrast(102%);
 }
 
 .rank-players.is-waiting-view .rank-player-state {
@@ -1415,6 +1448,32 @@ button.rank-card {
     padding: 25px 15px 15px 25px;
 }
 
+.config-title {
+    margin-bottom: 0;
+}
+
+.config-p-title {
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.icon-btn {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: var(--rank-surface-raised);
+    color: var(--rank-text);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.icon-btn:hover {
+    background: var(--rank-border);
+}
+
 .quick-player-modal {
     padding: 25px;
     text-align: center;
@@ -2093,12 +2152,12 @@ button.rank-card {
     }
 
     .rank-players.is-waiting-view .rank-player-avatar {
-        width: 36px;
-        height: 36px;
+        width: 30px;
+        height: 30px;
     }
 
     .rank-players.is-waiting-view .rank-player-name {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .rank-players.is-waiting-view .rank-player-state {

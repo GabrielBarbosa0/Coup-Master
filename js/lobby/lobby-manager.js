@@ -10,6 +10,7 @@ const roomCodeInput = document.getElementById('room-code-input');
 const joinRoomBtn = document.getElementById('join-room-btn');
 const createRoomBtn = document.getElementById('create-room-btn');
 const rankedModeInput = document.getElementById('ranked-mode-input');
+const personalizedModeInput = document.getElementById('personalized-mode-input');
 const rankedModeNote = document.getElementById('ranked-mode-note');
 const playerStatsModal = document.getElementById('playerStatsModal');
 const closePlayerStatsModalBtn = document.getElementById('closePlayerStatsModalBtn');
@@ -74,31 +75,40 @@ function isAnonymousSession() {
     return sessionStorage.getItem('currentIsAnonymous') === 'true';
 }
 
+function requiresGoogleAccount(mode) {
+    return CoupGameModes.isAutomated(mode);
+}
+
 function setRankedModeAvailability(user) {
     const canAccessRanked = CoupGameModes.canAccessRanked(user);
 
-    if (rankedModeInput) {
-        rankedModeInput.disabled = !canAccessRanked;
+    [rankedModeInput, personalizedModeInput].forEach((input) => {
+        if (!input) return;
+        input.disabled = !canAccessRanked;
 
-        if (!canAccessRanked && rankedModeInput.checked) {
+        if (!canAccessRanked && input.checked) {
             const casualModeInput = document.querySelector('input[name="game-mode"][value="casual"]');
             if (casualModeInput) casualModeInput.checked = true;
         }
-    }
+    });
 
     if (rankedModeNote) {
         rankedModeNote.hidden = false;
         rankedModeNote.textContent = canAccessRanked
-            ? 'Ranqueado usa conta Google, baralho padrão e permite bots IA na sala de espera.'
-            : 'O modo ranqueado exige uma conta Google. Bots IA podem ser adicionados na sala de espera.';
+            ? 'Ranqueado e Sala Personalizada usam conta Google, baralho padrão e bots IA na sala de espera.'
+            : 'Ranqueado e Sala Personalizada exigem uma conta Google. O casual continua liberado para visitantes.';
     }
 }
 
 function openRoom(code, mode) {
     const normalizedMode = CoupGameModes.normalize(mode);
     sessionStorage.setItem('currentRoomMode', normalizedMode);
-    showLoader(CoupGameModes.isRanked(normalizedMode) ? 'Carregando sala ranqueada...' : 'Carregando mesa...');
-    const destination = CoupGameModes.isRanked(normalizedMode) ? 'ranked-waiting.html' : 'index.html';
+    const destination = CoupGameModes.isRanked(normalizedMode)
+        ? 'ranked-waiting.html'
+        : CoupGameModes.isPersonalized(normalizedMode)
+            ? 'personalized-waiting.html'
+            : 'index.html';
+    showLoader(CoupGameModes.isAutomated(normalizedMode) ? `Carregando ${CoupGameModes.getLabel(normalizedMode).toLowerCase()}...` : 'Carregando mesa...');
     window.location.href = `${destination}?room=${code}`;
 }
 
@@ -848,8 +858,8 @@ if (joinRoomBtn) {
         readRoomMode(code)
             .then((roomMode) => {
                 if (roomMode) {
-                    if (CoupGameModes.isRanked(roomMode) && isAnonymousSession()) {
-                        showError('O modo ranqueado exige login com uma conta Google.');
+                    if (requiresGoogleAccount(roomMode) && isAnonymousSession()) {
+                        showError(`${CoupGameModes.getLabel(roomMode)} exige login com uma conta Google.`);
                         return;
                     }
 
@@ -874,12 +884,12 @@ if (createRoomBtn) {
     createRoomBtn.onclick = () => {
         const selectedMode = getSelectedGameMode();
 
-        if (CoupGameModes.isRanked(selectedMode) && isAnonymousSession()) {
-            showError('Entre com uma conta Google para criar uma sala ranqueada.');
+        if (requiresGoogleAccount(selectedMode) && isAnonymousSession()) {
+            showError(`Entre com uma conta Google para criar ${CoupGameModes.getLabel(selectedMode).toLowerCase()}.`);
             return;
         }
 
-        showLoader(CoupGameModes.isRanked(selectedMode) ? 'Criando sala ranqueada...' : 'Criando sala...');
+        showLoader(CoupGameModes.isAutomated(selectedMode) ? `Criando ${CoupGameModes.getLabel(selectedMode).toLowerCase()}...` : 'Criando sala...');
         const newCode = generateRoomCode();
         const currentUID = sessionStorage.getItem('currentUID'); //
 

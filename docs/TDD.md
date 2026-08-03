@@ -95,6 +95,8 @@ O frontend tem sete paginas principais:
 - `index.html`: tabuleiro do modo casual.
 - `ranked-waiting.html`: sala de espera/prontidao do modo ranqueado.
 - `ranked.html`: mesa dedicada ao modo ranqueado automatizado.
+- `personalized-waiting.html`: sala de espera da Sala Personalizada, criada como clone isolado do fluxo ranqueado.
+- `personalized.html`: mesa ativa da Sala Personalizada, usando a mesma base automatizada sem renomear o ranqueado.
 - `privacy.html`: Politica de Privacidade publica, acessivel antes do login e do lobby.
 - `terms.html`: Termos de Servico publicos, acessiveis antes do login e do lobby.
 
@@ -117,6 +119,7 @@ Ordem no ranqueado:
 4. `js/gamemode/ranked/ranked-engine.js`: transicoes puras da partida.
 5. `js/gamemode/ranked/ranked-renderer.js`: DOM responsivo, respostas, mao, log e chat.
 6. `js/gamemode/ranked/ranked-game.js`: autenticacao, sala, presenca, transacoes e deadlines.
+7. `js/gamemode/personalized/personalized-*.js`: clone inicial da base ranqueada para Sala Personalizada, com `personalizedState` proprio.
 
 Ordem no lobby:
 
@@ -1072,7 +1075,14 @@ Contrato:
 }
 ```
 
-`mode` aceita `casual` ou `ranked`. Salas antigas sem esse campo sao interpretadas como casuais.
+`mode` aceita `casual`, `ranked` ou `personalized`. Salas antigas sem esse campo sao interpretadas como casuais.
+
+A Sala Personalizada foi separada sem renomear o modo ranqueado:
+
+- `mode = "ranked"` continua apontando para `ranked-waiting.html`, `ranked.html` e `salas/{roomCode}/rankedState`;
+- `mode = "personalized"` aponta para `personalized-waiting.html`, `personalized.html` e `salas/{roomCode}/personalizedState`;
+- durante `waiting`, o criador da Sala Personalizada (`hostUID`) pode remover jogadores humanos ou bots por modal de confirmacao;
+- os ids/classes internos `rank*` podem existir no clone enquanto a camada visual ainda reutiliza o renderer e o CSS do ranqueado.
 
 O campo `status` existe no dado inicial da sala, mas nao e usado como estado de maquina no fluxo atual.
 
@@ -1525,8 +1535,9 @@ Regras atuais:
 - persiste `mode = "ranked"` na raiz e usa `rankedState` separado do sandbox casual;
 - redireciona primeiro para `ranked-waiting.html`, sem carregar `gameState.js` ou `board-renderer.js`;
 - nao possui host, administrador, reset manual ou configuracao de baralho;
-- permite adicionar jogadores IA na sala de espera ranqueada para preencher slots antes da partida;
-- desenha seis lugares na sala de espera e inicia automaticamente com 2 a 6 jogadores quando todos marcam pronto;
+- simula matchmaking na sala de espera: `ranked-game.js` avanca `rankedState.matchmaking` por transacao e `ranked-engine.js` preenche a mesa com bots IA ate o alvo de seis jogadores;
+- os bots entram gradualmente com nome e personalidade sorteados, aparecem como IA, usam intervalos aleatorios de 1 a 2 segundos e confirmam prontidao em ordem sorteada para criar uma espera mais natural;
+- desenha seis lugares na sala de espera e, com matchmaking ativo, so inicia quando a mesa esta cheia e todos marcam pronto;
 - exibe QR Code de convite na sala de espera, apontando para `ranked-waiting.html?room={codigo}`;
 - renderiza um banner responsivo AdSense abaixo da lista de jogadores, antes da partida ativa;
 - antes de iniciar, agenda uma contagem de 5 segundos para evitar que a sala comece instantaneamente por clique impulsivo em "Estou pronto";
@@ -1546,14 +1557,14 @@ Regras atuais:
 
 Jogadores IA no ranqueado:
 
-- sao adicionados por `ranked-waiting.html`, no modal `rankAddAiModal`;
-- ocupam um slot real de `rankedState.players`, com `ai = true`, `connected = true` e `ready = true`;
-- podem receber nome manual ou sugestao aleatoria do renderer;
+- sao adicionados automaticamente pelo matchmaking simulado durante `waiting`;
+- ocupam um slot real de `rankedState.players`, com `ai = true`, `connected = true` e `ready` inicialmente falso ate o fluxo automatico confirmar prontidao;
+- recebem nome e personalidade aleatorios do motor ranqueado;
 - possuem personalidade normalizada em porcentagens de `0` a `100`;
 - `vengefulness` aumenta a chance de mirar jogadores que prejudicaram o bot, usando `grudges` acumulados por alvo;
 - `honesty` reduz a chance de blefes em declaracoes e bloqueios;
 - `skepticism` aumenta a chance de contestar declaracoes/bloqueios e muda a tolerancia a riscos como Ajuda Externa contra Duque provavel;
-- se a personalidade nao for escolhida manualmente, `ranked-engine.js` gera valores aleatorios e marca `personalityHidden = true`;
+- `ranked-engine.js` gera valores aleatorios e marca `personalityHidden = false` quando o matchmaking cria a personalidade explicitamente;
 - `ranked-game.js` roda um driver client-side simples que toma decisoes por transacao durante turno, resposta, contestacao de bloqueio, perda de influencia, troca e investigacao;
 - cada decisao automatica espera uma pequena janela de leitura antes de executar, para que logs e mensagens da rodada nao avancem instantaneamente.
 
@@ -1611,7 +1622,7 @@ Integridade e limite desta fase:
 - as influencias secretas ficam no Realtime Database e podem ser inspecionadas por um cliente modificado;
 - sem Security Rules especificas e backend confiavel, um cliente malicioso ainda pode escrever estado invalido;
 - vitorias, derrotas e estatisticas ranqueadas sao persistidas pelo proprio cliente do jogador em `rankedStats/{uid}`; `rankedResults/{resultKey}` guarda o resultado da partida e `countedRooms` evita duplicidade por usuario, mas isso ainda nao representa rating competitivo confiavel;
-- matchmaking e leaderboard mundial ainda nao foram implementados.
+- matchmaking publico real e leaderboard mundial ainda nao foram implementados; o fluxo atual e uma simulacao ranqueada com bots IA client-side.
 
 Antes de ativar pontuacao competitiva real, mover validacao, resultado oficial e informacao secreta para Cloud Functions, servidor proprio ou outro componente autoritativo, alem de versionar regras do Firebase.
 

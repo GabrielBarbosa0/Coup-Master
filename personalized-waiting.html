@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#14171e">
-    <title>Sala Ranqueada | Coup Master</title>
+    <title>Sala Personalizada | Coup Master</title>
 
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/loading.css?v=selection-lock-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=selection-lock-v1">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=personalized-kick-icon-v1">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
     <link rel="stylesheet" href="css/ads.css?v=ads-disabled-v1">
 
@@ -29,7 +29,7 @@
     <div id="rankLoading" class="game-loading-overlay">
         <div class="game-loading-content">
             <h1>Coup Master</h1>
-            <p id="rankLoadingMessage">Entrando na sala ranqueada...</p>
+            <p id="rankLoadingMessage">Entrando na sala personalizada...</p>
         </div>
     </div>
 
@@ -48,20 +48,20 @@
 
         <section class="rank-waiting-card" aria-live="polite">
             <div>
-                <span class="rank-kicker">Ranqueado com bots IA</span>
-                <h1 id="rankPhaseTitle">Procurando partida</h1>
-                <p id="rankPhaseDescription" class="rank-phase-description">O sistema preenche a mesa com oponentes IA e inicia quando todos confirmarem prontidão.</p>
+                <span class="rank-kicker">Sala personalizada</span>
+                <h1 id="rankPhaseTitle">Aguardando jogadores</h1>
+                <p id="rankPhaseDescription" class="rank-phase-description">Todos os jogadores precisam confirmar prontidão para iniciar.</p>
             </div>
             <aside class="rank-waiting-invite" aria-label="Convite da sala por QR Code">
                 <button id="rankRoomCode" class="rank-room-code" type="button" title="Copiar código da sala">Sala: ----</button>
-                <img id="rankRoomQr" alt="QR Code para entrar nesta sala ranqueada">
+                <img id="rankRoomQr" alt="QR Code para entrar nesta sala personalizada">
                 <span>Escaneie para entrar</span>
             </aside>
             <div id="rankInteraction" class="rank-interaction rank-waiting-interaction"></div>
         </section>
 
-        <section id="rankPlayers" class="rank-players rank-waiting-players" aria-label="Jogadores da sala ranqueada"></section>
-        <section class="coup-ad-slot coup-ad-slot-rank-waiting" data-ad-slot-key="rankedWaiting" data-ad-status="disabled" aria-label="Publicidade na sala de espera ranqueada"></section>
+        <section id="rankPlayers" class="rank-players rank-waiting-players" aria-label="Jogadores da sala personalizada"></section>
+        <section class="coup-ad-slot coup-ad-slot-rank-waiting" data-ad-slot-key="rankedWaiting" data-ad-status="disabled" aria-label="Publicidade na sala de espera personalizada"></section>
     </main>
 
     <div id="rankErrorModal" class="rank-modal-overlay" hidden>
@@ -124,9 +124,25 @@
         </section>
     </div>
 
+    <div id="kickPlayerModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content standard-modal-content" style="text-align: center;">
+            <h2 class="config-title">Remover Jogador?</h2>
+            <p id="kickPlayerText" class="config-p-title"
+                style="font-size: 14px; opacity: 0.7; margin-bottom: 20px; margin-top: 20px;">
+                Tem certeza que deseja remover este jogador da sala?
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="confirmKickBtn" class="icon-btn"
+                    style="background: #ff3b3b; color: #fff; flex: 1; justify-content: center; font-weight: bold; border: none;">REMOVER</button>
+                <button id="cancelKickBtn" class="icon-btn"
+                    style="background: rgba(255,255,255,0.1); flex: 1; justify-content: center; border: none;">CANCELAR</button>
+            </div>
+        </div>
+    </div>
     <audio id="rank-audio-click" src="assets/sounds/vfx/blip.mp3"></audio>
     <audio id="rank-audio-card-slide" src="assets/sounds/vfx/card-slide.mp3"></audio>
     <audio id="rank-audio-pop" src="assets/sounds/vfx/pop.mp3"></audio>
+    <audio id="rank-audio-impact" src="assets/sounds/vfx/impact.mp3"></audio>
     <audio id="rank-audio-conquest" src="assets/sounds/vfx/conquest.mp3"></audio>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -136,11 +152,11 @@
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/ui/ad-slots.js?v=ads-disabled-v1" defer></script>
-    <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>
-    <script src="js/gamemode/ranked/ranked-rules.js?v=rank-matchmaking-v2" defer></script>
-    <script src="js/gamemode/ranked/ranked-engine.js?v=rank-matchmaking-v2" defer></script>
-    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-matchmaking-v2" defer></script>
-    <script src="js/gamemode/ranked/ranked-game.js?v=rank-matchmaking-v2" defer></script>
+    <script src="js/gamemode/game-modes.js?v=personalized-mode-v1" defer></script>
+    <script src="js/gamemode/personalized/personalized-rules.js?v=personalized-kick-modal-v1" defer></script>
+    <script src="js/gamemode/personalized/personalized-engine.js?v=personalized-kick-modal-v1" defer></script>
+    <script src="js/gamemode/personalized/personalized-renderer.js?v=personalized-kick-impact-v1" defer></script>
+    <script src="js/gamemode/personalized/personalized-game.js?v=personalized-kick-modal-v1" defer></script>
 </body>
 
 </html>

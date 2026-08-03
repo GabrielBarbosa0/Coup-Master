@@ -1,6 +1,6 @@
-﻿const assert = require('node:assert/strict');
-const Rules = require('./ranked-rules.js');
-const Engine = require('./ranked-engine.js');
+const assert = require('node:assert/strict');
+const Rules = require('./personalized-rules.js');
+const Engine = require('./personalized-engine.js');
 
 function createStartedState() {
     const state = Engine.createState(1000);
@@ -106,43 +106,22 @@ function testAddAiPlayerToWaitingRoom() {
     );
 }
 
-function testMatchmakingFillsRoomAndReadiesBots() {
+function testHostRemovesWaitingPlayer() {
     const state = Engine.createState(1000);
-    Engine.joinPlayer(state, { uid: 'u1', name: 'Alice', photo: '' }, 1100);
-    Engine.toggleReady(state, 'u1', 1200);
+    Engine.joinPlayer(state, { uid: 'host', name: 'Host', photo: '' }, 1001);
+    Engine.joinPlayer(state, { uid: 'guest', name: 'Visitante', photo: '' }, 1002);
+    Engine.addAiPlayer(state, { uid: 'bot-1', name: 'Bot Um' }, 1003, () => 0.5);
 
-    assert.equal(Engine.advanceMatchmaking(state, 2000, () => 0), true);
-    assert.equal(Engine.getPlayers(state).length, 1);
-    assert.equal(state.deadline, null);
-    assert.equal(Engine.advanceMatchmaking(state, 2999, () => 0), false);
+    assert.throws(
+        () => Engine.removeWaitingPlayer(state, 'guest', 'bot-1', { hostUid: 'host' }, 1004),
+        /criador/
+    );
 
-    let now = 3000;
-    while (Engine.getPlayers(state).length < Rules.SETTINGS.maxPlayers) {
-        assert.equal(Engine.advanceMatchmaking(state, now, () => 0), true);
-        now += 3000;
-    }
+    Engine.removeWaitingPlayer(state, 'host', 'bot-1', { hostUid: 'host' }, 1005);
+    assert.equal(Engine.getPlayer(state, 'bot-1'), null);
 
-    const players = Engine.getPlayers(state);
-    const bots = players.filter((player) => player.ai);
-    assert.equal(players.length, Rules.SETTINGS.maxPlayers);
-    assert.equal(bots.length, Rules.SETTINGS.maxPlayers - 1);
-    assert.ok(bots.every((bot) => !bot.ready));
-    assert.equal(state.deadline, null);
-
-    const sortedBotUids = bots.map((bot) => bot.uid);
-    const lastBotUid = sortedBotUids[sortedBotUids.length - 1];
-    assert.equal(Engine.advanceMatchmaking(state, now, () => 0.999), true);
-    assert.equal(state.players[lastBotUid].ready, true);
-    now += 3000;
-
-    while (bots.some((bot) => !bot.ready)) {
-        assert.equal(Engine.advanceMatchmaking(state, now, () => 0), true);
-        now += 3000;
-    }
-
-    assert.ok(Engine.getPlayers(state).every((player) => player.ready));
-    assert.ok(state.readyCountdownStartedAt);
-    assert.ok(state.deadline);
+    Engine.removeWaitingPlayer(state, 'host', 'guest', { hostUid: 'host' }, 1006);
+    assert.equal(Engine.getPlayer(state, 'guest'), null);
 }
 
 function testRestartMatchPreservesRoomParticipants() {
@@ -348,7 +327,7 @@ testImmediateIncome();
 testReadyCountdownDelaysStart();
 testInitialDealSkipsAmbassador();
 testAddAiPlayerToWaitingRoom();
-testMatchmakingFillsRoomAndReadiesBots();
+testHostRemovesWaitingPlayer();
 testRestartMatchPreservesRoomParticipants();
 testSuccessfulChallengeCancelsBluff();
 testFailedChallengeResumesAction();
@@ -363,6 +342,6 @@ testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 
-console.log('ranked-engine: 18 testes aprovados');
+console.log('personalized-engine: 18 testes aprovados');
 
 

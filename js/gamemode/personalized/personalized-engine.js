@@ -1,31 +1,17 @@
-﻿(function initializeRankedEngine(root, factory) {
-    const rules = root?.CoupRankedRules
-        || (typeof require === 'function' ? require('./ranked-rules.js') : null);
+(function initializePersonalizedEngine(root, factory) {
+    const rules = root?.CoupPersonalizedRules
+        || (typeof require === 'function' ? require('./personalized-rules.js') : null);
     const api = factory(rules);
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;
     }
 
-    if (root) root.CoupRankedEngine = api;
-})(typeof window !== 'undefined' ? window : null, function createRankedEngine(Rules) {
-    if (!Rules) throw new Error('CoupRankedRules precisa ser carregado antes do motor ranqueado.');
+    if (root) root.CoupPersonalizedEngine = api;
+})(typeof window !== 'undefined' ? window : null, function createPersonalizedEngine(Rules) {
+    if (!Rules) throw new Error('CoupPersonalizedRules precisa ser carregado antes do motor personalizado.');
 
     const { ACTIONS, PHASES, SETTINGS } = Rules;
-    const MATCHMAKING_BOT_JOIN_MIN_MS = 1000;
-    const MATCHMAKING_BOT_JOIN_SPAN_MS = 1000;
-    const MATCHMAKING_READY_MIN_MS = 1000;
-    const MATCHMAKING_READY_SPAN_MS = 1000;
-    const MATCHMAKING_BOT_NAMES = Object.freeze([
-        'Augusto', 'Berenice', 'Cassandra', 'Dario', 'Eloisa', 'Fausto',
-        'Gael', 'Helena', 'Icaro', 'Dama do Véu', 'Barão Âmbar', 'Mauro',
-        'Nadia', 'Otavio', 'Pilar', 'Quintino', 'Rafaela', 'Silas',
-        'Véu Carmesim', 'Ulisses', 'Valentina', 'Xavier', 'Lady Lótus', 'Zeca',
-        'Duque Cinzento', 'Capitão Falso', 'Condessa Fria', 'Inquisidor Mudo',
-        'Baronesa Vesper', 'Lorde Sombra', 'Dama Fortuna', 'Arauto Azul',
-        'Marquês Oculto', 'Visconde Sete', 'Oráculo da Corte', 'Máscara Rubra',
-        'Corvo Real', 'Duelista Nobre', 'Escriba Cego', 'General de Seda'
-    ]);
 
     function createState(now = Date.now()) {
         return {
@@ -65,18 +51,6 @@
         state.matchStats = state.matchStats && typeof state.matchStats === 'object' ? state.matchStats : {};
         state.matchId = Number.isFinite(Number(state.matchId)) ? Number(state.matchId) : 0;
         state.readyCountdownStartedAt = state.readyCountdownStartedAt || null;
-        state.matchmaking = state.matchmaking && typeof state.matchmaking === 'object' ? state.matchmaking : null;
-        if (state.matchmaking) {
-            const targetPlayers = Number(state.matchmaking.targetPlayers);
-            state.matchmaking.enabled = state.matchmaking.enabled !== false;
-            state.matchmaking.targetPlayers = Number.isFinite(targetPlayers)
-                ? Math.max(SETTINGS.minPlayers, Math.min(SETTINGS.maxPlayers, Math.round(targetPlayers)))
-                : SETTINGS.maxPlayers;
-            state.matchmaking.startedAt = Number(state.matchmaking.startedAt) || state.createdAt || Date.now();
-            state.matchmaking.nextBotAt = state.matchmaking.nextBotAt || null;
-            state.matchmaking.nextReadyAt = state.matchmaking.nextReadyAt || null;
-            state.matchmaking.filledAt = state.matchmaking.filledAt || null;
-        }
         Object.values(state.players).forEach((player) => {
             player.influences = Array.isArray(player.influences) ? player.influences : [];
             player.coins = Number.isFinite(Number(player.coins)) ? Number(player.coins) : SETTINGS.startingCoins;
@@ -105,45 +79,6 @@
             honesty: roll(),
             skepticism: roll()
         };
-    }
-
-    function randomDelay(random, min, span) {
-        return min + Math.floor(random() * span);
-    }
-
-    function randomItem(items, random = Math.random) {
-        if (!items.length) return null;
-        return items[Math.floor(random() * items.length)] || items[0];
-    }
-
-    function ensureMatchmaking(state, now = Date.now(), random = Math.random) {
-        normalizeState(state);
-        if (!state.matchmaking) {
-            state.matchmaking = {
-                enabled: true,
-                targetPlayers: SETTINGS.maxPlayers,
-                startedAt: now,
-                nextBotAt: null,
-                nextReadyAt: null,
-                filledAt: null
-            };
-        }
-        state.matchmaking.enabled = true;
-        state.matchmaking.targetPlayers = Math.max(
-            SETTINGS.minPlayers,
-            Math.min(SETTINGS.maxPlayers, Number(state.matchmaking.targetPlayers) || SETTINGS.maxPlayers)
-        );
-        state.matchmaking.startedAt = state.matchmaking.startedAt || now;
-        return state.matchmaking;
-    }
-
-    function pickMatchmakingBotName(state, random = Math.random) {
-        const usedNames = new Set(getPlayers(state).map((player) => (
-            String(player.name || '').toLocaleLowerCase('pt-BR')
-        )));
-        const available = MATCHMAKING_BOT_NAMES.filter((name) => !usedNames.has(name.toLocaleLowerCase('pt-BR')));
-        const names = available.length ? available : MATCHMAKING_BOT_NAMES;
-        return names[Math.floor(random() * names.length)] || `Bot ${getPlayers(state).length + 1}`;
     }
 
     function normalizeBotPersonality(personality, random = Math.random) {
@@ -249,10 +184,10 @@
             return state;
         }
 
-        if (state.status !== PHASES.WAITING) throw new Error('A partida ranqueada já começou.');
+        if (state.status !== PHASES.WAITING) throw new Error('A partida personalizada já começou.');
         pruneDisconnectedWaitingPlayers(state, user.uid, now);
         const seat = nextFreeSeat(state);
-        if (!seat) throw new Error('A sala ranqueada está cheia.');
+        if (!seat) throw new Error('A sala personalizada está cheia.');
 
         state.players[user.uid] = {
             uid: user.uid,
@@ -274,9 +209,9 @@
 
     function addAiPlayer(state, options = {}, now = Date.now(), random = Math.random) {
         normalizeState(state);
-        if (state.status !== PHASES.WAITING) throw new Error('A partida ranqueada já começou.');
+        if (state.status !== PHASES.WAITING) throw new Error('A partida personalizada já começou.');
         const seat = nextFreeSeat(state);
-        if (!seat) throw new Error('A sala ranqueada está cheia.');
+        if (!seat) throw new Error('A sala personalizada está cheia.');
 
         const rawName = String(options.name || '').trim();
         const name = rawName.slice(0, 24) || `Bot ${seat}`;
@@ -292,7 +227,7 @@
             photo: options.photo || 'assets/img/icons/robot.svg',
             seat,
             connected: true,
-            ready: options.ready !== undefined ? Boolean(options.ready) : true,
+            ready: true,
             ai: true,
             personality: normalizeBotPersonality(options.personality, random),
             personalityHidden: !options.personality,
@@ -306,79 +241,6 @@
         updateReadyCountdown(state, now);
         state.updatedAt = now;
         return state;
-    }
-
-    function advanceMatchmaking(state, now = Date.now(), random = Math.random) {
-        normalizeState(state);
-        if (state.status !== PHASES.WAITING) return false;
-
-        const players = getPlayers(state);
-        const humanPlayers = players.filter((player) => !player.ai);
-        if (!humanPlayers.length) return false;
-
-        const matchmaking = ensureMatchmaking(state, now, random);
-        if (!matchmaking.enabled) return false;
-
-        if (players.length < matchmaking.targetPlayers) {
-            if (!matchmaking.nextBotAt) {
-                matchmaking.nextBotAt = now + randomDelay(random, MATCHMAKING_BOT_JOIN_MIN_MS, MATCHMAKING_BOT_JOIN_SPAN_MS);
-                state.updatedAt = now;
-                return true;
-            }
-            if (now < matchmaking.nextBotAt) return false;
-
-            const name = pickMatchmakingBotName(state, random);
-            addAiPlayer(state, {
-                name,
-                ready: false,
-                personality: createRandomBotPersonality(random)
-            }, now, random);
-
-            const filled = getPlayers(state).length >= matchmaking.targetPlayers;
-            matchmaking.nextBotAt = filled
-                ? null
-                : now + randomDelay(random, MATCHMAKING_BOT_JOIN_MIN_MS, MATCHMAKING_BOT_JOIN_SPAN_MS);
-            matchmaking.filledAt = filled ? now : null;
-            matchmaking.nextReadyAt = filled
-                ? now + randomDelay(random, MATCHMAKING_READY_MIN_MS, MATCHMAKING_READY_SPAN_MS)
-                : null;
-            addLog(state, `Matchmaking encontrou ${name}.`, 'system', now);
-            updateReadyCountdown(state, now);
-            state.updatedAt = now;
-            return true;
-        }
-
-        matchmaking.filledAt = matchmaking.filledAt || now;
-        matchmaking.nextBotAt = null;
-
-        const unreadyBots = getPlayers(state).filter((player) => player.ai && !player.ready);
-        const unreadyBot = randomItem(unreadyBots, random);
-        if (unreadyBot) {
-            if (!matchmaking.nextReadyAt) {
-                matchmaking.nextReadyAt = now + randomDelay(random, MATCHMAKING_READY_MIN_MS, MATCHMAKING_READY_SPAN_MS);
-                state.updatedAt = now;
-                return true;
-            }
-            if (now < matchmaking.nextReadyAt) return false;
-
-            unreadyBot.ready = true;
-            addLog(state, `${unreadyBot.name} confirmou prontidão.`, 'system', now);
-            matchmaking.nextReadyAt = getPlayers(state).some((player) => player.ai && !player.ready)
-                ? now + randomDelay(random, MATCHMAKING_READY_MIN_MS, MATCHMAKING_READY_SPAN_MS)
-                : null;
-            updateReadyCountdown(state, now);
-            state.updatedAt = now;
-            return true;
-        }
-
-        const previousCountdown = state.readyCountdownStartedAt;
-        const previousDeadline = state.deadline;
-        updateReadyCountdown(state, now);
-        if (previousCountdown !== state.readyCountdownStartedAt || previousDeadline !== state.deadline) {
-            state.updatedAt = now;
-            return true;
-        }
-        return false;
     }
 
     function setConnected(state, uid, connected, now = Date.now()) {
@@ -401,6 +263,20 @@
         return state;
     }
 
+    function removeWaitingPlayer(state, actorUid, targetUid, options = {}, now = Date.now()) {
+        normalizeState(state);
+        if (state.status !== PHASES.WAITING) throw new Error('A partida personalizada ja comecou.');
+        if (!actorUid || actorUid !== options.hostUid) throw new Error('Apenas o criador da sala pode remover jogadores.');
+        if (!targetUid || targetUid === actorUid) throw new Error('Use o botao de sair para deixar a sala.');
+        if (!state.players?.[targetUid]) throw new Error('Jogador nao encontrado.');
+
+        const name = state.players[targetUid].name;
+        delete state.players[targetUid];
+        addLog(state, `${name} foi removido da sala pelo criador.`, 'system', now);
+        updateReadyCountdown(state, now);
+        state.updatedAt = now;
+        return state;
+    }
     function toggleReady(state, uid, now = Date.now(), random = Math.random) {
         normalizeState(state);
         if (state.status !== PHASES.WAITING) throw new Error('A partida já começou.');
@@ -429,11 +305,7 @@
 
     function arePlayersReadyToStart(state) {
         const players = getPlayers(state);
-        const matchmaking = state.matchmaking?.enabled ? state.matchmaking : null;
-        const requiredPlayers = matchmaking
-            ? Math.max(SETTINGS.minPlayers, Math.min(SETTINGS.maxPlayers, Number(matchmaking.targetPlayers) || SETTINGS.maxPlayers))
-            : SETTINGS.minPlayers;
-        return players.length >= requiredPlayers && players.every((player) => player.ready);
+        return players.length >= SETTINGS.minPlayers && players.every((player) => player.ready);
     }
 
     function updateReadyCountdown(state, now = Date.now()) {
@@ -504,7 +376,7 @@
         state.pendingLoss = null;
         state.pendingExchange = null;
         state.pendingExamine = null;
-        addLog(state, 'A partida ranqueada começou. Sorteando quem joga primeiro.', 'important', now);
+        addLog(state, 'A partida personalizada começou. Sorteando quem joga primeiro.', 'important', now);
         state.updatedAt = now;
         return true;
     }
@@ -1027,7 +899,7 @@
         state.pendingLoss = null;
         state.pendingExchange = null;
         state.pendingExamine = null;
-        addLog(state, `${alive[0].name} venceu a partida ranqueada.`, 'winner', now);
+        addLog(state, `${alive[0].name} venceu a partida personalizada.`, 'winner', now);
         state.updatedAt = now;
         return true;
     }
@@ -1142,9 +1014,9 @@
         normalizeState,
         joinPlayer,
         addAiPlayer,
-        advanceMatchmaking,
         setConnected,
         leaveWaitingRoom,
+        removeWaitingPlayer,
         toggleReady,
         restartMatch,
         maybeStart,

@@ -1,6 +1,6 @@
-﻿(function initializeRankedRenderer(root) {
-    const Rules = root.CoupRankedRules;
-    const Engine = root.CoupRankedEngine;
+(function initializePersonalizedRenderer(root) {
+    const Rules = root.CoupPersonalizedRules;
+    const Engine = root.CoupPersonalizedEngine;
     const { ACTIONS, PHASES } = Rules;
 
     let controller = null;
@@ -18,6 +18,7 @@
     let matchResultsKey = '';
     let previousSoundSnapshot = null;
     let playedConquestKeys = new Set();
+    let pendingRemovePlayer = null;
     let rankBgmAudio = null;
     let rankBgmGuard = null;
     let rankMusicVolume = 0.1;
@@ -110,7 +111,7 @@
         });
         document.getElementById('rankRoomQr')?.addEventListener('click', async () => {
             try {
-                await navigator.clipboard.writeText(getRankedInviteUrl());
+                await navigator.clipboard.writeText(getPersonalizedInviteUrl());
                 playRankSfx('pop');
             } catch (error) {
                 showError('Não foi possível copiar o convite da sala.');
@@ -122,6 +123,7 @@
         bindRankPlayerProfileModal();
         bindRankPanel('openRankLogBtn', 'rankLogModal', '#closeRankLogBtn');
         bindAddAiModal();
+        bindRemovePlayerModal();
         setupActionsGuide();
         document.getElementById('copyRankLogBtn')?.addEventListener('click', copyOfficialLog);
         document.getElementById('rankFullscreenBtn')?.addEventListener('click', () => {
@@ -411,8 +413,8 @@
         const losses = profileNumber(stats?.losses);
         const rankScore = profileNumber(stats?.rankScore ?? stats?.score ?? stats?.points);
         const status = options.status || (games
-            ? `${games} jogo(s) ranqueado(s) registrados.`
-            : 'Sem partidas ranqueadas registradas ainda.');
+            ? `${games} jogo(s) personalizado(s) registrados.`
+            : 'Sem partidas personalizadas registradas ainda.');
         const avatar = document.getElementById('rankPlayerProfileAvatar');
         const loading = document.getElementById('rankPlayerProfileLoading');
         const statsGrid = document.getElementById('rankPlayerProfileStats');
@@ -445,8 +447,8 @@
         if (!player.uid || player.ai) {
             renderRankPlayerProfile(player, null, {
                 status: player.ai
-                    ? 'Jogadores IA ainda não possuem perfil ranqueado persistido.'
-                    : 'Este jogador ainda não possui perfil ranqueado vinculado.'
+                    ? 'Jogadores IA ainda não possuem perfil personalizado persistido.'
+                    : 'Este jogador ainda não possui perfil personalizado vinculado.'
             });
             return;
         }
@@ -524,6 +526,68 @@
         });
     }
 
+    function bindRemovePlayerModal() {
+        const modal = document.getElementById('kickPlayerModal');
+        const text = document.getElementById('kickPlayerText');
+        const confirm = document.getElementById('confirmKickBtn');
+        const cancel = document.getElementById('cancelKickBtn');
+
+        cancel?.addEventListener('click', () => {
+            pendingRemovePlayer = null;
+            hideModal(modal);
+        });
+
+        confirm?.addEventListener('click', () => {
+            if (!pendingRemovePlayer?.uid) {
+                hideModal(modal);
+                return;
+            }
+
+            const target = pendingRemovePlayer;
+            confirm.disabled = true;
+            controller.removePlayer(target.uid)
+                .then(() => {
+                    playRankSfx('impact');
+                    pendingRemovePlayer = null;
+                    hideModal(modal);
+                })
+                .catch((error) => showError(error.message || 'Nao foi possivel remover este jogador.'))
+                .finally(() => {
+                    confirm.disabled = false;
+                });
+        });
+
+        if (text) text.textContent = 'Escolha um jogador para remover da sala.';
+    }
+
+    function openRemovePlayerModal(player) {
+        const modal = document.getElementById('kickPlayerModal');
+        const text = document.getElementById('kickPlayerText');
+        if (!modal || !player) return;
+
+        pendingRemovePlayer = player;
+        if (text) {
+            text.textContent = `Tem certeza que deseja remover ${player.name || 'este jogador'} da sala?`;
+        }
+        showModal(modal);
+    }
+
+    function createRemovePlayerButton(player) {
+        const button = element('button', 'rank-remove-player-btn');
+        button.type = 'button';
+        button.title = `Remover ${player.name || 'jogador'}`;
+        button.setAttribute('aria-label', `Remover ${player.name || 'jogador'} da sala`);
+        const icon = element('img');
+        icon.src = 'assets/img/icons/delete.svg';
+        icon.alt = '';
+        icon.setAttribute('aria-hidden', 'true');
+        button.append(icon);
+        button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            openRemovePlayerModal(player);
+        });
+        return button;
+    }
     function fillRandomAiName() {
         const input = document.getElementById('rankAiName');
         if (!input) return;
@@ -588,8 +652,8 @@
         renderRoomQr();
     }
 
-    function getRankedInviteUrl() {
-        const inviteUrl = new URL('ranked-waiting.html', root.location.href);
+    function getPersonalizedInviteUrl() {
+        const inviteUrl = new URL('personalized-waiting.html', root.location.href);
         inviteUrl.searchParams.set('room', roomCode || '');
         return inviteUrl.href;
     }
@@ -597,7 +661,7 @@
     function renderRoomQr() {
         const qrImage = document.getElementById('rankRoomQr');
         if (!qrImage || !roomCode) return;
-        const data = encodeURIComponent(getRankedInviteUrl());
+        const data = encodeURIComponent(getPersonalizedInviteUrl());
         qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=164x164&margin=8&data=${data}`;
         qrImage.title = 'Clique para copiar o convite da sala';
     }
@@ -686,6 +750,9 @@
 
             if (state.status === PHASES.WAITING) {
                 slot.append(header);
+                if (controller?.canRemovePlayer?.(player)) {
+                    slot.append(createRemovePlayerButton(player));
+                }
             } else {
                 header.append(createCoinCounter(player.coins));
 
@@ -831,22 +898,10 @@
     function renderWaiting(container) {
         const players = Engine.getPlayers(state);
         const readyCount = players.filter((player) => player.ready).length;
-        const targetPlayers = state.matchmaking?.enabled
-            ? Number(state.matchmaking.targetPlayers || Rules.SETTINGS.maxPlayers)
-            : Rules.SETTINGS.maxPlayers;
-        const safeTarget = Math.max(Rules.SETTINGS.minPlayers, Math.min(Rules.SETTINGS.maxPlayers, targetPlayers));
-        const foundAllPlayers = players.length >= safeTarget;
-        const allPlayersReady = foundAllPlayers && players.every((player) => player.ready);
-        const statusText = !foundAllPlayers
-            ? 'Buscando oponentes IA...'
-            : allPlayersReady
-                ? getReadyCountdownText()
-                : 'Mesa encontrada. Aguardando prontidão.';
         const summary = element('div', 'rank-waiting-summary');
         summary.append(
-            element('span', 'rank-waiting-counter', `${players.length}/${safeTarget} encontrados`),
-            element('span', 'rank-waiting-counter', `${readyCount}/${safeTarget} prontos`),
-            element('span', 'rank-waiting-countdown', statusText)
+            element('span', 'rank-waiting-counter', `${readyCount}/${Math.max(players.length, Rules.SETTINGS.minPlayers)} prontos`),
+            element('span', 'rank-waiting-countdown', getReadyCountdownText())
         );
 
         const self = Engine.getPlayer(state, currentUid);
@@ -854,7 +909,17 @@
         ready.type = 'button';
         ready.addEventListener('click', () => controller.toggleReady());
 
-        container.append(summary, ready);
+        const addAi = element('button', 'rank-secondary-btn', 'Adicionar jogador IA');
+        addAi.id = 'openRankAddAiBtn';
+        addAi.type = 'button';
+        addAi.disabled = players.length >= Rules.SETTINGS.maxPlayers;
+        addAi.addEventListener('click', () => {
+            fillRandomAiName();
+            syncAiPersonalityFields();
+            showModal(document.getElementById('rankAddAiModal'));
+        });
+
+        container.append(summary, ready, addAi);
     }
 
     function getReadyCountdownText(now = Date.now()) {
@@ -1328,7 +1393,7 @@
             return `[${turn}] ${entry.message}`;
         });
         const text = [
-            `Coup Master - registro ranqueado da sala ${roomCode}`,
+            `Coup Master - registro personalizado da sala ${roomCode}`,
             `Turno atual: ${state?.turnNumber || 0}`,
             '',
             ...lines
@@ -1938,7 +2003,7 @@
         list.scrollTop = list.scrollHeight;
     }
 
-    root.CoupRankedRenderer = Object.freeze({
+    root.CoupPersonalizedRenderer = Object.freeze({
         init,
         render,
         renderChat,

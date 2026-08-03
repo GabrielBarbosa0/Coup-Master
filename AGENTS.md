@@ -13,13 +13,15 @@ Pontos de entrada:
 - `index.html`: tabuleiro do modo casual.
 - `ranked-waiting.html`: sala de espera/prontidao do modo ranqueado.
 - `ranked.html`: mesa da partida ranqueada com regras automatizadas.
+- `personalized-waiting.html`: sala de espera/prontidao da Sala Personalizada, clonada do fluxo ranqueado.
+- `personalized.html`: mesa ativa da Sala Personalizada, com regras automatizadas e base visual do ranqueado.
 - `.nojekyll`: desativa o processamento Jekyll no GitHub Pages; mantenha esse arquivo para publicar o app como site estatico puro.
 
 Scripts principais:
 
 - `js/firebase/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
 - `js/login/login-manager.js`: login Google/anonimo e persistencia de sessao local.
-- `js/gamemode/game-modes.js`: contrato compartilhado dos modos casual e ranqueado.
+- `js/gamemode/game-modes.js`: contrato compartilhado dos modos casual, ranqueado e Sala Personalizada.
 - `js/core/rules.js`: tipos de carta, criacao de deck e utilitarios.
 - `js/core/gameState.js`: conexao com sala, mutacoes e listeners do Firebase.
 - `js/lobby/lobby-manager.js`: lobby/salas/logout/limpeza.
@@ -47,6 +49,10 @@ Scripts principais:
 - `js/gamemode/ranked/ranked-engine.js`: maquina de estados pura para turnos, contestacoes, bloqueios e eliminacoes.
 - `js/gamemode/ranked/ranked-game.js`: autenticacao, transacoes, presenca e listeners Firebase do ranqueado.
 - `js/gamemode/ranked/ranked-renderer.js`: interface e chat da tela ranqueada.
+- `js/gamemode/personalized/personalized-rules.js`: clone inicial das regras automatizadas do ranqueado para Sala Personalizada.
+- `js/gamemode/personalized/personalized-engine.js`: clone inicial do motor ranqueado para a Sala Personalizada.
+- `js/gamemode/personalized/personalized-game.js`: conexao Firebase da Sala Personalizada usando `personalizedState`.
+- `js/gamemode/personalized/personalized-renderer.js`: interface da Sala Personalizada baseada no renderer ranqueado.
 - `js/ui/ad-slots.js`: configuracao e renderizacao dos slots Google AdSense.
 
 Leia `docs/TDD.md` antes de fazer mudancas estruturais.
@@ -106,6 +112,11 @@ node --check js\gamemode\ranked\ranked-engine.js
 node --check js\gamemode\ranked\ranked-renderer.js
 node --check js\gamemode\ranked\ranked-game.js
 node js\gamemode\ranked\ranked-engine.test.js
+node --check js\gamemode\personalized\personalized-rules.js
+node --check js\gamemode\personalized\personalized-engine.js
+node --check js\gamemode\personalized\personalized-renderer.js
+node --check js\gamemode\personalized\personalized-game.js
+node js\gamemode\personalized\personalized-engine.test.js
 ```
 
 Para testar localmente, use servidor estatico:
@@ -142,7 +153,7 @@ Cuidados:
 
 Preserve:
 
-- 8 slots maximos no casual e 6 slots maximos no ranqueado.
+- 8 slots maximos no casual e 6 slots maximos no ranqueado/Sala Personalizada.
 - UID real reentra no mesmo slot.
 - Carta existe em apenas um lugar: `deck`, `freeCards` ou `players[n].hand`.
 - Carta no deck: `owner = null`, `visible = false`, `location = "deck"`.
@@ -150,9 +161,12 @@ Preserve:
 - Carta no cemiterio/free area: `owner = null`, `visible = true`, `location = "free"`.
 - Scores nao devem ficar negativos.
 - Host e determinado por `salas/{roomCode}/hostUID`.
-- Sala sem `mode` e casual; sala ranqueada exige conta Google, baralho padrao e permite bots IA experimentais adicionados na sala de espera.
+- Sala sem `mode` e casual; sala ranqueada exige conta Google, baralho padrao e simula matchmaking preenchendo a espera com bots IA ate seis jogadores.
 - O ranqueado nao possui host ou controles administrativos. Todos os clientes passam pelo mesmo motor de regras.
-- O ranqueado agenda uma contagem de 5 segundos depois que todos estao prontos antes de iniciar a partida.
+- No matchmaking ranqueado, bots entram em intervalos aleatorios de 1 a 2 segundos e confirmam prontidao em ordem sorteada; a prontidao automatica nao deve alternar de volta.
+- O ranqueado agenda uma contagem de 5 segundos depois que a mesa esta cheia e todos estao prontos antes de iniciar a partida.
+- A Sala Personalizada usa `mode = "personalized"` e `personalizedState`, preservando o ranqueado em `mode = "ranked"` e `rankedState`.
+- Na Sala Personalizada, o criador salvo em `hostUID` pode remover jogadores humanos ou bots apenas durante a sala de espera.
 - `rankedStats/{uid}` e `rankedResults/{resultKey}` existem para perfil/estatisticas beta. As Firebase Security Rules precisam liberar esses caminhos, ou o lobby nao consegue exibir partidas, vitorias, derrotas e conquistas do ranqueado. Nao trate esses dados como rating confiavel enquanto influencias secretas e transicoes puderem ser lidas/escritas diretamente pelo cliente.
 
 ## Ao Adicionar Carta

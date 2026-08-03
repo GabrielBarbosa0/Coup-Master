@@ -97,10 +97,11 @@ com foco em escalabilidade e consistência de estado.
 * **Feedback Visual de Espectador:** Destaque com brilho azul suave e borda no avatar do jogador que está sendo assistido.
 * **Interface Responsiva e Adaptável:** Ocultação automática do botão de espectador para jogadores que possuem cartas na mão.
 * **Sistema de Salas Privadas:** Criação e entrada em salas via códigos únicos de 4 dígitos com função de cópia rápida no cabeçalho.
-* **Modo Ranqueado Beta:** Tela e fluxo próprios para contas Google, sem host, com bots IA experimentais na sala de espera, turnos, custos, alvos, contestações, bloqueios, perdas de influência e tempos de resposta controlados pelo sistema. Rating e leaderboard continuam suspensos até existir validação autoritativa antifraude.
+* **Modo Ranqueado Beta:** Tela e fluxo próprios para contas Google, sem host, com matchmaking simulado que preenche a mesa com bots IA de personalidade sorteada antes da partida. Turnos, custos, alvos, contestações, bloqueios, perdas de influência e tempos de resposta são controlados pelo sistema. Rating e leaderboard continuam suspensos até existir validação autoritativa antifraude.
+* **Sala Personalizada:** Fluxo paralelo criado a partir do ranqueado automatizado, usando `mode = "personalized"` e `personalizedState` para permitir evoluir salas com amigos e bots sem alterar os arquivos do ranqueado.
 * **Banner AdSense na Espera Ranqueada:** Slot responsivo de publicidade carregado apenas em `ranked-waiting.html`, antes da partida ativa.
 * **Controle de Áudio Integrado:** Música de fundo e efeitos sonoros sincronizados para ações como compra de cartas, moedas e impacto.
-* **Gestão de Bots:** Capacidade de adicionar bots para testes de mesa.
+* **Gestão de Bots:** Capacidade de usar bots para testes de mesa, com controle manual concentrado na Sala Personalizada e preenchimento automático no ranqueado.
 * **Modais de Referência Rápida:** Visualização de guias de ações de personagens e regras alternativas através de cartas que giram (flip cards).
 
 ---
@@ -132,7 +133,7 @@ com foco em escalabilidade e consistência de estado.
 O projeto segue uma arquitetura modular com separação clara de responsabilidades:
 
 - **js/firebase/firebase.js** → Inicialização e infraestrutura (Auth + Database)
-- **js/gamemode/game-modes.js** → Contrato compartilhado dos modos Casual e Ranqueado
+- **js/gamemode/game-modes.js** → Contrato compartilhado dos modos Casual, Ranqueado e Sala Personalizada
 - **rules.js** → Constantes e manipulação estrutural do baralho
 - **gameState.js** → Gerenciamento de estado e transações Firebase
 - **js/gamemode/casual/audio-service.js** → Audio casual, BGM, volume e sincronizacao de efeitos
@@ -224,6 +225,12 @@ Coup-Master/
 │   │       ├── ranked-engine.js
 │   │       ├── ranked-renderer.js
 │   │       └── ranked-game.js
+│   │   └── 📂 personalized/    # Clone inicial do ranqueado para Sala Personalizada
+│   │       ├── personalized-rules.js
+│   │       ├── personalized-engine.js
+│   │       ├── personalized-engine.test.js
+│   │       ├── personalized-renderer.js
+│   │       └── personalized-game.js
 │   ├── 📂 lobby/
 │   │   └── lobby-manager.js    # Fluxo de criação, faxina e entrada de salas
 │   └── 📂 ui/
@@ -246,6 +253,7 @@ Coup-Master/
 * **`js/firebase/`**: Centraliza a inicialização do Firebase e expõe `window.db` e `window.auth` para os demais scripts.
 * **`js/gamemode/casual/`**: Concentra a mesa casual. `board-renderer.js` atua como coordenador principal, chamando setup dos modulos e preservando `renderAll`, `setupUI` e `setupAutoScroll` para `gameState.js`. `audio-service.js` centraliza BGM/efeitos, `card-preview.js` cuida do preview ampliado, `modal-service.js` padroniza modais, `chat-service.js` controla o chat em tempo real, `board-status.js` atualiza contadores e codigo da sala, `visual-effects.js` centraliza efeito Balatro e leques, `admin-controls.js` controla a UI de host, `rules-guides.js` gerencia guias de acoes/personagens e regras alternativas, `spectator-service.js` controla o fluxo de espectador, `quick-actions.js` gerencia perfil rapido e acoes rapidas, `settings-service.js` centraliza preferencias locais, `room-ui.js` agrupa sair da sala, fullscreen, feedback e configuracoes simples, `asylum-controls.js` centraliza duplo clique, botoes e tooltip do asilo, `tutorial-service.js` controla o tutorial inicial e `tutorialSeen`, `deck-presets.js` concentra presets de baralho, `drag-drop.js` centraliza o arraste legado e compativel, `render-cards.js` monta as cartas visuais, `render-players.js` renderiza os slots de jogadores e `table-render.js` renderiza a area central do tabuleiro.
 * **`js/gamemode/ranked/`**: Concentra o fluxo automatizado do modo ranqueado, incluindo regras, máquina de estados, renderização e integração Firebase.
+* **`js/gamemode/personalized/`**: Mantém a primeira cópia isolada da Sala Personalizada, permitindo evoluir convites, bots e controles próprios sem renomear o ranqueado atual.
 * **`js/ui/`**: Centraliza utilitarios de interface compartilhados, incluindo protecao de audio em background, bloqueio de selecao e renderizacao dos slots AdSense.
 * **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
 

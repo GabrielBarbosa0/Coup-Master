@@ -42,7 +42,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <link rel="stylesheet" href="css/lobby.css?v=lobby-legal-flow-fix-v1">
+    <link rel="stylesheet" href="css/lobby.css?v=mode-scroll-v2">
     <link rel="stylesheet" href="css/loading.css?v=selection-lock-v1">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
 </head>
@@ -76,21 +76,31 @@
             <fieldset class="game-mode-selector">
                 <legend>Modo da nova sala</legend>
 
-                <label class="game-mode-option">
-                    <input type="radio" name="game-mode" value="casual" checked>
-                    <span class="game-mode-option-content">
-                        <strong>Casual</strong>
-                        <small>Mesa livre</small>
-                    </span>
-                </label>
+                <div class="game-mode-options-scroll" aria-label="Seleção de modos de jogo">
+                    <label class="game-mode-option">
+                        <input type="radio" name="game-mode" value="casual" checked>
+                        <span class="game-mode-option-content">
+                            <strong>Casual</strong>
+                            <small>Mesa livre</small>
+                        </span>
+                    </label>
 
-                <label class="game-mode-option">
-                    <input id="ranked-mode-input" type="radio" name="game-mode" value="ranked">
-                    <span class="game-mode-option-content">
-                        <strong>Ranqueado</strong>
-                        <small>Baralho padrão</small>
-                    </span>
-                </label>
+                    <label class="game-mode-option">
+                        <input id="ranked-mode-input" type="radio" name="game-mode" value="ranked">
+                        <span class="game-mode-option-content">
+                            <strong>Ranqueado</strong>
+                            <small>Baralho padrão</small>
+                        </span>
+                    </label>
+
+                    <label class="game-mode-option">
+                        <input id="personalized-mode-input" type="radio" name="game-mode" value="personalized">
+                        <span class="game-mode-option-content">
+                            <strong>Sala Personalizada</strong>
+                            <small>Amigos e bots IA</small>
+                        </span>
+                    </label>
+                </div>
             </fieldset>
 
             <p id="ranked-mode-note" class="ranked-mode-note" hidden>
@@ -239,8 +249,8 @@
     <script src="js/ui/selection-lock.js?v=selection-lock-v1" defer></script>
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
-    <script src="js/gamemode/game-modes.js?v=ranked-mode-beta" defer></script>
-    <script src="js/lobby/lobby-manager.js?v=leaderboard-v1" defer></script>
+    <script src="js/gamemode/game-modes.js?v=personalized-mode-v1" defer></script>
+    <script src="js/lobby/lobby-manager.js?v=personalized-mode-v1" defer></script>
 
 </body>
 
