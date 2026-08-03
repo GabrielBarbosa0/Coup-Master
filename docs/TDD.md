@@ -323,13 +323,13 @@ O projeto possui uma integracao pontual com Google AdSense, mantendo a arquitetu
 
 Estado atual:
 
-- existe um unico slot ativo de anuncio: banner responsivo na sala de espera ranqueada (`ranked-waiting.html`);
+- existe um unico slot preparado de anuncio: banner responsivo na sala de espera ranqueada (`ranked-waiting.html`), atualmente oculto/desativado ate a aprovacao do AdSense;
 - `ranked-waiting.html` carrega `css/ads.css`, o snippet oficial do AdSense no `<head>` e `js/ui/ad-slots.js`;
-- `js/ui/ad-slots.js` centraliza `ADSENSE_CLIENT = "ca-pub-5483968891175594"` e `AD_SLOTS.rankedWaiting = "6425587327"`;
-- `css/ads.css` define o visual do container, label `Publicidade`, placeholder e comportamento responsivo;
+- `js/ui/ad-slots.js` centraliza `ADSENSE_ENABLED = false`, `ADSENSE_CLIENT = "ca-pub-1234567890123456"` como exemplo documental e `AD_SLOTS.rankedWaiting = "1234567890"` como exemplo documental;
+- `css/ads.css` define o visual do container, label `Publicidade`, placeholder, estado oculto/desativado e comportamento responsivo;
 - lobby, mesa casual, mesa ranqueada ativa e resultado final ranqueado nao exibem anuncios.
 
-O helper `js/ui/ad-slots.js` procura elementos `.coup-ad-slot[data-ad-slot-key]`, cria o `<ins class="adsbygoogle">` quando a configuracao existe e usa placeholder quando falta configuracao. Como `ranked-waiting.html` ja declara o script oficial no `<head>` com `id="coup-adsense-script"`, o helper evita injetar o script novamente.
+O helper `js/ui/ad-slots.js` procura elementos `.coup-ad-slot[data-ad-slot-key]`, mantem o slot oculto quando `ADSENSE_ENABLED` esta `false`, cria o `<ins class="adsbygoogle">` quando a configuracao esta ativa e usa placeholder quando falta configuracao. Como `ranked-waiting.html` ja declara o script oficial no `<head>` com `id="coup-adsense-script"`, o helper evita injetar o script novamente.
 
 Observacao operacional:
 
@@ -1941,7 +1941,7 @@ Responsabilidades:
 - manter altura minima para banners responsivos;
 - exibir label `Publicidade`;
 - mostrar placeholder quando `js/ui/ad-slots.js` nao possui configuracao completa;
-- ocultar slots marcados como `data-ad-status="unfilled"`;
+- ocultar slots marcados como `data-ad-status="disabled"` ou `data-ad-status="unfilled"`;
 - ajustar altura e margem em telas pequenas.
 
 No estado atual, essa folha e usada apenas por `ranked-waiting.html`.

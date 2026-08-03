@@ -259,21 +259,22 @@ Esses textos são uma base operacional para o beta do Coup Master e devem passar
 
 ### Monetizacao com AdSense
 
-O projeto possui um unico bloco de anuncio ativo no momento: um banner responsivo na sala de espera ranqueada (`ranked-waiting.html`). O lobby, a mesa casual, a mesa ranqueada ativa e o modal de resultado final nao exibem anuncios.
+O projeto possui um bloco de anuncio preparado para a sala de espera ranqueada (`ranked-waiting.html`), mas ele fica oculto/desativado enquanto a conta do AdSense ainda nao esta aprovada. O lobby, a mesa casual, a mesa ranqueada ativa e o modal de resultado final nao exibem anuncios.
 
 Arquivos relacionados:
 
-- `ranked-waiting.html`: carrega `css/ads.css`, o snippet oficial do AdSense no `<head>` e o script `js/ui/ad-slots.js`.
-- `css/ads.css`: define o visual responsivo do slot e o estado placeholder.
-- `js/ui/ad-slots.js`: centraliza `ADSENSE_CLIENT` e `AD_SLOTS.rankedWaiting`.
+- `ranked-waiting.html`: carrega `css/ads.css`, o snippet oficial do AdSense no `<head>` para verificacao e o script `js/ui/ad-slots.js`.
+- `css/ads.css`: define o visual responsivo do slot, o estado placeholder e o estado oculto/desativado.
+- `js/ui/ad-slots.js`: centraliza `ADSENSE_ENABLED`, `ADSENSE_CLIENT` e `AD_SLOTS.rankedWaiting`.
 
 Configuracao atual:
 
 ```javascript
-const ADSENSE_CLIENT = 'ca-pub-5483968891175594';
+const ADSENSE_ENABLED = false;
+const ADSENSE_CLIENT = 'ca-pub-1234567890123456';
 
 const AD_SLOTS = {
-  rankedWaiting: '6425587327'
+  rankedWaiting: '1234567890'
 };
 ```
 

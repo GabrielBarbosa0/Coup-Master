@@ -1,4 +1,5 @@
 (function setupCoupAds(root) {
+    const ADSENSE_ENABLED = false;
     const ADSENSE_CLIENT = 'ca-pub-5483968891175594';
     const AD_SLOTS = {
         rankedWaiting: '6425587327'
@@ -8,7 +9,7 @@
     const SLOT_SELECTOR = '.coup-ad-slot[data-ad-slot-key]';
 
     function hasAdsenseConfig(slotKey) {
-        return Boolean(ADSENSE_CLIENT && AD_SLOTS[slotKey]);
+        return Boolean(ADSENSE_ENABLED && ADSENSE_CLIENT && AD_SLOTS[slotKey]);
     }
 
     function loadAdsenseScript() {
@@ -28,8 +29,20 @@
         container.replaceChildren();
     }
 
+    function renderDisabled(container) {
+        container.classList.remove('is-placeholder');
+        container.dataset.adStatus = 'disabled';
+        container.dataset.adRendered = 'disabled';
+        container.replaceChildren();
+    }
+
     function renderAdsenseSlot(container) {
         const slotKey = container.dataset.adSlotKey;
+        if (!ADSENSE_ENABLED) {
+            renderDisabled(container);
+            return;
+        }
+
         if (container.dataset.adRendered === 'adsense') return;
         if (!hasAdsenseConfig(slotKey)) {
             renderPlaceholder(container);

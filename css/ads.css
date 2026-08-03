@@ -38,6 +38,7 @@
     min-height: 90px;
 }
 
+.coup-ad-slot[data-ad-status="disabled"],
 .coup-ad-slot[data-ad-status="unfilled"] {
     display: none;
 }
