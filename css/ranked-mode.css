@@ -283,6 +283,10 @@ textarea::-moz-selection,
     background: rgba(17, 25, 35, 0.62);
 }
 
+.rank-waiting-invite-hidden {
+    display: none;
+}
+
 .rank-waiting-invite .rank-room-code {
     display: inline-flex;
     align-items: center;
@@ -356,6 +360,10 @@ textarea::-moz-selection,
 
 .rank-waiting-countdown {
     color: var(--rank-gold);
+}
+
+.rank-waiting-found-counter {
+    display: none;
 }
 
 .rank-waiting-players {

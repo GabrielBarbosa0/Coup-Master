@@ -75,6 +75,9 @@
             state.matchmaking.startedAt = Number(state.matchmaking.startedAt) || state.createdAt || Date.now();
             state.matchmaking.nextBotAt = state.matchmaking.nextBotAt || null;
             state.matchmaking.nextReadyAt = state.matchmaking.nextReadyAt || null;
+            state.matchmaking.botReadyAt = state.matchmaking.botReadyAt && typeof state.matchmaking.botReadyAt === 'object'
+                ? state.matchmaking.botReadyAt
+                : {};
             state.matchmaking.filledAt = state.matchmaking.filledAt || null;
         }
         Object.values(state.players).forEach((player) => {
@@ -125,6 +128,7 @@
                 startedAt: now,
                 nextBotAt: null,
                 nextReadyAt: null,
+                botReadyAt: {},
                 filledAt: null
             };
         }
@@ -144,6 +148,48 @@
         const available = MATCHMAKING_BOT_NAMES.filter((name) => !usedNames.has(name.toLocaleLowerCase('pt-BR')));
         const names = available.length ? available : MATCHMAKING_BOT_NAMES;
         return names[Math.floor(random() * names.length)] || `Bot ${getPlayers(state).length + 1}`;
+    }
+
+    function scheduleBotReady(matchmaking, uid, now = Date.now(), random = Math.random) {
+        matchmaking.botReadyAt = matchmaking.botReadyAt && typeof matchmaking.botReadyAt === 'object'
+            ? matchmaking.botReadyAt
+            : {};
+        if (!matchmaking.botReadyAt[uid]) {
+            matchmaking.botReadyAt[uid] = now + randomDelay(random, MATCHMAKING_READY_MIN_MS, MATCHMAKING_READY_SPAN_MS);
+            return true;
+        }
+        return false;
+    }
+
+    function syncBotReadySchedule(state, matchmaking, now = Date.now(), random = Math.random) {
+        let changed = false;
+        const playersByUid = state.players || {};
+        matchmaking.botReadyAt = matchmaking.botReadyAt && typeof matchmaking.botReadyAt === 'object'
+            ? matchmaking.botReadyAt
+            : {};
+
+        Object.keys(matchmaking.botReadyAt).forEach((uid) => {
+            const player = playersByUid[uid];
+            if (!player || !player.ai || player.ready) {
+                delete matchmaking.botReadyAt[uid];
+                changed = true;
+            }
+        });
+
+        getPlayers(state).forEach((player) => {
+            if (player.ai && !player.ready && scheduleBotReady(matchmaking, player.uid, now, random)) {
+                changed = true;
+            }
+        });
+
+        return changed;
+    }
+
+    function pickDueReadyBot(state, matchmaking, now = Date.now(), random = Math.random) {
+        const dueBots = getPlayers(state).filter((player) => (
+            player.ai && !player.ready && Number(matchmaking.botReadyAt?.[player.uid] || 0) <= now
+        ));
+        return randomItem(dueBots, random);
     }
 
     function normalizeBotPersonality(personality, random = Math.random) {
@@ -319,6 +365,17 @@
         const matchmaking = ensureMatchmaking(state, now, random);
         if (!matchmaking.enabled) return false;
 
+        const scheduleChanged = syncBotReadySchedule(state, matchmaking, now, random);
+        const readyBot = pickDueReadyBot(state, matchmaking, now, random);
+        if (readyBot) {
+            readyBot.ready = true;
+            delete matchmaking.botReadyAt[readyBot.uid];
+            addLog(state, `${readyBot.name} confirmou prontidão.`, 'system', now);
+            updateReadyCountdown(state, now);
+            state.updatedAt = now;
+            return true;
+        }
+
         if (players.length < matchmaking.targetPlayers) {
             if (!matchmaking.nextBotAt) {
                 matchmaking.nextBotAt = now + randomDelay(random, MATCHMAKING_BOT_JOIN_MIN_MS, MATCHMAKING_BOT_JOIN_SPAN_MS);
@@ -333,15 +390,14 @@
                 ready: false,
                 personality: createRandomBotPersonality(random)
             }, now, random);
+            const bot = getPlayers(state).find((player) => player.name === name && player.ai && !player.ready);
+            if (bot) scheduleBotReady(matchmaking, bot.uid, now, random);
 
             const filled = getPlayers(state).length >= matchmaking.targetPlayers;
             matchmaking.nextBotAt = filled
                 ? null
                 : now + randomDelay(random, MATCHMAKING_BOT_JOIN_MIN_MS, MATCHMAKING_BOT_JOIN_SPAN_MS);
             matchmaking.filledAt = filled ? now : null;
-            matchmaking.nextReadyAt = filled
-                ? now + randomDelay(random, MATCHMAKING_READY_MIN_MS, MATCHMAKING_READY_SPAN_MS)
-                : null;
             addLog(state, `Matchmaking encontrou ${name}.`, 'system', now);
             updateReadyCountdown(state, now);
             state.updatedAt = now;
@@ -351,22 +407,7 @@
         matchmaking.filledAt = matchmaking.filledAt || now;
         matchmaking.nextBotAt = null;
 
-        const unreadyBots = getPlayers(state).filter((player) => player.ai && !player.ready);
-        const unreadyBot = randomItem(unreadyBots, random);
-        if (unreadyBot) {
-            if (!matchmaking.nextReadyAt) {
-                matchmaking.nextReadyAt = now + randomDelay(random, MATCHMAKING_READY_MIN_MS, MATCHMAKING_READY_SPAN_MS);
-                state.updatedAt = now;
-                return true;
-            }
-            if (now < matchmaking.nextReadyAt) return false;
-
-            unreadyBot.ready = true;
-            addLog(state, `${unreadyBot.name} confirmou prontidão.`, 'system', now);
-            matchmaking.nextReadyAt = getPlayers(state).some((player) => player.ai && !player.ready)
-                ? now + randomDelay(random, MATCHMAKING_READY_MIN_MS, MATCHMAKING_READY_SPAN_MS)
-                : null;
-            updateReadyCountdown(state, now);
+        if (scheduleChanged) {
             state.updatedAt = now;
             return true;
         }

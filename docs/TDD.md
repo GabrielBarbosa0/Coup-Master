@@ -160,8 +160,14 @@ Coup-Master/
     casual-mode.css
     ranked-mode.css
   docs/
+    GDD.md
     ROADMAP.md
     TDD.md
+    manual-regras.md
+    modo-duelo.md
+    modo-personalizado.md
+    modo-ranqueado.md
+    modo-roguelike.md
   js/
     core/
       gameState.js
@@ -1536,7 +1542,7 @@ Regras atuais:
 - redireciona primeiro para `ranked-waiting.html`, sem carregar `gameState.js` ou `board-renderer.js`;
 - nao possui host, administrador, reset manual ou configuracao de baralho;
 - simula matchmaking na sala de espera: `ranked-game.js` avanca `rankedState.matchmaking` por transacao e `ranked-engine.js` preenche a mesa com bots IA ate o alvo de seis jogadores;
-- os bots entram gradualmente com nome e personalidade sorteados, aparecem como IA, usam intervalos aleatorios de 1 a 2 segundos e confirmam prontidao em ordem sorteada para criar uma espera mais natural;
+- os bots entram gradualmente com nome e personalidade sorteados, aparecem como IA, usam intervalos aleatorios de 1 a 2 segundos e recebem horario proprio de prontidao assim que entram, permitindo bots prontos enquanto outros ainda estao chegando;
 - desenha seis lugares na sala de espera e, com matchmaking ativo, so inicia quando a mesa esta cheia e todos marcam pronto;
 - exibe QR Code de convite na sala de espera, apontando para `ranked-waiting.html?room={codigo}`;
 - renderiza um banner responsivo AdSense abaixo da lista de jogadores, antes da partida ativa;

@@ -117,6 +117,16 @@ function testMatchmakingFillsRoomAndReadiesBots() {
     assert.equal(Engine.advanceMatchmaking(state, 2999, () => 0), false);
 
     let now = 3000;
+    assert.equal(Engine.advanceMatchmaking(state, now, () => 0), true);
+    const firstBot = Engine.getPlayers(state).find((player) => player.ai);
+    assert.ok(firstBot);
+    assert.equal(firstBot.ready, false);
+    assert.equal(Engine.advanceMatchmaking(state, 3999, () => 0), false);
+    assert.equal(Engine.advanceMatchmaking(state, 4000, () => 0), true);
+    assert.equal(state.players[firstBot.uid].ready, true);
+    assert.ok(Engine.getPlayers(state).length < Rules.SETTINGS.maxPlayers);
+
+    now = 7000;
     while (Engine.getPlayers(state).length < Rules.SETTINGS.maxPlayers) {
         assert.equal(Engine.advanceMatchmaking(state, now, () => 0), true);
         now += 3000;
@@ -126,14 +136,7 @@ function testMatchmakingFillsRoomAndReadiesBots() {
     const bots = players.filter((player) => player.ai);
     assert.equal(players.length, Rules.SETTINGS.maxPlayers);
     assert.equal(bots.length, Rules.SETTINGS.maxPlayers - 1);
-    assert.ok(bots.every((bot) => !bot.ready));
     assert.equal(state.deadline, null);
-
-    const sortedBotUids = bots.map((bot) => bot.uid);
-    const lastBotUid = sortedBotUids[sortedBotUids.length - 1];
-    assert.equal(Engine.advanceMatchmaking(state, now, () => 0.999), true);
-    assert.equal(state.players[lastBotUid].ready, true);
-    now += 3000;
 
     while (bots.some((bot) => !bot.ready)) {
         assert.equal(Engine.advanceMatchmaking(state, now, () => 0), true);

@@ -842,9 +842,10 @@
             : allPlayersReady
                 ? getReadyCountdownText()
                 : 'Mesa encontrada. Aguardando prontidão.';
+        const foundCounter = element('span', 'rank-waiting-counter rank-waiting-found-counter', `${players.length}/${safeTarget} encontrados`);
         const summary = element('div', 'rank-waiting-summary');
         summary.append(
-            element('span', 'rank-waiting-counter', `${players.length}/${safeTarget} encontrados`),
+            foundCounter,
             element('span', 'rank-waiting-counter', `${readyCount}/${safeTarget} prontos`),
             element('span', 'rank-waiting-countdown', statusText)
         );
