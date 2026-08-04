@@ -753,8 +753,8 @@
         if (state.status === PHASES.WAITING) {
             stage?.classList.add('is-centered-stage');
             setPhaseText(
-                state.deadline ? 'Iniciando' : 'Prepare sua entrada',
-                state.deadline ? 'Tudo pronto.' : 'Convide pela sala e marque pronto.'
+                state.deadline ? 'Iniciando' : 'Prepare-se para a partida',
+                state.deadline ? 'Tudo pronto.' : 'Aperte pronto para começar.'
             );
             renderWaiting(interaction);
             return;
