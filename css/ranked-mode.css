@@ -342,8 +342,7 @@ textarea::-moz-selection,
     justify-items: center;
 }
 
-.rank-waiting-counter,
-.rank-waiting-countdown {
+.rank-waiting-counter {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -353,13 +352,17 @@ textarea::-moz-selection,
     border-radius: 999px;
     background: rgba(17, 25, 35, 0.62);
     color: var(--rank-muted);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     text-transform: uppercase;
 }
 
 .rank-waiting-countdown {
-    color: var(--rank-gold);
+    display: block;
+    color: var(--rank-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 .rank-waiting-found-counter {
@@ -2072,6 +2075,20 @@ button.rank-card {
         padding: 16px 12px;
     }
 
+    .rank-waiting-summary,
+    .rank-waiting-interaction {
+        justify-items: start;
+    }
+
+    .rank-waiting-counter {
+        justify-content: flex-start;
+    }
+
+    .rank-waiting-interaction>.rank-primary-btn,
+    .rank-waiting-interaction>.rank-secondary-btn {
+        justify-self: start;
+    }
+
     .rank-waiting-card h1 {
         font-size: 24px;
     }
@@ -2112,6 +2129,8 @@ button.rank-card {
     }
 
     .rank-kicker,
+    .rank-waiting-counter,
+    .rank-waiting-countdown,
     .rank-connection-status {
         font-size: 8px;
     }

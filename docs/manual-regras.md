@@ -589,7 +589,7 @@ O efeito termina após essa ação ou se o Marionetista morrer.
 
 **Bloqueio:** não possui bloqueio direto nesta ficha.
 
-**Lore:** O Vigilante não impede a primeira agressão. Ele prefere garantir que todos assistam ao preço da segunda.
+**Lore:** A Vigilante não impede a primeira agressão. Ele prefere garantir que todos assistam ao preço da segunda.
 
 ### Pistoleiro
 
