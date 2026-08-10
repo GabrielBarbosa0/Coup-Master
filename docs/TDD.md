@@ -809,7 +809,7 @@ Responsabilidades:
 - Centralizar os guias de acoes/personagens do modo casual.
 - Calcular a fila de imagens dos guias com base em `deckConfig`.
 - Alternar entre guia base e guia alternativo quando ha cartas da Revolucao.
-- Adicionar guias extras para cartas promocionais, Revolucao e Sombras do Asilo.
+- Adicionar guias extras para cartas promocionais, A Revolucao e Lei e Desordem.
 - Controlar abertura e fechamento de `infoModal`.
 - Controlar abertura e fechamento de `altRulesModal`.
 - Manter o estado de flip dos guias sem deixar variaveis soltas no renderer.

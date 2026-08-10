@@ -7,7 +7,7 @@ const MAX_PLAYERS = 8;
 /**
  * LISTA MESTRE DE PERSONAGENS
  * Define todos os tipos de cartas disponíveis no jogo, incluindo expansões
- * como "Sombras do Palácio (Promo)", "A Revolução" e "Sombras do Asilo", com suas respectivas cores.
+ * como "Sombras do Palácio (Promo)", "A Revolução" e "Lei e Desordem", com suas respectivas cores.
  */
 const CARD_TYPES = [
   { type: 'duque', color: '#ff66c4' },
@@ -16,10 +16,14 @@ const CARD_TYPES = [
   { type: 'embaixador', color: '#00bf63' },
   { type: 'condessa', color: '#0097b2' },
   { type: 'inquisidor', color: '#ff5757' },
+
+  // --- CARTAS PROMOCIONAIS: SOMBRAS DO PALACIO ---
   { type: 'benfeitor', color: '#00bf63' },
   { type: 'bufao', color: '#00bf63' },
   { type: 'burgues', color: '#ff66c4' },
   { type: 'burocrata', color: '#ff66c4' },
+
+  // --- NOVAS CARTAS: A REVOLUCAO ---
   { type: 'vigilante', color: '#f00262' },
   { type: 'mercenario', color: '#ff0000' },
   { type: 'bispo', color: '#0db4c3' },
@@ -27,7 +31,7 @@ const CARD_TYPES = [
   { type: 'diplomata', color: '#001aff' },
   { type: 'marionetista', color: '#4d047e' },
 
-  // --- NOVAS CARTAS: SOMBRAS DO ASILO ---
+  // --- NOVAS CARTAS: LEI E DESORDEM ---
   { type: 'pistoleiro', color: '#ff0000' },
   { type: 'magnata', color: '#733d0b' },
   { type: 'estrategista', color: '#3737dc' },

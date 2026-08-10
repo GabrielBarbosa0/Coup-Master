@@ -361,8 +361,8 @@ O projeto atual suporta:
 
 - jogo base;
 - cartas promocionais;
-- DLC 1 / Revolucao;
-- DLC 2 / Sombras do Asilo;
+- DLC 1 / A Revolucao;
+- DLC 2 / Lei e Desordem;
 - cartas de religiao/asilo como elementos especiais.
 
 ### 10.2 Presets

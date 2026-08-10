@@ -42,7 +42,7 @@ com foco em escalabilidade e consistência de estado.
 
 ## ✨ Novidades da Versão Beta (v0.5)
 
-### 🌑 Expansão: Sombras do Asilo (DLC 3)
+### 🌑 Expansão: Lei e Desordem (DLC 3)
 * **Novas Influências:** Adição de 6 personagens inéditos com mecânicas avançadas: Pistoleiro, Magnata, Estrategista, Ladrão, Vigarista e Xerife.
 * **Regras Dinâmicas:** O manual de ajuda (Flip Card) agora detecta automaticamente quais DLCs estão ativas no deck e exibe a carta de regras correspondente (`dlc3-actions.jpg`).
 
