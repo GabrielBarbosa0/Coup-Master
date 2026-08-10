@@ -653,7 +653,7 @@
     }
 
     function getPersonalizedInviteUrl() {
-        const inviteUrl = new URL('personalized-waiting.html', root.location.href);
+        const inviteUrl = new URL('personalized/personalized-waiting.html', document.baseURI);
         inviteUrl.searchParams.set('room', roomCode || '');
         return inviteUrl.href;
     }

@@ -70,7 +70,7 @@ O jogador acessa o ranqueado pelo lobby usando conta Google.
 
 Visitantes anônimos não podem criar nem entrar em salas ranqueadas.
 
-Ao criar ou entrar em uma sala ranqueada, o jogador vai primeiro para `ranked-waiting.html`.
+Ao criar ou entrar em uma sala ranqueada, o jogador vai primeiro para `ranked/ranked-waiting.html`.
 
 ### Matchmaking simulado
 

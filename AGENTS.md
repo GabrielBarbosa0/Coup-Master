@@ -11,10 +11,10 @@ Pontos de entrada:
 - `login.html`: autenticacao com Google ou visitante anonimo.
 - `lobby.html`: perfil autenticado, criacao e entrada em salas.
 - `index.html`: tabuleiro do modo casual.
-- `ranked-waiting.html`: sala de espera/prontidao do modo ranqueado.
-- `ranked.html`: mesa da partida ranqueada com regras automatizadas.
-- `personalized-waiting.html`: sala de espera/prontidao da Sala Personalizada, clonada do fluxo ranqueado.
-- `personalized.html`: mesa ativa da Sala Personalizada, com regras automatizadas e base visual do ranqueado.
+- `ranked/ranked-waiting.html`: sala de espera/prontidao do modo ranqueado.
+- `ranked/ranked.html`: mesa da partida ranqueada com regras automatizadas.
+- `personalized/personalized-waiting.html`: sala de espera/prontidao da Sala Personalizada, clonada do fluxo ranqueado.
+- `personalized/personalized.html`: mesa ativa da Sala Personalizada, com regras automatizadas e base visual do ranqueado.
 - `.nojekyll`: desativa o processamento Jekyll no GitHub Pages; mantenha esse arquivo para publicar o app como site estatico puro.
 
 Scripts principais:
@@ -141,10 +141,10 @@ Cuidados:
 
 ## Monetizacao e AdSense
 
-- O projeto possui um unico slot de anuncio preparado e temporariamente oculto: banner responsivo na sala de espera ranqueada (`ranked-waiting.html`).
+- O projeto possui um unico slot de anuncio preparado e temporariamente oculto: banner responsivo na sala de espera ranqueada (`ranked/ranked-waiting.html`).
 - A configuracao do publisher e do slot fica centralizada em `js/ui/ad-slots.js`.
 - O estilo visual do slot fica em `css/ads.css`.
-- `ranked-waiting.html` tambem carrega o snippet oficial do AdSense no `<head>` para verificacao/publicacao.
+- `ranked/ranked-waiting.html` tambem carrega o snippet oficial do AdSense no `<head>` para verificacao/publicacao.
 - Enquanto o AdSense nao estiver aprovado, mantenha `ADSENSE_ENABLED = false` em `js/ui/ad-slots.js` e o slot com estado `data-ad-status="disabled"`.
 - Nao adicione anuncios dentro da mesa ativa, sobre cartas, botoes de acao, modais de decisao ou qualquer area que possa induzir clique acidental.
 - Para GitHub Pages em repositorio de projeto (`/Coup-Master`), o AdSense valida o dominio raiz `gabrielbarbosa0.github.io`; mantenha o repositorio raiz publicado com o snippet de verificacao enquanto a revisao estiver pendente.

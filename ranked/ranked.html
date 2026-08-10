@@ -1,12 +1,13 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <base href="../">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#14171e">
-    <title>Partida Personalizada | Coup Master</title>
+    <title>Partida Ranqueada | Coup Master</title>
 
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
@@ -17,7 +18,7 @@
 
     <link rel="stylesheet" href="css/loading.css?v=selection-lock-v1">
     <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=personalized-kick-icon-v1">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-waiting-status-text-v3">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
 </head>
 
@@ -25,7 +26,7 @@
     <div id="rankLoading" class="game-loading-overlay">
         <div class="game-loading-content">
             <h1>Coup Master</h1>
-            <p id="rankLoadingMessage">Entrando na partida personalizada...</p>
+            <p id="rankLoadingMessage">Entrando na partida ranqueada...</p>
         </div>
     </div>
 
@@ -171,12 +172,12 @@
             <button id="closeRankPlayerProfileBtn" class="close-btn">&times;</button>
             <h2 id="rankPlayerProfileTitle">Perfil do jogador</h2>
 
-            <section class="quick-player-profile" aria-label="Perfil personalizado do jogador">
+            <section class="quick-player-profile" aria-label="Perfil ranqueado do jogador">
                 <div class="quick-player-profile-header">
                     <img id="rankPlayerProfileAvatar" class="quick-player-profile-avatar"
                         src="assets/img/icons/ghost.svg" alt="">
                     <div class="quick-player-profile-meta">
-                        <span class="quick-player-profile-eyebrow">Perfil personalizado</span>
+                        <span class="quick-player-profile-eyebrow">Perfil ranqueado</span>
                         <strong id="rankPlayerProfileName">Jogador</strong>
                         <p id="rankPlayerProfileStatus">Carregando estatísticas...</p>
                     </div>
@@ -236,7 +237,6 @@
     <audio id="rank-audio-click" src="assets/sounds/vfx/blip.mp3"></audio>
     <audio id="rank-audio-card-slide" src="assets/sounds/vfx/card-slide.mp3"></audio>
     <audio id="rank-audio-pop" src="assets/sounds/vfx/pop.mp3"></audio>
-    <audio id="rank-audio-impact" src="assets/sounds/vfx/impact.mp3"></audio>
     <audio id="rank-audio-victory" src="assets/sounds/vfx/victory.mp3"></audio>
     <audio id="rank-audio-defeat-dun" src="assets/sounds/vfx/defeat-dun.mp3"></audio>
     <audio id="rank-audio-conquest" src="assets/sounds/vfx/conquest.mp3"></audio>
@@ -257,11 +257,11 @@
     <script src="js/ui/background-audio-guard.js?v=bgm-visibility-guard-v2" defer></script>
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
-    <script src="js/gamemode/game-modes.js?v=personalized-mode-v1" defer></script>
-    <script src="js/gamemode/personalized/personalized-rules.js?v=personalized-kick-modal-v1" defer></script>
-    <script src="js/gamemode/personalized/personalized-engine.js?v=personalized-kick-modal-v1" defer></script>
-    <script src="js/gamemode/personalized/personalized-renderer.js?v=personalized-kick-impact-v1" defer></script>
-    <script src="js/gamemode/personalized/personalized-game.js?v=personalized-kick-modal-v1" defer></script>
+    <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>
+    <script src="js/gamemode/ranked/ranked-rules.js?v=rank-matchmaking-v3" defer></script>
+    <script src="js/gamemode/ranked/ranked-engine.js?v=rank-matchmaking-v3" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-waiting-copy-v2" defer></script>
+    <script src="js/gamemode/ranked/ranked-game.js?v=rank-matchmaking-v3" defer></script>
 </body>
 
 </html>

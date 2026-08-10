@@ -89,9 +89,9 @@ Ao criar uma Sala Personalizada, o lobby salva:
 - `hostUID` com o UID do criador;
 - estado da sala em `salas/{roomCode}/personalizedState`.
 
-A tela de espera é `personalized-waiting.html`.
+A tela de espera é `personalized/personalized-waiting.html`.
 
-Quando a partida começa, a mesa ativa é `personalized.html`.
+Quando a partida começa, a mesa ativa é `personalized/personalized.html`.
 
 ### QR Code e código da sala
 
@@ -100,7 +100,7 @@ A sala de espera exibe o código da sala e QR Code de convite.
 O QR Code aponta para:
 
 ```text
-personalized-waiting.html?room={codigo}
+personalized/personalized-waiting.html?room={codigo}
 ```
 
 ## 5. Papel do Criador da Sala

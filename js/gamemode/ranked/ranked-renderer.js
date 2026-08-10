@@ -1,4 +1,4 @@
-﻿(function initializeRankedRenderer(root) {
+(function initializeRankedRenderer(root) {
     const Rules = root.CoupRankedRules;
     const Engine = root.CoupRankedEngine;
     const { ACTIONS, PHASES } = Rules;
@@ -589,7 +589,7 @@
     }
 
     function getRankedInviteUrl() {
-        const inviteUrl = new URL('ranked-waiting.html', root.location.href);
+        const inviteUrl = new URL('ranked/ranked-waiting.html', document.baseURI);
         inviteUrl.searchParams.set('room', roomCode || '');
         return inviteUrl.href;
     }

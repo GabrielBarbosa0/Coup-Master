@@ -1,4 +1,4 @@
-﻿(function initializeRankedGame(root) {
+(function initializeRankedGame(root) {
     const Rules = root.CoupRankedRules;
     const Engine = root.CoupRankedEngine;
     const Renderer = root.CoupRankedRenderer;
@@ -21,21 +21,23 @@
 
     function redirectToLobby(message) {
         if (message) sessionStorage.setItem('lobbyError', message);
-        root.location.href = 'lobby.html';
+        root.location.href = new URL('lobby.html', document.baseURI).href;
     }
 
     function navigateToRankedView(destination) {
-        root.location.href = `${destination}?room=${encodeURIComponent(roomCode)}`;
+        const targetUrl = new URL(destination, document.baseURI);
+        targetUrl.searchParams.set('room', roomCode);
+        root.location.href = targetUrl.href;
     }
 
     function redirectIfWrongView(state) {
         const shouldBeWaiting = state?.status === Rules.PHASES.WAITING;
         if (shouldBeWaiting && viewMode !== 'waiting') {
-            navigateToRankedView('ranked-waiting.html');
+            navigateToRankedView('ranked/ranked-waiting.html');
             return true;
         }
         if (!shouldBeWaiting && viewMode === 'waiting') {
-            navigateToRankedView('ranked.html');
+            navigateToRankedView('ranked/ranked.html');
             return true;
         }
         return false;
@@ -291,14 +293,14 @@
 
     function restartMatch() {
         return transaction((state) => Engine.restartMatch(state))
-            .then(() => navigateToRankedView('ranked-waiting.html'))
+            .then(() => navigateToRankedView('ranked/ranked-waiting.html'))
             .catch(() => null);
     }
 
     function leaveRoom() {
         const finishNavigation = () => {
             presenceDisconnect?.cancel();
-            root.location.href = 'lobby.html';
+            root.location.href = new URL('lobby.html', document.baseURI).href;
         };
 
         if (!rankedStateRef || !rankedState || rankedState.status !== Rules.PHASES.WAITING) {

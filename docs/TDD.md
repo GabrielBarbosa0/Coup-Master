@@ -68,8 +68,8 @@ flowchart LR
   Pages --> Login["login.html + login-manager.js"]
   Pages --> Lobby["lobby.html + lobby-manager.js"]
   Pages --> Game["index.html + gameState.js + board-renderer.js"]
-  Pages --> RankedWaiting["ranked-waiting.html + ranked-game.js + ranked-engine.js"]
-  Pages --> Ranked["ranked.html + ranked-game.js + ranked-engine.js"]
+  Pages --> RankedWaiting["ranked/ranked-waiting.html + ranked-game.js + ranked-engine.js"]
+  Pages --> Ranked["ranked/ranked.html + ranked-game.js + ranked-engine.js"]
 
   Auth --> Session["sessionStorage: UID, nome, foto, anonimo"]
   Login --> Auth
@@ -93,12 +93,12 @@ O frontend tem sete paginas principais:
 - `login.html`: tela dedicada de autenticacao com Google ou visitante anonimo.
 - `lobby.html`: perfil autenticado, criacao e entrada em salas.
 - `index.html`: tabuleiro do modo casual.
-- `ranked-waiting.html`: sala de espera/prontidao do modo ranqueado.
-- `ranked.html`: mesa dedicada ao modo ranqueado automatizado.
-- `personalized-waiting.html`: sala de espera da Sala Personalizada, criada como clone isolado do fluxo ranqueado.
-- `personalized.html`: mesa ativa da Sala Personalizada, usando a mesma base automatizada sem renomear o ranqueado.
-- `privacy.html`: Politica de Privacidade publica, acessivel antes do login e do lobby.
-- `terms.html`: Termos de Servico publicos, acessiveis antes do login e do lobby.
+- `ranked/ranked-waiting.html`: sala de espera/prontidao do modo ranqueado.
+- `ranked/ranked.html`: mesa dedicada ao modo ranqueado automatizado.
+- `personalized/personalized-waiting.html`: sala de espera da Sala Personalizada, criada como clone isolado do fluxo ranqueado.
+- `personalized/personalized.html`: mesa ativa da Sala Personalizada, usando a mesma base automatizada sem renomear o ranqueado.
+- `legal/privacy.html`: Politica de Privacidade publica, acessivel antes do login e do lobby.
+- `legal/terms.html`: Termos de Servico publicos, acessiveis antes do login e do lobby.
 
 Os scripts sao carregados como arquivos globais com `defer`. Eles dependem da ordem no HTML, nao de imports ES Modules.
 
@@ -224,10 +224,10 @@ Coup-Master/
   index.html
   login.html
   lobby.html
-  privacy.html
-  terms.html
-  ranked-waiting.html
-  ranked.html
+  legal/privacy.html
+  legal/terms.html
+  ranked/ranked-waiting.html
+  ranked/ranked.html
   manifest.webmanifest
   robots.txt
   sitemap.xml
@@ -317,7 +317,7 @@ O projeto agora possui uma camada PWA sem alterar sua arquitetura estatica:
 - `manifest.webmanifest`: define nome, descricao, `start_url` para `login.html`, `scope` relativo, `display: standalone`, cores de tema e icones 192x192/512x512.
 - `js/pwa/pwa.js`: registra `sw.js` apos o carregamento da pagina, somente quando `navigator.serviceWorker` existe.
 - `sw.js`: cria cache versionado do shell principal, HTMLs, CSS, JS local, fontes e icones criticos.
-- `index.html`, `ranked-waiting.html`, `ranked.html`, `login.html` e `lobby.html`: expoem manifesto, `theme-color`, metatags mobile/apple e registrador PWA.
+- `index.html`, `ranked/ranked-waiting.html`, `ranked/ranked.html`, `login.html` e `lobby.html`: expoem manifesto, `theme-color`, metatags mobile/apple e registrador PWA.
 
 Estrategia do service worker:
 
@@ -332,13 +332,13 @@ O projeto possui uma integracao pontual com Google AdSense, mantendo a arquitetu
 
 Estado atual:
 
-- existe um unico slot preparado de anuncio: banner responsivo na sala de espera ranqueada (`ranked-waiting.html`), atualmente oculto/desativado ate a aprovacao do AdSense;
-- `ranked-waiting.html` carrega `css/ads.css`, o snippet oficial do AdSense no `<head>` e `js/ui/ad-slots.js`;
+- existe um unico slot preparado de anuncio: banner responsivo na sala de espera ranqueada (`ranked/ranked-waiting.html`), atualmente oculto/desativado ate a aprovacao do AdSense;
+- `ranked/ranked-waiting.html` carrega `css/ads.css`, o snippet oficial do AdSense no `<head>` e `js/ui/ad-slots.js`;
 - `js/ui/ad-slots.js` centraliza `ADSENSE_ENABLED = false`, `ADSENSE_CLIENT = "ca-pub-1234567890123456"` como exemplo documental e `AD_SLOTS.rankedWaiting = "1234567890"` como exemplo documental;
 - `css/ads.css` define o visual do container, label `Publicidade`, placeholder, estado oculto/desativado e comportamento responsivo;
 - lobby, mesa casual, mesa ranqueada ativa e resultado final ranqueado nao exibem anuncios.
 
-O helper `js/ui/ad-slots.js` procura elementos `.coup-ad-slot[data-ad-slot-key]`, mantem o slot oculto quando `ADSENSE_ENABLED` esta `false`, cria o `<ins class="adsbygoogle">` quando a configuracao esta ativa e usa placeholder quando falta configuracao. Como `ranked-waiting.html` ja declara o script oficial no `<head>` com `id="coup-adsense-script"`, o helper evita injetar o script novamente.
+O helper `js/ui/ad-slots.js` procura elementos `.coup-ad-slot[data-ad-slot-key]`, mantem o slot oculto quando `ADSENSE_ENABLED` esta `false`, cria o `<ins class="adsbygoogle">` quando a configuracao esta ativa e usa placeholder quando falta configuracao. Como `ranked/ranked-waiting.html` ja declara o script oficial no `<head>` com `id="coup-adsense-script"`, o helper evita injetar o script novamente.
 
 Observacao operacional:
 
@@ -1085,8 +1085,8 @@ Contrato:
 
 A Sala Personalizada foi separada sem renomear o modo ranqueado:
 
-- `mode = "ranked"` continua apontando para `ranked-waiting.html`, `ranked.html` e `salas/{roomCode}/rankedState`;
-- `mode = "personalized"` aponta para `personalized-waiting.html`, `personalized.html` e `salas/{roomCode}/personalizedState`;
+- `mode = "ranked"` continua apontando para `ranked/ranked-waiting.html`, `ranked/ranked.html` e `salas/{roomCode}/rankedState`;
+- `mode = "personalized"` aponta para `personalized/personalized-waiting.html`, `personalized/personalized.html` e `salas/{roomCode}/personalizedState`;
 - durante `waiting`, o criador da Sala Personalizada (`hostUID`) pode remover jogadores humanos ou bots por modal de confirmacao;
 - os ids/classes internos `rank*` podem existir no clone enquanto a camada visual ainda reutiliza o renderer e o CSS do ranqueado.
 
@@ -1539,17 +1539,17 @@ Regras atuais:
 
 - requer autenticacao Google; visitante anonimo nao cria nem entra;
 - persiste `mode = "ranked"` na raiz e usa `rankedState` separado do sandbox casual;
-- redireciona primeiro para `ranked-waiting.html`, sem carregar `gameState.js` ou `board-renderer.js`;
+- redireciona primeiro para `ranked/ranked-waiting.html`, sem carregar `gameState.js` ou `board-renderer.js`;
 - nao possui host, administrador, reset manual ou configuracao de baralho;
 - simula matchmaking na sala de espera: `ranked-game.js` avanca `rankedState.matchmaking` por transacao e `ranked-engine.js` preenche a mesa com bots IA ate o alvo de seis jogadores;
 - os bots entram gradualmente com nome e personalidade sorteados, aparecem como IA, usam intervalos aleatorios de 1 a 2 segundos e recebem horario proprio de prontidao assim que entram, permitindo bots prontos enquanto outros ainda estao chegando;
 - desenha seis lugares na sala de espera e, com matchmaking ativo, so inicia quando a mesa esta cheia e todos marcam pronto;
-- exibe QR Code de convite na sala de espera, apontando para `ranked-waiting.html?room={codigo}`;
+- exibe QR Code de convite na sala de espera, apontando para `ranked/ranked-waiting.html?room={codigo}`;
 - renderiza um banner responsivo AdSense abaixo da lista de jogadores, antes da partida ativa;
 - antes de iniciar, agenda uma contagem de 5 segundos para evitar que a sala comece instantaneamente por clique impulsivo em "Estou pronto";
 - ao sair da espera, cria deck, distribui influencias iniciais sem permitir Embaixador na mao inicial e entra em `starter-draw`, uma fase curta de sorteio visual em overlay que define aleatoriamente quem abre a partida;
-- quando o estado sai de `waiting`, `ranked-waiting.html` redireciona para `ranked.html`, que renderiza apenas a mesa ativa, as acoes e o registro oficial;
-- em desktop, `ranked.html` organiza a mesa em uma coluna principal com slots e acoes, e uma lateral persistente com chat e registro oficial; em telas menores, chat e registro viram modais centrais acionados por botoes flutuantes na lateral direita;
+- quando o estado sai de `waiting`, `ranked/ranked-waiting.html` redireciona para `ranked/ranked.html`, que renderiza apenas a mesa ativa, as acoes e o registro oficial;
+- em desktop, `ranked/ranked.html` organiza a mesa em uma coluna principal com slots e acoes, e uma lateral persistente com chat e registro oficial; em telas menores, chat e registro viram modais centrais acionados por botoes flutuantes na lateral direita;
 - ao finalizar, a mesa abre o resultado em modal padronizado, com melhor jogador, pontuacao por participante, detalhamento expansivel, acao para voltar ao lobby e acao para reiniciar a partida na mesma sala;
 - usa cinco copias de Duque, Capitao, Assassino, Condessa, Embaixador e Inquisidor;
 - Embaixadores permanecem no baralho inicial, mas so podem aparecer depois por compra, troca ou efeitos posteriores;
@@ -1935,7 +1935,7 @@ Pontos importantes:
 
 ### 15.3 `css/compat.css`
 
-Folha global carregada nas telas principais (`login.html`, `lobby.html`, `index.html`, `ranked-waiting.html`, `ranked.html`, `privacy.html` e `terms.html`).
+Folha global carregada nas telas principais (`login.html`, `lobby.html`, `index.html`, `ranked/ranked-waiting.html`, `ranked/ranked.html`, `legal/privacy.html` e `legal/terms.html`).
 
 Responsabilidades:
 
@@ -1961,7 +1961,7 @@ Responsabilidades:
 - ocultar slots marcados como `data-ad-status="disabled"` ou `data-ad-status="unfilled"`;
 - ajustar altura e margem em telas pequenas.
 
-No estado atual, essa folha e usada apenas por `ranked-waiting.html`.
+No estado atual, essa folha e usada apenas por `ranked/ranked-waiting.html`.
 
 ## 16. Assets
 
@@ -2033,8 +2033,8 @@ Arquivos relacionados:
 Estado atual:
 
 - `robots.txt` aponta para sitemap.
-- `robots.txt` permite `/index.html`, `/login.html`, `/lobby.html`, `/privacy.html`, `/terms.html` e `/img/`.
-- `privacy.html` e `terms.html` estao no sitemap e sao linkados no rodape de `login.html` e `lobby.html`.
+- `robots.txt` permite `/index.html`, `/login.html`, `/lobby.html`, `/legal/privacy.html`, `/legal/terms.html` e `/img/`.
+- `legal/privacy.html` e `legal/terms.html` estao no sitemap e sao linkados no rodape de `login.html` e `lobby.html`.
 - O projeto real usa `assets/img`, nao `/img`.
 - `sitemap.xml` referencia URLs em `/img/asilo.png` e `/img/dlc3-actions.jpg`, que nao correspondem aos assets reais.
 - `index.html` tem `og:image` com caminho incorreto.
@@ -2479,8 +2479,8 @@ Estas invariantes devem ser preservadas:
 | Arquivo | Papel | Risco |
 |---|---|---|
 | `index.html` | Estrutura do tabuleiro, modais, audio e scripts | Alto: ids sao contrato com JS |
-| `ranked-waiting.html` | Sala de espera/prontidao do modo ranqueado | Alto: ids sao contrato com o renderer |
-| `ranked.html` | Estrutura da mesa ranqueada ativa e scripts dedicados | Alto: ids sao contrato com o renderer |
+| `ranked/ranked-waiting.html` | Sala de espera/prontidao do modo ranqueado | Alto: ids sao contrato com o renderer |
+| `ranked/ranked.html` | Estrutura da mesa ranqueada ativa e scripts dedicados | Alto: ids sao contrato com o renderer |
 | `lobby.html` | Login e entrada/criacao de salas | Medio |
 | `js/firebase/firebase.js` | Inicializacao Firebase global | Alto: ordem e config |
 | `js/core/rules.js` | Tipos de cartas e utilitarios de deck | Alto: fonte de verdade parcial |

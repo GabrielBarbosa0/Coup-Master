@@ -104,9 +104,9 @@ function openRoom(code, mode) {
     const normalizedMode = CoupGameModes.normalize(mode);
     sessionStorage.setItem('currentRoomMode', normalizedMode);
     const destination = CoupGameModes.isRanked(normalizedMode)
-        ? 'ranked-waiting.html'
+        ? 'ranked/ranked-waiting.html'
         : CoupGameModes.isPersonalized(normalizedMode)
-            ? 'personalized-waiting.html'
+            ? 'personalized/personalized-waiting.html'
             : 'index.html';
     showLoader(CoupGameModes.isAutomated(normalizedMode) ? `Carregando ${CoupGameModes.getLabel(normalizedMode).toLowerCase()}...` : 'Carregando mesa...');
     window.location.href = `${destination}?room=${code}`;

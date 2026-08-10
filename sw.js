@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coup-master-pwa-v104';
+const CACHE_NAME = 'coup-master-pwa-v106';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '::1', '[::1]'];
 const IS_LOCALHOST = LOCAL_HOSTNAMES.includes(new URL(self.location.href).hostname);
 
@@ -6,13 +6,13 @@ const APP_SHELL = [
   './',
   './login.html',
   './lobby.html',
-  './privacy.html',
-  './terms.html',
+  './legal/privacy.html',
+  './legal/terms.html',
   './index.html',
-  './ranked-waiting.html',
-  './ranked.html',
-  './personalized-waiting.html',
-  './personalized.html',
+  './ranked/ranked-waiting.html',
+  './ranked/ranked.html',
+  './personalized/personalized-waiting.html',
+  './personalized/personalized.html',
   './manifest.webmanifest',
   './css/loading.css',
   './css/chat.css',

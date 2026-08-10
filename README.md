@@ -99,7 +99,7 @@ com foco em escalabilidade e consistência de estado.
 * **Sistema de Salas Privadas:** Criação e entrada em salas via códigos únicos de 4 dígitos com função de cópia rápida no cabeçalho.
 * **Modo Ranqueado Beta:** Tela e fluxo próprios para contas Google, sem host, com matchmaking simulado que preenche a mesa com bots IA de personalidade sorteada antes da partida. Turnos, custos, alvos, contestações, bloqueios, perdas de influência e tempos de resposta são controlados pelo sistema. Rating e leaderboard continuam suspensos até existir validação autoritativa antifraude.
 * **Sala Personalizada:** Fluxo paralelo criado a partir do ranqueado automatizado, usando `mode = "personalized"` e `personalizedState` para permitir evoluir salas com amigos e bots sem alterar os arquivos do ranqueado.
-* **Banner AdSense na Espera Ranqueada:** Slot responsivo de publicidade carregado apenas em `ranked-waiting.html`, antes da partida ativa.
+* **Banner AdSense na Espera Ranqueada:** Slot responsivo de publicidade carregado apenas em `ranked/ranked-waiting.html`, antes da partida ativa.
 * **Controle de Áudio Integrado:** Música de fundo e efeitos sonoros sincronizados para ações como compra de cartas, moedas e impacto.
 * **Gestão de Bots:** Capacidade de usar bots para testes de mesa, com controle manual concentrado na Sala Personalizada e preenchimento automático no ranqueado.
 * **Modais de Referência Rápida:** Visualização de guias de ações de personagens e regras alternativas através de cartas que giram (flip cards).
@@ -240,8 +240,8 @@ Coup-Master/
 ├── 📄 index.html               # Tabuleiro principal do jogo em modo normal 2D
 ├── 📄 login.html               # Tela de autenticação Google/visitante
 ├── 📄 lobby.html               # Perfil autenticado, criação e entrada em salas
-├── 📄 privacy.html             # Política de Privacidade
-├── 📄 terms.html               # Termos de Serviço
+├── 📄 legal/privacy.html             # Política de Privacidade
+├── 📄 legal/terms.html               # Termos de Serviço
 └── 📄 README.md                # Documentação técnica do projeto
 
 ```
@@ -259,7 +259,7 @@ Coup-Master/
 
 ### Documentos legais
 
-O projeto possui páginas públicas para a **Política de Privacidade** (`privacy.html`) e os **Termos de Serviço** (`terms.html`). Os links ficam no rodapé de `login.html` e `lobby.html`, fora das telas de partida e da sala de espera ranqueada, para manter o jogo limpo e ainda permitir consulta antes da entrada em salas.
+O projeto possui páginas públicas para a **Política de Privacidade** (`legal/privacy.html`) e os **Termos de Serviço** (`legal/terms.html`). Os links ficam no rodapé de `login.html` e `lobby.html`, fora das telas de partida e da sala de espera ranqueada, para manter o jogo limpo e ainda permitir consulta antes da entrada em salas.
 
 Esses textos são uma base operacional para o beta do Coup Master e devem passar por revisão jurídica antes de uso comercial ou coleta ampliada de dados.
 
@@ -267,11 +267,11 @@ Esses textos são uma base operacional para o beta do Coup Master e devem passar
 
 ### Monetizacao com AdSense
 
-O projeto possui um bloco de anuncio preparado para a sala de espera ranqueada (`ranked-waiting.html`), mas ele fica oculto/desativado enquanto a conta do AdSense ainda nao esta aprovada. O lobby, a mesa casual, a mesa ranqueada ativa e o modal de resultado final nao exibem anuncios.
+O projeto possui um bloco de anuncio preparado para a sala de espera ranqueada (`ranked/ranked-waiting.html`), mas ele fica oculto/desativado enquanto a conta do AdSense ainda nao esta aprovada. O lobby, a mesa casual, a mesa ranqueada ativa e o modal de resultado final nao exibem anuncios.
 
 Arquivos relacionados:
 
-- `ranked-waiting.html`: carrega `css/ads.css`, o snippet oficial do AdSense no `<head>` para verificacao e o script `js/ui/ad-slots.js`.
+- `ranked/ranked-waiting.html`: carrega `css/ads.css`, o snippet oficial do AdSense no `<head>` para verificacao e o script `js/ui/ad-slots.js`.
 - `css/ads.css`: define o visual responsivo do slot, o estado placeholder e o estado oculto/desativado.
 - `js/ui/ad-slots.js`: centraliza `ADSENSE_ENABLED`, `ADSENSE_CLIENT` e `AD_SLOTS.rankedWaiting`.
 

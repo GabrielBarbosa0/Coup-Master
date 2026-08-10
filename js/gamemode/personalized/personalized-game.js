@@ -19,21 +19,23 @@
 
     function redirectToLobby(message) {
         if (message) sessionStorage.setItem('lobbyError', message);
-        root.location.href = 'lobby.html';
+        root.location.href = new URL('lobby.html', document.baseURI).href;
     }
 
     function navigateToPersonalizedView(destination) {
-        root.location.href = `${destination}?room=${encodeURIComponent(roomCode)}`;
+        const targetUrl = new URL(destination, document.baseURI);
+        targetUrl.searchParams.set('room', roomCode);
+        root.location.href = targetUrl.href;
     }
 
     function redirectIfWrongView(state) {
         const shouldBeWaiting = state?.status === Rules.PHASES.WAITING;
         if (shouldBeWaiting && viewMode !== 'waiting') {
-            navigateToPersonalizedView('personalized-waiting.html');
+            navigateToPersonalizedView('personalized/personalized-waiting.html');
             return true;
         }
         if (!shouldBeWaiting && viewMode === 'waiting') {
-            navigateToPersonalizedView('personalized.html');
+            navigateToPersonalizedView('personalized/personalized.html');
             return true;
         }
         return false;
@@ -48,7 +50,7 @@
     }
 
     function transaction(mutator, options = {}) {
-        if (!personalizedStateRef) return Promise.reject(new Error('Partida ainda não conectada.'));
+        if (!personalizedStateRef) return Promise.reject(new Error('Partida ainda nÃ£o conectada.'));
         let mutationError = null;
 
         return personalizedStateRef.transaction((current) => {
@@ -65,11 +67,11 @@
             }
         }).then((result) => {
             if (mutationError) throw mutationError;
-            if (!result.committed) throw new Error('A ação não foi confirmada. Tente novamente.');
+            if (!result.committed) throw new Error('A aÃ§Ã£o nÃ£o foi confirmada. Tente novamente.');
             return db.ref(`salas/${roomCode}/lastActivity`).set(Date.now());
         }).catch((error) => {
             if (!options.silent) {
-                Renderer.showError(error.message || 'Não foi possível concluir a ação.');
+                Renderer.showError(error.message || 'NÃ£o foi possÃ­vel concluir a aÃ§Ã£o.');
             }
             throw error;
         });
@@ -104,10 +106,10 @@
     function joinPersonalizedRoom(user) {
         const roomRef = db.ref(`salas/${roomCode}`);
         return roomRef.once('value').then((snapshot) => {
-            if (!snapshot.exists()) throw new Error('A sala informada não existe.');
+            if (!snapshot.exists()) throw new Error('A sala informada nÃ£o existe.');
             const room = snapshot.val();
             if (!root.CoupGameModes.isPersonalized(root.CoupGameModes.fromRoom(room))) {
-                throw new Error('Esta sala não pertence ao modo Sala Personalizada.');
+                throw new Error('Esta sala nÃ£o pertence ao modo Sala Personalizada.');
             }
 
             roomHostUid = room.hostUID || null;
@@ -126,7 +128,7 @@
                 }
             }).then((result) => {
                 if (joinError) throw joinError;
-                if (!result.committed) throw new Error('Não foi possível entrar na sala personalizada.');
+                if (!result.committed) throw new Error('NÃ£o foi possÃ­vel entrar na sala personalizada.');
                 sessionStorage.setItem('currentRoomMode', root.CoupGameModes.PERSONALIZED);
                 setupRealtimeListeners();
                 setupPresence();
@@ -139,14 +141,14 @@
         personalizedStateRef.on('value', (snapshot) => {
             personalizedState = snapshot.val();
             if (!personalizedState?.players?.[currentUser.uid]) {
-                redirectToLobby('Você não faz mais parte desta sala personalizada.');
+                redirectToLobby('VocÃª nÃ£o faz mais parte desta sala personalizada.');
                 return;
             }
             if (redirectIfWrongView(personalizedState)) return;
             Renderer.render(personalizedState);
             Renderer.setConnectionStatus('Sincronizado');
         }, () => {
-            Renderer.setConnectionStatus('Sem conexão', false);
+            Renderer.setConnectionStatus('Sem conexÃ£o', false);
         });
 
         db.ref(`salas/${roomCode}/chatMessages`).limitToLast(60).on('value', (snapshot) => {
@@ -180,14 +182,14 @@
 
     function restartMatch() {
         return transaction((state) => Engine.restartMatch(state))
-            .then(() => navigateToPersonalizedView('personalized-waiting.html'))
+            .then(() => navigateToPersonalizedView('personalized/personalized-waiting.html'))
             .catch(() => null);
     }
 
     function leaveRoom() {
         const finishNavigation = () => {
             presenceDisconnect?.cancel();
-            root.location.href = 'lobby.html';
+            root.location.href = new URL('lobby.html', document.baseURI).href;
         };
 
         if (!personalizedStateRef || !personalizedState || personalizedState.status !== Rules.PHASES.WAITING) {
@@ -453,7 +455,7 @@
             root.setTimeout(() => {
                 transaction((state) => {
                     if (!applyNextBotDecision(state, Date.now())) {
-                        throw new Error('Nenhuma ação de IA pendente.');
+                        throw new Error('Nenhuma aÃ§Ã£o de IA pendente.');
                     }
                     return state;
                 }, { silent: true }).catch(() => null).finally(() => {
@@ -478,7 +480,7 @@
 
     function boot() {
         if (!roomCode || roomCode.length !== 4) {
-            redirectToLobby('Código de sala personalizada inválido.');
+            redirectToLobby('CÃ³digo de sala personalizada invÃ¡lido.');
             return;
         }
 
