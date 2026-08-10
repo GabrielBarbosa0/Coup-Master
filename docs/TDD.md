@@ -164,6 +164,7 @@ Coup-Master/
     ROADMAP.md
     TDD.md
     manual-regras.md
+    modo-casual.md
     modo-duelo.md
     modo-personalizado.md
     modo-ranqueado.md

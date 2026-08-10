@@ -242,6 +242,12 @@ Coup-Master/
 ├── 📄 lobby.html               # Perfil autenticado, criação e entrada em salas
 ├── 📄 legal/privacy.html             # Política de Privacidade
 ├── 📄 legal/terms.html               # Termos de Serviço
+├── 📂 docs/
+│   ├── 📄 modo-casual.md       # Design e funcionamento da mesa casual sandbox
+│   ├── 📄 modo-ranqueado.md    # Design e regras do modo ranqueado
+│   ├── 📄 modo-personalizado.md # Design e regras da Sala Personalizada
+│   ├── 📄 modo-duelo.md        # Documentação do Modo Duelo
+│   └── 📄 modo-roguelike.md    # Proposta de modo roguelike
 └── 📄 README.md                # Documentação técnica do projeto
 
 ```
