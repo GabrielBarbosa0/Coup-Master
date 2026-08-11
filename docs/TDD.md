@@ -812,6 +812,11 @@ Responsabilidades:
 - Adicionar guias extras para cartas promocionais, A Revolucao e Lei e Desordem.
 - Controlar abertura e fechamento de `infoModal`.
 - Controlar abertura e fechamento de `altRulesModal`.
+- Controlar abertura e fechamento de `ruleDrawModal`.
+- Permitir que apenas o host sorteie de 1 a 5 regras alternativas.
+- Sincronizar o resultado do sorteio em `gameState.alternativeRuleDraw` para que todos os jogadores vejam a mesma animacao e as mesmas regras.
+- Manter a lista documental das regras em `docs/regras-alternativas.md`, derivada do PDF `docs/Regras e ações de personagem Coup Master.pdf`.
+- Preservar a lista protótipo anterior apenas como arquivo histórico em `docs/arquivo/regras-alternativas-prototipo-codex.md`.
 - Manter o estado de flip dos guias sem deixar variaveis soltas no renderer.
 - Tocar feedback sonoro de clique e troca de carta usando `playSound` injetado.
 
@@ -819,9 +824,11 @@ Contrato:
 
 - Expoe `window.CoupRulesGuides`.
 - Expoe `calculateRuleImages(deckConfig?)` para testes manuais e compatibilidade.
-- `board-renderer.js` chama `setup({ getDeckConfig, playSound })` durante `setupUI()`.
+- Expoe `renderAlternativeRuleDraw({ state, isAdmin })` para reagir ao resultado sincronizado pelo Firebase.
+- `board-renderer.js` chama `setup({ getState, getDeckConfig, getRoomCode, getDatabase, getCurrentUser, isAdmin, isRankedMode, playSound, showError })` durante `setupUI()`.
+- `board-renderer.js` chama `renderAlternativeRuleDraw({ state, isAdmin })` durante `renderAll()`.
 - Usa `window.CoupModal` para abrir e fechar modais.
-- O servico nao acessa Firebase e nao altera estado de jogo.
+- O servico acessa Firebase apenas para gravar `salas/{roomCode}/gameState/alternativeRuleDraw` e atualizar `lastActivity`; ele nao aplica automaticamente nenhuma regra sorteada.
 
 ### 7.15 `js/gamemode/casual/spectator-service.js`
 

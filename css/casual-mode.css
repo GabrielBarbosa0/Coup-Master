@@ -765,6 +765,184 @@ h2 {
 
 
 /* Centraliza o conjunto seguindo o padrão dos outros modais */
+.rule-draw-modal-content {
+    position: relative;
+    width: min(520px, calc(100vw - 28px));
+    max-width: min(520px, calc(100vw - 28px));
+    padding: 0;
+    overflow: visible;
+    border: 1px solid rgba(30, 144, 255, 0.35);
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.42);
+}
+
+.rule-draw-scroll {
+    max-height: calc(100dvh - 28px);
+    padding: 25px 15px 15px 25px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+}
+
+#closeRuleDrawBtn.close-btn {
+    top: -10px;
+    right: -10px;
+    z-index: 1020;
+    transform: translateZ(80px);
+}
+
+.rule-draw-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rule-draw-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.rule-draw-scroll::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
+}
+
+.rule-draw-kicker {
+    margin: 0 0 6px;
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.rule-draw-intro,
+.rule-draw-empty,
+.rule-draw-animation-label {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.45;
+    text-align: center;
+}
+
+.rule-draw-setup {
+    display: grid;
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.rule-draw-label {
+    color: #eef5ff;
+    font-weight: 700;
+    text-align: center;
+}
+
+.rule-draw-count-options {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.rule-draw-count-btn {
+    min-height: 42px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 7px;
+    background: rgba(15, 23, 42, 0.45);
+    color: #eef5ff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.rule-draw-count-btn:hover,
+.rule-draw-count-btn:focus-visible,
+.rule-draw-count-btn.is-selected {
+    border-color: var(--accent);
+    background: rgba(30, 144, 255, 0.18);
+    outline: 0;
+}
+
+.rule-draw-start-btn {
+    width: 100%;
+}
+
+.rule-draw-animation {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    margin: 18px 0;
+    padding: 18px;
+    border: 1px solid rgba(30, 144, 255, 0.24);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.32);
+}
+
+.rule-draw-orbit {
+    width: 44px;
+    height: 44px;
+    border: 3px solid rgba(30, 144, 255, 0.22);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+}
+
+.rule-draw-animation.is-spinning .rule-draw-orbit {
+    animation: rule-draw-spin 0.72s linear infinite;
+}
+
+.rule-draw-rolling-title {
+    color: #fff;
+    font-size: 1.08rem;
+    text-align: center;
+}
+
+.rule-draw-results {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.rule-draw-result-heading {
+    margin: 0;
+    color: #eef5ff;
+    font-weight: 700;
+    text-align: center;
+}
+
+.rule-draw-result-card {
+    position: relative;
+    padding: 14px 14px 14px 52px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 8px;
+    background: rgba(11, 18, 28, 0.48);
+}
+
+.rule-draw-result-number {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.rule-draw-result-card h3 {
+    margin: 0 0 6px;
+    color: #fff;
+    font-size: 1.03rem;
+}
+
+.rule-draw-result-card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+@keyframes rule-draw-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 #cardPreviewModal .modal-actions-and-rules {
     display: flex;
     justify-content: center;

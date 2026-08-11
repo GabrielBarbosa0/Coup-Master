@@ -17,11 +17,12 @@ Este modo representa a experiência mais próxima de uma mesa física: o sistema
 - [9. Fluxo Manual da Partida](#9-fluxo-manual-da-partida)
 - [10. Cartas, Cemitério e Baralho](#10-cartas-cemitério-e-baralho)
 - [11. Asilo e Reforma](#11-asilo-e-reforma)
-- [12. Chat, Espectador e Ações Rápidas](#12-chat-espectador-e-ações-rápidas)
-- [13. Áudio, Modais e Feedback Visual](#13-áudio-modais-e-feedback-visual)
-- [14. Controles de Compatibilidade](#14-controles-de-compatibilidade)
-- [15. Limitações Atuais](#15-limitações-atuais)
-- [16. Próximos Passos Recomendados](#16-próximos-passos-recomendados)
+- [12. Sorteador de Regras Alternativas](#12-sorteador-de-regras-alternativas)
+- [13. Chat, Espectador e Ações Rápidas](#13-chat-espectador-e-ações-rápidas)
+- [14. Áudio, Modais e Feedback Visual](#14-áudio-modais-e-feedback-visual)
+- [15. Controles de Compatibilidade](#15-controles-de-compatibilidade)
+- [16. Limitações Atuais](#16-limitações-atuais)
+- [17. Próximos Passos Recomendados](#17-próximos-passos-recomendados)
 
 ## 1. Visão Geral
 
@@ -186,6 +187,7 @@ Esse estado guarda:
 - `freeCards`: cartas no cemitério/área livre;
 - `deckConfig`: composição configurada pelo host;
 - `asylumScore`: moedas acumuladas no asilo;
+- `alternativeRuleDraw`: último sorteio sincronizado de regras alternativas;
 - `lastSFX`: último efeito sonoro sincronizado;
 - dados auxiliares de chat, espectador, tutorial e interface.
 
@@ -258,6 +260,31 @@ js/gamemode/casual/rules-guides.js
 
 O guia tenta detectar o baralho atual e exibir imagens de referência compatíveis com a configuração da mesa.
 
+### Sorteio de regras alternativas
+
+O host pode usar o sorteador de regras alternativas para diversificar a partida.
+
+As regras disponíveis ficam documentadas em:
+
+```text
+docs/regras-alternativas.md
+```
+
+Esse sorteador fica na toolbar do tabuleiro casual e permite escolher de 1 a 5 regras. Quando o host confirma, o resultado é salvo em:
+
+```text
+salas/{roomCode}/gameState/alternativeRuleDraw
+```
+
+Todos os jogadores recebem o mesmo evento, veem uma animação de sorteio e depois visualizam:
+
+- título de cada regra;
+- descrição de como a regra funciona;
+- quantidade sorteada;
+- novo botão para o host sortear novamente.
+
+O sorteador não aplica regras automaticamente. Ele apenas define um acordo de mesa para os jogadores seguirem manualmente.
+
 ## 9. Fluxo Manual da Partida
 
 O casual não impõe uma máquina de estados oficial.
@@ -328,7 +355,45 @@ O controle visual e os handlers do asilo ficam em:
 js/gamemode/casual/asylum-controls.js
 ```
 
-## 12. Chat, Espectador e Ações Rápidas
+## 12. Sorteador de Regras Alternativas
+
+O sorteador de regras alternativas existe para mesas que querem variar a experiência sem precisar escolher manualmente uma regra antes de começar.
+
+### Permissões
+
+Apenas o host pode iniciar um sorteio.
+
+Jogadores que não são host veem o resultado quando um sorteio acontece, mas não podem disparar um novo sorteio.
+
+### Quantidade
+
+O host pode sortear:
+
+- 1 regra;
+- 2 regras;
+- 3 regras.
+- 4 regras;
+- 5 regras.
+
+As regras sorteadas não se repetem dentro do mesmo sorteio.
+
+### Sincronização
+
+O resultado é sincronizado no `gameState`.
+
+Isso garante que todos os jogadores vejam:
+
+- a mesma animação;
+- o mesmo conjunto de regras;
+- o mesmo texto de referência.
+
+### Natureza sandbox
+
+O sorteador não altera cartas, moedas, turnos, bloqueios ou permissões.
+
+Como o casual é uma mesa livre, cabe aos jogadores aplicar as regras sorteadas durante a partida.
+
+## 13. Chat, Espectador e Ações Rápidas
 
 ### Chat
 
@@ -364,7 +429,7 @@ Arquivo principal:
 js/gamemode/casual/quick-actions.js
 ```
 
-## 13. Áudio, Modais e Feedback Visual
+## 14. Áudio, Modais e Feedback Visual
 
 O casual possui camada própria de áudio e feedback.
 
@@ -404,7 +469,7 @@ js/gamemode/casual/visual-effects.js
 
 Esse módulo é uma área sensível porque pequenos ajustes de CSS/transform podem afetar arraste, hover, preview, cemitério e responsividade.
 
-## 14. Controles de Compatibilidade
+## 15. Controles de Compatibilidade
 
 O casual mantém suporte a duas formas principais de arraste:
 
@@ -422,7 +487,7 @@ js/gamemode/casual/drag-drop.js
 
 O objetivo é permitir que mouse, touch e telas responsivas continuem utilizáveis sem remover o fluxo legado.
 
-## 15. Limitações Atuais
+## 16. Limitações Atuais
 
 O casual é flexível, mas essa flexibilidade traz limites técnicos.
 
@@ -464,7 +529,7 @@ Algumas alterações de score ainda usam leitura e escrita simples.
 
 Para evitar conflitos em partidas com muitos jogadores, o ideal é migrar operações críticas para transações.
 
-## 16. Próximos Passos Recomendados
+## 17. Próximos Passos Recomendados
 
 Melhorias recomendadas para o Modo Casual:
 

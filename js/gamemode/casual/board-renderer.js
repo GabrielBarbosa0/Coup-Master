@@ -165,6 +165,10 @@ function renderAll() {
 
   renderRoomModeLabel();
   renderAdminControls();
+  window.CoupRulesGuides?.renderAlternativeRuleDraw?.({
+    state,
+    isAdmin
+  });
   renderSpectatorControls(state);
   clearDOM();
   renderPlayers(state);
@@ -233,8 +237,15 @@ function setupDeckSurface() {
 
 function setupRulesAndTutorial() {
   window.CoupRulesGuides?.setup({
+    getState: () => localGameState,
     getDeckConfig: () => localGameState.deckConfig || {},
-    playSound
+    getRoomCode: () => roomCode,
+    getDatabase,
+    getCurrentUser: () => currentUser,
+    isAdmin: () => isAdmin,
+    isRankedMode: () => CoupGameModes.isRanked(currentGameMode),
+    playSound,
+    showError: showCasualError
   });
 
   window.CoupTutorial?.setup();

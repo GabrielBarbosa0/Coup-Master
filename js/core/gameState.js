@@ -201,6 +201,7 @@ function resetTable(newConfig = null) {
     grave: [],
     freeCards: [],
     asylumScore: 0,
+    alternativeRuleDraw: null,
     deckConfig: configToUse,
     players: newPlayersState
   };
@@ -569,6 +570,7 @@ function joinGame() {
         grave: [],
         freeCards: [],
         asylumScore: 0,
+        alternativeRuleDraw: null,
         deckConfig: defaultConfig,
         players: {}
       };

@@ -85,6 +85,9 @@
           <button id="altRulesBtn" class="altRulesBtn" title="Regras Alternativas">
             <img src="assets/img/icons/parchment.svg" alt="Regras Alternativas"></button>
 
+          <button id="ruleDrawBtn" class="ruleDrawBtn" title="Sortear Regras Alternativas" style="display: none;">
+            <img src="assets/img/icons/dice.svg" alt="Sortear Regras Alternativas"></button>
+
           <button id="spectatorBtn" class="spectatorBtn" title="Modo Espectador" style="display: none;">
             <img src="assets/img/icons/ghost.svg" alt="Espectar">
           </button>
@@ -271,6 +274,43 @@
             <img src="assets/img/guides/alternative-rules2.png" alt="Regras Alt Verso">
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ruleDrawModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content standard-modal-content rule-draw-modal-content">
+      <button id="closeRuleDrawBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+      <div class="rule-draw-scroll">
+        <p class="rule-draw-kicker">Modo Casual</p>
+        <h2>Sorteador de Regras</h2>
+        <p id="ruleDrawIntro" class="rule-draw-intro">
+          Escolha até 5 regras alternativas para uma partida mais imprevisível. O resultado aparece para todos os jogadores.
+        </p>
+
+        <section id="ruleDrawSetup" class="rule-draw-setup" aria-label="Configurar sorteio de regras">
+          <span class="rule-draw-label">Quantidade de regras</span>
+          <div class="rule-draw-count-options" role="group" aria-label="Quantidade de regras alternativas">
+            <button class="rule-draw-count-btn is-selected" type="button" data-rule-count="1">1</button>
+            <button class="rule-draw-count-btn" type="button" data-rule-count="2">2</button>
+            <button class="rule-draw-count-btn" type="button" data-rule-count="3">3</button>
+            <button class="rule-draw-count-btn" type="button" data-rule-count="4">4</button>
+            <button class="rule-draw-count-btn" type="button" data-rule-count="5">5</button>
+          </div>
+          <button id="startRuleDrawBtn" class="settings-action-btn rule-draw-start-btn" type="button">
+            Sortear regras
+          </button>
+        </section>
+
+        <section id="ruleDrawAnimation" class="rule-draw-animation" aria-live="polite" hidden>
+          <span class="rule-draw-orbit"></span>
+          <p class="rule-draw-animation-label">Sorteando regra...</p>
+          <strong id="ruleDrawRollingTitle" class="rule-draw-rolling-title">Preparando a mesa</strong>
+        </section>
+
+        <section id="ruleDrawResults" class="rule-draw-results" aria-live="polite">
+          <p class="rule-draw-empty">Nenhum sorteio realizado nesta sala.</p>
+        </section>
       </div>
     </div>
   </div>
@@ -764,6 +804,8 @@
   <audio id="audio-shuffle" src="assets/sounds/vfx/shuffle.mp3"></audio>
   <audio id="audio-pop" src="assets/sounds/vfx/pop.mp3"></audio>
   <audio id="audio-player-online" src="assets/sounds/vfx/player-online.mp3"></audio>
+  <audio id="audio-challenge-suspensful" src="assets/sounds/vfx/challenge-suspensful.mp3"></audio>
+  <audio id="audio-conquest" src="assets/sounds/vfx/conquest.mp3"></audio>
   <audio id="audio-ninja-star" src="assets/sounds/vfx/ninja-star.mp3"></audio>
   <audio id="audio-unity-sword" src="assets/sounds/vfx/unity-sword.mp3"></audio>
 
