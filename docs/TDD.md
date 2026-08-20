@@ -151,6 +151,9 @@ Coup-Master/
       guides/
       icons/
       logo/
+      marketing/
+        banners/
+        screenshots/
     sounds/
       soundtrack/
       vfx/
@@ -216,9 +219,6 @@ Coup-Master/
       selection-lock.js
   lab/
     lab-cards.html
-  marketing/
-    banners/
-    screenshots/
   AGENTS.md
   .nojekyll
   README.md
@@ -2021,7 +2021,7 @@ Usados para botoes, Google login, bots, religiao, configuracoes, visibilidade, t
 Maiores arquivos no estado analisado:
 
 - `assets/sounds/soundtrack/bgm.mp3`: aproximadamente 40 MB.
-- `marketing/screenshots/game-preview.gif`: aproximadamente 20 MB.
+- `assets/img/marketing/screenshots/game-preview.gif`: aproximadamente 20 MB.
 
 Impacto:
 

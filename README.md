@@ -3,7 +3,7 @@
 ![Status](https://img.shields.io/badge/Status-Beta_v0.5-blue) ![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Database-orange)
 
 <p align="center">
-  <img src="./marketing/banners/banner-coup-master.png" alt="Coup Master Banner" width="100%">
+  <img src="./assets/img/marketing/banners/banner-coup-master.png" alt="Coup Master Banner" width="100%">
 </p>
 
 ## 📖 Sobre o Projeto
@@ -22,7 +22,7 @@ com foco em escalabilidade e consistência de estado.
 
 ## 🖼️ Preview
 
-  <img src="./marketing/screenshots/game-preview.gif" width="800">
+  <img src="./assets/img/marketing/screenshots/game-preview.gif" width="800">
 
 ---
 
@@ -184,7 +184,8 @@ Coup-Master/
 │   │   │   ├── 📂 dlc1/        # Influências da Revolução
 │   │   │   └── 📂 dlc2/        # Influências do Asilo
 │   │   ├── 📂 icons/           # Ícones SVG e UI do tabuleiro
-│   │   └── 📂 logo/            # Identidade visual e favicons do projeto
+│   │   ├── 📂 logo/            # Identidade visual e favicons do projeto
+│   │   └── 📂 marketing/       # Banners e screenshots de divulgação
 │   ├── 📂 sounds/              # Trilha sonora (bgm) e efeitos sonoros (vfx)
 ├── 📂 css/                     # Estilização e folhas de estilo
 │   ├── ads.css                 # Slot responsivo de publicidade
