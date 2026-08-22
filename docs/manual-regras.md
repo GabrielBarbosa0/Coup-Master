@@ -117,6 +117,8 @@ Esta ação não pode ser bloqueada.
 
 Pode ser bloqueado por Capitão, Embaixador, Inquisidor ou Bufão, conforme os personagens em jogo.
 
+No ranqueado e na Sala Personalizada, Capitão pode bloquear Extorsão contra qualquer jogador. Embaixador e Inquisidor só bloqueiam Extorsão quando são o alvo.
+
 ### Assassino
 
 **Assassinar:** pague 3 moedas e escolha um oponente para perder 1 influência.
@@ -185,11 +187,11 @@ Com Revolução, o Duque também pode bloquear Tributação do Tesoureiro contra
 
 Bloqueia Assassinato direcionado a você.
 
-Nas regras da Revolução, também bloqueia a Negociação do Diplomata.
+A Negociação do Diplomata não pode ser bloqueada pela Condessa.
 
 ### Capitão
 
-Bloqueia Extorsão quando você é o alvo.
+Bloqueia Extorsão contra qualquer jogador.
 
 ### Embaixador
 
@@ -417,7 +419,7 @@ A ideia deste capítulo é transformar o manual em uma referência de mesa e tam
 
 **Habilidade:** Extorquir: pegue até 2 moedas de um oponente.
 
-**Bloqueio:** bloqueia Extorsão direcionada a você no fluxo ranqueado atual.
+**Bloqueio:** bloqueia Extorsão contra qualquer jogador no fluxo ranqueado atual.
 
 **Lore:** O Capitão sabe onde cada navio atraca, onde cada guarda aceita suborno e onde cada rival esconde sua bolsa.
 
@@ -441,7 +443,7 @@ A ideia deste capítulo é transformar o manual em uma referência de mesa e tam
 
 **Habilidade:** Persuasão: bloqueia qualquer assassinato direcionado a você.
 
-**Bloqueio:** também bloqueia a Negociação do Diplomata nas regras da Revolução.
+**Bloqueio:** bloqueia Assassinato direcionado a você. Não bloqueia a Negociação do Diplomata.
 
 **Lore:** A Condessa vence antes da ameaça chegar perto. Um convite dela pode salvar sua vida ou assinar sua sentença.
 
@@ -539,7 +541,7 @@ O efeito termina após essa ação ou se o Marionetista morrer.
 
 **Habilidade:** Negociar: pague 2 moedas e escolha dois jogadores. Até seu próximo turno, eles não podem usar ações um contra o outro.
 
-**Bloqueio:** Interceder: bloqueia Execução Bruta contra si. Sua Negociação pode ser bloqueada pela Condessa.
+**Bloqueio:** Interceder: bloqueia Execução Bruta contra si. Negociar não pode ser bloqueado.
 
 **Lore:** O Diplomata transforma guerra em pausa, pausa em vantagem e vantagem em uma assinatura difícil de recusar.
 
@@ -692,7 +694,7 @@ O efeito termina após essa ação ou se o Marionetista morrer.
 | Ação | Pode ser bloqueada por | Escopo |
 | --- | --- | --- |
 | Ajuda Externa | Duque | Qualquer jogador no ranqueado atual |
-| Extorsão | Capitão | Jogador alvo |
+| Extorsão | Capitão | Qualquer jogador |
 | Extorsão | Embaixador | Jogador alvo |
 | Extorsão | Inquisidor | Jogador alvo |
 | Extorsão | Bufão | Jogador alvo, quando o módulo estiver ativo |

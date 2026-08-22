@@ -11,7 +11,7 @@
 })(typeof window !== 'undefined' ? window : null, function createRankedEngine(Rules) {
     if (!Rules) throw new Error('CoupRankedRules precisa ser carregado antes do motor ranqueado.');
 
-    const { ACTIONS, PHASES, SETTINGS } = Rules;
+    const { ACTIONS, PHASES, ROLES, SETTINGS } = Rules;
     const MATCHMAKING_BOT_JOIN_MIN_MS = 1000;
     const MATCHMAKING_BOT_JOIN_SPAN_MS = 1000;
     const MATCHMAKING_READY_MIN_MS = 1000;
@@ -680,17 +680,29 @@
     }
 
     function getResponseUids(state) {
-        const action = state.pendingAction;
-        if (!action) return [];
+        const pending = state.pendingAction;
+        if (!pending || state.phase !== PHASES.RESPONSE) return [];
         return getAlivePlayers(state)
-            .filter((player) => player.uid !== action.actorUid)
+            .filter((player) => canPlayerRespondToAction(state, player.uid))
             .map((player) => player.uid);
+    }
+
+    function canPlayerRespondToAction(state, uid) {
+        const pending = state.pendingAction;
+        const player = getPlayer(state, uid);
+        if (!pending || !player || player.eliminated || uid === pending.actorUid || pending.passes?.[uid]) return false;
+        const canChallenge = Boolean(pending.claim && !pending.claimConfirmed);
+        const canBlock = getBlockClaimsForPlayer(state, uid).length > 0;
+        return canChallenge || canBlock;
     }
 
     function getBlockClaimsForPlayer(state, uid) {
         const pending = state.pendingAction;
         const action = pending ? Rules.getAction(pending.type) : null;
         if (!pending || !action || state.phase !== PHASES.RESPONSE || uid === pending.actorUid) return [];
+        if (pending.type === ACTIONS.STEAL && pending.targetUid !== uid) {
+            return action.blockClaims.includes(ROLES.CAPTAIN) ? [ROLES.CAPTAIN] : [];
+        }
         if (action.blockScope === 'target' && pending.targetUid !== uid) return [];
         return action.blockClaims.slice();
     }
@@ -704,7 +716,9 @@
         const pending = state.pendingAction;
         if (!pending) throw new Error('Ação pendente não encontrada.');
         const excludedUid = state.phase === PHASES.BLOCK_CHALLENGE ? pending.block?.uid : pending.actorUid;
-        const eligible = getAlivePlayers(state).map((player) => player.uid).filter((playerUid) => playerUid !== excludedUid);
+        const eligible = state.phase === PHASES.RESPONSE
+            ? getResponseUids(state)
+            : getAlivePlayers(state).map((player) => player.uid).filter((playerUid) => playerUid !== excludedUid);
         if (!eligible.includes(uid)) throw new Error('Você não pode responder agora.');
 
         pending.passes = pending.passes || {};
@@ -739,7 +753,9 @@
 
         if (truthfulCard) {
             challengerStats.failedChallenges += 1;
-            replaceProvenInfluence(state, actor.uid, truthfulCard.id);
+            if (!isExchangeAction(pending.type)) {
+                replaceProvenInfluence(state, actor.uid, truthfulCard.id);
+            }
             pending.claimConfirmed = true;
             scheduleLoss(state, challengerUid, 'Contestação incorreta.', 'resume-action', now);
             addLog(state, `${actor.name} provou ter ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
@@ -800,10 +816,19 @@
         } else {
             challengerStats.successfulChallenges += 1;
             ensureMatchStats(state, blocker.uid).provenBluffs += 1;
-            scheduleLoss(state, blocker.uid, 'Bloqueio blefado.', 'execute-action', now);
+            const lossPlan = getBluffedBlockLossPlan(state, blocker.uid);
+            scheduleLoss(state, blocker.uid, 'Bloqueio blefado.', lossPlan.continuation, now, lossPlan.count);
             addLog(state, `${blocker.name} blefou o bloqueio.`, 'challenge-result', now);
         }
         return state;
+    }
+
+    function getBluffedBlockLossPlan(state, blockerUid) {
+        const pending = state.pendingAction;
+        if ([ACTIONS.ASSASSINATE, ACTIONS.COUP].includes(pending?.type) && pending.targetUid === blockerUid) {
+            return { count: Math.min(2, Math.max(1, countInfluences(getPlayer(state, blockerUid)))), continuation: 'end-turn' };
+        }
+        return { count: 1, continuation: 'execute-action' };
     }
 
     function replaceProvenInfluence(state, uid, cardId) {
@@ -816,13 +841,47 @@
         state.deck = Rules.shuffle([...state.deck, { id: provenCard.id, role: provenCard.role }]);
     }
 
-    function scheduleLoss(state, playerUid, reason, continuation, now = Date.now()) {
+    function scheduleLoss(state, playerUid, reason, continuation, now = Date.now(), count = 1) {
         const offenderUid = state.pendingAction?.actorUid;
         if (offenderUid && offenderUid !== playerUid) bumpGrudge(state, playerUid, offenderUid, 2);
-        state.pendingLoss = { playerUid, count: 1, reason, continuation };
+        state.pendingLoss = { playerUid, count: Math.max(1, Number(count) || 1), reason, continuation };
         state.phase = PHASES.INFLUENCE_LOSS;
         state.deadline = now + SETTINGS.selectionSeconds * 1000;
         state.updatedAt = now;
+        resolveAutomaticLossIfForced(state, now);
+    }
+
+    function revealInfluenceForLoss(state, player, card, now) {
+        card.revealed = true;
+        state.discard.push({ id: card.id, role: card.role });
+        addLog(state, `${player.name} perdeu ${Rules.getRole(card.role).label}.`, 'loss', now);
+
+        if (countInfluences(player) === 0) {
+            player.eliminated = true;
+            addLog(state, `${player.name} foi eliminado.`, 'elimination', now);
+        }
+    }
+
+    function resolveAutomaticLossIfForced(state, now = Date.now()) {
+        const pendingLoss = state.pendingLoss;
+        const player = getPlayer(state, pendingLoss?.playerUid);
+        const hidden = player?.influences?.filter((card) => !card.revealed) || [];
+        if (!pendingLoss || !player || hidden.length === 0 || hidden.length > pendingLoss.count) return false;
+
+        hidden.slice(0, pendingLoss.count).forEach((card) => {
+            revealInfluenceForLoss(state, player, card, now);
+            pendingLoss.count -= 1;
+        });
+
+        if (finishIfWinner(state, now)) return true;
+
+        if (pendingLoss.count <= 0) {
+            const continuation = pendingLoss.continuation;
+            state.pendingLoss = null;
+            continueAfterLoss(state, continuation, now);
+            state.updatedAt = now;
+        }
+        return true;
     }
 
     function loseInfluence(state, uid, cardId, now = Date.now()) {
@@ -836,17 +895,11 @@
         const card = player?.influences.find((influence) => influence.id === cardId && !influence.revealed);
         if (!card) throw new Error('Escolha uma influência válida.');
 
-        card.revealed = true;
-        state.discard.push({ id: card.id, role: card.role });
+        revealInfluenceForLoss(state, player, card, now);
         pendingLoss.count -= 1;
-        addLog(state, `${player.name} perdeu ${Rules.getRole(card.role).label}.`, 'loss', now);
-
-        if (countInfluences(player) === 0) {
-            player.eliminated = true;
-            addLog(state, `${player.name} foi eliminado.`, 'elimination', now);
-        }
 
         if (finishIfWinner(state, now)) return state;
+        if (resolveAutomaticLossIfForced(state, now)) return state;
         if (pendingLoss.count > 0) return state;
 
         const continuation = pendingLoss.continuation;
@@ -865,6 +918,13 @@
             }
             state.phase = PHASES.RESPONSE;
             state.pendingAction.passes = {};
+            const hasBlockResponse = getAlivePlayers(state).some((player) => (
+                player.uid !== state.pendingAction.actorUid && getBlockClaimsForPlayer(state, player.uid).length > 0
+            ));
+            if (!hasBlockResponse) {
+                executePendingAction(state, now);
+                return;
+            }
             state.deadline = now + SETTINGS.responseSeconds * 1000;
             return;
         }
@@ -935,7 +995,7 @@
                 break;
             case ACTIONS.EXCHANGE_AMBASSADOR:
             case ACTIONS.EXCHANGE_INQUISITOR:
-                beginExchange(state, actor.uid, now);
+                beginExchange(state, actor.uid, pending.type, now);
                 break;
             case ACTIONS.EXAMINE:
                 beginExamine(state, actor.uid, target.uid, now);
@@ -957,11 +1017,20 @@
         return Boolean(target && !target.eliminated && countInfluences(target) > 0);
     }
 
-    function beginExchange(state, uid, now) {
+    function isExchangeAction(actionType) {
+        return [ACTIONS.EXCHANGE_AMBASSADOR, ACTIONS.EXCHANGE_INQUISITOR].includes(actionType);
+    }
+
+    function getExchangeDrawCount(actionType) {
+        return actionType === ACTIONS.EXCHANGE_INQUISITOR ? 1 : 2;
+    }
+
+    function beginExchange(state, uid, actionType, now) {
         const player = getPlayer(state, uid);
         const hidden = player.influences.filter((card) => !card.revealed);
         const revealed = player.influences.filter((card) => card.revealed);
-        const drawn = state.deck.splice(Math.max(0, state.deck.length - 2), 2).map((card) => ({ ...card, revealed: false }));
+        const drawCount = getExchangeDrawCount(actionType);
+        const drawn = state.deck.splice(Math.max(0, state.deck.length - drawCount), drawCount).map((card) => ({ ...card, revealed: false }));
         player.influences = revealed;
         state.pendingExchange = { playerUid: uid, keepCount: hidden.length, options: [...hidden, ...drawn] };
         state.phase = PHASES.EXCHANGE;
@@ -1204,6 +1273,7 @@
         getAlivePlayers,
         getPlayer,
         getActiveUid,
+        getResponseUids,
         getBlockClaimsForPlayer,
         countInfluences,
         buildMatchResults

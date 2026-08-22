@@ -100,7 +100,7 @@
         readyCountdownSeconds: 5,
         starterDrawSeconds: 5,
         responseSeconds: 15,
-        turnSeconds: 45,
+        turnSeconds: 40,
         selectionSeconds: 20
     });
 

@@ -475,8 +475,9 @@
 
         if (state.phase === Rules.PHASES.RESPONSE) {
             const pending = state.pendingAction;
+            const responseUids = Engine.getResponseUids(state);
             const bots = Engine.getAlivePlayers(state).filter((player) => (
-                player.ai && player.uid !== pending?.actorUid && !pending?.passes?.[player.uid]
+                player.ai && responseUids.includes(player.uid)
             ));
             const bot = bots[0];
             if (!bot) return false;
@@ -541,9 +542,9 @@
         if (!state || state.status !== 'active') return false;
         if (state.phase === Rules.PHASES.TURN) return Boolean(Engine.getPlayer(state, Engine.getActiveUid(state))?.ai);
         if (state.phase === Rules.PHASES.RESPONSE) {
-            const pending = state.pendingAction;
+            const responseUids = Engine.getResponseUids(state);
             return Engine.getAlivePlayers(state).some((player) => (
-                player.ai && player.uid !== pending?.actorUid && !pending?.passes?.[player.uid]
+                player.ai && responseUids.includes(player.uid)
             ));
         }
         if (state.phase === Rules.PHASES.BLOCK_CHALLENGE) {

@@ -330,16 +330,28 @@ textarea::-moz-selection,
 }
 
 .rank-waiting-interaction {
+    width: min(360px, 100%);
     display: grid;
     gap: 10px;
+    align-self: center;
+    align-content: center;
+    justify-self: end;
     min-width: 210px;
     min-height: 0;
 }
 
 .rank-waiting-summary {
-    display: grid;
-    gap: 6px;
-    justify-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: nowrap;
+}
+
+.rank-waiting-interaction>.rank-primary-btn,
+.rank-waiting-interaction>.rank-secondary-btn {
+    width: 100%;
+    justify-self: stretch;
 }
 
 .rank-waiting-counter {
@@ -359,10 +371,13 @@ textarea::-moz-selection,
 
 .rank-waiting-countdown {
     display: block;
+    flex: 1 1 auto;
     color: var(--rank-muted);
     font-size: 11px;
     font-weight: 700;
+    text-align: right;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .rank-waiting-found-counter {
@@ -775,6 +790,16 @@ button.rank-card {
     justify-items: center;
 }
 
+.rank-stage.is-examine-stage .rank-turn-bar > div:first-child,
+.rank-stage.is-examine-stage .rank-phase-description,
+.rank-stage.is-examine-stage .rank-interaction {
+    transform: translateY(-6px);
+}
+
+.rank-examine-cards {
+    margin-bottom: 10px;
+}
+
 .rank-turn-bar {
     display: flex;
     align-items: center;
@@ -836,6 +861,10 @@ button.rank-card {
     align-content: start;
 }
 
+.rank-interaction.rank-waiting-interaction {
+    align-content: center;
+}
+
 .rank-actions-grid,
 .rank-response-actions,
 .rank-target-list {
@@ -848,23 +877,57 @@ button.rank-card {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.rank-response-actions,
-.rank-target-list {
+.rank-response-actions {
     width: min(620px, 100%);
     grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
     justify-content: center;
 }
 
-.rank-target-list {
-    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 320px));
+.rank-response-actions--count-1 {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(220px, 100%);
 }
 
-.rank-target-list+.rank-secondary-btn,
+.rank-response-actions--count-2,
+.rank-response-actions--count-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(420px, 100%);
+}
+
+.rank-target-list {
+    width: min(620px, 100%);
+    grid-template-columns: repeat(var(--rank-target-columns, 3), minmax(0, 1fr));
+}
+
+.rank-target-list--count-0 {
+    --rank-target-columns: 1;
+    width: min(200px, 100%);
+}
+
+.rank-target-list--count-1 {
+    --rank-target-columns: 2;
+    width: min(420px, 100%);
+}
+
+.rank-target-list--count-2,
+.rank-target-list--count-4,
+.rank-target-list--count-5 {
+    --rank-target-columns: 3;
+}
+
+.rank-target-list--count-3 {
+    --rank-target-columns: 2;
+    width: min(420px, 100%);
+}
+
+.rank-target-list--count-4 .rank-target-cancel {
+    grid-column: 2;
+}
+
 .rank-choice-cards+.rank-primary-btn {
     margin-top: 10px;
 }
 
-.rank-target-list+.rank-secondary-btn,
 .rank-choice-cards+.rank-primary-btn,
 .rank-interaction>.rank-secondary-btn,
 .rank-interaction>.rank-primary-btn {
@@ -886,6 +949,12 @@ button.rank-card {
     cursor: pointer;
     font-size: 12px;
     font-weight: 800;
+}
+
+.rank-target-btn {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .rank-action-btn:hover,
@@ -2025,11 +2094,11 @@ button.rank-card {
     }
 
     .rank-waiting-shell {
-        width: min(720px, calc(100% - 16px));
+        width: min(900px, calc(100% - 16px));
     }
 
     .rank-waiting-card {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(230px, auto);
     }
 
     .rank-waiting-invite {
@@ -2040,8 +2109,38 @@ button.rank-card {
         min-width: 0;
     }
 
+    .rank-waiting-summary {
+        justify-content: space-between;
+    }
+
+    .rank-waiting-interaction>.rank-primary-btn,
+    .rank-waiting-interaction>.rank-secondary-btn {
+        width: 100%;
+        justify-self: stretch;
+    }
+
     .rank-players.is-waiting-view {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .rank-waiting-card {
+        grid-template-columns: 1fr;
+    }
+
+    .rank-waiting-interaction {
+        width: 100%;
+        justify-self: stretch;
+    }
+
+    .rank-waiting-summary {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .rank-waiting-countdown {
+        text-align: right;
     }
 }
 
@@ -2075,18 +2174,19 @@ button.rank-card {
         padding: 16px 12px;
     }
 
-    .rank-waiting-summary,
     .rank-waiting-interaction {
-        justify-items: start;
+        justify-items: stretch;
     }
 
     .rank-waiting-counter {
-        justify-content: flex-start;
+        justify-content: center;
     }
 
     .rank-waiting-interaction>.rank-primary-btn,
     .rank-waiting-interaction>.rank-secondary-btn {
-        justify-self: start;
+        width: 100%;
+        justify-self: stretch;
+        min-width: 0;
     }
 
     .rank-waiting-card h1 {
@@ -2237,6 +2337,10 @@ button.rank-card {
     .rank-actions-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 5px;
+    }
+
+    .rank-target-list {
+        grid-template-columns: repeat(var(--rank-target-columns, 2), minmax(0, 1fr));
     }
 
     .rank-response-actions,

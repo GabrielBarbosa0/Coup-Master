@@ -209,9 +209,7 @@ function testFailedChallengeResumesAction() {
     Engine.challengeAction(state, 'u2', 2100);
     assert.equal(state.pendingLoss.playerUid, 'u2');
     Engine.loseInfluence(state, 'u2', firstHiddenCard(state, 'u2').id, 2200);
-    assert.equal(state.phase, Rules.PHASES.RESPONSE);
-    assert.equal(state.pendingAction.claimConfirmed, true);
-    Engine.passResponse(state, 'u2', 2300);
+    assert.equal(state.phase, Rules.PHASES.TURN);
     assert.equal(state.players.u1.coins, 5);
     assert.equal(Engine.getActiveUid(state), 'u2');
 }
@@ -228,6 +226,43 @@ function testTruthfulBlockCancelsAssassination() {
     assert.equal(Engine.countInfluences(state.players.u2), 2);
     assert.equal(state.players.u1.coins, 0);
     assert.equal(Engine.getActiveUid(state), 'u2');
+}
+
+function testProvenAssassinationOnlyTargetCanRespond() {
+    const state = createStartedStateWithThree();
+    state.players.u1.coins = 3;
+    state.players.u1.influences[0].role = Rules.ROLES.ASSASSIN;
+    Engine.performAction(state, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 2000);
+    Engine.challengeAction(state, 'u3', 2100);
+    Engine.loseInfluence(state, 'u3', firstHiddenCard(state, 'u3').id, 2200);
+    assert.deepEqual(Engine.getResponseUids(state), ['u2']);
+    assert.throws(
+        () => Engine.passResponse(state, 'u3', 2300),
+        /Você não pode responder agora/
+    );
+}
+
+function testStealBlockScope() {
+    const state = createStartedStateWithThree();
+    state.players.u1.influences[0].role = Rules.ROLES.CAPTAIN;
+    state.players.u2.influences[0].role = Rules.ROLES.AMBASSADOR;
+    state.players.u3.influences[0].role = Rules.ROLES.CAPTAIN;
+
+    Engine.performAction(state, 'u1', Rules.ACTIONS.STEAL, 'u2', 2000);
+
+    assert.deepEqual(
+        Engine.getBlockClaimsForPlayer(state, 'u2').sort(),
+        [Rules.ROLES.AMBASSADOR, Rules.ROLES.CAPTAIN, Rules.ROLES.INQUISITOR].sort()
+    );
+    assert.deepEqual(Engine.getBlockClaimsForPlayer(state, 'u3'), [Rules.ROLES.CAPTAIN]);
+    assert.throws(
+        () => Engine.declareBlock(state, 'u3', Rules.ROLES.AMBASSADOR, 2100),
+        /Este bloqueio não é permitido/
+    );
+
+    Engine.declareBlock(state, 'u3', Rules.ROLES.CAPTAIN, 2200);
+    assert.equal(state.pendingAction.block.uid, 'u3');
+    assert.equal(state.pendingAction.block.claim, Rules.ROLES.CAPTAIN);
 }
 
 function testTurnTimeoutUsesIncome() {
@@ -250,6 +285,29 @@ function testExchangeSelection() {
     assert.equal(Engine.getActiveUid(state), 'u2');
 }
 
+function testInquisitorExchangeDrawsOneAndKeepsHandOptions() {
+    const state = createStartedState();
+    state.players.u1.influences[0].role = Rules.ROLES.INQUISITOR;
+    const handIds = state.players.u1.influences.map((card) => card.id);
+    Engine.performAction(state, 'u1', Rules.ACTIONS.EXCHANGE_INQUISITOR, null, 2000);
+    Engine.passResponse(state, 'u2', 2100);
+    assert.equal(state.phase, Rules.PHASES.EXCHANGE);
+    assert.equal(state.pendingExchange.options.length, 3);
+    assert.ok(handIds.every((id) => state.pendingExchange.options.some((card) => card.id === id)));
+    assert.ok(state.pendingExchange.options.some((card) => card.role === Rules.ROLES.INQUISITOR));
+}
+
+function testChallengedInquisitorExchangeKeepsProvenCardAsOption() {
+    const state = createStartedState();
+    state.players.u1.influences[0].role = Rules.ROLES.INQUISITOR;
+    const inquisitorId = state.players.u1.influences[0].id;
+    Engine.performAction(state, 'u1', Rules.ACTIONS.EXCHANGE_INQUISITOR, null, 2000);
+    Engine.challengeAction(state, 'u2', 2100);
+    Engine.loseInfluence(state, 'u2', firstHiddenCard(state, 'u2').id, 2200);
+    assert.equal(state.phase, Rules.PHASES.EXCHANGE);
+    assert.ok(state.pendingExchange.options.some((card) => card.id === inquisitorId));
+}
+
 function testInquisitorExamine() {
     const state = createStartedState();
     Engine.performAction(state, 'u1', Rules.ACTIONS.EXAMINE, 'u2', 2000);
@@ -270,9 +328,9 @@ function testExamineEndsIfChallengerTargetIsEliminated() {
 
     Engine.performAction(state, 'u1', Rules.ACTIONS.EXAMINE, 'u2', 2000);
     Engine.challengeAction(state, 'u2', 2100);
-    Engine.loseInfluence(state, 'u2', 'u2-final', 2200);
 
     assert.equal(state.players.u2.eliminated, true);
+    assert.ok(state.discard.some((card) => card.id === 'u2-final'));
     assert.equal(state.pendingAction, null);
     assert.equal(state.pendingExamine, null);
     assert.equal(state.phase, Rules.PHASES.TURN);
@@ -295,10 +353,21 @@ function testBluffedBlockLetsActionContinue() {
     Engine.performAction(state, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 2000);
     Engine.declareBlock(state, 'u2', Rules.ROLES.CONTESSA, 2100);
     Engine.challengeBlock(state, 'u1', 2200);
-    Engine.loseInfluence(state, 'u2', firstHiddenCard(state, 'u2').id, 2300);
-    assert.equal(state.phase, Rules.PHASES.INFLUENCE_LOSS);
-    assert.equal(state.pendingLoss.playerUid, 'u2');
-    assert.equal(state.pendingLoss.reason, 'Vítima de assassinato.');
+    assert.equal(state.pendingLoss, null);
+    assert.equal(state.players.u2.eliminated, true);
+    assert.equal(state.discard.length, 2);
+    assert.equal(state.winnerUid, 'u1');
+}
+
+function testSingleInfluenceAttackResolvesAutomatically() {
+    const state = createStartedStateWithThree();
+    state.players.u1.coins = 3;
+    state.players.u2.influences[1].revealed = true;
+    Engine.performAction(state, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 2000);
+    Engine.advanceExpired(state, state.deadline + 1);
+    assert.equal(state.pendingLoss, null);
+    assert.equal(state.players.u2.eliminated, true);
+    assert.equal(Engine.getActiveUid(state), 'u3');
 }
 
 function testTurnTimeoutUsesMandatoryCoup() {
@@ -356,16 +425,21 @@ testRestartMatchPreservesRoomParticipants();
 testSuccessfulChallengeCancelsBluff();
 testFailedChallengeResumesAction();
 testTruthfulBlockCancelsAssassination();
+testProvenAssassinationOnlyTargetCanRespond();
+testStealBlockScope();
 testTurnTimeoutUsesIncome();
 testExchangeSelection();
+testInquisitorExchangeDrawsOneAndKeepsHandOptions();
+testChallengedInquisitorExchangeKeepsProvenCardAsOption();
 testInquisitorExamine();
 testExamineEndsIfChallengerTargetIsEliminated();
 testMandatoryCoup();
 testBluffedBlockLetsActionContinue();
+testSingleInfluenceAttackResolvesAutomatically();
 testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 
-console.log('ranked-engine: 18 testes aprovados');
+console.log('ranked-engine: 23 testes aprovados');
 
 

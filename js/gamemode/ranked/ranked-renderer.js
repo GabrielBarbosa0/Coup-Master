@@ -746,7 +746,7 @@
         const interaction = document.getElementById('rankInteraction');
         if (!title || !description || !interaction) return;
         const stage = title.closest('.rank-stage');
-        stage?.classList.remove('is-centered-stage', 'is-finished-stage', 'is-response-stage');
+        stage?.classList.remove('is-centered-stage', 'is-finished-stage', 'is-response-stage', 'is-examine-stage', 'is-target-stage');
         interaction.replaceChildren();
         selectedAction = state.phase === PHASES.TURN ? selectedAction : null;
 
@@ -785,9 +785,17 @@
             if (activePlayer?.uid !== currentUid) {
                 stage?.classList.add('is-centered-stage');
             }
+            const choosingTarget = activePlayer?.uid === currentUid && selectedAction;
+            if (choosingTarget) {
+                stage?.classList.add('is-centered-stage', 'is-target-stage');
+            }
             setPhaseText(
-                activePlayer?.uid === currentUid ? 'Sua vez' : `Vez de ${activePlayer?.name || 'jogador'}`,
-                describeTurnPhase(activePlayer)
+                choosingTarget
+                    ? 'Escolha o alvo'
+                    : activePlayer?.uid === currentUid ? 'Sua vez' : `Vez de ${activePlayer?.name || 'jogador'}`,
+                choosingTarget
+                    ? ['Escolha uma ação. O sistema aplica custos, abre as janelas de resposta', 'e resolve a rodada automaticamente.']
+                    : describeTurnPhase(activePlayer)
             );
             renderTurn(interaction, activePlayer);
         } else if (state.phase === PHASES.RESPONSE) {
@@ -813,7 +821,7 @@
             );
             renderExchange(interaction);
         } else if (state.phase === PHASES.EXAMINE) {
-            stage?.classList.add('is-centered-stage');
+            stage?.classList.add('is-centered-stage', 'is-examine-stage');
             setPhaseText(
                 state.pendingExamine?.actorUid === currentUid ? 'Investigar' : 'Investigação',
                 describeExaminePhase()
@@ -823,8 +831,13 @@
 
         function setPhaseText(titleText, descriptionText = '') {
             title.textContent = titleText;
-            description.textContent = descriptionText;
-            description.hidden = !descriptionText;
+            description.replaceChildren();
+            const lines = Array.isArray(descriptionText) ? descriptionText : [descriptionText];
+            lines.filter(Boolean).forEach((line, index) => {
+                if (index > 0) description.append(document.createElement('br'));
+                description.append(document.createTextNode(line));
+            });
+            description.hidden = !lines.some(Boolean);
         }
     }
 
@@ -1109,7 +1122,7 @@
         const player = Engine.getPlayer(state, exchange?.playerUid);
         if (!exchange || !player) return '';
         if (player.uid === currentUid) {
-            return `Escolha ${exchange.keepCount} carta(s) para devolver ao baralho e concluir a troca.`;
+            return `Escolha ${exchange.keepCount} carta(s) para manter na mão e concluir a troca.`;
         }
         return `${player.name} está reorganizando as cartas da mão.`;
     }
@@ -1133,10 +1146,10 @@
         }
 
         if (selectedAction) {
-            const action = Rules.getAction(selectedAction);
-            container.append(element('h2', 'rank-interaction-title', 'Escolha o alvo'));
-            const targets = element('div', 'rank-target-list');
-            Engine.getAlivePlayers(state).filter((player) => player.uid !== currentUid).forEach((player) => {
+            const targetPlayers = Engine.getAlivePlayers(state).filter((player) => player.uid !== currentUid);
+            const targetCount = Math.min(targetPlayers.length, 5);
+            const targets = element('div', `rank-target-list rank-target-list--count-${targetCount}`);
+            targetPlayers.forEach((player) => {
                 const button = element('button', 'rank-target-btn', player.name);
                 button.type = 'button';
                 button.addEventListener('click', () => {
@@ -1145,13 +1158,14 @@
                 });
                 targets.append(button);
             });
-            const cancel = element('button', 'rank-secondary-btn', 'Cancelar');
+            const cancel = element('button', 'rank-secondary-btn rank-target-cancel', 'Cancelar');
             cancel.type = 'button';
             cancel.addEventListener('click', () => {
                 selectedAction = null;
                 renderPhase();
             });
-            container.append(targets, cancel);
+            targets.append(cancel);
+            container.append(targets);
             return;
         }
 
@@ -1199,7 +1213,11 @@
 
     function canCurrentPlayerRespond(excludedUid) {
         const self = Engine.getPlayer(state, currentUid);
-        return Boolean(self && !self.eliminated && self.uid !== excludedUid && !state.pendingAction?.passes?.[self.uid]);
+        if (!self || self.eliminated || self.uid === excludedUid || state.pendingAction?.passes?.[self.uid]) return false;
+        if (state.phase === PHASES.RESPONSE) {
+            return Engine.getResponseUids(state).includes(currentUid);
+        }
+        return true;
     }
 
     function renderActionResponse(container) {
@@ -1225,6 +1243,7 @@
         pass.type = 'button';
         pass.addEventListener('click', () => controller.passResponse());
         actions.append(pass);
+        actions.classList.add(`rank-response-actions--count-${actions.children.length}`);
         container.append(actions);
     }
 
@@ -1241,6 +1260,7 @@
         pass.type = 'button';
         pass.addEventListener('click', () => controller.passResponse());
         actions.append(challenge, pass);
+        actions.classList.add(`rank-response-actions--count-${actions.children.length}`);
         container.append(actions);
     }
 
@@ -1296,7 +1316,7 @@
             return;
         }
         const card = { id: pending.cardId, role: pending.role, revealed: false };
-        const cards = element('div', 'rank-choice-cards');
+        const cards = element('div', 'rank-choice-cards rank-examine-cards');
         cards.append(createCard(card, true));
         const actions = element('div', 'rank-response-actions');
         const keep = element('button', 'rank-primary-btn', 'Manter influência');

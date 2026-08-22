@@ -263,7 +263,9 @@ Declare Capitão e roube até 2 moedas de um alvo.
 
 Pode ser contestado.
 
-Pode ser bloqueado pelo alvo com Capitão, Embaixador ou Inquisidor.
+Pode ser bloqueado com Capitão por qualquer jogador.
+
+Também pode ser bloqueado pelo alvo com Embaixador ou Inquisidor.
 
 #### Assassino - Assassinar
 
@@ -320,7 +322,7 @@ Tempos atuais:
 
 - Contagem de início: 5 segundos.
 - Sorteio inicial: 5 segundos.
-- Turno: 45 segundos.
+- Turno: 40 segundos.
 - Resposta, bloqueio ou contestação: 15 segundos.
 - Escolhas obrigatórias: 20 segundos.
 

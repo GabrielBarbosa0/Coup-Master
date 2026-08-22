@@ -209,7 +209,9 @@ Roube até 2 moedas do alvo.
 
 Pode ser contestado.
 
-Pode ser bloqueado pelo alvo com Capitão, Embaixador ou Inquisidor.
+Pode ser bloqueado com Capitão por qualquer jogador.
+
+Também pode ser bloqueado pelo alvo com Embaixador ou Inquisidor.
 
 ### Assassino - Assassinar
 
@@ -265,9 +267,9 @@ Pode ser bloqueada por qualquer jogador que declare Duque.
 
 ### Extorsão
 
-Pode ser bloqueada apenas pelo alvo da Extorsão.
+Pode ser bloqueada por qualquer jogador que declare Capitão.
 
-O alvo pode declarar:
+O alvo da Extorsão também pode declarar:
 
 - Capitão;
 - Embaixador;
@@ -376,7 +378,7 @@ O ranqueado usa temporizadores para impedir que a partida fique travada.
 
 - Contagem de início: 5 segundos.
 - Sorteio inicial: 5 segundos.
-- Turno: 45 segundos.
+- Turno: 40 segundos.
 - Resposta, bloqueio ou contestação: 15 segundos.
 - Escolhas obrigatórias: 20 segundos.
 
