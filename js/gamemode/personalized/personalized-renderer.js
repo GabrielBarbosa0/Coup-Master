@@ -30,6 +30,7 @@
     let rankCardTooltipEl = null;
     let cardInteractionsBound = false;
     let rankProfileLoadKey = 0;
+    let sideStackResizeObserver = null;
 
     const TENSION_FADE_IN_MS = 900;
     const TENSION_FADE_OUT_MS = 1400;
@@ -91,6 +92,7 @@
         renderRoomCode();
         setupChat();
         setupAudioControls();
+        setupSideStackSync();
     }
 
     function bindStaticEvents() {
@@ -695,6 +697,35 @@
         renderMatchResultsModal();
         if (viewMode === 'game') renderLog();
         updateClock();
+        root.requestAnimationFrame?.(syncSideStackHeight);
+    }
+
+    function setupSideStackSync() {
+        if (viewMode !== 'game') return;
+        syncSideStackHeight();
+        root.addEventListener?.('resize', syncSideStackHeight);
+        const mainStack = document.querySelector('.rank-main-stack');
+        if (!mainStack || typeof root.ResizeObserver !== 'function') return;
+        sideStackResizeObserver?.disconnect();
+        sideStackResizeObserver = new root.ResizeObserver(() => {
+            root.requestAnimationFrame?.(syncSideStackHeight);
+        });
+        sideStackResizeObserver.observe(mainStack);
+    }
+
+    function syncSideStackHeight() {
+        const sideStack = document.querySelector('.rank-side-stack');
+        if (!sideStack) return;
+        const isOverlayMode = root.matchMedia?.('(max-width: 980px)').matches;
+        if (viewMode !== 'game' || isOverlayMode) {
+            sideStack.style.removeProperty('--rank-side-stack-height');
+            return;
+        }
+        const mainStack = document.querySelector('.rank-main-stack');
+        const height = Math.ceil(mainStack?.getBoundingClientRect().height || 0);
+        if (height > 0) {
+            sideStack.style.setProperty('--rank-side-stack-height', `${height}px`);
+        }
     }
 
     function renderPlayers() {

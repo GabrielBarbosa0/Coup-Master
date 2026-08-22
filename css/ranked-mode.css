@@ -2531,13 +2531,14 @@ button.rank-card {
 
 .rank-main-stack {
     display: grid;
+    align-content: start;
     min-width: 0;
 }
 
 body[data-rank-view="game"] .rank-players {
     grid-auto-rows: 138px;
     gap: 6px;
-    margin: 8px 0;
+    margin: 0 0 8px;
 }
 
 body[data-rank-view="game"] .rank-player-slot {
@@ -2622,12 +2623,14 @@ body[data-rank-view="game"] .rank-timer {
     position: sticky;
     top: 8px;
     display: grid;
-    grid-template-rows: minmax(250px, 310px) minmax(170px, 240px);
+    grid-template-rows: minmax(250px, 310px) minmax(170px, 1fr);
     align-content: start;
+    align-self: stretch;
     gap: 8px;
     min-width: 0;
-    height: auto;
-    max-height: none;
+    height: var(--rank-side-stack-height, auto);
+    max-height: var(--rank-side-stack-height, none);
+    overflow: hidden;
 }
 
 .rank-side-card {
