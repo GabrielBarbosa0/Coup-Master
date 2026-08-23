@@ -69,6 +69,7 @@
     const bgmAudio = document.getElementById(options.bgmAudioId || 'bgmAudio');
     const volumeSlider = document.getElementById(options.volumeSliderId || 'volumeSlider');
     const effectsVolumeSlider = document.getElementById(options.effectsVolumeSliderId || 'effectsVolumeSlider');
+    const introFadeMs = Number.isFinite(Number(options.introFadeMs)) ? Number(options.introFadeMs) : 5000;
 
     if (bgmAudio) bgmAudio.volume = DEFAULT_BGM_VOLUME;
 
@@ -77,7 +78,17 @@
       : null;
 
     if (musicBtn && bgmAudio) {
-      if (bgmGuard) {
+      if (root.CoupAudioGuard?.playWithIntroFade) {
+        root.CoupAudioGuard.playWithIntroFade(bgmAudio, {
+          guard: bgmGuard,
+          targetVolume: DEFAULT_BGM_VOLUME,
+          fadeMs: introFadeMs,
+          randomStart: true
+        }).then((played) => {
+          if (played) musicBtn.classList.remove('muted');
+          else musicBtn.classList.add('muted');
+        });
+      } else if (bgmGuard) {
         bgmGuard.play();
       } else {
         bgmAudio.play()
@@ -103,7 +114,7 @@
     }
 
     if (volumeSlider && bgmAudio) {
-      volumeSlider.value = bgmAudio.volume;
+      volumeSlider.value = DEFAULT_BGM_VOLUME;
       volumeSlider.addEventListener('input', (event) => {
         if (bgmGuard) {
           bgmGuard.setVolume(event.target.value);

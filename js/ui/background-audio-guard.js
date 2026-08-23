@@ -1,5 +1,9 @@
 (function (root) {
     const guardedAudios = new WeakMap();
+    const fadeTokens = new WeakMap();
+    const RANDOM_START_MIN_DURATION = 12;
+    const RANDOM_START_END_PADDING = 4;
+    const DEFAULT_INTRO_FADE_MS = 5000;
     const MEDIA_ACTIONS = [
         'play',
         'pause',
@@ -44,6 +48,138 @@
         audio.controls = false;
         audio.disableRemotePlayback = true;
         audio.setAttribute('controlsList', 'nodownload noplaybackrate noremoteplayback');
+    }
+
+    function normalizeVolume(value, fallback = 1) {
+        const volume = Number(value);
+        if (!Number.isFinite(volume)) return fallback;
+        return Math.max(0, Math.min(1, volume));
+    }
+
+    function normalizeDuration(value, fallback) {
+        const duration = Number(value);
+        if (!Number.isFinite(duration)) return fallback;
+        return Math.max(0, duration);
+    }
+
+    function prepareRandomBackgroundStart(audio, options = {}) {
+        if (!audio || audio.dataset.randomBackgroundStartApplied === 'true') {
+            return Promise.resolve(false);
+        }
+
+        audio.dataset.randomBackgroundStartApplied = 'true';
+
+        function applyRandomStart() {
+            const duration = Number(audio.duration);
+            if (!Number.isFinite(duration) || duration <= RANDOM_START_MIN_DURATION) return false;
+
+            const endPadding = Math.min(RANDOM_START_END_PADDING, duration * 0.1);
+            const maxStart = Math.max(0, duration - endPadding);
+            if (maxStart <= 0) return false;
+
+            try {
+                audio.currentTime = Math.random() * maxStart;
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        if (audio.readyState >= 1) {
+            return Promise.resolve(applyRandomStart());
+        }
+
+        return new Promise((resolve) => {
+            let finished = false;
+
+            function done(value) {
+                if (finished) return;
+                finished = true;
+                audio.removeEventListener('loadedmetadata', handleMetadata);
+                audio.removeEventListener('error', handleError);
+                resolve(value);
+            }
+
+            function handleMetadata() {
+                done(applyRandomStart());
+            }
+
+            function handleError() {
+                done(false);
+            }
+
+            audio.addEventListener('loadedmetadata', handleMetadata, { once: true });
+            audio.addEventListener('error', handleError, { once: true });
+
+            if (typeof audio.load === 'function') {
+                try {
+                    audio.load();
+                } catch (error) {
+                    // Se o navegador recusar load manual, o play ainda pode funcionar depois.
+                }
+            }
+
+            window.setTimeout(() => done(false), normalizeDuration(options.timeoutMs, 1800));
+        });
+    }
+
+    function fadeAudioVolume(audio, toVolume, durationMs, options = {}) {
+        if (!audio) return;
+
+        const targetVolume = normalizeVolume(toVolume);
+        const setVolume = typeof options.setVolume === 'function'
+            ? options.setVolume
+            : (value) => { audio.volume = normalizeVolume(value); };
+        const fromVolume = normalizeVolume(audio.volume, 0);
+        const duration = Math.max(0, Number(durationMs) || 0);
+        const token = (fadeTokens.get(audio) || 0) + 1;
+        const start = performance.now();
+
+        fadeTokens.set(audio, token);
+
+        function step(now) {
+            if (fadeTokens.get(audio) !== token) return;
+
+            const progress = duration <= 0 ? 1 : Math.min(1, (now - start) / duration);
+            const eased = 1 - ((1 - progress) ** 3);
+            setVolume(fromVolume + ((targetVolume - fromVolume) * eased));
+
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            }
+        }
+
+        requestAnimationFrame(step);
+    }
+
+    function playWithIntroFade(audio, options = {}) {
+        if (!audio) return Promise.resolve(false);
+
+        const guard = options.guard || null;
+        const targetVolume = normalizeVolume(options.targetVolume, audio.volume || 1);
+        const fadeMs = Number.isFinite(Number(options.fadeMs)) ? Number(options.fadeMs) : DEFAULT_INTRO_FADE_MS;
+        const setVolume = (value) => {
+            if (guard) guard.setVolume(value);
+            else audio.volume = normalizeVolume(value);
+        };
+        const prepareStart = options.randomStart
+            ? prepareRandomBackgroundStart(audio, options)
+            : Promise.resolve(false);
+
+        setVolume(0);
+
+        return prepareStart
+            .then(() => {
+                const playPromise = guard
+                    ? guard.play()
+                    : audio.play().then(() => true).catch(() => false);
+
+                return playPromise.then((played) => {
+                    if (played) fadeAudioVolume(audio, targetVolume, fadeMs, { setVolume });
+                    else setVolume(targetVolume);
+                    return played;
+                });
+            });
     }
 
     function createBackgroundAudioGuard(audio, options = {}) {
@@ -224,6 +360,9 @@
     }
 
     root.CoupAudioGuard = {
-        createBackgroundAudioGuard
+        createBackgroundAudioGuard,
+        fadeAudioVolume,
+        playWithIntroFade,
+        prepareRandomBackgroundStart
     };
 }(window));

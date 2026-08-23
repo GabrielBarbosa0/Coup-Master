@@ -36,6 +36,7 @@
     const TENSION_FADE_IN_MS = 900;
     const TENSION_FADE_OUT_MS = 1400;
     const TENSION_BGM_DUCK_RATIO = 0.18;
+    const BGM_INTRO_FADE_MS = 5000;
     const RANK_BGM_POSITION_KEY = 'rankBgmPosition';
     const DEFAULT_RANK_MUSIC_VOLUME = 0.1;
     const DEFAULT_RANK_SFX_VOLUME = 0.2;
@@ -1724,10 +1725,13 @@
         rankMusicVolume = normalizeVolume(musicVolume);
         root.rankSfxVolume = normalizeVolume(effectsVolume, DEFAULT_RANK_SFX_VOLUME);
         if (bgm) {
-            restoreRankBgmPosition(bgm);
+            const restoredPosition = restoreRankBgmPosition(bgm);
             bgm.addEventListener('timeupdate', saveRankBgmPosition);
-            setRankBgmVolume(isAnyRankAmbienceActive() ? getDuckedBgmVolume() : rankMusicVolume);
-            resumeRankBgmPreservingPosition()
+            setRankBgmVolume(0);
+            resumeRankBgmPreservingPosition({
+                fadeIn: true,
+                randomStart: !restoredPosition
+            })
                 .then((played) => {
                     if (played) musicBtn?.classList.remove('muted');
                     else musicBtn?.classList.add('muted');
@@ -1827,12 +1831,12 @@
 
     function saveRankBgmPosition() {
         if (!rankBgmAudio || !Number.isFinite(rankBgmAudio.currentTime)) return;
-        sessionStorage.setItem(RANK_BGM_POSITION_KEY, String(rankBgmAudio.currentTime));
+        sessionStorage.setItem(getRankBgmPositionKey(), String(rankBgmAudio.currentTime));
     }
 
     function restoreRankBgmPosition(audio) {
-        const savedPosition = Number(sessionStorage.getItem(RANK_BGM_POSITION_KEY));
-        if (!Number.isFinite(savedPosition) || savedPosition <= 0) return;
+        const savedPosition = Number(sessionStorage.getItem(getRankBgmPositionKey()));
+        if (!Number.isFinite(savedPosition) || savedPosition <= 0) return false;
 
         const applyPosition = () => {
             if (!Number.isFinite(audio.duration) || audio.duration <= 0) {
@@ -1848,12 +1852,19 @@
         } catch (error) {
             // Alguns navegadores recusam seek antes dos metadados.
         }
+
+        return true;
     }
 
-    function resumeRankBgmPreservingPosition() {
+    function getRankBgmPositionKey() {
+        return `${RANK_BGM_POSITION_KEY}:${location.pathname}:${roomCode || 'room'}`;
+    }
+
+    function resumeRankBgmPreservingPosition(options = {}) {
         if (!rankBgmAudio || rankMusicVolume <= 0) return Promise.resolve(false);
 
         const currentPosition = Number(rankBgmAudio.currentTime || 0);
+        const targetVolume = isAnyRankAmbienceActive() ? getDuckedBgmVolume() : rankMusicVolume;
         const restorePositionIfReset = () => {
             if (currentPosition > 0 && rankBgmAudio.currentTime < Math.max(0.1, currentPosition - 0.5)) {
                 try {
@@ -1865,15 +1876,28 @@
         };
 
         if (!rankBgmAudio.paused) {
+            if (options.fadeIn) fadeAudioVolume(rankBgmAudio, targetVolume, BGM_INTRO_FADE_MS, 'bgm');
             return Promise.resolve(true);
         }
 
-        const playPromise = rankBgmGuard
-            ? rankBgmGuard.play()
-            : rankBgmAudio.play().then(() => true).catch(() => false);
+        const prepareStart = options.randomStart && root.CoupAudioGuard?.prepareRandomBackgroundStart
+            ? root.CoupAudioGuard.prepareRandomBackgroundStart(rankBgmAudio)
+            : Promise.resolve(false);
 
-        return playPromise.then((played) => {
-            if (played) restorePositionIfReset();
+        return prepareStart.then(() => {
+            const playPromise = rankBgmGuard
+                ? rankBgmGuard.play()
+                : rankBgmAudio.play().then(() => true).catch(() => false);
+
+            return playPromise;
+        }).then((played) => {
+            if (played) {
+                restorePositionIfReset();
+                if (options.fadeIn) fadeAudioVolume(rankBgmAudio, targetVolume, BGM_INTRO_FADE_MS, 'bgm');
+                else setRankBgmVolume(targetVolume);
+            } else {
+                setRankBgmVolume(targetVolume);
+            }
             return played;
         });
     }
