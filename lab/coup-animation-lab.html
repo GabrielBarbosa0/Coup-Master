@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coup Animation Lab - Coup Master</title>
+  <style>
+    :root {
+      --bg: #14171e;
+      --panel: #1b222c;
+      --line: rgba(230, 238, 246, 0.16);
+      --text: #e6eef6;
+      --muted: rgba(230, 238, 246, 0.64);
+      --accent: #1e90ff;
+      --gold: #ffcc00;
+      --royal: #e5b84a;
+      --danger: #ff4048;
+      --coup-duration: 1680ms;
+      --coup-shake: 12px;
+      --coup-flash: 0.54;
+      --coup-ring: 1.12;
+      --target-dim: 0.26;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at 12% 12%, rgba(30, 144, 255, 0.10), transparent 28%),
+        radial-gradient(circle at 84% 12%, rgba(255, 204, 0, 0.10), transparent 24%),
+        linear-gradient(135deg, #10141b 0%, #171c24 52%, #0e1117 100%);
+      overflow-x: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .lab-shell {
+      display: grid;
+      grid-template-columns: minmax(290px, 360px) minmax(0, 1fr);
+      gap: 18px;
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .controls,
+    .stage-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(27, 34, 44, 0.88);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+    }
+
+    .controls {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      padding: 16px;
+    }
+
+    .controls h1,
+    .stage-header h2 {
+      margin: 0;
+      font-size: 1.42rem;
+      line-height: 1.1;
+    }
+
+    .controls p,
+    .stage-header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .control-row {
+      display: grid;
+      gap: 7px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+
+    .control-value {
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 38px;
+      color: var(--text);
+    }
+
+    .toggle-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .button-grid button,
+    .primary-button {
+      min-height: 42px;
+      border: 1px solid rgba(229, 184, 74, 0.46);
+      border-radius: 7px;
+      background: rgba(229, 184, 74, 0.13);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .button-grid button:hover,
+    .primary-button:hover {
+      border-color: var(--gold);
+      background: rgba(229, 184, 74, 0.22);
+    }
+
+    .primary-button {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(229, 184, 74, 0.95), rgba(30, 144, 255, 0.88));
+      border-color: rgba(255, 204, 0, 0.62);
+      color: #fff;
+    }
+
+    .config-output {
+      width: 100%;
+      min-height: 164px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--text);
+      background: rgba(0, 0, 0, 0.22);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      resize: vertical;
+    }
+
+    .stage-wrap {
+      position: relative;
+      min-height: calc(100vh - 36px);
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        radial-gradient(circle at center, rgba(255, 204, 0, 0.08), transparent 38%),
+        rgba(13, 18, 25, 0.95);
+      background-size: 34px 34px, 34px 34px, auto, auto;
+    }
+
+    .stage-header {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(16, 23, 32, 0.74);
+    }
+
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .metric {
+      min-width: 106px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--muted);
+      background: rgba(0, 0, 0, 0.16);
+      font-size: 0.82rem;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 2px;
+      color: var(--text);
+      font-size: 1rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stage {
+      position: relative;
+      min-height: calc(100vh - 144px);
+      padding: 22px;
+      overflow: hidden;
+    }
+
+    .arena {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: min(560px, calc(100vh - 188px));
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 18px;
+      border: 1px solid rgba(255, 204, 0, 0.24);
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at center, rgba(229, 184, 74, 0.15), transparent 42%),
+        rgba(17, 25, 35, 0.86);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+
+    .arena.is-couping {
+      animation: arenaShake var(--coup-duration) ease-out;
+    }
+
+    .coup-panel {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: min(100%, 420px);
+      min-height: 420px;
+      overflow: hidden;
+    }
+
+    .target-card-wrap {
+      position: relative;
+      z-index: 4;
+      display: grid;
+      place-items: center;
+      width: 210px;
+      min-height: 294px;
+      perspective: 900px;
+    }
+
+    .target-card {
+      width: 166px;
+      border: 2px solid rgba(230, 238, 246, 0.82);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.38);
+      transform: translateY(0) scale(1);
+      transform-origin: center;
+    }
+
+    .arena.is-couping .target-card {
+      animation: targetSentenced var(--coup-duration) cubic-bezier(0.18, 0.88, 0.22, 1);
+    }
+
+    .arena.is-resolved .target-card {
+      transform: translateY(5px) scale(0.98) rotateY(0deg);
+      filter: grayscale(1) brightness(var(--target-dim));
+    }
+
+    .impact-line {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(74vw, 580px);
+      height: 3px;
+      opacity: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 204, 0, 0.98), rgba(255, 255, 255, 0.88), transparent);
+      box-shadow: 0 0 26px rgba(255, 204, 0, 0.42);
+      transform: translate(-50%, -50%) scaleX(0);
+      transform-origin: center;
+    }
+
+    .arena.is-couping .impact-line {
+      animation: slashLine var(--coup-duration) ease-out;
+    }
+
+    .shock-ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 4;
+      width: 120px;
+      height: 120px;
+      border: 2px solid rgba(255, 204, 0, 0.88);
+      border-radius: 999px;
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.2);
+      pointer-events: none;
+    }
+
+    .arena.is-couping .shock-ring {
+      animation: shockRing var(--coup-duration) ease-out;
+    }
+
+    .coup-stamp {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      z-index: 9;
+      min-width: 248px;
+      padding: 12px 18px;
+      border: 3px solid rgba(255, 204, 0, 0.96);
+      border-radius: 8px;
+      color: #fff;
+      background: rgba(86, 55, 4, 0.94);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.18) inset,
+        0 18px 34px rgba(0, 0, 0, 0.38),
+        0 0 34px rgba(255, 204, 0, 0.28);
+      font-size: clamp(1.42rem, 5vw, 2.1rem);
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-align: center;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: translate(-50%, -50%) rotate(-9deg) scale(2.2);
+      pointer-events: none;
+    }
+
+    .arena.is-couping .coup-stamp {
+      animation: coupStamp var(--coup-duration) cubic-bezier(0.16, 0.96, 0.22, 1);
+    }
+
+    .coup-copy {
+      position: absolute;
+      left: 50%;
+      bottom: 20px;
+      width: min(92%, 520px);
+      color: rgba(230, 238, 246, 0.82);
+      font-size: 0.86rem;
+      line-height: 1.45;
+      text-align: center;
+      text-transform: uppercase;
+      transform: translateX(-50%);
+    }
+
+    .coup-flash {
+      position: absolute;
+      inset: 0;
+      z-index: 14;
+      opacity: 0;
+      background:
+        radial-gradient(circle at center, rgba(255, 255, 255, var(--coup-flash)), transparent 26%),
+        radial-gradient(circle at center, rgba(255, 204, 0, 0.34), transparent 56%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .arena.is-couping .coup-flash {
+      animation: coupFlash var(--coup-duration) ease-out;
+    }
+
+    .particle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 5;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--gold);
+      box-shadow: 0 0 16px rgba(255, 204, 0, 0.75);
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.3);
+    }
+
+    .arena.is-couping .particle {
+      animation: particleBurst var(--coup-duration) ease-out;
+      animation-delay: var(--particle-delay);
+    }
+
+    @keyframes arenaShake {
+      0%, 24%, 100% {
+        transform: translate3d(0, 0, 0);
+      }
+
+      30% {
+        transform: translate3d(calc(var(--coup-shake) * -1), 0, 0);
+      }
+
+      36% {
+        transform: translate3d(var(--coup-shake), calc(var(--coup-shake) * 0.32), 0);
+      }
+
+      43% {
+        transform: translate3d(calc(var(--coup-shake) * -0.52), calc(var(--coup-shake) * -0.28), 0);
+      }
+
+      50% {
+        transform: translate3d(calc(var(--coup-shake) * 0.34), 0, 0);
+      }
+    }
+
+    @keyframes targetSentenced {
+      0%, 18% {
+        transform: translateY(0) scale(1) rotateY(0deg);
+        filter: brightness(1);
+      }
+
+      32% {
+        transform: translateY(-18px) scale(var(--coup-ring)) rotateY(-7deg);
+        filter: brightness(1.2);
+      }
+
+      48% {
+        transform: translateY(8px) scale(0.96) rotateY(4deg);
+      }
+
+      68% {
+        transform: translateY(-4px) scale(1.02) rotateY(0deg);
+      }
+
+      100% {
+        transform: translateY(0) scale(1) rotateY(0deg);
+        filter: brightness(1);
+      }
+    }
+
+    @keyframes slashLine {
+      0%, 20% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scaleX(0) rotate(-8deg);
+      }
+
+      34% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scaleX(1) rotate(-8deg);
+      }
+
+      62%, 100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scaleX(1.05) rotate(-8deg);
+      }
+    }
+
+    @keyframes coupStamp {
+      0%, 20% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(-9deg) scale(2.2);
+      }
+
+      34% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(-9deg) scale(0.9);
+      }
+
+      44% {
+        transform: translate(-50%, -50%) rotate(-9deg) scale(1.06);
+      }
+
+      72% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(-9deg) scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(-9deg) scale(0.96);
+      }
+    }
+
+    @keyframes coupFlash {
+      0%, 24%, 100% {
+        opacity: 0;
+      }
+
+      30% {
+        opacity: 1;
+      }
+
+      42% {
+        opacity: 0.18;
+      }
+    }
+
+    @keyframes shockRing {
+      0%, 24% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.2);
+      }
+
+      34% {
+        opacity: 0.78;
+      }
+
+      76%, 100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(3.4);
+      }
+    }
+
+    @keyframes particleBurst {
+      0%, 25% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3);
+      }
+
+      34% {
+        opacity: 1;
+      }
+
+      92%, 100% {
+        opacity: 0;
+        transform:
+          translate(
+            calc(-50% + var(--particle-x)),
+            calc(-50% + var(--particle-y))
+          )
+          scale(0.86);
+      }
+    }
+
+    @media (max-width: 920px) {
+      .lab-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+        max-height: none;
+      }
+
+      .arena {
+        min-height: 430px;
+      }
+
+      .coup-panel {
+        min-height: 390px;
+      }
+
+      .stage-header {
+        flex-direction: column;
+      }
+
+      .metrics {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .arena.is-couping,
+      .arena.is-couping .target-card,
+      .arena.is-couping .impact-line,
+      .arena.is-couping .shock-ring,
+      .arena.is-couping .coup-stamp,
+      .arena.is-couping .particle,
+      .arena.is-couping .coup-flash {
+        animation-duration: 1ms;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="lab-shell">
+    <aside class="controls">
+      <h1>Coup Animation Lab</h1>
+      <p>Laboratorio para testar uma animacao futura de Golpe de Estado no modo ranqueado.</p>
+
+      <section class="control-group" aria-label="Acoes rapidas">
+        <button class="primary-button" type="button" id="playCoup">Tocar golpe de estado</button>
+        <div class="button-grid">
+          <button type="button" data-preset="soft">Sutil</button>
+          <button type="button" data-preset="default">Padrao</button>
+          <button type="button" data-preset="absolute">Absoluto</button>
+          <button type="button" data-preset="fast">Rapido</button>
+        </div>
+      </section>
+
+      <section class="control-group" aria-label="Configuracao da animacao">
+        <div class="control-row">
+          <label class="control-label" for="durationRange">
+            Duracao
+            <span class="control-value" id="durationValue">1680ms</span>
+          </label>
+          <input id="durationRange" type="range" min="900" max="2800" step="20" value="1680">
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="shakeRange">
+            Tremor
+            <span class="control-value" id="shakeValue">12px</span>
+          </label>
+          <input id="shakeRange" type="range" min="0" max="28" step="1" value="12">
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="ringRange">
+            Impacto da carta
+            <span class="control-value" id="ringValue">1.12</span>
+          </label>
+          <input id="ringRange" type="range" min="1" max="1.32" step="0.01" value="1.12">
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="flashRange">
+            Flash
+            <span class="control-value" id="flashValue">0.54</span>
+          </label>
+          <input id="flashRange" type="range" min="0" max="1" step="0.01" value="0.54">
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="dimRange">
+            Escurecer alvo
+            <span class="control-value" id="dimValue">0.26</span>
+          </label>
+          <input id="dimRange" type="range" min="0.12" max="0.8" step="0.01" value="0.26">
+        </div>
+
+        <label class="toggle-row" for="soundToggle">
+          Tocar som de golpe
+          <input id="soundToggle" type="checkbox">
+        </label>
+      </section>
+
+      <section class="control-group" aria-label="Preset para copiar">
+        <textarea class="config-output" id="configOutput" readonly></textarea>
+      </section>
+    </aside>
+
+      <section class="stage-wrap">
+      <header class="stage-header">
+        <div>
+          <h2>Teste visual de Golpe de Estado</h2>
+          <p>Simula um decreto inevitavel com foco no impacto central da influencia perdida.</p>
+        </div>
+        <div class="metrics">
+          <div class="metric">Acao<strong>Golpe</strong></div>
+          <div class="metric">Formato<strong>Modal</strong></div>
+        </div>
+      </header>
+
+      <div class="stage">
+        <section class="arena" id="arena" aria-label="Cenario de golpe de estado">
+          <div class="coup-panel">
+            <div class="impact-line" aria-hidden="true"></div>
+            <div class="shock-ring" aria-hidden="true"></div>
+            <div class="target-card-wrap">
+              <img class="target-card" src="../assets/img/cards/base/capitao.png" alt="Carta Capitao">
+            </div>
+            <div class="coup-stamp" aria-hidden="true">Golpe executado</div>
+            <p class="coup-copy">O Golpe de Estado foi executado. A influencia escolhida e perdida.</p>
+            <span class="particle" style="--particle-x: -260px; --particle-y: -96px; --particle-delay: 0ms;"></span>
+            <span class="particle" style="--particle-x: 246px; --particle-y: -82px; --particle-delay: 34ms;"></span>
+            <span class="particle" style="--particle-x: -210px; --particle-y: 118px; --particle-delay: 72ms;"></span>
+            <span class="particle" style="--particle-x: 224px; --particle-y: 124px; --particle-delay: 102ms;"></span>
+            <span class="particle" style="--particle-x: -80px; --particle-y: -170px; --particle-delay: 52ms;"></span>
+            <span class="particle" style="--particle-x: 92px; --particle-y: 172px; --particle-delay: 92ms;"></span>
+          </div>
+
+          <div class="coup-flash" aria-hidden="true"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <audio id="coupAudio" preload="auto" src="../assets/sounds/vfx/knife.mp3"></audio>
+
+  <script>
+    const state = {
+      duration: 1380,
+      shake: 10,
+      ring: 1.12,
+      flash: 0.58,
+      dim: 0.26,
+      sound: false
+    };
+
+    const presets = {
+      soft: { duration: 1480, shake: 5, ring: 1.06, flash: 0.34, dim: 0.38 },
+      default: { duration: 1380, shake: 10, ring: 1.12, flash: 0.58, dim: 0.26 },
+      absolute: { duration: 1720, shake: 16, ring: 1.2, flash: 0.72, dim: 0.16 },
+      fast: { duration: 980, shake: 8, ring: 1.1, flash: 0.48, dim: 0.24 }
+    };
+
+    const els = {
+      arena: document.getElementById('arena'),
+      playCoup: document.getElementById('playCoup'),
+      audio: document.getElementById('coupAudio'),
+      durationRange: document.getElementById('durationRange'),
+      shakeRange: document.getElementById('shakeRange'),
+      ringRange: document.getElementById('ringRange'),
+      flashRange: document.getElementById('flashRange'),
+      dimRange: document.getElementById('dimRange'),
+      soundToggle: document.getElementById('soundToggle'),
+      durationValue: document.getElementById('durationValue'),
+      shakeValue: document.getElementById('shakeValue'),
+      ringValue: document.getElementById('ringValue'),
+      flashValue: document.getElementById('flashValue'),
+      dimValue: document.getElementById('dimValue'),
+      configOutput: document.getElementById('configOutput')
+    };
+
+    function syncControls() {
+      document.documentElement.style.setProperty('--coup-duration', `${state.duration}ms`);
+      document.documentElement.style.setProperty('--coup-shake', `${state.shake}px`);
+      document.documentElement.style.setProperty('--coup-ring', state.ring);
+      document.documentElement.style.setProperty('--coup-flash', state.flash);
+      document.documentElement.style.setProperty('--target-dim', state.dim);
+
+      els.durationRange.value = state.duration;
+      els.shakeRange.value = state.shake;
+      els.ringRange.value = state.ring;
+      els.flashRange.value = state.flash;
+      els.dimRange.value = state.dim;
+      els.soundToggle.checked = state.sound;
+
+      els.durationValue.textContent = `${state.duration}ms`;
+      els.shakeValue.textContent = `${state.shake}px`;
+      els.ringValue.textContent = state.ring.toFixed(2);
+      els.flashValue.textContent = state.flash.toFixed(2);
+      els.dimValue.textContent = state.dim.toFixed(2);
+
+      els.configOutput.value = `const COUP_ANIMATION = {
+  duration: ${state.duration},
+  shake: ${state.shake},
+  cardScale: ${state.ring.toFixed(2)},
+  flash: ${state.flash.toFixed(2)},
+  targetDim: ${state.dim.toFixed(2)},
+  stampText: 'Golpe executado',
+  sound: 'assets/sounds/vfx/knife.mp3'
+};`;
+    }
+
+    function playSound() {
+      if (!state.sound) return;
+
+      els.audio.currentTime = 0;
+      els.audio.volume = 0.56;
+      els.audio.play().catch(() => {
+        state.sound = false;
+        syncControls();
+      });
+    }
+
+    function playCoup() {
+      els.arena.classList.remove('is-couping', 'is-resolved');
+      void els.arena.offsetWidth;
+      playSound();
+      els.arena.classList.add('is-couping');
+      window.clearTimeout(playCoup.clearTimer);
+      playCoup.clearTimer = window.setTimeout(() => {
+        els.arena.classList.remove('is-couping');
+        els.arena.classList.add('is-resolved');
+      }, state.duration + 80);
+    }
+
+    function bindRange(input, key, parser = Number) {
+      input.addEventListener('input', () => {
+        state[key] = parser(input.value);
+        syncControls();
+      });
+    }
+
+    bindRange(els.durationRange, 'duration');
+    bindRange(els.shakeRange, 'shake');
+    bindRange(els.ringRange, 'ring');
+    bindRange(els.flashRange, 'flash');
+    bindRange(els.dimRange, 'dim');
+
+    els.soundToggle.addEventListener('change', () => {
+      state.sound = els.soundToggle.checked;
+      syncControls();
+    });
+
+    els.playCoup.addEventListener('click', playCoup);
+
+    document.querySelectorAll('[data-preset]').forEach((button) => {
+      button.addEventListener('click', () => {
+        Object.assign(state, presets[button.dataset.preset] || presets.default);
+        syncControls();
+        playCoup();
+      });
+    });
+
+    syncControls();
+    window.setTimeout(playCoup, 260);
+  </script>
+</body>
+
+</html>

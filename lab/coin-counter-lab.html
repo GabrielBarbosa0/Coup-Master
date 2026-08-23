@@ -610,7 +610,7 @@
           <button type="button" data-action="foreign-aid">Ajuda +2</button>
           <button type="button" data-action="tax">Taxar +3</button>
           <button type="button" data-action="steal">Extorsao +2</button>
-          <button type="button" data-action="coup">Golpe +3</button>
+          <button type="button" data-action="coup">Golpe +7</button>
           <button type="button" data-action="custom">Personalizado</button>
         </div>
         <button class="primary-button" type="button" id="playCustom">Comprar moedas de prata</button>
@@ -749,11 +749,11 @@
     };
 
     const actionCoins = {
-      income: ['silver'],
-      'foreign-aid': ['silver', 'silver'],
-      tax: ['silver', 'silver', 'silver'],
-      steal: ['silver', 'silver'],
-      coup: ['silver', 'silver', 'gold']
+      income: { value: 1, coins: ['silver'] },
+      'foreign-aid': { value: 2, coins: ['silver', 'silver'] },
+      tax: { value: 3, coins: ['silver', 'silver', 'silver'] },
+      steal: { value: 2, coins: ['silver', 'silver'] },
+      coup: { value: 7, coins: ['silver', 'silver', 'gold'] }
     };
 
     const els = {
@@ -809,11 +809,11 @@
     gold: 'assets/img/coins/moeda-ouro.png'
   },
   actions: {
-    income: ['silver'],
-    foreignAid: ['silver', 'silver'],
-    tax: ['silver', 'silver', 'silver'],
-    steal: ['silver', 'silver'],
-    coup: ['silver', 'silver', 'gold']
+    income: { value: 1, coins: ['silver'] },
+    foreignAid: { value: 2, coins: ['silver', 'silver'] },
+    tax: { value: 3, coins: ['silver', 'silver', 'silver'] },
+    steal: { value: 2, coins: ['silver', 'silver'] },
+    coup: { value: 7, coins: ['silver', 'silver', 'gold'] }
   }
 };`;
     }
@@ -913,9 +913,14 @@
       return Array.from({ length: amount }, () => 'silver');
     }
 
-    function playCoinGain(coins) {
-      const coinSequence = Array.isArray(coins) && coins.length ? coins : createSilverSequence(state.amount);
-      const amount = coinSequence.length;
+    function playCoinGain(payload) {
+      const coinSequence = Array.isArray(payload)
+        ? payload
+        : payload?.coins;
+      const normalizedCoins = Array.isArray(coinSequence) && coinSequence.length
+        ? coinSequence
+        : createSilverSequence(state.amount);
+      const amount = Number.isFinite(payload?.value) ? payload.value : normalizedCoins.length;
       const stageRect = els.stage.getBoundingClientRect();
       const bankRect = els.bankStack.getBoundingClientRect();
       const counterRect = els.coinCounter.getBoundingClientRect();
@@ -928,7 +933,7 @@
       state.lastGain = amount;
       els.metricGain.textContent = `+${amount}`;
 
-      coinSequence.forEach((coinType, index) => {
+      normalizedCoins.forEach((coinType, index) => {
         lastDelay = spawnCoin(start, end, index, coinType);
       });
 
