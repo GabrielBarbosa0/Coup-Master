@@ -16,6 +16,11 @@
     'assets/img/guides/alternative-rules5.png'
   ];
 
+  function t(key, params = {}, fallback = '') {
+    const translated = root.CoupLanguage?.t?.(key, params);
+    return translated && translated !== key ? translated : fallback || key;
+  }
+
   const ALTERNATIVE_RULES = [
     {
       id: 'justica-lenta',
@@ -511,8 +516,8 @@
     if (startButton) startButton.disabled = !canDraw;
     if (intro) {
       intro.textContent = canDraw
-        ? 'Escolha até 5 regras alternativas para uma partida mais imprevisível. O resultado aparece para todos os jogadores.'
-        : 'O Host pode sortear regras alternativas para diversificar a partida.';
+        ? t('casual.ruleDrawIntro', {}, 'Escolha até 5 regras alternativas para uma partida mais imprevisível. O resultado aparece para todos os jogadores.')
+        : t('casual.hostCanDrawRules', {}, 'O Host pode sortear regras alternativas para diversificar a partida.');
     }
   }
 

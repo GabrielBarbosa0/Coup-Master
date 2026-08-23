@@ -32,8 +32,12 @@ jobs:
           test -f login.html
           test -f lobby.html
           test -f index.html
-          test -f ranked-waiting.html
-          test -f ranked.html
+          test -f ranked/ranked-waiting.html
+          test -f ranked/ranked.html
+          test -f personalized/personalized-waiting.html
+          test -f personalized/personalized.html
+          test -f legal/privacy.html
+          test -f legal/terms.html
           if find . -type l -print -quit | grep -q .; then
             echo "Symlinks are not supported by GitHub Pages artifacts."
             find . -type l -print

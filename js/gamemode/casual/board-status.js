@@ -6,6 +6,11 @@
     return document.getElementById(id);
   }
 
+  function t(key, params = {}, fallback = '') {
+    const translated = root.CoupLanguage?.t?.(key, params);
+    return translated && translated !== key ? translated : fallback || key;
+  }
+
   function getRoomCode() {
     return config.getRoomCode?.() || '';
   }
@@ -51,7 +56,9 @@
 
     if (qrElement) {
       qrElement.src = getQrCodeUrl(roomUrl);
-      qrElement.alt = roomCode ? `QR Code da sala ${roomCode}` : 'QR Code da sala';
+      qrElement.alt = roomCode
+        ? t('casual.roomQrWithCode', { room: roomCode }, `QR Code da sala ${roomCode}`)
+        : t('casual.roomQr', {}, 'QR Code da sala');
     }
   }
 
@@ -87,7 +94,7 @@
     roomHeader?.classList.add('copied');
 
     const originalTitle = roomCodeBtn?.title || '';
-    if (roomCodeBtn) roomCodeBtn.title = 'Código copiado!';
+    if (roomCodeBtn) roomCodeBtn.title = t('casual.codeCopied', {}, 'Código copiado!');
 
     root.setTimeout(() => {
       resetCopiedState(roomHeader, roomCodeBtn, originalTitle);
@@ -101,7 +108,7 @@
     if (!roomCode) return;
 
     if (!root.navigator?.clipboard?.writeText) {
-      root.alert?.(`Código da sala: ${roomCode}`);
+      root.alert?.(t('casual.roomCodeValue', { room: roomCode }, `Código da sala: ${roomCode}`));
       return;
     }
 
@@ -109,7 +116,7 @@
       .then(() => notifyCopied(roomHeader, roomCodeBtn))
       .catch((error) => {
         console.error('Erro ao copiar:', error);
-        root.alert?.(`Código da sala: ${roomCode}`);
+        root.alert?.(t('casual.roomCodeValue', { room: roomCode }, `Código da sala: ${roomCode}`));
       });
   }
 
@@ -118,7 +125,7 @@
     if (!button) return;
 
     const originalText = button.textContent;
-    button.textContent = 'COPIADO';
+    button.textContent = t('ranked.copied', {}, 'COPIADO').toUpperCase();
     button.classList.add('copied');
 
     root.setTimeout(() => {
@@ -144,11 +151,11 @@
   }
 
   function copyShareRoomCode() {
-    copyText(getRoomCode(), getElement('copyShareCodeBtn'), 'Código da sala');
+    copyText(getRoomCode(), getElement('copyShareCodeBtn'), t('casual.roomCode', {}, 'Código da sala'));
   }
 
   function copyShareRoomLink() {
-    copyText(getRoomUrl(), getElement('copyShareLinkBtn'), 'Link da sala');
+    copyText(getRoomUrl(), getElement('copyShareLinkBtn'), t('casual.roomLink', {}, 'Link da sala'));
   }
 
   function openModal(id) {

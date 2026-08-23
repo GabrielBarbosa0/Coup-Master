@@ -31,6 +31,7 @@
     let cardInteractionsBound = false;
     let rankProfileLoadKey = 0;
     let sideStackResizeObserver = null;
+    let languageEventsBound = false;
 
     const TENSION_FADE_IN_MS = 900;
     const TENSION_FADE_OUT_MS = 1400;
@@ -59,6 +60,173 @@
         if (className) node.className = className;
         if (text !== undefined) node.textContent = text;
         return node;
+    }
+
+    function t(key, params = {}, fallback = '') {
+        const translated = root.CoupLanguage?.t?.(key, params);
+        return translated && translated !== key ? translated : fallback || key;
+    }
+
+    function roleLabel(role) {
+        const roleData = Rules.getRole(role);
+        return t(`ranked.roles.${role}`, {}, roleData?.label || role || t('ranked.anInfluence', {}, 'uma influência'));
+    }
+
+    function actionLabel(actionType) {
+        const action = Rules.getAction(actionType);
+        return t(`ranked.actions.${actionType}`, {}, action?.label || actionType || '');
+    }
+
+    const LOG_ACTION_KEYS = Object.freeze({
+        'Renda': 'income',
+        'Ajuda externa': 'foreign-aid',
+        'Golpe de Estado': 'coup',
+        'Taxar': 'tax',
+        'Extorquir': 'steal',
+        'Assassinar': 'assassinate',
+        'Trocar (Embaixador)': 'exchange-ambassador',
+        'Trocar (Inquisidor)': 'exchange-inquisitor',
+        'Investigar': 'examine'
+    });
+
+    const LOG_ROLE_KEYS = Object.freeze({
+        'Duque': 'duque',
+        'Capitão': 'capitao',
+        'Assassino': 'assassino',
+        'Condessa': 'condessa',
+        'Embaixador': 'embaixador',
+        'Inquisidor': 'inquisidor'
+    });
+
+    function translateLoggedAction(label) {
+        const actionKey = LOG_ACTION_KEYS[String(label || '').trim()];
+        return actionKey ? actionLabel(actionKey) : label;
+    }
+
+    function translateLoggedRole(label) {
+        const roleKey = LOG_ROLE_KEYS[String(label || '').trim()];
+        return roleKey ? roleLabel(roleKey) : label;
+    }
+
+    function translateLogMessage(message) {
+        const raw = String(message || '').trim();
+        if (!raw) return '';
+
+        const exactMessages = {
+            'Sala reiniciada para uma nova partida.': 'rankedLog.roomReset',
+            'A partida ranqueada começou. Sorteando quem joga primeiro.': 'rankedLog.rankedStarted',
+            'A partida personalizada começou. Sorteando quem joga primeiro.': 'rankedLog.personalizedStarted',
+            'A ação foi encerrada porque o alvo não está mais disponível.': 'rankedLog.actionTargetUnavailable',
+            'A investigação foi encerrada porque o alvo não está mais disponível.': 'rankedLog.investigationTargetUnavailable',
+            'A investigação foi encerrada porque o alvo não tem influências ocultas.': 'rankedLog.investigationNoHiddenInfluences'
+        };
+        if (exactMessages[raw]) return t(exactMessages[raw], {}, raw);
+
+        let match = raw.match(/^Todos estão prontos\. A partida começa em (\d+) segundos\.$/);
+        if (match) return t('rankedLog.allReady', { seconds: match[1] }, raw);
+
+        match = raw.match(/^Matchmaking encontrou (.+)\.$/);
+        if (match) return t('rankedLog.matchmakingFound', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) entrou na sala\.$/);
+        if (match) return t('rankedLog.playerJoined', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) entrou como jogador IA\.$/);
+        if (match) return t('rankedLog.aiJoined', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) saiu da sala\.$/);
+        if (match) return t('rankedLog.playerLeft', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) foi removido da sala pelo criador\.$/);
+        if (match) return t('rankedLog.playerRemovedByHost', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) deixou a sala antes do início\.$/);
+        if (match) return t('rankedLog.playerLeftBeforeStart', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) está pronto\.$/);
+        if (match) return t('rankedLog.playerReady', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) cancelou a prontidão\.$/);
+        if (match) return t('rankedLog.playerCanceledReady', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) confirmou prontidão\.$/);
+        if (match) return t('rankedLog.playerConfirmedReady', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) começa a partida\.$/);
+        if (match) return t('rankedLog.playerStarts', { name: match[1] }, raw);
+
+        match = raw.match(/^Turno de (.+)\.$/);
+        if (match) return t('rankedLog.playerTurn', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) escolheu (.+) contra (.+)\.$/);
+        if (match) return t('rankedLog.playerChoseActionAgainst', {
+            name: match[1],
+            action: translateLoggedAction(match[2]),
+            target: match[3]
+        }, raw);
+
+        match = raw.match(/^(.+) escolheu (.+) declarando (.+)\.$/);
+        if (match) return t('rankedLog.playerChoseClaimedAction', {
+            name: match[1],
+            action: translateLoggedAction(match[2]),
+            role: translateLoggedRole(match[3])
+        }, raw);
+
+        match = raw.match(/^(.+) escolheu (.+)\.$/);
+        if (match) return t('rankedLog.playerChoseAction', {
+            name: match[1],
+            action: translateLoggedAction(match[2])
+        }, raw);
+
+        match = raw.match(/^(.+) passou\.$/);
+        if (match) return t('rankedLog.playerPassed', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) contestou o bloqueio de (.+)\.$/);
+        if (match) return t('rankedLog.playerChallengedBlock', { name: match[1], target: match[2] }, raw);
+
+        match = raw.match(/^(.+) contestou (.+)\.$/);
+        if (match) return t('rankedLog.playerChallenged', { name: match[1], target: match[2] }, raw);
+
+        match = raw.match(/^(.+) bloqueou com (.+)\.$/);
+        if (match) return t('rankedLog.playerBlockedWith', { name: match[1], role: translateLoggedRole(match[2]) }, raw);
+
+        match = raw.match(/^(.+) provou ter (.+)\.$/);
+        if (match) return t('rankedLog.playerProvedRole', { name: match[1], role: translateLoggedRole(match[2]) }, raw);
+
+        match = raw.match(/^(.+) provou o bloqueio\.$/);
+        if (match) return t('rankedLog.playerProvedBlock', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) não tinha (.+)\.$/);
+        if (match) return t('rankedLog.playerDidNotHaveRole', { name: match[1], role: translateLoggedRole(match[2]) }, raw);
+
+        match = raw.match(/^(.+) blefou o bloqueio\.$/);
+        if (match) return t('rankedLog.playerBluffedBlock', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) perdeu (.+)\.$/);
+        if (match) return t('rankedLog.playerLostRole', { name: match[1], role: translateLoggedRole(match[2]) }, raw);
+
+        match = raw.match(/^(.+) foi eliminado\.$/);
+        if (match) return t('rankedLog.playerEliminated', { name: match[1] }, raw);
+
+        match = raw.match(/^O bloqueio de (.+) foi aceito\.$/);
+        if (match) return t('rankedLog.blockAccepted', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) roubou (\d+) moeda\(s\) de (.+)\.$/);
+        if (match) return t('rankedLog.playerStoleCoins', { name: match[1], count: match[2], target: match[3] }, raw);
+
+        match = raw.match(/^(.+) concluiu a troca\.$/);
+        if (match) return t('rankedLog.playerCompletedExchange', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) concluiu a investigação\.$/);
+        if (match) return t('rankedLog.playerCompletedInvestigation', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) venceu a partida ranqueada\.$/);
+        if (match) return t('rankedLog.playerWonRanked', { name: match[1] }, raw);
+
+        match = raw.match(/^(.+) venceu a partida personalizada\.$/);
+        if (match) return t('rankedLog.playerWonPersonalized', { name: match[1] }, raw);
+
+        return raw;
     }
 
     function profileNumber(value) {
@@ -93,6 +261,26 @@
         setupChat();
         setupAudioControls();
         setupSideStackSync();
+        bindLanguageEvents();
+    }
+
+    function bindLanguageEvents() {
+        if (languageEventsBound) return;
+        languageEventsBound = true;
+        root.CoupLanguage?.ready?.then(() => {
+            root.CoupLanguage?.applyTranslations?.(document);
+        });
+        root.addEventListener?.('coup:languagechange', () => {
+            renderRoomCode();
+            renderChat(chatMessages);
+            if (!state) return;
+            renderPlayers();
+            renderPhase();
+            renderStarterDrawOverlay();
+            renderMatchResultsModal();
+            if (viewMode === 'game') renderLog();
+            updateClock();
+        });
     }
 
     function bindStaticEvents() {
@@ -102,13 +290,13 @@
             try {
                 await navigator.clipboard.writeText(roomCode);
                 codeButton?.classList.add('is-copied');
-                if (codeButton) codeButton.textContent = 'Código copiado';
+                if (codeButton) codeButton.textContent = t('ranked.roomCopied', {}, 'Código copiado');
                 window.setTimeout(() => {
                     codeButton?.classList.remove('is-copied');
                     renderRoomCode();
                 }, 1000);
             } catch (error) {
-                showError('Não foi possível copiar o código da sala.');
+                showError(t('ranked.copyRoomCodeError', {}, 'Não foi possível copiar o código da sala.'));
             }
         });
         document.getElementById('rankRoomQr')?.addEventListener('click', async () => {
@@ -116,7 +304,7 @@
                 await navigator.clipboard.writeText(getPersonalizedInviteUrl());
                 playRankSfx('pop');
             } catch (error) {
-                showError('Não foi possível copiar o convite da sala.');
+                showError(t('ranked.copyInviteError', {}, 'Não foi possível copiar o convite da sala.'));
             }
         });
         bindModal('rankCharacterActionsBtn', 'rankActionsModal', '#closeRankActionsBtn', resetActionsGuide);
@@ -234,7 +422,7 @@
             event.preventDefault();
             hideRankCardTooltip();
             openRankCardPreviewModal({
-                label: cardElement.dataset.cardLabel || 'Carta oculta',
+                label: cardElement.dataset.cardLabel || t('ranked.hiddenCard', {}, 'Carta oculta'),
                 image: cardElement.dataset.previewImage || 'assets/img/cards/base/back.png',
                 hidden: cardElement.dataset.previewHidden === 'true'
             });
@@ -258,13 +446,13 @@
         close.id = 'closeRankCardPreviewBtn';
         close.type = 'button';
         close.textContent = '×';
-        close.setAttribute('aria-label', 'Fechar visualização da carta');
+            close.setAttribute('aria-label', t('ranked.cardPreviewClose', {}, 'Fechar visualização da carta'));
 
         const flip = element('div', 'flip-card flip-horizontal-left');
         flip.id = 'rankPreviewFlipCard';
         flip.setAttribute('role', 'button');
         flip.tabIndex = 0;
-        flip.setAttribute('aria-label', 'Virar carta ampliada');
+            flip.setAttribute('aria-label', t('ranked.flipExpandedCard', {}, 'Virar carta ampliada'));
 
         const inner = element('div', 'flip-card-inner');
         const front = element('div', 'flip-card-front');
@@ -303,7 +491,9 @@
         const previewImage = hidden ? 'assets/img/cards/base/back.png' : image;
 
         front.style.backgroundImage = `url('${previewImage}')`;
-        flip?.setAttribute('aria-label', hidden ? 'Carta oculta ampliada' : `${label || 'Carta'} ampliada`);
+        flip?.setAttribute('aria-label', hidden
+            ? t('ranked.hiddenExpandedCard', {}, 'Carta oculta ampliada')
+            : t('ranked.expandedCard', { label: label || t('ranked.cardFallback', {}, 'Carta') }, `${label || 'Carta'} ampliada`));
         if (inner) inner.style.transform = 'rotateY(0deg)';
         modal.style.display = 'flex';
     }
@@ -389,41 +579,41 @@
         const avatar = document.getElementById('rankPlayerProfileAvatar');
         const loading = document.getElementById('rankPlayerProfileLoading');
         const statsGrid = document.getElementById('rankPlayerProfileStats');
-        const name = player?.name || 'Jogador';
+        const name = player?.name || t('ranked.playerFallback', {}, 'Jogador');
 
         if (avatar) {
             avatar.src = player?.photo || 'assets/img/icons/ghost.svg';
-            avatar.alt = `Perfil de ${name}`;
+            avatar.alt = t('ranked.profileOf', { name }, `Perfil de ${name}`);
         }
 
-        setProfileText('rankPlayerProfileTitle', 'Perfil do jogador');
+        setProfileText('rankPlayerProfileTitle', t('ranked.playerProfile', {}, 'Perfil do jogador'));
         setProfileText('rankPlayerProfileName', name);
-        setProfileText('rankPlayerProfileStatus', 'Carregando estatísticas...');
+        setProfileText('rankPlayerProfileStatus', t('ranked.loadingStats', {}, 'Carregando estatísticas...'));
 
         if (loading) {
             loading.hidden = false;
-            loading.textContent = 'Carregando estatísticas...';
+            loading.textContent = t('ranked.loadingStats', {}, 'Carregando estatísticas...');
         }
         if (statsGrid) statsGrid.hidden = true;
     }
 
     function renderRankPlayerProfile(player, stats, options = {}) {
-        const name = stats?.name || player?.name || 'Jogador';
+        const name = stats?.name || player?.name || t('ranked.playerFallback', {}, 'Jogador');
         const photo = stats?.photo || player?.photo || 'assets/img/icons/ghost.svg';
         const games = profileNumber(stats?.games);
         const wins = profileNumber(stats?.wins);
         const losses = profileNumber(stats?.losses);
         const rankScore = profileNumber(stats?.rankScore ?? stats?.score ?? stats?.points);
         const status = options.status || (games
-            ? `${games} jogo(s) personalizado(s) registrados.`
-            : 'Sem partidas personalizadas registradas ainda.');
+            ? t('personalizedGame.gamesRegistered', { count: games }, `${games} jogo(s) personalizado(s) registrados.`)
+            : t('personalizedGame.noMatches', {}, 'Sem partidas personalizadas registradas ainda.'));
         const avatar = document.getElementById('rankPlayerProfileAvatar');
         const loading = document.getElementById('rankPlayerProfileLoading');
         const statsGrid = document.getElementById('rankPlayerProfileStats');
 
         if (avatar) {
             avatar.src = photo;
-            avatar.alt = `Perfil de ${name}`;
+            avatar.alt = t('ranked.profileOf', { name }, `Perfil de ${name}`);
         }
 
         setProfileText('rankPlayerProfileName', name);
@@ -432,7 +622,7 @@
         setProfileText('rankPlayerProfileWins', wins);
         setProfileText('rankPlayerProfileLosses', losses);
         setProfileText('rankPlayerProfileWinRate', profilePercent(stats?.winRate));
-        setProfileText('rankPlayerProfileScore', `${rankScore} pts`);
+        setProfileText('rankPlayerProfileScore', t('ranked.pointsValue', { points: rankScore }, `${rankScore} pts`));
 
         if (loading) loading.hidden = true;
         if (statsGrid) statsGrid.hidden = false;
@@ -449,8 +639,8 @@
         if (!player.uid || player.ai) {
             renderRankPlayerProfile(player, null, {
                 status: player.ai
-                    ? 'Jogadores IA ainda não possuem perfil personalizado persistido.'
-                    : 'Este jogador ainda não possui perfil personalizado vinculado.'
+                    ? t('ranked.aiCustomProfileUnavailable', {}, 'Jogadores IA ainda não possuem perfil personalizado persistido.')
+                    : t('personalizedGame.noLinkedProfile', {}, 'Este jogador ainda não possui perfil personalizado vinculado.')
             });
             return;
         }
@@ -458,7 +648,7 @@
         const database = getProfileDatabase();
         if (!database) {
             renderRankPlayerProfile(player, null, {
-                status: 'Não foi possível acessar as estatísticas agora.'
+                status: t('ranked.statsUnavailable', {}, 'Não foi possível acessar as estatísticas agora.')
             });
             return;
         }
@@ -471,7 +661,7 @@
             .catch(() => {
                 if (loadKey !== rankProfileLoadKey) return;
                 renderRankPlayerProfile(player, null, {
-                    status: 'Não foi possível carregar estatísticas.'
+                    status: t('lobby.statsLoadError', {}, 'Não foi possível carregar estatísticas.')
                 });
             });
     }
@@ -507,7 +697,7 @@
             event.preventDefault();
             const name = String(nameInput?.value || '').trim();
             if (!name) {
-                showError('Informe um nome para o jogador IA.');
+                showError(t('ranked.botNameRequired', {}, 'Informe um nome para o jogador IA.'));
                 return;
             }
 
@@ -524,7 +714,7 @@
                 form.reset();
                 syncAiPersonalityFields();
                 hideModal(modal);
-            }).catch((error) => showError(error.message || 'Não foi possível adicionar o jogador IA.'));
+            }).catch((error) => showError(error.message || t('ranked.addBotError', {}, 'Não foi possível adicionar o jogador IA.')));
         });
     }
 
@@ -553,13 +743,13 @@
                     pendingRemovePlayer = null;
                     hideModal(modal);
                 })
-                .catch((error) => showError(error.message || 'Nao foi possivel remover este jogador.'))
+                .catch((error) => showError(error.message || t('personalizedGame.removePlayerError', {}, 'Nao foi possivel remover este jogador.')))
                 .finally(() => {
                     confirm.disabled = false;
                 });
         });
 
-        if (text) text.textContent = 'Escolha um jogador para remover da sala.';
+        if (text) text.textContent = t('personalizedWaiting.selectPlayerToRemove', {}, 'Escolha um jogador para remover da sala.');
     }
 
     function openRemovePlayerModal(player) {
@@ -569,7 +759,7 @@
 
         pendingRemovePlayer = player;
         if (text) {
-            text.textContent = `Tem certeza que deseja remover ${player.name || 'este jogador'} da sala?`;
+            text.textContent = t('personalizedWaiting.removePlayerNamed', { name: player.name || t('ranked.playerFallbackLower', {}, 'este jogador') }, `Tem certeza que deseja remover ${player.name || 'este jogador'} da sala?`);
         }
         showModal(modal);
     }
@@ -577,8 +767,9 @@
     function createRemovePlayerButton(player) {
         const button = element('button', 'rank-remove-player-btn');
         button.type = 'button';
-        button.title = `Remover ${player.name || 'jogador'}`;
-        button.setAttribute('aria-label', `Remover ${player.name || 'jogador'} da sala`);
+        const name = player.name || t('ranked.playerFallbackLower', {}, 'jogador');
+        button.title = t('personalizedGame.removePlayerTitle', { name }, `Remover ${name}`);
+        button.setAttribute('aria-label', t('personalizedGame.removePlayerAria', { name }, `Remover ${name} da sala`));
         const icon = element('img');
         icon.src = 'assets/img/icons/delete.svg';
         icon.alt = '';
@@ -650,7 +841,7 @@
 
     function renderRoomCode() {
         const codeButton = document.getElementById('rankRoomCode');
-        if (codeButton) codeButton.textContent = `Sala: ${roomCode || '----'}`;
+        if (codeButton) codeButton.textContent = `${t('ranked.room', {}, 'Sala')}: ${roomCode || '----'}`;
         renderRoomQr();
     }
 
@@ -665,7 +856,7 @@
         if (!qrImage || !roomCode) return;
         const data = encodeURIComponent(getPersonalizedInviteUrl());
         qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=164x164&margin=8&data=${data}`;
-        qrImage.title = 'Clique para copiar o convite da sala';
+        qrImage.title = t('ranked.copyInviteTitle', {}, 'Clique para copiar o convite da sala');
     }
 
     function setConnectionStatus(message, connected = true) {
@@ -741,7 +932,10 @@
             if (!player) {
                 const empty = element('article', 'rank-player-slot is-empty');
                 const emptyText = element('div');
-                emptyText.append(element('strong', '', `Lugar ${seat}`), element('div', 'rank-player-state', 'Disponivel'));
+                emptyText.append(
+                    element('strong', '', t('ranked.emptySeat', { seat }, `Lugar ${seat}`)),
+                    element('div', 'rank-player-state', t('ranked.available', {}, 'Disponível'))
+                );
                 empty.append(emptyText);
                 container.append(empty);
                 continue;
@@ -758,8 +952,9 @@
             const avatar = element('img', 'rank-player-avatar');
             if (player.ai) avatar.classList.add('is-ai-avatar');
             avatar.src = player.photo || 'assets/img/icons/ghost.svg';
-            avatar.alt = `Perfil de ${player.name || 'Jogador'}`;
-            avatar.title = 'Ver perfil do jogador';
+            const playerName = player.name || t('ranked.playerFallback', {}, 'Jogador');
+            avatar.alt = t('ranked.profileOf', { name: playerName }, `Perfil de ${playerName}`);
+            avatar.title = t('ranked.viewPlayerProfile', {}, 'Ver perfil do jogador');
             avatar.referrerPolicy = 'no-referrer';
             avatar.tabIndex = 0;
             avatar.addEventListener('click', (event) => {
@@ -798,18 +993,18 @@
     }
 
     function getPlayerStateLabel(player, activeUid) {
-        if (player.eliminated) return 'Eliminado';
-        if (player.ai && state.status === PHASES.WAITING) return player.ready ? 'IA pronta' : 'IA preparando-se';
-        if (state.status === PHASES.WAITING) return player.ready ? 'Pronto' : 'Preparando-se';
-        if (state.phase === PHASES.STARTER_DRAW) return 'No sorteio';
-        if (player.uid === activeUid) return 'Em jogo';
-        return player.connected ? 'Online' : 'Reconectando';
+        if (player.eliminated) return t('ranked.eliminated', {}, 'Eliminado');
+        if (player.ai && state.status === PHASES.WAITING) return player.ready ? t('ranked.aiReady', {}, 'IA pronta') : t('ranked.aiPreparing', {}, 'IA preparando-se');
+        if (state.status === PHASES.WAITING) return player.ready ? t('ranked.ready', {}, 'Pronto') : t('ranked.preparing', {}, 'Preparando-se');
+        if (state.phase === PHASES.STARTER_DRAW) return t('ranked.inStarterDraw', {}, 'No sorteio');
+        if (player.uid === activeUid) return t('ranked.inGame', {}, 'Em jogo');
+        return player.connected ? t('ranked.online', {}, 'Online') : t('ranked.reconnecting', {}, 'Reconectando');
     }
 
     function createCoinCounter(coinsValue) {
         const value = Number(coinsValue || 0);
         const counter = element('div', 'rank-coin-count');
-        counter.setAttribute('aria-label', `${value} moeda${value === 1 ? '' : 's'}`);
+        counter.setAttribute('aria-label', t('ranked.coinsLabel', { count: value }, `${value} moeda${value === 1 ? '' : 's'}`));
         counter.append(
             element('span', 'rank-coin-icon'),
             element('span', 'rank-coin-value', String(value))
@@ -825,7 +1020,7 @@
         const image = element('img');
         const role = Rules.getRole(card.role);
         const isVisible = Boolean(reveal && role);
-        const label = isVisible ? role.label : 'Carta oculta';
+        const label = isVisible ? roleLabel(card.role) : t('ranked.hiddenCard', {}, 'Carta oculta');
         const previewImage = isVisible ? role.image : 'assets/img/cards/base/back.png';
         image.src = previewImage;
         image.alt = label;
@@ -851,8 +1046,8 @@
         if (state.status === PHASES.WAITING) {
             stage?.classList.add('is-centered-stage');
             setPhaseText(
-                state.deadline ? 'Iniciando' : 'Prepare sua entrada',
-                state.deadline ? 'Tudo pronto.' : 'Convide pela sala e marque pronto.'
+                state.deadline ? t('ranked.starting', {}, 'Iniciando') : t('personalizedWaiting.prepareTitle', {}, 'Prepare sua entrada'),
+                state.deadline ? t('ranked.allReady', {}, 'Tudo pronto.') : t('personalizedWaiting.readyInstruction', {}, 'Convide pela sala e marque pronto.')
             );
             renderWaiting(interaction);
             return;
@@ -860,8 +1055,8 @@
 
         if (state.status === PHASES.FINISHED) {
             stage?.classList.add('is-centered-stage', 'is-finished-stage');
-            setPhaseText('Partida encerrada');
-            const viewResults = element('button', 'rank-primary-btn', 'Ver resultado');
+            setPhaseText(t('ranked.matchFinished', {}, 'Partida encerrada'));
+            const viewResults = element('button', 'rank-primary-btn', t('ranked.viewResult', {}, 'Ver resultado'));
             viewResults.type = 'button';
             viewResults.addEventListener('click', () => {
                 playRankSfx('pop');
@@ -874,7 +1069,7 @@
 
         if (state.phase === PHASES.STARTER_DRAW) {
             stage?.classList.add('is-centered-stage');
-            setPhaseText('Sorteio inicial');
+            setPhaseText(t('ranked.starterDraw', {}, 'Sorteio inicial'));
             return;
         }
 
@@ -889,39 +1084,41 @@
             }
             setPhaseText(
                 choosingTarget
-                    ? 'Escolha o alvo'
-                    : activePlayer?.uid === currentUid ? 'Sua vez' : `Vez de ${activePlayer?.name || 'jogador'}`,
+                    ? t('ranked.chooseTarget', {}, 'Escolha o alvo')
+                    : activePlayer?.uid === currentUid
+                        ? t('ranked.yourTurn', {}, 'Sua vez')
+                        : t('ranked.playerTurn', { name: activePlayer?.name || t('ranked.playerFallbackLower', {}, 'jogador') }, `Vez de ${activePlayer?.name || 'jogador'}`),
                 choosingTarget
-                    ? ['Escolha uma ação. O sistema aplica custos, abre as janelas de resposta', 'e resolve a rodada automaticamente.']
+                    ? [t('ranked.turnDescriptionLine1', {}, 'Escolha uma ação. O sistema aplica custos, abre as janelas de resposta'), t('ranked.turnDescriptionLine2', {}, 'e resolve a rodada automaticamente.')]
                     : describeTurnPhase(activePlayer)
             );
             renderTurn(interaction, activePlayer);
         } else if (state.phase === PHASES.RESPONSE) {
             stage?.classList.add(canCurrentPlayerRespond(state.pendingAction?.actorUid) ? 'is-response-stage' : 'is-centered-stage');
-            setPhaseText('Responder', describePendingAction());
+            setPhaseText(t('ranked.respond', {}, 'Responder'), describePendingAction());
             renderActionResponse(interaction);
         } else if (state.phase === PHASES.BLOCK_CHALLENGE) {
             stage?.classList.add(canCurrentPlayerRespond(state.pendingAction?.block?.uid) ? 'is-response-stage' : 'is-centered-stage');
-            setPhaseText('Bloqueio', describePendingBlock());
+            setPhaseText(t('ranked.block', {}, 'Bloqueio'), describePendingBlock());
             renderBlockChallenge(interaction);
         } else if (state.phase === PHASES.INFLUENCE_LOSS) {
             stage?.classList.add('is-centered-stage');
             setPhaseText(
-                state.pendingLoss?.playerUid === currentUid ? 'Revele uma carta' : 'Perda de influência',
+                state.pendingLoss?.playerUid === currentUid ? t('ranked.revealCard', {}, 'Revele uma carta') : t('ranked.influenceLoss', {}, 'Perda de influência'),
                 describeInfluenceLoss()
             );
             renderInfluenceLoss(interaction);
         } else if (state.phase === PHASES.EXCHANGE) {
             stage?.classList.add('is-centered-stage');
             setPhaseText(
-                state.pendingExchange?.playerUid === currentUid ? 'Escolha cartas' : 'Troca',
+                state.pendingExchange?.playerUid === currentUid ? t('ranked.chooseCards', {}, 'Escolha cartas') : t('ranked.exchange', {}, 'Troca'),
                 describeExchangePhase()
             );
             renderExchange(interaction);
         } else if (state.phase === PHASES.EXAMINE) {
             stage?.classList.add('is-centered-stage', 'is-examine-stage');
             setPhaseText(
-                state.pendingExamine?.actorUid === currentUid ? 'Investigar' : 'Investigação',
+                state.pendingExamine?.actorUid === currentUid ? t('ranked.investigate', {}, 'Investigar') : t('ranked.investigation', {}, 'Investigação'),
                 describeExaminePhase()
             );
             renderExamine(interaction);
@@ -942,18 +1139,19 @@
     function renderWaiting(container) {
         const players = Engine.getPlayers(state);
         const readyCount = players.filter((player) => player.ready).length;
+        const readyTarget = Math.max(players.length, Rules.SETTINGS.minPlayers);
         const summary = element('div', 'rank-waiting-summary');
         summary.append(
-            element('span', 'rank-waiting-counter', `${readyCount}/${Math.max(players.length, Rules.SETTINGS.minPlayers)} prontos`),
+            element('span', 'rank-waiting-counter', t('ranked.readyCounter', { count: readyCount, target: readyTarget }, `${readyCount}/${readyTarget} prontos`)),
             element('span', 'rank-waiting-countdown', getReadyCountdownText())
         );
 
         const self = Engine.getPlayer(state, currentUid);
-        const ready = element('button', self?.ready ? 'rank-secondary-btn' : 'rank-primary-btn', self?.ready ? 'Cancelar prontidão' : 'Estou pronto');
+        const ready = element('button', self?.ready ? 'rank-secondary-btn' : 'rank-primary-btn', self?.ready ? t('ranked.cancelReady', {}, 'Cancelar prontidão') : t('ranked.imReady', {}, 'Estou pronto'));
         ready.type = 'button';
         ready.addEventListener('click', () => controller.toggleReady());
 
-        const addAi = element('button', 'rank-secondary-btn', 'Adicionar jogador IA');
+        const addAi = element('button', 'rank-secondary-btn', t('personalizedWaiting.addAiPlayer', {}, 'Adicionar jogador IA'));
         addAi.id = 'openRankAddAiBtn';
         addAi.type = 'button';
         addAi.disabled = players.length >= Rules.SETTINGS.maxPlayers;
@@ -967,15 +1165,15 @@
     }
 
     function getReadyCountdownText(now = Date.now()) {
-        if (!state?.deadline || state.status !== PHASES.WAITING) return 'Aguardando confirmação';
+        if (!state?.deadline || state.status !== PHASES.WAITING) return t('ranked.waitingConfirmation', {}, 'Aguardando confirmação');
         const seconds = Math.max(0, Math.ceil((state.deadline - now) / 1000));
-        return `Iniciando em ${seconds}s`;
+        return t('ranked.startingIn', { seconds }, `Iniciando em ${seconds}s`);
     }
 
     function renderStarterDraw(container, starter) {
         const candidates = state.starterDraw?.candidates || state.turnOrder || [];
         const panel = element('div', 'rank-starter-draw');
-        panel.append(element('p', 'rank-starter-title', 'Sorteador em andamento'));
+        panel.append(element('p', 'rank-starter-title', t('ranked.drawInProgress', {}, 'Sorteador em andamento')));
 
         const list = element('div', 'rank-starter-list');
         candidates.forEach((uid, index) => {
@@ -996,7 +1194,7 @@
         const result = element(
             'strong',
             'rank-starter-result',
-            'Escolhendo jogador...'
+            t('ranked.choosingPlayer', {}, 'Escolhendo jogador...')
         );
         panel.append(list, result);
         container.append(panel);
@@ -1019,9 +1217,9 @@
 
         const panel = element('section', 'rank-starter-overlay-panel');
         panel.append(
-            element('span', 'rank-kicker', 'Sorteio inicial'),
-            element('h2', '', 'Quem começa?'),
-            element('p', 'rank-phase-description', 'A mesa está sorteando aleatoriamente o primeiro turno.')
+            element('span', 'rank-kicker', t('ranked.starterDraw', {}, 'Sorteio inicial')),
+            element('h2', '', t('ranked.whoStarts', {}, 'Quem começa?')),
+            element('p', 'rank-phase-description', t('ranked.starterDrawDescription', {}, 'A mesa está sorteando aleatoriamente o primeiro turno.'))
         );
 
         const list = element('div', 'rank-starter-overlay-list');
@@ -1045,7 +1243,7 @@
         panel.append(element(
             'strong',
             'rank-starter-overlay-result',
-            starter ? `${starter.name} começa.` : 'Escolhendo jogador...'
+            starter ? t('ranked.playerStarts', { name: starter.name }, `${starter.name} começa.`) : t('ranked.choosingPlayer', {}, 'Escolhendo jogador...')
         ));
         overlay.append(panel);
         if (!existing) document.body.append(overlay);
@@ -1074,8 +1272,8 @@
         body.replaceChildren();
         const heading = element('div', 'rank-results-modal-heading');
         heading.append(
-            element('span', 'rank-kicker', 'Resultado final'),
-            element('h2', '', winner ? `${winner.name} venceu` : 'Partida encerrada')
+            element('span', 'rank-kicker', t('ranked.finalResult', {}, 'Resultado final')),
+            element('h2', '', winner ? t('ranked.playerWon', { name: winner.name }, `${winner.name} venceu`) : t('ranked.matchFinished', {}, 'Partida encerrada'))
         );
         heading.querySelector('h2').id = 'rankMatchResultsTitle';
         body.append(heading);
@@ -1098,7 +1296,7 @@
 
         const close = element('button', 'rank-close-btn', '×');
         close.type = 'button';
-        close.setAttribute('aria-label', 'Fechar resultado');
+        close.setAttribute('aria-label', t('ranked.closeResult', {}, 'Fechar resultado'));
         close.addEventListener('click', () => {
             playRankSfx('pop');
             matchResultsModalDismissed = true;
@@ -1129,7 +1327,7 @@
             avatar.referrerPolicy = 'no-referrer';
             hero.append(
                 avatar,
-                element('span', 'rank-kicker', 'Melhor jogador da partida'),
+                element('span', 'rank-kicker', t('ranked.matchMvp', {}, 'Melhor jogador da partida')),
                 element('strong', '', best.name),
                 element('em', '', formatSignedPoints(best.performanceScore))
             );
@@ -1143,7 +1341,7 @@
             if (index === 0) row.classList.add('is-mvp');
 
             const details = element('details', 'rank-match-breakdown');
-            const summary = element('summary', '', 'Ver pontos');
+            const summary = element('summary', '', t('ranked.viewPoints', {}, 'Ver pontos'));
             const breakdown = element('ul');
             const items = player.performanceBreakdown || [];
             if (items.length) {
@@ -1153,14 +1351,14 @@
                     breakdown.append(li);
                 });
             } else {
-                breakdown.append(element('li', '', 'Sem eventos pontuados.'));
+                breakdown.append(element('li', '', t('ranked.noScoreEvents', {}, 'Sem eventos pontuados.')));
             }
             details.append(summary, breakdown);
 
             row.append(
                 element('span', 'rank-match-position', `${index + 1}`),
                 element('strong', 'rank-match-player-name', player.name),
-                element('span', 'rank-match-player-result', player.won ? 'Vencedor' : player.eliminated ? 'Eliminado' : 'Sobreviveu'),
+                element('span', 'rank-match-player-result', player.won ? t('ranked.winner', {}, 'Vencedor') : player.eliminated ? t('ranked.eliminated', {}, 'Eliminado') : t('ranked.survived', {}, 'Sobreviveu')),
                 element('strong', `rank-match-points ${player.performanceScore >= 0 ? 'is-positive' : 'is-negative'}`, formatSignedPoints(player.performanceScore)),
                 details
             );
@@ -1169,14 +1367,14 @@
         panel.append(list);
 
         const actions = element('div', 'rank-match-result-actions');
-        const restart = element('button', 'rank-primary-btn', 'Reiniciar partida');
+        const restart = element('button', 'rank-primary-btn', t('ranked.restartMatch', {}, 'Reiniciar partida'));
         restart.type = 'button';
         restart.addEventListener('click', () => {
             playRankSfx('click');
             controller.restartMatch();
         });
 
-        const back = element('button', 'rank-secondary-btn', 'Voltar ao lobby');
+        const back = element('button', 'rank-secondary-btn', t('ranked.backToLobby', {}, 'Voltar ao lobby'));
         back.type = 'button';
         back.addEventListener('click', () => controller.leaveRoom());
         actions.append(restart, back);
@@ -1186,19 +1384,19 @@
 
     function formatSignedPoints(value) {
         const points = Number(value || 0);
-        return `${points > 0 ? '+' : ''}${points} pts`;
+        return t('ranked.pointsValue', { points: `${points > 0 ? '+' : ''}${points}` }, `${points > 0 ? '+' : ''}${points} pts`);
     }
 
     function describeTurnPhase(activePlayer) {
-        if (!activePlayer) return 'Aguardando a mesa definir o próximo jogador.';
+        if (!activePlayer) return t('ranked.waitingNextPlayer', {}, 'Aguardando a mesa definir o próximo jogador.');
         if (activePlayer.uid === currentUid) {
             const self = Engine.getPlayer(state, currentUid);
             if (self?.coins >= Rules.SETTINGS.mandatoryCoupCoins) {
-                return 'Você tem 10 moedas ou mais e precisa aplicar um Golpe de Estado.';
+                return t('ranked.mandatoryCoup', {}, 'Você tem 10 moedas ou mais e precisa aplicar um Golpe de Estado.');
             }
-            return 'Escolha uma ação. O sistema aplica custos, abre as janelas de resposta e resolve a rodada automaticamente.';
+            return `${t('ranked.turnDescriptionLine1', {}, 'Escolha uma ação. O sistema aplica custos, abre as janelas de resposta')} ${t('ranked.turnDescriptionLine2', {}, 'e resolve a rodada automaticamente.')}`;
         }
-        return `${activePlayer.name} está escolhendo a próxima ação da rodada.`;
+        return t('ranked.activeChoosing', { name: activePlayer.name }, `${activePlayer.name} está escolhendo a próxima ação da rodada.`);
     }
 
     function describeInfluenceLoss() {
@@ -1207,9 +1405,9 @@
         if (!loss || !player) return '';
         const reason = loss.reason ? `${loss.reason}. ` : '';
         if (player.uid === currentUid) {
-            return `${reason}Escolha a influência que será revelada para continuar a partida.`;
+            return t('ranked.chooseInfluenceToReveal', { reason }, `${reason}Escolha a influência que será revelada para continuar a partida.`);
         }
-        return `${player.name} precisa revelar uma influência para a partida continuar.`;
+        return t('ranked.playerMustReveal', { name: player.name }, `${player.name} precisa revelar uma influência para a partida continuar.`);
     }
 
     function describeExchangePhase() {
@@ -1217,9 +1415,9 @@
         const player = Engine.getPlayer(state, exchange?.playerUid);
         if (!exchange || !player) return '';
         if (player.uid === currentUid) {
-            return `Escolha ${exchange.keepCount} carta(s) para manter na mão e concluir a troca.`;
+            return t('ranked.chooseCardsToKeep', { count: exchange.keepCount }, `Escolha ${exchange.keepCount} carta(s) para manter na mão e concluir a troca.`);
         }
-        return `${player.name} está reorganizando as cartas da mão.`;
+        return t('ranked.playerReorganizing', { name: player.name }, `${player.name} está reorganizando as cartas da mão.`);
     }
 
     function describeExaminePhase() {
@@ -1229,10 +1427,13 @@
         if (!examine || !actor) return '';
         if (actor.uid === currentUid) {
             return target
-                ? `Escolha uma influência de ${target.name} para investigar.`
-                : 'Escolha a influência que será investigada.';
+                ? t('ranked.chooseInfluenceFrom', { name: target.name }, `Escolha uma influência de ${target.name} para investigar.`)
+                : t('ranked.chooseInfluenceInvestigated', {}, 'Escolha a influência que será investigada.');
         }
-        return `${actor.name} está investigando uma influência${target ? ` de ${target.name}` : ''}.`;
+        return t('ranked.playerInvestigating', {
+            actor: actor.name,
+            target: target ? t('ranked.ofTarget', { name: target.name }, ` de ${target.name}`) : ''
+        }, `${actor.name} está investigando uma influência${target ? ` de ${target.name}` : ''}.`);
     }
 
     function renderTurn(container, activePlayer) {
@@ -1253,7 +1454,7 @@
                 });
                 targets.append(button);
             });
-            const cancel = element('button', 'rank-secondary-btn rank-target-cancel', 'Cancelar');
+            const cancel = element('button', 'rank-secondary-btn rank-target-cancel', t('ranked.cancel', {}, 'Cancelar'));
             cancel.type = 'button';
             cancel.addEventListener('click', () => {
                 selectedAction = null;
@@ -1269,7 +1470,7 @@
             const action = Rules.getAction(actionType);
             const button = element('button', 'rank-action-btn');
             button.type = 'button';
-            button.textContent = action.label;
+            button.textContent = actionLabel(actionType);
             const self = Engine.getPlayer(state, currentUid);
             const forcedCoup = self.coins >= Rules.SETTINGS.mandatoryCoupCoins;
             button.disabled = self.coins < action.cost || (forcedCoup && actionType !== ACTIONS.COUP);
@@ -1292,17 +1493,24 @@
         const actor = Engine.getPlayer(state, pending?.actorUid);
         const target = Engine.getPlayer(state, pending?.targetUid);
         if (!pending || !action || !actor) return '';
-        const claim = pending.claim ? ` declarando ${Rules.getRole(pending.claim).label}` : '';
-        const targetText = target ? `\ncontra ${target.name}` : '';
-        return `${actor.name} escolheu ${action.label}${claim}${targetText}.`;
+        const claim = pending.claim ? t('ranked.actionClaim', { role: roleLabel(pending.claim) }, ` declarando ${roleLabel(pending.claim)}`) : '';
+        const targetText = target ? t('ranked.actionTarget', { name: target.name }, `\ncontra ${target.name}`) : '';
+        return t('ranked.pendingAction', {
+            actor: actor.name,
+            action: actionLabel(pending.type),
+            claim,
+            target: targetText
+        }, `${actor.name} escolheu ${actionLabel(pending.type)}${claim}${targetText}.`);
     }
 
     function describePendingBlock() {
         const block = state.pendingAction?.block;
         const blocker = Engine.getPlayer(state, block?.uid);
-        const role = Rules.getRole(block?.claim);
         return block && blocker
-            ? `${blocker.name} bloqueou declarando ${role?.label || 'uma influência'}.\nVocê pode contestar o bloqueio ou aceitar a resolução.`
+            ? t('ranked.pendingBlock', {
+                name: blocker.name,
+                role: roleLabel(block.claim)
+            }, `${blocker.name} bloqueou declarando ${roleLabel(block.claim)}.\nVocê pode contestar o bloqueio ou aceitar a resolução.`)
             : '';
     }
 
@@ -1323,18 +1531,18 @@
 
         const actions = element('div', 'rank-response-actions');
         if (pending.claim && !pending.claimConfirmed) {
-            const challenge = element('button', 'rank-danger-btn', 'Contestar');
+            const challenge = element('button', 'rank-danger-btn', t('ranked.challenge', {}, 'Contestar'));
             challenge.type = 'button';
             challenge.addEventListener('click', () => controller.challengeAction());
             actions.append(challenge);
         }
         Engine.getBlockClaimsForPlayer(state, currentUid).forEach((role) => {
-            const block = element('button', 'rank-secondary-btn', `Bloquear: ${Rules.getRole(role).label}`);
+            const block = element('button', 'rank-secondary-btn', t('ranked.blockWith', { role: roleLabel(role) }, `Bloquear: ${roleLabel(role)}`));
             block.type = 'button';
             block.addEventListener('click', () => controller.declareBlock(role));
             actions.append(block);
         });
-        const pass = element('button', 'rank-primary-btn', 'Passar');
+        const pass = element('button', 'rank-primary-btn', t('ranked.pass', {}, 'Passar'));
         pass.type = 'button';
         pass.addEventListener('click', () => controller.passResponse());
         actions.append(pass);
@@ -1348,10 +1556,10 @@
             return;
         }
         const actions = element('div', 'rank-response-actions');
-        const challenge = element('button', 'rank-danger-btn', 'Contestar bloqueio');
+        const challenge = element('button', 'rank-danger-btn', t('ranked.challengeBlock', {}, 'Contestar bloqueio'));
         challenge.type = 'button';
         challenge.addEventListener('click', () => controller.challengeBlock());
-        const pass = element('button', 'rank-primary-btn', 'Aceitar bloqueio');
+        const pass = element('button', 'rank-primary-btn', t('ranked.acceptBlock', {}, 'Aceitar bloqueio'));
         pass.type = 'button';
         pass.addEventListener('click', () => controller.passResponse());
         actions.append(challenge, pass);
@@ -1395,7 +1603,7 @@
             });
             cards.append(button);
         });
-        const confirm = element('button', 'rank-primary-btn', `Confirmar ${exchangeSelection.size}/${pending.keepCount}`);
+        const confirm = element('button', 'rank-primary-btn', t('ranked.confirmSelection', { selected: exchangeSelection.size, total: pending.keepCount }, `Confirmar ${exchangeSelection.size}/${pending.keepCount}`));
         confirm.type = 'button';
         confirm.disabled = exchangeSelection.size !== pending.keepCount;
         confirm.addEventListener('click', () => {
@@ -1414,10 +1622,10 @@
         const cards = element('div', 'rank-choice-cards rank-examine-cards');
         cards.append(createCard(card, true));
         const actions = element('div', 'rank-response-actions');
-        const keep = element('button', 'rank-primary-btn', 'Manter influência');
+        const keep = element('button', 'rank-primary-btn', t('ranked.keepInfluence', {}, 'Manter influência'));
         keep.type = 'button';
         keep.addEventListener('click', () => controller.completeExamine(false));
-        const replace = element('button', 'rank-secondary-btn', 'Trocar pelo baralho');
+        const replace = element('button', 'rank-secondary-btn', t('ranked.replaceWithDeck', {}, 'Trocar pelo baralho'));
         replace.type = 'button';
         replace.addEventListener('click', () => controller.completeExamine(true));
         actions.append(keep, replace);
@@ -1429,32 +1637,32 @@
         if (!log) return;
         log.replaceChildren();
         (state.log || []).forEach((entry) => {
-            const item = element('div', `rank-log-entry is-${entry.type || 'info'}`, entry.message);
+            const item = element('div', `rank-log-entry is-${entry.type || 'info'}`, translateLogMessage(entry.message));
             log.append(item);
         });
         const turnNumber = document.getElementById('rankTurnNumber');
-        if (turnNumber) turnNumber.textContent = `Turno ${state.turnNumber || 0}`;
+        if (turnNumber) turnNumber.textContent = t('ranked.turnNumber', { turn: state.turnNumber || 0 }, `Turno ${state.turnNumber || 0}`);
         log.scrollTop = log.scrollHeight;
     }
 
     function copyOfficialLog() {
         const button = document.getElementById('copyRankLogBtn');
         const lines = (state?.log || []).map((entry) => {
-            const turn = entry.turn ? `Turno ${entry.turn}` : 'Turno 0';
-            return `[${turn}] ${entry.message}`;
+            const turn = entry.turn ? t('ranked.turnLog', { turn: entry.turn }, `Turno ${entry.turn}`) : t('ranked.turnLog', { turn: 0 }, 'Turno 0');
+            return `[${turn}] ${translateLogMessage(entry.message)}`;
         });
         const text = [
-            `Coup Master - registro personalizado da sala ${roomCode}`,
-            `Turno atual: ${state?.turnNumber || 0}`,
+            t('personalizedGame.logHeader', { room: roomCode }, `Coup Master - registro personalizado da sala ${roomCode}`),
+            t('ranked.currentTurn', { turn: state?.turnNumber || 0 }, `Turno atual: ${state?.turnNumber || 0}`),
             '',
             ...lines
         ].join('\n');
         navigator.clipboard.writeText(text).then(() => {
             playRankSfx('pop');
             if (!button) return;
-            button.textContent = 'Copiado';
-            window.setTimeout(() => { button.textContent = 'Copiar log'; }, 1200);
-        }).catch(() => showError('Não foi possível copiar o registro oficial.'));
+            button.textContent = t('ranked.copied', {}, 'Copiado');
+            window.setTimeout(() => { button.textContent = t('ranked.copyLog', {}, 'Copiar log'); }, 1200);
+        }).catch(() => showError(t('ranked.copyLogError', {}, 'Não foi possível copiar o registro oficial.')));
     }
 
     function updateClock(now = Date.now()) {
@@ -2040,13 +2248,13 @@
         list.replaceChildren();
         updateChatUnreadState(chatMessages[chatMessages.length - 1]);
         if (chatMessages.length === 0) {
-            list.append(element('p', 'chat-empty-message', 'Nenhuma mensagem ainda.'));
+            list.append(element('p', 'chat-empty-message', t('ranked.noMessages', {}, 'Nenhuma mensagem ainda.')));
             return;
         }
         chatMessages.forEach((message) => {
             const item = element('article', `chat-message${message.quick ? ' is-quick' : ''}`);
             item.append(
-                element('div', 'chat-message-meta', message.name || 'Jogador'),
+                element('div', 'chat-message-meta', message.name || t('ranked.playerFallback', {}, 'Jogador')),
                 element('p', 'chat-message-text', message.text || '')
             );
             list.append(item);

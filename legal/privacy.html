@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-i18n-title="legal.privacy.title">
 
 <head>
     <meta charset="utf-8" />
@@ -14,43 +14,52 @@
     <link rel="canonical" href="https://gabrielbarbosa0.github.io/Coup-Master/legal/privacy.html" />
 
     <meta name="description"
-        content="Política de Privacidade do Coup Master: entenda quais dados são usados para login, salas, partidas, chat, PWA e estatísticas ranqueadas.">
+        content="Política de Privacidade do Coup Master: entenda quais dados são usados para login, salas, partidas, chat, PWA e estatísticas ranqueadas."
+        data-i18n-content="legal.privacy.metaDescription">
     <meta name="author" content="Gabriel Barbosa">
     <meta name="theme-color" content="#14171e">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gabrielbarbosa0.github.io/Coup-Master/legal/privacy.html">
-    <meta property="og:title" content="Política de Privacidade | Coup Master">
-    <meta property="og:description" content="Como o Coup Master trata dados de login, sala, chat, partidas e estatísticas.">
+    <meta property="og:title" content="Política de Privacidade | Coup Master" data-i18n-content="legal.privacy.title">
+    <meta property="og:description" content="Como o Coup Master trata dados de login, sala, chat, partidas e estatísticas." data-i18n-content="legal.privacy.ogDescription">
     <meta property="og:image" content="https://gabrielbarbosa0.github.io/Coup-Master/assets/img/logo/ico-coup-master.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
+    <script src="js/i18n/initial-language.js?v=i18n-v3"></script>
+    <style>
+        html[data-i18n-pending="true"] body.legal-page .legal-shell {
+            opacity: 0;
+            visibility: hidden;
+        }
+    </style>
     <link rel="preload" href="assets/fonts/tilda-script-bold.woff2" as="font" type="font/woff2" crossorigin>
 
     <link rel="stylesheet" href="css/lobby.css?v=legal-docs-v1">
-    <link rel="stylesheet" href="css/legal.css?v=legal-nav-fix-v1">
+    <link rel="stylesheet" href="css/legal.css?v=legal-i18n-v1">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
 </head>
 
 <body class="legal-page">
     <main class="legal-shell">
-        <nav class="legal-nav" aria-label="Navegação legal">
-            <a class="legal-back legal-back-icon" href="lobby.html" aria-label="Voltar ao lobby" title="Voltar ao lobby">
+        <nav class="legal-nav" aria-label="Navegação legal" data-i18n-aria-label="legal.navLabel">
+            <a class="legal-back legal-back-icon" href="lobby.html" aria-label="Voltar ao lobby" title="Voltar ao lobby"
+                data-i18n-aria-label="legal.backToLobby" data-i18n-title="legal.backToLobby">
                 <img src="assets/img/icons/logout.svg" alt="" aria-hidden="true">
             </a>
             <div class="legal-nav-group">
-                <a class="legal-nav-link" href="legal/terms.html">Termos de Serviço</a>
-                <button class="legal-print" type="button" onclick="window.print()">Imprimir</button>
+                <a class="legal-nav-link" href="legal/terms.html" data-i18n="legal.terms.heading">Termos de Serviço</a>
+                <button class="legal-print" type="button" onclick="window.print()" data-i18n="legal.print">Imprimir</button>
             </div>
         </nav>
 
         <article class="legal-card">
             <header class="legal-hero">
                 <span class="legal-kicker">Coup Master</span>
-                <h1>Política de Privacidade</h1>
-                <p class="legal-updated">Última atualização: 03 de julho de 2026</p>
-                <p class="legal-disclaimer">
+                <h1 data-i18n="legal.privacy.heading">Política de Privacidade</h1>
+                <p class="legal-updated" data-i18n="legal.lastUpdated">Última atualização: 03 de julho de 2026</p>
+                <p class="legal-disclaimer" data-i18n="legal.privacy.disclaimer">
                     Este documento é um modelo operacional para o projeto Coup Master em fase beta. Ele descreve o
                     funcionamento atual do app e deve ser revisado por profissional jurídico antes de uso comercial,
                     distribuição ampla ou coleta de dados sensíveis.
@@ -59,8 +68,8 @@
 
             <div class="legal-document" data-allow-select="true">
                 <section class="legal-section">
-                    <h2>1. Quem Somos</h2>
-                    <p>
+                    <h2 data-i18n="legal.privacy.s1Title">1. Quem Somos</h2>
+                    <p data-i18n="legal.privacy.s1Text">
                         O Coup Master é um aplicativo web estático de jogo multiplayer online, publicado como projeto
                         independente por Gabriel Barbosa. O app usa Firebase Authentication e Firebase Realtime Database
                         para autenticação, criação de salas, sincronização de partidas, chat e estatísticas beta.
@@ -68,35 +77,35 @@
                 </section>
 
                 <section class="legal-section">
-                    <h2>2. Dados Que Podemos Coletar</h2>
-                    <p>Dependendo de como você usa o Coup Master, podemos tratar:</p>
+                    <h2 data-i18n="legal.privacy.s2Title">2. Dados Que Podemos Coletar</h2>
+                    <p data-i18n="legal.privacy.s2Intro">Dependendo de como você usa o Coup Master, podemos tratar:</p>
                     <ul>
-                        <li><strong>Dados de autenticação:</strong> UID do Firebase, nome, foto de perfil e e-mail quando fornecidos pelo login Google.</li>
-                        <li><strong>Login visitante:</strong> UID anônimo, nome temporário e sessão local necessários para jogar como visitante.</li>
-                        <li><strong>Dados de sala e partida:</strong> código da sala, jogadores, cartas, pontuação, ações, turnos, logs, chat, modo casual ou ranqueado, bots IA e resultados.</li>
-                        <li><strong>Estatísticas ranqueadas:</strong> jogos, vitórias, derrotas, taxa de vitória, pontuação, ações, conquistas e marcadores para evitar duplicidade de partidas.</li>
-                        <li><strong>Preferências locais:</strong> volume de música, volume de efeitos, dados de sessão, cache do PWA e informações de instalação local.</li>
-                        <li><strong>Dados técnicos básicos:</strong> informações de navegador, dispositivo, data/hora de acesso e registros técnicos processados por Firebase, GitHub Pages e serviços integrados.</li>
+                        <li><strong data-i18n="legal.privacy.authDataLabel">Dados de autenticação:</strong> <span data-i18n="legal.privacy.authDataText">UID do Firebase, nome, foto de perfil e e-mail quando fornecidos pelo login Google.</span></li>
+                        <li><strong data-i18n="legal.privacy.guestLoginLabel">Login visitante:</strong> <span data-i18n="legal.privacy.guestLoginText">UID anônimo, nome temporário e sessão local necessários para jogar como visitante.</span></li>
+                        <li><strong data-i18n="legal.privacy.roomDataLabel">Dados de sala e partida:</strong> <span data-i18n="legal.privacy.roomDataText">código da sala, jogadores, cartas, pontuação, ações, turnos, logs, chat, modo casual ou ranqueado, bots IA e resultados.</span></li>
+                        <li><strong data-i18n="legal.privacy.rankedStatsLabel">Estatísticas ranqueadas:</strong> <span data-i18n="legal.privacy.rankedStatsText">jogos, vitórias, derrotas, taxa de vitória, pontuação, ações, conquistas e marcadores para evitar duplicidade de partidas.</span></li>
+                        <li><strong data-i18n="legal.privacy.localPrefsLabel">Preferências locais:</strong> <span data-i18n="legal.privacy.localPrefsText">volume de música, volume de efeitos, dados de sessão, cache do PWA e informações de instalação local.</span></li>
+                        <li><strong data-i18n="legal.privacy.techDataLabel">Dados técnicos básicos:</strong> <span data-i18n="legal.privacy.techDataText">informações de navegador, dispositivo, data/hora de acesso e registros técnicos processados por Firebase, GitHub Pages e serviços integrados.</span></li>
                     </ul>
                 </section>
 
                 <section class="legal-section">
-                    <h2>3. Como Usamos Esses Dados</h2>
-                    <p>Usamos os dados para:</p>
+                    <h2 data-i18n="legal.privacy.s3Title">3. Como Usamos Esses Dados</h2>
+                    <p data-i18n="legal.privacy.s3Intro">Usamos os dados para:</p>
                     <ul>
-                        <li>permitir login com Google ou visitante;</li>
-                        <li>criar, entrar, sincronizar e encerrar salas;</li>
-                        <li>executar partidas casuais e ranqueadas em tempo real;</li>
-                        <li>exibir nome, foto, status, cartas, chat, logs e estatísticas;</li>
-                        <li>registrar resultados ranqueados, conquistas e histórico competitivo beta;</li>
-                        <li>manter o PWA funcionando, inclusive com cache de arquivos estáticos;</li>
-                        <li>investigar bugs, abusos, falhas de sincronização e problemas de compatibilidade.</li>
+                        <li data-i18n="legal.privacy.useLogin">permitir login com Google ou visitante;</li>
+                        <li data-i18n="legal.privacy.useRooms">criar, entrar, sincronizar e encerrar salas;</li>
+                        <li data-i18n="legal.privacy.useMatches">executar partidas casuais e ranqueadas em tempo real;</li>
+                        <li data-i18n="legal.privacy.useDisplay">exibir nome, foto, status, cartas, chat, logs e estatísticas;</li>
+                        <li data-i18n="legal.privacy.useStats">registrar resultados ranqueados, conquistas e histórico competitivo beta;</li>
+                        <li data-i18n="legal.privacy.usePwa">manter o PWA funcionando, inclusive com cache de arquivos estáticos;</li>
+                        <li data-i18n="legal.privacy.useDebug">investigar bugs, abusos, falhas de sincronização e problemas de compatibilidade.</li>
                     </ul>
                 </section>
 
                 <section class="legal-section">
-                    <h2>4. Bases e Justificativas de Tratamento</h2>
-                    <p>
+                    <h2 data-i18n="legal.privacy.s4Title">4. Bases e Justificativas de Tratamento</h2>
+                    <p data-i18n="legal.privacy.s4Text">
                         Quando aplicável, tratamos dados para executar o serviço solicitado por você, cumprir obrigações
                         relacionadas ao funcionamento do jogo, preservar segurança e integridade das partidas, melhorar
                         a experiência do usuário e atender solicitações legítimas de suporte, correção ou exclusão.
@@ -104,22 +113,22 @@
                 </section>
 
                 <section class="legal-section">
-                    <h2>5. Compartilhamento Com Terceiros</h2>
-                    <p>O Coup Master depende de serviços externos para funcionar:</p>
+                    <h2 data-i18n="legal.privacy.s5Title">5. Compartilhamento Com Terceiros</h2>
+                    <p data-i18n="legal.privacy.s5Intro">O Coup Master depende de serviços externos para funcionar:</p>
                     <ul>
-                        <li><strong>Google Firebase:</strong> autenticação, banco de dados em tempo real e infraestrutura associada.</li>
-                        <li><strong>GitHub Pages:</strong> hospedagem dos arquivos estáticos do app.</li>
-                        <li><strong>Tally ou formulário equivalente:</strong> quando você envia feedback ou sugestões pelo formulário integrado.</li>
+                        <li><strong data-i18n="legal.privacy.firebaseLabel">Google Firebase:</strong> <span data-i18n="legal.privacy.firebaseText">autenticação, banco de dados em tempo real e infraestrutura associada.</span></li>
+                        <li><strong data-i18n="legal.privacy.githubLabel">GitHub Pages:</strong> <span data-i18n="legal.privacy.githubText">hospedagem dos arquivos estáticos do app.</span></li>
+                        <li><strong data-i18n="legal.privacy.tallyLabel">Tally ou formulário equivalente:</strong> <span data-i18n="legal.privacy.tallyText">quando você envia feedback ou sugestões pelo formulário integrado.</span></li>
                     </ul>
-                    <p>
+                    <p data-i18n="legal.privacy.s5Text">
                         Não vendemos dados pessoais. Dados podem ser processados por esses provedores conforme suas
                         próprias políticas, termos e controles técnicos.
                     </p>
                 </section>
 
                 <section class="legal-section">
-                    <h2>6. Chat, Nomes e Conteúdo Enviado</h2>
-                    <p>
+                    <h2 data-i18n="legal.privacy.s6Title">6. Chat, Nomes e Conteúdo Enviado</h2>
+                    <p data-i18n="legal.privacy.s6Text">
                         Mensagens de chat, nomes de jogador, ações e logs podem ficar visíveis para outros participantes
                         da mesma sala. Evite inserir dados pessoais, informações sensíveis, senhas, documentos ou
                         conteúdo que você não queira compartilhar com os demais jogadores.
@@ -127,8 +136,8 @@
                 </section>
 
                 <section class="legal-section">
-                    <h2>7. Armazenamento Local, Cache e PWA</h2>
-                    <p>
+                    <h2 data-i18n="legal.privacy.s7Title">7. Armazenamento Local, Cache e PWA</h2>
+                    <p data-i18n="legal.privacy.s7Text">
                         O app pode usar armazenamento local, armazenamento de sessão, cache do navegador e Service Worker
                         para manter login, preferências, instalação PWA e arquivos estáticos. Você pode limpar esses dados
                         pelas configurações do navegador ou do sistema operacional.
@@ -136,8 +145,8 @@
                 </section>
 
                 <section class="legal-section">
-                    <h2>8. Retenção e Exclusão</h2>
-                    <p>
+                    <h2 data-i18n="legal.privacy.s8Title">8. Retenção e Exclusão</h2>
+                    <p data-i18n="legal.privacy.s8Text">
                         Salas podem ser removidas automaticamente após inatividade. Resultados e estatísticas ranqueadas
                         podem permanecer enquanto o modo ranqueado estiver em beta, para permitir histórico e depuração.
                         Você pode solicitar acesso, correção ou exclusão dos seus dados pelo canal do projeto.
@@ -145,8 +154,8 @@
                 </section>
 
                 <section class="legal-section">
-                    <h2>9. Segurança</h2>
-                    <p>
+                    <h2 data-i18n="legal.privacy.s9Title">9. Segurança</h2>
+                    <p data-i18n="legal.privacy.s9Text">
                         Usamos autenticação Firebase, regras de segurança e validações client-side para reduzir riscos.
                         Ainda assim, o projeto é beta, roda majoritariamente no cliente e não deve ser tratado como sistema
                         antifraude definitivo. Não compartilhe informações sensíveis dentro do jogo.
@@ -154,16 +163,16 @@
                 </section>
 
                 <section class="legal-section">
-                    <h2>10. Crianças e Adolescentes</h2>
-                    <p>
+                    <h2 data-i18n="legal.privacy.s10Title">10. Crianças e Adolescentes</h2>
+                    <p data-i18n="legal.privacy.s10Text">
                         O Coup Master não é direcionado a crianças. Se você for menor de idade, use o app somente com
                         autorização e acompanhamento de responsável legal.
                     </p>
                 </section>
 
                 <section class="legal-section">
-                    <h2>11. Seus Direitos</h2>
-                    <p>
+                    <h2 data-i18n="legal.privacy.s11Title">11. Seus Direitos</h2>
+                    <p data-i18n="legal.privacy.s11Text">
                         Quando aplicável, você pode solicitar confirmação de tratamento, acesso, correção, exclusão,
                         portabilidade, informação sobre compartilhamento e revisão de decisões automatizadas. A resposta
                         dependerá da identificação da sua conta e das limitações técnicas do ambiente beta.
@@ -171,8 +180,8 @@
                 </section>
 
                 <section class="legal-section">
-                    <h2>12. Alterações Nesta Política</h2>
-                    <p>
+                    <h2 data-i18n="legal.privacy.s12Title">12. Alterações Nesta Política</h2>
+                    <p data-i18n="legal.privacy.s12Text">
                         Podemos atualizar esta Política de Privacidade para refletir novas funções, mudanças no Firebase,
                         alterações no modo ranqueado, PWA, chat, estatísticas ou obrigações legais. A data no topo indica
                         a versão vigente.
@@ -180,19 +189,20 @@
                 </section>
 
                 <section class="legal-section">
-                    <h2>13. Contato</h2>
+                    <h2 data-i18n="legal.privacy.s13Title">13. Contato</h2>
                     <p>
-                        Para solicitações relacionadas a privacidade, use o canal oficial do projeto no GitHub:
+                        <span data-i18n="legal.privacy.contactText">Para solicitações relacionadas a privacidade, use o canal oficial do projeto no GitHub:</span>
                         <a class="legal-contact" href="https://github.com/GabrielBarbosa0/Coup-Master" target="_blank" rel="noopener">Coup Master</a>.
                     </p>
                 </section>
             </div>
         </article>
 
-        <p class="legal-footer-note">Coup Master é um projeto independente em beta.</p>
+        <p class="legal-footer-note" data-i18n="legal.footer">Coup Master é um projeto independente em beta.</p>
     </main>
 
     <div class="vignette"></div>
+    <script src="js/i18n/language-service.js?v=i18n-v3" defer></script>
 </body>
 
 </html>

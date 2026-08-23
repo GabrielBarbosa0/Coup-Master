@@ -7,6 +7,11 @@
     return document.getElementById(id);
   }
 
+  function t(key, params = {}, fallback = '') {
+    const translated = root.CoupLanguage?.t?.(key, params);
+    return translated && translated !== key ? translated : fallback || key;
+  }
+
   function getState() {
     return config.getState?.() || {};
   }
@@ -57,15 +62,15 @@
   }
 
   function renderQuickPlayerProfile(player, stats, options = {}) {
-    const name = stats?.name || player?.name || 'Jogador';
+    const name = stats?.name || player?.name || t('ranked.playerFallback', {}, 'Jogador');
     const photo = stats?.photo || player?.photo || 'assets/img/icons/ghost.svg';
     const games = quickProfileNumber(stats?.games);
     const wins = quickProfileNumber(stats?.wins);
     const losses = quickProfileNumber(stats?.losses);
     const rankScore = quickProfileNumber(stats?.rankScore ?? stats?.score ?? stats?.points);
     const status = options.status || (games
-      ? `${games} jogo(s) ranqueado(s) registrados.`
-      : 'Sem partidas ranqueadas registradas ainda.');
+      ? t('lobby.gamesRegistered', { count: games }, `${games} jogo(s) ranqueado(s) registrados.`)
+      : t('lobby.noRankedMatches', {}, 'Sem partidas ranqueadas registradas ainda.'));
 
     const avatar = getElement('quickPlayerProfileAvatar');
     const loading = getElement('quickPlayerProfileLoading');
@@ -73,7 +78,7 @@
 
     if (avatar) {
       avatar.src = photo;
-      avatar.alt = `Perfil de ${name}`;
+      avatar.alt = t('ranked.profileOf', { name }, `Perfil de ${name}`);
     }
 
     setQuickProfileText('quickPlayerProfileName', name);
@@ -82,7 +87,7 @@
     setQuickProfileText('quickPlayerProfileWins', wins);
     setQuickProfileText('quickPlayerProfileLosses', losses);
     setQuickProfileText('quickPlayerProfileWinRate', quickProfilePercent(stats?.winRate));
-    setQuickProfileText('quickPlayerProfileScore', `${rankScore} pts`);
+    setQuickProfileText('quickPlayerProfileScore', t('ranked.pointsValue', { points: rankScore }, `${rankScore} pts`));
 
     if (loading) loading.hidden = true;
     if (statsGrid) statsGrid.hidden = false;
@@ -92,18 +97,18 @@
     const loading = getElement('quickPlayerProfileLoading');
     const statsGrid = getElement('quickPlayerProfileStats');
     const avatar = getElement('quickPlayerProfileAvatar');
-    const name = player?.name || 'Jogador';
+    const name = player?.name || t('ranked.playerFallback', {}, 'Jogador');
 
     if (avatar) {
       avatar.src = player?.photo || 'assets/img/icons/ghost.svg';
-      avatar.alt = `Perfil de ${name}`;
+      avatar.alt = t('ranked.profileOf', { name }, `Perfil de ${name}`);
     }
 
     setQuickProfileText('quickPlayerProfileName', name);
-    setQuickProfileText('quickPlayerProfileStatus', 'Carregando estatísticas...');
+    setQuickProfileText('quickPlayerProfileStatus', t('ranked.loadingStats', {}, 'Carregando estatísticas...'));
     if (loading) {
       loading.hidden = false;
-      loading.textContent = 'Carregando estatísticas...';
+      loading.textContent = t('ranked.loadingStats', {}, 'Carregando estatísticas...');
     }
     if (statsGrid) statsGrid.hidden = true;
   }
@@ -114,7 +119,7 @@
 
     if (!player?.uid) {
       renderQuickPlayerProfile(player, null, {
-        status: 'Este jogador ainda não possui perfil ranqueado vinculado.'
+        status: t('ranked.noLinkedProfile', {}, 'Este jogador ainda não possui perfil ranqueado vinculado.')
       });
       return;
     }
@@ -122,7 +127,7 @@
     const database = getDatabase();
     if (!database) {
       renderQuickPlayerProfile(player, null, {
-        status: 'Não foi possível acessar as estatísticas agora.'
+        status: t('ranked.statsUnavailable', {}, 'Não foi possível acessar as estatísticas agora.')
       });
       return;
     }
@@ -135,7 +140,7 @@
       .catch(() => {
         if (loadKey !== quickProfileLoadKey) return;
         renderQuickPlayerProfile(player, null, {
-          status: 'Não foi possível carregar estatísticas.'
+          status: t('lobby.statsLoadError', {}, 'Não foi possível carregar estatísticas.')
         });
       });
   }
@@ -162,7 +167,7 @@
     if (!modal || !title || !player) return;
 
     quickActionTargetPid = pid;
-    title.innerText = 'Perfil do jogador';
+    title.innerText = t('ranked.playerProfile', {}, 'Perfil do jogador');
     loadQuickPlayerRankedStats(player);
 
     if (kickBtn) {

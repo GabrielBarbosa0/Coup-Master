@@ -1,19 +1,19 @@
 (function setupCasualChatService(root) {
   const CHAT_MESSAGE_MAX_LENGTH = 240;
   const QUICK_CHAT_MESSAGES = [
-    'Contesto',
-    'Bloqueio',
-    'Sou o Duque',
-    'Sou o Capitão',
-    'Sou o Assassino',
-    'Sou a Condessa',
-    'Sou o Embaixador',
-    'Sou o Inquisidor',
-    'Taxar',
-    'Extorquir',
-    'Assassinar',
-    'Trocar',
-    'Investigar'
+    'challenge',
+    'block',
+    'duke',
+    'captain',
+    'assassin',
+    'contessa',
+    'ambassador',
+    'inquisitor',
+    'tax',
+    'steal',
+    'assassinate',
+    'exchange',
+    'examine'
   ];
 
   let config = {};
@@ -25,6 +25,11 @@
 
   function getElement(id) {
     return document.getElementById(id);
+  }
+
+  function t(key, params = {}, fallback = '') {
+    const translated = root.CoupLanguage?.t?.(key, params);
+    return translated && translated !== key ? translated : fallback || key;
   }
 
   function getState() {
@@ -63,7 +68,8 @@
   function formatChatTime(timestamp) {
     if (!timestamp) return '--:--';
 
-    return new Date(timestamp).toLocaleTimeString('pt-BR', {
+    const language = root.CoupLanguage?.getLanguage?.() || 'pt-BR';
+    return new Date(timestamp).toLocaleTimeString(language, {
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -71,7 +77,7 @@
 
   function getChatAuthorName() {
     const playerName = getState()?.players?.[getMyPlayerId()]?.name;
-    return playerName || getCurrentUser()?.name || 'Jogador';
+    return playerName || getCurrentUser()?.name || t('ranked.playerFallback', {}, 'Jogador');
   }
 
   function getChatMessagesRef() {
@@ -187,7 +193,7 @@
     if (chatMessages.length === 0) {
       const empty = document.createElement('p');
       empty.className = 'chat-empty-message';
-      empty.textContent = 'Nenhuma mensagem ainda.';
+      empty.textContent = t('ranked.noMessages', {}, 'Nenhuma mensagem ainda.');
       chatMessagesList.append(empty);
       return;
     }
@@ -204,7 +210,7 @@
 
       const meta = document.createElement('div');
       meta.className = 'chat-message-meta';
-      meta.textContent = `${message.displayName || message.actorName || 'Jogador'} · ${formatChatTime(message.createdAt)}`;
+      meta.textContent = `${message.displayName || message.actorName || t('ranked.playerFallback', {}, 'Jogador')} · ${formatChatTime(message.createdAt)}`;
 
       const text = document.createElement('p');
       text.className = 'chat-message-text';
@@ -247,14 +253,45 @@
     lastSeenChatMessageKey = latestKey;
   }
 
+  function getQuickChatMessage(messageKey) {
+    return t(`casual.quickChat.${messageKey}`, {}, messageKey);
+  }
+
+  function renderQuickChatButtons() {
+    const chatQuickMessages = getElement('chatQuickMessages');
+    if (!chatQuickMessages) return;
+
+    chatQuickMessages.replaceChildren();
+    QUICK_CHAT_MESSAGES.forEach((messageKey) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'chat-quick-btn';
+      button.textContent = getQuickChatMessage(messageKey);
+      button.addEventListener('click', () => {
+        sendChatMessage({ text: getQuickChatMessage(messageKey), type: 'quick' })
+          .catch((error) => console.error('Erro ao enviar mensagem rápida:', error));
+      });
+      chatQuickMessages.append(button);
+    });
+  }
+
+  function bindLanguageEvents() {
+    if (document.body?.dataset.casualChatLanguageBound === 'true') return;
+    document.body.dataset.casualChatLanguageBound = 'true';
+    root.addEventListener?.('coup:languagechange', () => {
+      renderChatMessages();
+      renderQuickChatButtons();
+    });
+  }
+
   function bindChatControls() {
     const chatBtn = getElement('chatBtn');
     const closeChatBtn = getElement('closeChatBtn');
     const chatForm = getElement('chatForm');
     const chatInput = getElement('chatInput');
-    const chatQuickMessages = getElement('chatQuickMessages');
 
     setupFloatingChatModalObserver();
+    bindLanguageEvents();
 
     if (chatBtn && chatBtn.dataset.chatBound !== 'true') {
       chatBtn.dataset.chatBound = 'true';
@@ -282,19 +319,7 @@
       });
     }
 
-    if (chatQuickMessages && chatQuickMessages.children.length === 0) {
-      QUICK_CHAT_MESSAGES.forEach((message) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'chat-quick-btn';
-        button.textContent = message;
-        button.addEventListener('click', () => {
-          sendChatMessage({ text: message, type: 'quick' })
-            .catch((error) => console.error('Erro ao enviar mensagem rápida:', error));
-        });
-        chatQuickMessages.append(button);
-      });
-    }
+    renderQuickChatButtons();
 
     renderChatMessages();
   }

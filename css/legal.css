@@ -31,6 +31,11 @@ body.legal-page::-webkit-scrollbar-thumb {
     border-radius: 999px;
 }
 
+html[data-i18n-pending="true"] body.legal-page .legal-shell {
+    opacity: 0;
+    visibility: hidden;
+}
+
 .legal-shell {
     position: relative;
     z-index: 10;

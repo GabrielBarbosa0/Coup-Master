@@ -232,7 +232,8 @@ function setupAsylumService() {
 function setupDeckSurface() {
   window.CoupCasualSettings?.setupSamsungDragPreference({ playSound });
   window.CoupVisualEffects?.attachBalatroEffect(deckEl, true);
-  attachElementTooltip(deckEl, 'Baralho');
+  const deckLabel = window.CoupLanguage?.t?.('casual.deck') || 'Baralho';
+  attachElementTooltip(deckEl, deckLabel);
 }
 
 function setupRulesAndTutorial() {

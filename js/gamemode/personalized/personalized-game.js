@@ -17,6 +17,11 @@
     const BOT_DECISION_MIN_DELAY_MS = 3600;
     const BOT_DECISION_RANDOM_DELAY_MS = 1200;
 
+    function t(key, params = {}, fallback = '') {
+        const translated = root.CoupLanguage?.t?.(key, params);
+        return translated && translated !== key ? translated : fallback || key;
+    }
+
     function redirectToLobby(message) {
         if (message) sessionStorage.setItem('lobbyError', message);
         root.location.href = new URL('lobby.html', document.baseURI).href;
@@ -44,13 +49,13 @@
     function getUserData(user) {
         return {
             uid: user.uid,
-            name: user.displayName || user.email?.split('@')[0] || 'Jogador',
+            name: user.displayName || user.email?.split('@')[0] || t('ranked.playerFallback', {}, 'Jogador'),
             photo: user.photoURL || 'assets/img/icons/ghost.svg'
         };
     }
 
     function transaction(mutator, options = {}) {
-        if (!personalizedStateRef) return Promise.reject(new Error('Partida ainda nÃ£o conectada.'));
+        if (!personalizedStateRef) return Promise.reject(new Error(t('ranked.matchNotConnected', {}, 'Partida ainda não conectada.')));
         let mutationError = null;
 
         return personalizedStateRef.transaction((current) => {
@@ -67,11 +72,11 @@
             }
         }).then((result) => {
             if (mutationError) throw mutationError;
-            if (!result.committed) throw new Error('A aÃ§Ã£o nÃ£o foi confirmada. Tente novamente.');
+            if (!result.committed) throw new Error(t('ranked.actionNotConfirmed', {}, 'A ação não foi confirmada. Tente novamente.'));
             return db.ref(`salas/${roomCode}/lastActivity`).set(Date.now());
         }).catch((error) => {
             if (!options.silent) {
-                Renderer.showError(error.message || 'NÃ£o foi possÃ­vel concluir a aÃ§Ã£o.');
+                Renderer.showError(error.message || t('ranked.actionFailed', {}, 'Não foi possível concluir a ação.'));
             }
             throw error;
         });
@@ -106,10 +111,10 @@
     function joinPersonalizedRoom(user) {
         const roomRef = db.ref(`salas/${roomCode}`);
         return roomRef.once('value').then((snapshot) => {
-            if (!snapshot.exists()) throw new Error('A sala informada nÃ£o existe.');
+            if (!snapshot.exists()) throw new Error(t('ranked.roomDoesNotExist', {}, 'A sala informada não existe.'));
             const room = snapshot.val();
             if (!root.CoupGameModes.isPersonalized(root.CoupGameModes.fromRoom(room))) {
-                throw new Error('Esta sala nÃ£o pertence ao modo Sala Personalizada.');
+                throw new Error(t('personalizedGame.wrongRoomMode', {}, 'Esta sala não pertence ao modo Sala Personalizada.'));
             }
 
             roomHostUid = room.hostUID || null;
@@ -128,7 +133,7 @@
                 }
             }).then((result) => {
                 if (joinError) throw joinError;
-                if (!result.committed) throw new Error('NÃ£o foi possÃ­vel entrar na sala personalizada.');
+                if (!result.committed) throw new Error(t('personalizedGame.joinFailed', {}, 'Não foi possível entrar na sala personalizada.'));
                 sessionStorage.setItem('currentRoomMode', root.CoupGameModes.PERSONALIZED);
                 setupRealtimeListeners();
                 setupPresence();
@@ -141,14 +146,14 @@
         personalizedStateRef.on('value', (snapshot) => {
             personalizedState = snapshot.val();
             if (!personalizedState?.players?.[currentUser.uid]) {
-                redirectToLobby('VocÃª nÃ£o faz mais parte desta sala personalizada.');
+                redirectToLobby(t('personalizedGame.noLongerInRoom', {}, 'Você não faz mais parte desta sala personalizada.'));
                 return;
             }
             if (redirectIfWrongView(personalizedState)) return;
             Renderer.render(personalizedState);
-            Renderer.setConnectionStatus('Sincronizado');
+            Renderer.setConnectionStatus(t('ranked.connected', {}, 'Sincronizado'));
         }, () => {
-            Renderer.setConnectionStatus('Sem conexÃ£o', false);
+            Renderer.setConnectionStatus(t('ranked.noConnection', {}, 'Sem conexão'), false);
         });
 
         db.ref(`salas/${roomCode}/chatMessages`).limitToLast(60).on('value', (snapshot) => {
@@ -456,7 +461,7 @@
             root.setTimeout(() => {
                 transaction((state) => {
                     if (!applyNextBotDecision(state, Date.now())) {
-                        throw new Error('Nenhuma aÃ§Ã£o de IA pendente.');
+                        throw new Error(t('ranked.noPendingAiAction', {}, 'Nenhuma ação de IA pendente.'));
                     }
                     return state;
                 }, { silent: true }).catch(() => null).finally(() => {
@@ -481,7 +486,7 @@
 
     function boot() {
         if (!roomCode || roomCode.length !== 4) {
-            redirectToLobby('CÃ³digo de sala personalizada invÃ¡lido.');
+            redirectToLobby(t('personalizedGame.invalidRoomCode', {}, 'Código de sala personalizada inválido.'));
             return;
         }
 
@@ -491,7 +496,7 @@
                 return;
             }
             if (user.isAnonymous) {
-                redirectToLobby('A Sala Personalizada exige login com uma conta Google.');
+                redirectToLobby(t('personalizedGame.googleRequired', {}, 'A Sala Personalizada exige login com uma conta Google.'));
                 return;
             }
 

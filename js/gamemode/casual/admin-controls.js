@@ -5,6 +5,11 @@
     return document.getElementById(id);
   }
 
+  function t(key, params = {}, fallback = '') {
+    const translated = root.CoupLanguage?.t?.(key, params);
+    return translated && translated !== key ? translated : fallback || key;
+  }
+
   function getState() {
     return config.getState?.() || {};
   }
@@ -47,20 +52,20 @@
     if (rankedMode) {
       button.disabled = true;
       button.style.background = '#555';
-      button.textContent = 'Baralho padrão no modo ranqueado';
+      button.textContent = t('casual.standardDeckRanked', {}, 'Baralho padrão no modo ranqueado');
       return;
     }
 
     if (!admin) {
       button.disabled = true;
       button.style.background = '#555';
-      button.textContent = 'Apenas o Host pode aplicar';
+      button.textContent = t('casual.hostOnlyApply', {}, 'Apenas o Host pode aplicar');
       return;
     }
 
     button.disabled = false;
     button.style.background = '';
-    button.textContent = 'Aplicar e Resetar Jogo';
+    button.textContent = t('casual.applyResetGame', {}, 'Aplicar e Resetar Jogo');
   }
 
   function renderAdminControls(options = {}) {
@@ -106,7 +111,11 @@
     const text = getElement('kickPlayerText');
 
     if (text && player) {
-      text.innerText = `Tem certeza que deseja remover ${player.name || 'o Jogador ' + pid} da sala?`;
+      text.innerText = t(
+        'personalizedWaiting.removePlayerNamed',
+        { name: player.name || t('casual.thePlayerSeat', { seat: pid }, `o Jogador ${pid}`) },
+        `Tem certeza que deseja remover ${player.name || 'o Jogador ' + pid} da sala?`
+      );
     }
 
     if (modal) {

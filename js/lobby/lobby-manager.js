@@ -23,6 +23,23 @@ const leaderboardLoading = document.getElementById('leaderboardLoading');
 const leaderboardList = document.getElementById('leaderboardList');
 
 let currentLobbyUser = null;
+let lastRenderedStats = null;
+let lastLeaderboardEntries = null;
+
+function t(key, params) {
+    return window.CoupLanguage?.t(key, params) || key;
+}
+
+function waitForLanguage() {
+    return window.CoupLanguage?.ready || Promise.resolve();
+}
+
+function getModeLabel(mode) {
+    const normalizedMode = CoupGameModes.normalize(mode);
+    if (CoupGameModes.isRanked(normalizedMode)) return t('lobby.ranked');
+    if (CoupGameModes.isPersonalized(normalizedMode)) return t('lobby.personalized');
+    return t('lobby.casual');
+}
 
 // =======================================================
 // === SISTEMA DE TRATAMENTO DE ERROS (MODAL) ===
@@ -95,8 +112,8 @@ function setRankedModeAvailability(user) {
     if (rankedModeNote) {
         rankedModeNote.hidden = false;
         rankedModeNote.textContent = canAccessRanked
-            ? 'Ranqueado e Sala Personalizada usam conta Google, baralho padrão e bots IA na sala de espera.'
-            : 'Ranqueado e Sala Personalizada exigem uma conta Google. O casual continua liberado para visitantes.';
+            ? t('lobby.rankedNoteAvailable')
+            : t('lobby.rankedNoteLocked');
     }
 }
 
@@ -108,7 +125,9 @@ function openRoom(code, mode) {
         : CoupGameModes.isPersonalized(normalizedMode)
             ? 'personalized/personalized-waiting.html'
             : 'index.html';
-    showLoader(CoupGameModes.isAutomated(normalizedMode) ? `Carregando ${CoupGameModes.getLabel(normalizedMode).toLowerCase()}...` : 'Carregando mesa...');
+    showLoader(CoupGameModes.isAutomated(normalizedMode)
+        ? t('lobby.automatedRoomLoading', { mode: getModeLabel(normalizedMode).toLowerCase() })
+        : t('lobby.roomLoading'));
     window.location.href = `${destination}?room=${code}`;
 }
 
@@ -141,7 +160,7 @@ if (closeErrorBtn) {
  */
 if (logoutBtn) {
     logoutBtn.onclick = () => {
-        showLoader('Retornando ao login...');
+        showLoader(t('lobby.returningLogin'));
         auth.signOut().finally(() => {
             window.location.href = 'login.html';
         });
@@ -154,9 +173,9 @@ function getUserDisplayData(user) {
     if (!safeName && user.email) {
         safeName = user.email.split('@')[0];
     } else if (!safeName && user.isAnonymous) {
-        safeName = "Visitante";
+        safeName = t('login.visitorName');
     } else if (!safeName) {
-        safeName = "Visitante";
+        safeName = t('login.visitorName');
     }
 
     const safePhoto = user.photoURL || "assets/img/icons/ghost.svg";
@@ -249,7 +268,7 @@ function getDefaultRankedStats(user) {
 }
 
 function getPlayStyle(stats) {
-    if (!numberValue(stats.games)) return 'Sem histórico ranqueado';
+    if (!numberValue(stats.games)) return t('lobby.noRankedHistory');
 
     const aggressive = numberValue(stats.coups) + numberValue(stats.assassinations);
     const tactical = numberValue(stats.steals);
@@ -257,268 +276,74 @@ function getPlayStyle(stats) {
     const bluff = numberValue(stats.bluffs);
 
     const styles = [
-        { label: 'Executor agressivo', value: aggressive },
-        { label: 'Oportunista tático', value: tactical },
-        { label: 'Caçador de blefes', value: challenger },
-        { label: 'Mestre do blefe', value: bluff }
+        { label: t('lobby.aggressiveExecutor'), value: aggressive },
+        { label: t('lobby.tacticalOpportunist'), value: tactical },
+        { label: t('lobby.bluffHunter'), value: challenger },
+        { label: t('lobby.bluffMaster'), value: bluff }
     ].sort((left, right) => right.value - left.value);
 
-    if (styles[0].value <= 0) return 'Estrategista prudente';
+    if (styles[0].value <= 0) return t('lobby.carefulStrategist');
     return styles[0].label;
 }
 
 function getAchievements(stats) {
+    const achievement = (key, unlocked) => ({
+        title: t(`lobby.achievements.${key}.title`),
+        description: t(`lobby.achievements.${key}.description`),
+        unlocked
+    });
+
     return [
-        {
-            title: 'Primeira vitória',
-            description: 'Venceu uma partida ranqueada.',
-            unlocked: numberValue(stats.wins) >= 1
-        },
-        {
-            title: 'Entrada na corte',
-            description: 'Disputou a primeira partida ranqueada.',
-            unlocked: numberValue(stats.games) >= 1
-        },
-        {
-            title: 'Nome nos salões',
-            description: 'Disputou 5 partidas ranqueadas.',
-            unlocked: numberValue(stats.games) >= 5
-        },
-        {
-            title: 'Veterano da intriga',
-            description: 'Disputou 25 partidas ranqueadas.',
-            unlocked: numberValue(stats.games) >= 25
-        },
-        {
-            title: 'Lenda da mesa',
-            description: 'Disputou 100 partidas ranqueadas.',
-            unlocked: numberValue(stats.games) >= 100
-        },
-        {
-            title: 'Jogador honesto',
-            description: 'Terminou uma partida sem blefar.',
-            unlocked: numberValue(stats.honestGames) >= 1
-        },
-        {
-            title: 'Santo improvável',
-            description: 'Venceu 5 partidas sem blefar.',
-            unlocked: numberValue(stats.honestGames) >= 5
-        },
-        {
-            title: 'Mentiroso astuto',
-            description: 'Blefou 10 vezes no ranqueado.',
-            unlocked: numberValue(stats.bluffs) >= 10
-        },
-        {
-            title: 'Deus da mentira',
-            description: 'Blefou 50 vezes no ranqueado.',
-            unlocked: numberValue(stats.bluffs) >= 50
-        },
-        {
-            title: 'Blefe perfeito',
-            description: 'Venceu uma partida blefando sem ser pego.',
-            unlocked: numberValue(stats.perfectBluffWins) >= 1
-        },
-        {
-            title: 'Sequência real',
-            description: 'Conquistou 3 vitórias seguidas.',
-            unlocked: numberValue(stats.bestWinStreak) >= 3
-        },
-        {
-            title: 'Dinastia em marcha',
-            description: 'Conquistou 5 vitórias seguidas.',
-            unlocked: numberValue(stats.bestWinStreak) >= 5
-        },
-        {
-            title: 'Coroa invicta',
-            description: 'Conquistou 10 vitórias seguidas.',
-            unlocked: numberValue(stats.bestWinStreak) >= 10
-        },
-        {
-            title: 'Virada de jogo',
-            description: 'Venceu depois de ficar em situação crítica.',
-            unlocked: numberValue(stats.comebackWins) >= 1
-        },
-        {
-            title: 'Última influência',
-            description: 'Venceu restando apenas uma influência.',
-            unlocked: numberValue(stats.finalInfluenceWins) >= 1
-        },
-        {
-            title: 'Vitória impecável',
-            description: 'Venceu sem perder influências.',
-            unlocked: numberValue(stats.perfectWins) >= 1
-        },
-        {
-            title: 'Mão pesada',
-            description: 'Aplicou 10 Golpes de Estado.',
-            unlocked: numberValue(stats.coups) >= 10
-        },
-        {
-            title: 'Trono tomado',
-            description: 'Aplicou 25 Golpes de Estado.',
-            unlocked: numberValue(stats.coups) >= 25
-        },
-        {
-            title: 'Regicida oficial',
-            description: 'Aplicou 50 Golpes de Estado.',
-            unlocked: numberValue(stats.coups) >= 50
-        },
-        {
-            title: 'Sombra na corte',
-            description: 'Realizou 10 assassinatos.',
-            unlocked: numberValue(stats.assassinations) >= 10
-        },
-        {
-            title: 'Assassino impiedoso',
-            description: 'Realizou 25 assassinatos.',
-            unlocked: numberValue(stats.assassinations) >= 25
-        },
-        {
-            title: 'Contrato sem testemunhas',
-            description: 'Realizou 50 assassinatos.',
-            unlocked: numberValue(stats.assassinations) >= 50
-        },
-        {
-            title: 'Lâmina contestada',
-            description: 'Provou um Assassino após ser contestado.',
-            unlocked: numberValue(stats.contestedAssassinsWon) >= 1
-        },
-        {
-            title: 'Capitão sem porto',
-            description: 'Realizou 10 roubos.',
-            unlocked: numberValue(stats.steals) >= 10
-        },
-        {
-            title: 'Tesouro saqueado',
-            description: 'Roubou 25 moedas ao todo.',
-            unlocked: numberValue(stats.coinsStolen) >= 25
-        },
-        {
-            title: 'Caçador de blefes',
-            description: 'Venceu 10 contestações.',
-            unlocked: numberValue(stats.successfulChallenges) >= 10
-        },
-        {
-            title: 'Olhos de inquisidor',
-            description: 'Venceu 25 contestações.',
-            unlocked: numberValue(stats.successfulChallenges) >= 25
-        },
-        {
-            title: 'Acusador preciso',
-            description: 'Manteve 70% de sucesso em 10 contestações.',
-            unlocked: numberValue(stats.challenges) >= 10 && numberValue(stats.challengeAccuracy) >= 0.7
-        },
-        {
-            title: 'Falso profeta',
-            description: 'Errou 10 contestações.',
-            unlocked: numberValue(stats.failedChallenges) >= 10
-        },
-        {
-            title: 'Duas Condessas',
-            description: 'Venceu uma partida segurando duas Condessas.',
-            unlocked: numberValue(stats.doubleContessaWins) >= 1
-        },
-        {
-            title: 'Muralha da Condessa',
-            description: 'Bloqueou 10 assassinatos com Condessa.',
-            unlocked: numberValue(stats.condessaBlocks) >= 10
-        },
-        {
-            title: 'Condessa de mentira',
-            description: 'Blefou Condessa e sobreviveu ao momento.',
-            unlocked: numberValue(stats.falseCondessaBluffs) >= 1
-        },
-        {
-            title: 'Embaixador incansável',
-            description: 'Realizou 10 trocas com Embaixador.',
-            unlocked: numberValue(stats.ambassadorExchanges) >= 10
-        },
-        {
-            title: 'Inquisidor atento',
-            description: 'Investigou 10 influências.',
-            unlocked: numberValue(stats.inquisitorInspections) >= 10
-        },
-        {
-            title: 'Corte em movimento',
-            description: 'Executou 100 ações ranqueadas.',
-            unlocked: numberValue(stats.actions) >= 100
-        },
-        {
-            title: 'Pontuação nobre',
-            description: 'Alcançou 500 pontos ranqueados.',
-            unlocked: numberValue(stats.rankScore) >= 500
-        },
-        {
-            title: 'Duque declarado',
-            description: 'Coletou renda como Duque 25 vezes.',
-            unlocked: numberValue(stats.dukeTaxes) >= 25
-        },
-        {
-            title: 'Portões fechados',
-            description: 'Bloqueou ajuda externa 10 vezes.',
-            unlocked: numberValue(stats.foreignAidBlocks) >= 10
-        },
-        {
-            title: 'Duque imaginário',
-            description: 'Blefou Duque 10 vezes.',
-            unlocked: numberValue(stats.taxBluffs) >= 10
-        },
-        {
-            title: 'Patrulha do Capitão',
-            description: 'Bloqueou 10 roubos com Capitão.',
-            unlocked: numberValue(stats.captainBlocks) >= 10
-        },
-        {
-            title: 'Diplomata alerta',
-            description: 'Bloqueou 10 roubos com Embaixador.',
-            unlocked: numberValue(stats.ambassadorBlocks) >= 10
-        },
-        {
-            title: 'Sete moedas pesadas',
-            description: 'Foi obrigado a aplicar Golpe de Estado 5 vezes.',
-            unlocked: numberValue(stats.forcedCoups) >= 5
-        },
-        {
-            title: 'Primeira voz',
-            description: 'Venceu jogando como primeiro da mesa.',
-            unlocked: numberValue(stats.winsAsFirstPlayer) >= 1
-        },
-        {
-            title: 'Mesa cheia, trono meu',
-            description: 'Venceu uma partida contra cinco oponentes.',
-            unlocked: numberValue(stats.winsAgainstFivePlayers) >= 1
-        },
-        {
-            title: 'Sem moedas, sem medo',
-            description: 'Venceu uma partida terminando sem moedas.',
-            unlocked: numberValue(stats.winsWithNoCoins) >= 1
-        },
-        {
-            title: 'Golpe relâmpago',
-            description: 'Venceu uma partida em poucos turnos.',
-            unlocked: numberValue(stats.fastestWins) >= 1
-        },
-        {
-            title: 'Maratona da corte',
-            description: 'Venceu uma partida longa e disputada.',
-            unlocked: numberValue(stats.longestGamesWon) >= 1
-        },
-        {
-            title: 'Vingança servida fria',
-            description: 'Eliminou quem tirou sua primeira influência e venceu.',
-            unlocked: numberValue(stats.revengeWins) >= 1
-        },
-        {
-            title: 'Julgamento perfeito',
-            description: 'Venceu uma partida acertando todas as contestações.',
-            unlocked: numberValue(stats.flawlessChallenges) >= 1
-        },
-        {
-            title: 'Máscaras da corte',
-            description: 'Venceu reivindicando todos os papéis ao menos uma vez.',
-            unlocked: numberValue(stats.allRolesClaimedWins) >= 1
-        }
+        achievement('firstWin', numberValue(stats.wins) >= 1),
+        achievement('courtEntry', numberValue(stats.games) >= 1),
+        achievement('knownName', numberValue(stats.games) >= 5),
+        achievement('intrigueVeteran', numberValue(stats.games) >= 25),
+        achievement('tableLegend', numberValue(stats.games) >= 100),
+        achievement('honestPlayer', numberValue(stats.honestGames) >= 1),
+        achievement('unlikelySaint', numberValue(stats.honestGames) >= 5),
+        achievement('cleverLiar', numberValue(stats.bluffs) >= 10),
+        achievement('lieGod', numberValue(stats.bluffs) >= 50),
+        achievement('perfectBluff', numberValue(stats.perfectBluffWins) >= 1),
+        achievement('royalStreak', numberValue(stats.bestWinStreak) >= 3),
+        achievement('marchingDynasty', numberValue(stats.bestWinStreak) >= 5),
+        achievement('undefeatedCrown', numberValue(stats.bestWinStreak) >= 10),
+        achievement('comeback', numberValue(stats.comebackWins) >= 1),
+        achievement('lastInfluence', numberValue(stats.finalInfluenceWins) >= 1),
+        achievement('flawlessWin', numberValue(stats.perfectWins) >= 1),
+        achievement('heavyHand', numberValue(stats.coups) >= 10),
+        achievement('takenThrone', numberValue(stats.coups) >= 25),
+        achievement('officialRegicide', numberValue(stats.coups) >= 50),
+        achievement('courtShadow', numberValue(stats.assassinations) >= 10),
+        achievement('ruthlessAssassin', numberValue(stats.assassinations) >= 25),
+        achievement('noWitnesses', numberValue(stats.assassinations) >= 50),
+        achievement('contestedBlade', numberValue(stats.contestedAssassinsWon) >= 1),
+        achievement('portlessCaptain', numberValue(stats.steals) >= 10),
+        achievement('lootedTreasury', numberValue(stats.coinsStolen) >= 25),
+        achievement('bluffHunterAchievement', numberValue(stats.successfulChallenges) >= 10),
+        achievement('inquisitorEyes', numberValue(stats.successfulChallenges) >= 25),
+        achievement('preciseAccuser', numberValue(stats.challenges) >= 10 && numberValue(stats.challengeAccuracy) >= 0.7),
+        achievement('falseProphet', numberValue(stats.failedChallenges) >= 10),
+        achievement('twoContessas', numberValue(stats.doubleContessaWins) >= 1),
+        achievement('contessaWall', numberValue(stats.condessaBlocks) >= 10),
+        achievement('fakeContessa', numberValue(stats.falseCondessaBluffs) >= 1),
+        achievement('tirelessAmbassador', numberValue(stats.ambassadorExchanges) >= 10),
+        achievement('attentiveInquisitor', numberValue(stats.inquisitorInspections) >= 10),
+        achievement('movingCourt', numberValue(stats.actions) >= 100),
+        achievement('nobleScore', numberValue(stats.rankScore) >= 500),
+        achievement('declaredDuke', numberValue(stats.dukeTaxes) >= 25),
+        achievement('closedGates', numberValue(stats.foreignAidBlocks) >= 10),
+        achievement('imaginaryDuke', numberValue(stats.taxBluffs) >= 10),
+        achievement('captainPatrol', numberValue(stats.captainBlocks) >= 10),
+        achievement('alertDiplomat', numberValue(stats.ambassadorBlocks) >= 10),
+        achievement('heavySevenCoins', numberValue(stats.forcedCoups) >= 5),
+        achievement('firstVoice', numberValue(stats.winsAsFirstPlayer) >= 1),
+        achievement('fullTableThrone', numberValue(stats.winsAgainstFivePlayers) >= 1),
+        achievement('noCoinsNoFear', numberValue(stats.winsWithNoCoins) >= 1),
+        achievement('lightningCoup', numberValue(stats.fastestWins) >= 1),
+        achievement('courtMarathon', numberValue(stats.longestGamesWon) >= 1),
+        achievement('coldRevenge', numberValue(stats.revengeWins) >= 1),
+        achievement('perfectJudgment', numberValue(stats.flawlessChallenges) >= 1),
+        achievement('courtMasks', numberValue(stats.allRolesClaimedWins) >= 1)
     ];
 }
 
@@ -553,16 +378,17 @@ function renderAchievements(stats) {
 
 function renderPlayerStats(stats) {
     const merged = { ...getDefaultRankedStats(currentLobbyUser), ...(stats || {}) };
+    lastRenderedStats = merged;
     const photo = document.getElementById('statsPlayerPhoto');
     const title = document.getElementById('playerStatsTitle');
     const subtitle = document.getElementById('playerStatsSubtitle');
 
     if (photo) photo.src = merged.photo || 'assets/img/icons/ghost.svg';
-    if (title) title.textContent = merged.name || 'Estatísticas';
+    if (title) title.textContent = merged.name || t('lobby.statsFallback');
     if (subtitle) {
         subtitle.textContent = numberValue(merged.games)
-            ? `${numberValue(merged.games)} jogo(s) ranqueado(s) registrados.`
-            : 'Sem partidas ranqueadas registradas ainda.';
+            ? t('lobby.gamesRegistered', { count: numberValue(merged.games) })
+            : t('lobby.noRankedMatches');
     }
 
     setText('statsGames', numberValue(merged.games));
@@ -594,7 +420,7 @@ function firstStatValue(source, keys, fallback = 0) {
 
 function normalizeLeaderboardEntry(uid, stats) {
     const profileName = stats?.profile?.name || stats?.profile?.displayName;
-    const name = firstStatValue(stats, ['name', 'displayName', 'playerName', 'nome'], profileName || 'Jogador');
+    const name = firstStatValue(stats, ['name', 'displayName', 'playerName', 'nome'], profileName || t('lobby.playerFallback'));
     const games = statNumberValue(firstStatValue(stats, ['games', 'matches', 'played', 'jogos'], 0));
     const wins = statNumberValue(firstStatValue(stats, ['wins', 'victories', 'vitorias', 'vitórias'], 0));
     const losses = statNumberValue(firstStatValue(
@@ -626,12 +452,13 @@ function normalizeLeaderboardEntry(uid, stats) {
 
 function renderLeaderboard(entries) {
     if (!leaderboardList) return;
+    lastLeaderboardEntries = entries;
     leaderboardList.innerHTML = '';
 
     if (!entries.length) {
         const empty = document.createElement('li');
         empty.className = 'leaderboard-empty';
-        empty.textContent = 'Nenhum jogador ranqueado encontrado ainda.';
+        empty.textContent = t('lobby.leaderboardEmpty');
         leaderboardList.appendChild(empty);
         leaderboardList.hidden = false;
         return;
@@ -649,10 +476,10 @@ function renderLeaderboard(entries) {
         player.className = 'leaderboard-player';
 
         const playerName = document.createElement('strong');
-        playerName.textContent = entry.name || 'Jogador';
+        playerName.textContent = entry.name || t('lobby.playerFallback');
 
         const playerSummary = document.createElement('small');
-        playerSummary.textContent = `${entry.games} jogo(s) disputado(s)`;
+        playerSummary.textContent = t('lobby.gamesPlayed', { count: entry.games });
 
         player.append(playerName, playerSummary);
 
@@ -664,11 +491,11 @@ function renderLeaderboard(entries) {
         metrics.className = 'leaderboard-metrics';
 
         [
-            ['Taxa', formatPercent(entry.winRate)],
-            ['Jogos', entry.games],
-            ['Vitórias', entry.wins],
-            ['Derrotas', entry.losses],
-            ['Melhor seq.', entry.bestWinStreak]
+            [t('lobby.rateMetric'), formatPercent(entry.winRate)],
+            [t('lobby.gamesMetric'), entry.games],
+            [t('lobby.winsMetric'), entry.wins],
+            [t('lobby.lossesMetric'), entry.losses],
+            [t('lobby.bestStreakMetric'), entry.bestWinStreak]
         ].forEach(([label, value]) => {
             const metric = document.createElement('span');
             const metricLabel = document.createElement('em');
@@ -712,7 +539,7 @@ function openPlayerStatsModal() {
     playerStatsModal.style.display = 'flex';
     if (playerStatsLoading) {
         playerStatsLoading.hidden = false;
-        playerStatsLoading.textContent = 'Carregando estatísticas...';
+        playerStatsLoading.textContent = t('lobby.statsLoadingText');
     }
     if (playerStatsBody) playerStatsBody.hidden = true;
 
@@ -724,7 +551,7 @@ function openPlayerStatsModal() {
         })
         .catch(() => {
             renderPlayerStats(null);
-            if (playerStatsLoading) playerStatsLoading.textContent = 'Não foi possível carregar estatísticas.';
+            if (playerStatsLoading) playerStatsLoading.textContent = t('lobby.statsLoadError');
             if (playerStatsBody) playerStatsBody.hidden = false;
         });
 }
@@ -739,7 +566,7 @@ function openLeaderboardModal() {
     leaderboardModal.style.display = 'flex';
     if (leaderboardLoading) {
         leaderboardLoading.hidden = false;
-        leaderboardLoading.textContent = 'Carregando classificação...';
+        leaderboardLoading.textContent = t('lobby.leaderboardLoading');
     }
     if (leaderboardList) {
         leaderboardList.hidden = true;
@@ -754,7 +581,7 @@ function openLeaderboardModal() {
         .catch(() => {
             if (leaderboardLoading) {
                 leaderboardLoading.hidden = false;
-                leaderboardLoading.textContent = 'Não foi possível carregar a classificação.';
+                leaderboardLoading.textContent = t('lobby.leaderboardLoadError');
             }
         });
 }
@@ -792,7 +619,9 @@ document.addEventListener('keydown', (event) => {
  * Observador de estado de autenticação.
  * Atualiza a UI e o sessionStorage sempre que o status do usuário muda.
  */
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async user => {
+    await waitForLanguage();
+
     if (user) {
         currentLobbyUser = user;
         // Usuário está Logado: Ajusta visibilidade da interface
@@ -824,7 +653,7 @@ auth.onAuthStateChanged(user => {
         sessionStorage.removeItem('currentIsAnonymous');
         sessionStorage.removeItem('currentRoomMode');
         sessionStorage.removeItem('lobbyError');
-        showLoader('Retornando ao login...');
+        showLoader(t('lobby.returningLogin'));
         window.location.href = 'login.html';
     }
 });
@@ -846,20 +675,20 @@ function generateRoomCode() {
 if (joinRoomBtn) {
     joinRoomBtn.addEventListener('click', () => {
         const code = roomCodeInput.value.trim().toUpperCase();
-        if (code.length === 4) showLoader('Verificando sala...');
+        if (code.length === 4) showLoader(t('lobby.verifyingRoom'));
     }, true);
 
     joinRoomBtn.onclick = () => {
         const code = roomCodeInput.value.trim().toUpperCase();
         if (code.length !== 4) {
-            showError("O código da sala deve ter 4 caracteres.");
+            showError(t('lobby.roomCodeLengthError'));
             return;
         }
         readRoomMode(code)
             .then((roomMode) => {
                 if (roomMode) {
                     if (requiresGoogleAccount(roomMode) && isAnonymousSession()) {
-                        showError(`${CoupGameModes.getLabel(roomMode)} exige login com uma conta Google.`);
+                        showError(t('lobby.googleRequired', { mode: getModeLabel(roomMode) }));
                         return;
                     }
 
@@ -867,11 +696,11 @@ if (joinRoomBtn) {
                     return;
                 }
 
-                showError(`A sala "${code}" não existe.`);
+                showError(t('lobby.roomNotFound', { code }));
             })
             .catch((error) => {
                 console.error('Erro ao verificar sala:', error);
-                showError('Não foi possível verificar os dados da sala. Confira as regras do Firebase ou tente novamente.');
+                showError(t('lobby.roomReadError'));
             });
     };
 }
@@ -885,11 +714,13 @@ if (createRoomBtn) {
         const selectedMode = getSelectedGameMode();
 
         if (requiresGoogleAccount(selectedMode) && isAnonymousSession()) {
-            showError(`Entre com uma conta Google para criar ${CoupGameModes.getLabel(selectedMode).toLowerCase()}.`);
+            showError(t('lobby.createGoogleRequired', { mode: getModeLabel(selectedMode).toLowerCase() }));
             return;
         }
 
-        showLoader(CoupGameModes.isAutomated(selectedMode) ? `Criando ${CoupGameModes.getLabel(selectedMode).toLowerCase()}...` : 'Criando sala...');
+        showLoader(CoupGameModes.isAutomated(selectedMode)
+            ? t('lobby.creatingAutomatedRoom', { mode: getModeLabel(selectedMode).toLowerCase() })
+            : t('lobby.creatingRoom'));
         const newCode = generateRoomCode();
         const currentUID = sessionStorage.getItem('currentUID'); //
 
@@ -915,11 +746,11 @@ if (createRoomBtn) {
             db.ref(`salas/${newCode}`).set(initialData).then(() => {
                 openRoom(newCode, selectedMode);
             }).catch(error => {
-                showError("Erro ao criar sala: " + error.message);
+                showError(t('lobby.createRoomError', { message: error.message }));
             });
         }).catch((error) => {
             console.error('Erro ao verificar código da nova sala:', error);
-            showError('Não foi possível verificar o código da nova sala.');
+            showError(t('lobby.newCodeError'));
         });
     };
 }
@@ -932,8 +763,9 @@ if (createRoomBtn) {
  * Gerencia o "Font Loader" para garantir que as fontes customizadas 
  * estejam prontas antes de remover a tela de carregamento.
  */
-document.addEventListener("DOMContentLoaded", () => {
-    setLoaderMessage('Carregando lobby...');
+document.addEventListener("DOMContentLoaded", async () => {
+    await waitForLanguage();
+    setLoaderMessage(t('lobby.loader'));
     return;
 
     const loader = document.getElementById('font-loader');
@@ -953,6 +785,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Timeout de segurança caso o carregamento demore muito
     setTimeout(hideLoader, 3000);
+});
+
+window.addEventListener('coup:languagechange', () => {
+    if (currentLobbyUser) setRankedModeAvailability(currentLobbyUser);
+    if (playerStatsModal?.style.display === 'flex' && lastRenderedStats) {
+        renderPlayerStats(lastRenderedStats);
+    }
+    if (leaderboardModal?.style.display === 'flex' && lastLeaderboardEntries) {
+        renderLeaderboard(lastLeaderboardEntries);
+    }
 });
 
 // =======================================================

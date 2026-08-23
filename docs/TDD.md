@@ -124,16 +124,18 @@ Ordem no ranqueado:
 Ordem no lobby:
 
 1. Firebase CDN.
-2. `js/firebase/firebase.js`.
-3. `js/pwa/pwa.js`.
-4. `js/lobby/lobby-manager.js`.
+2. `js/i18n/language-service.js`: carrega `lang/*.json`, aplica textos alternativos e persiste o idioma local.
+3. `js/firebase/firebase.js`.
+4. `js/pwa/pwa.js`.
+5. `js/lobby/lobby-manager.js`.
 
 Ordem no login:
 
 1. Firebase CDN.
-2. `js/firebase/firebase.js`.
-3. `js/pwa/pwa.js`.
-4. `js/login/login-manager.js`.
+2. `js/i18n/language-service.js`: carrega `lang/*.json`, aplica textos alternativos e persiste o idioma local.
+3. `js/firebase/firebase.js`.
+4. `js/pwa/pwa.js`.
+5. `js/login/login-manager.js`.
 
 ## 4. Estrutura do Repositorio
 
@@ -178,6 +180,8 @@ Coup-Master/
       rules.js
     firebase/
       firebase.js
+    i18n/
+      language-service.js
     login/
       login-manager.js
     gamemode/
@@ -217,6 +221,9 @@ Coup-Master/
       ad-slots.js
       background-audio-guard.js
       selection-lock.js
+  lang/
+    pt-BR.json
+    en-US.json
   lab/
     lab-cards.html
   AGENTS.md

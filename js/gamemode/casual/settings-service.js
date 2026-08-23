@@ -22,6 +22,11 @@
     }
   }
 
+  function t(key, params = {}, fallback = '') {
+    const translated = root.CoupLanguage?.t?.(key, params);
+    return translated && translated !== key ? translated : fallback || key;
+  }
+
   function isSamsungDragModeEnabled() {
     return samsungDragEnabled;
   }
@@ -33,11 +38,11 @@
     button.setAttribute('aria-pressed', samsungDragEnabled ? 'true' : 'false');
     button.classList.toggle('is-active', samsungDragEnabled);
     button.title = samsungDragEnabled
-      ? 'Desativar arraste compat\u00edvel com Samsung Internet'
-      : 'Ativar arraste compat\u00edvel com Samsung Internet';
+      ? t('casual.disableCompatibility', {}, 'Desativar arraste compatível com Samsung Internet')
+      : t('casual.enableCompatibility', {}, 'Ativar arraste compatível com Samsung Internet');
 
     const label = button.querySelector('span');
-    if (label) label.textContent = samsungDragEnabled ? 'Ativo' : 'Inativo';
+    if (label) label.textContent = samsungDragEnabled ? t('casual.active', {}, 'Ativo') : t('casual.inactive', {}, 'Inativo');
   }
 
   function refreshSamsungDragMode() {
@@ -65,7 +70,7 @@
     body.classList.toggle('hide-religion', Boolean(shouldHide));
 
     const label = toggleReligionButton?.querySelector('span');
-    if (label) label.textContent = shouldHide ? 'Invis\u00edvel' : 'Vis\u00edvel';
+    if (label) label.textContent = shouldHide ? t('casual.invisible', {}, 'Invisível') : t('casual.visible', {}, 'Visível');
 
     writeLocalBoolean(HIDE_RELIGION_STORAGE_KEY, shouldHide);
   }
@@ -75,6 +80,9 @@
     const storedReligionSetting = readLocalBoolean(HIDE_RELIGION_STORAGE_KEY, true);
 
     applyReligionVisibility(storedReligionSetting);
+    root.addEventListener?.('coup:languagechange', () => {
+      applyReligionVisibility(document.body.classList.contains('hide-religion'));
+    });
     if (!toggleReligionButton) return;
 
     toggleReligionButton.onclick = () => {
@@ -89,6 +97,7 @@
   function setupSamsungDragPreference(options = {}) {
     const toggleSamsungDragButton = document.getElementById(options.buttonId || 'toggleSamsungDragBtn');
     updateSamsungDragButton();
+    root.addEventListener?.('coup:languagechange', updateSamsungDragButton);
 
     if (!toggleSamsungDragButton) return;
     toggleSamsungDragButton.onclick = () => {

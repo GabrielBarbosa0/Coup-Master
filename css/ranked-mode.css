@@ -78,6 +78,113 @@ button {
     color: inherit;
 }
 
+.language-floating {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 1200;
+}
+
+.language-floating summary {
+    list-style: none;
+}
+
+.language-floating summary::-webkit-details-marker {
+    display: none;
+}
+
+.language-floating-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid rgba(230, 238, 246, 0.16);
+    border-radius: 8px;
+    background: rgba(35, 42, 51, 0.92);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.language-floating-toggle img {
+    width: 23px;
+    height: 23px;
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+.language-floating-toggle:hover,
+.language-floating-toggle:focus-visible,
+.language-floating[open] .language-floating-toggle {
+    border-color: rgba(30, 144, 255, 0.78);
+    background: rgba(35, 42, 51, 1);
+    outline: 0;
+    transform: translateY(-1px);
+}
+
+.language-floating-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 178px;
+    padding: 10px;
+    border: 1px solid rgba(230, 238, 246, 0.14);
+    border-radius: 8px;
+    background: rgba(35, 42, 51, 0.96);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(8px);
+}
+
+.language-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: rgba(230, 238, 246, 0.68);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.language-switcher select {
+    min-height: 30px;
+    padding: 4px 26px 4px 9px;
+    border: 1px solid rgba(230, 238, 246, 0.18);
+    border-radius: 7px;
+    background: #171d26;
+    color: var(--rank-text);
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.language-switcher select:focus-visible {
+    border-color: var(--rank-accent);
+    outline: 2px solid rgba(30, 144, 255, 0.35);
+    outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+    .language-floating {
+        top: 10px;
+        right: 10px;
+    }
+
+    .language-floating-toggle {
+        width: 40px;
+        height: 40px;
+    }
+
+    .language-floating-toggle img {
+        width: 21px;
+        height: 21px;
+    }
+}
+
 input,
 textarea,
 [contenteditable="true"],
@@ -818,11 +925,11 @@ button.rank-card {
     position: absolute;
     top: 16px;
     right: 16px;
-    min-width: 58px;
-    min-height: 46px;
+    min-width: 50px;
+    min-height: 40px;
     display: grid;
     place-items: center;
-    padding: 8px 10px;
+    padding: 7px 9px;
     border: 1px solid rgba(255, 204, 0, 0.55);
     border-radius: 12px;
     background:
@@ -832,7 +939,7 @@ button.rank-card {
         0 0 16px rgba(255, 204, 0, 0.12),
         inset 0 0 0 1px rgba(255, 255, 255, 0.04);
     color: var(--rank-gold);
-    font-size: 24px;
+    font-size: 21px;
     font-weight: 800;
     text-align: center;
 }
@@ -1525,7 +1632,14 @@ button.rank-card {
     max-width: 380px;
     box-sizing: border-box;
     margin: 0 auto;
-    padding: 25px 15px 15px 25px;
+    padding: 20px;
+}
+
+#rankSettingsModal .standard-modal-content {
+    width: min(380px, calc(100vw - 28px));
+    max-width: 380px;
+    max-height: calc(100dvh - 28px);
+    padding: 20px;
 }
 
 .config-title {
@@ -1761,6 +1875,31 @@ button.rank-card {
     flex-grow: 1;
     cursor: pointer;
     accent-color: var(--rank-accent);
+}
+
+.settings-language-select {
+    appearance: none;
+    min-width: 128px;
+    min-height: 42px;
+    padding: 8px 44px 8px 12px;
+    border: 1px solid var(--rank-border);
+    border-radius: 7px;
+    background-color: var(--rank-surface);
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23e6eef6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 12px 8px;
+    color: var(--rank-text);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.settings-language-select:focus-visible {
+    outline: 2px solid var(--rank-accent);
+    outline-offset: 2px;
 }
 
 .rank-modal-overlay[hidden] {
@@ -2328,10 +2467,10 @@ button.rank-card {
     .rank-timer {
         top: 12px;
         right: 10px;
-        min-width: 46px;
-        min-height: 38px;
-        padding: 6px 8px;
-        font-size: 19px;
+        min-width: 40px;
+        min-height: 34px;
+        padding: 5px 7px;
+        font-size: 17px;
     }
 
     .rank-actions-grid {
@@ -2613,10 +2752,10 @@ body[data-rank-view="game"] .rank-phase-description {
 body[data-rank-view="game"] .rank-timer {
     top: 13px;
     right: 13px;
-    min-width: 50px;
-    min-height: 40px;
-    padding: 6px 8px;
-    font-size: 20px;
+    min-width: 44px;
+    min-height: 36px;
+    padding: 5px 7px;
+    font-size: 18px;
 }
 
 .rank-side-stack {
@@ -2958,10 +3097,10 @@ body[data-rank-view="game"] .rank-timer {
     body[data-rank-view="game"] .rank-timer {
         top: 12px;
         right: 10px;
-        min-width: 46px;
-        min-height: 38px;
-        padding: 6px 8px;
-        font-size: 19px;
+        min-width: 40px;
+        min-height: 34px;
+        padding: 5px 7px;
+        font-size: 17px;
     }
 
     .rank-side-stack .rank-log-heading,

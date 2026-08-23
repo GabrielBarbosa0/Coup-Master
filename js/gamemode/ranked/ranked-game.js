@@ -19,6 +19,11 @@
     const BOT_DECISION_RANDOM_DELAY_MS = 1200;
     const MATCHMAKING_TICK_MS = 650;
 
+    function t(key, params = {}, fallback = '') {
+        const translated = root.CoupLanguage?.t?.(key, params);
+        return translated && translated !== key ? translated : fallback || key;
+    }
+
     function redirectToLobby(message) {
         if (message) sessionStorage.setItem('lobbyError', message);
         root.location.href = new URL('lobby.html', document.baseURI).href;
@@ -46,13 +51,13 @@
     function getUserData(user) {
         return {
             uid: user.uid,
-            name: user.displayName || user.email?.split('@')[0] || 'Jogador',
+            name: user.displayName || user.email?.split('@')[0] || t('ranked.playerFallback', {}, 'Jogador'),
             photo: user.photoURL || 'assets/img/icons/ghost.svg'
         };
     }
 
     function transaction(mutator, options = {}) {
-        if (!rankedStateRef) return Promise.reject(new Error('Partida ainda não conectada.'));
+        if (!rankedStateRef) return Promise.reject(new Error(t('ranked.matchNotConnected', {}, 'Partida ainda não conectada.')));
         let mutationError = null;
 
         return rankedStateRef.transaction((current) => {
@@ -69,11 +74,11 @@
             }
         }).then((result) => {
             if (mutationError) throw mutationError;
-            if (!result.committed) throw new Error('A ação não foi confirmada. Tente novamente.');
+            if (!result.committed) throw new Error(t('ranked.actionNotConfirmed', {}, 'A ação não foi confirmada. Tente novamente.'));
             return db.ref(`salas/${roomCode}/lastActivity`).set(Date.now());
         }).catch((error) => {
             if (!options.silent) {
-                Renderer.showError(error.message || 'Não foi possível concluir a ação.');
+                Renderer.showError(error.message || t('ranked.actionFailed', {}, 'Não foi possível concluir a ação.'));
             }
             throw error;
         });
@@ -98,10 +103,10 @@
     function joinRankedRoom(user) {
         const roomRef = db.ref(`salas/${roomCode}`);
         return roomRef.once('value').then((snapshot) => {
-            if (!snapshot.exists()) throw new Error('A sala informada não existe.');
+            if (!snapshot.exists()) throw new Error(t('ranked.roomDoesNotExist', {}, 'A sala informada não existe.'));
             const room = snapshot.val();
             if (!root.CoupGameModes.isRanked(root.CoupGameModes.fromRoom(room))) {
-                throw new Error('Esta sala pertence ao modo casual.');
+                throw new Error(t('ranked.wrongCasualRoom', {}, 'Esta sala pertence ao modo casual.'));
             }
 
             rankedStateRef = roomRef.child('rankedState');
@@ -118,7 +123,7 @@
                 }
             }).then((result) => {
                 if (joinError) throw joinError;
-                if (!result.committed) throw new Error('Não foi possível entrar na partida ranqueada.');
+                if (!result.committed) throw new Error(t('ranked.joinRankedFailed', {}, 'Não foi possível entrar na partida ranqueada.'));
                 sessionStorage.setItem('currentRoomMode', root.CoupGameModes.RANKED);
                 setupRealtimeListeners();
                 setupPresence();
@@ -131,17 +136,17 @@
         rankedStateRef.on('value', (snapshot) => {
             rankedState = snapshot.val();
             if (!rankedState?.players?.[currentUser.uid]) {
-                redirectToLobby('Você não faz mais parte desta sala ranqueada.');
+                redirectToLobby(t('ranked.noLongerInRankedRoom', {}, 'Você não faz mais parte desta sala ranqueada.'));
                 return;
             }
             if (redirectIfWrongView(rankedState)) return;
             Renderer.render(rankedState);
-            Renderer.setConnectionStatus('Sincronizado');
+            Renderer.setConnectionStatus(t('ranked.connected', {}, 'Sincronizado'));
             if (rankedState.status === Rules.PHASES.FINISHED) {
                 persistRankedMatchResults(rankedState);
             }
         }, () => {
-            Renderer.setConnectionStatus('Sem conexão', false);
+            Renderer.setConnectionStatus(t('ranked.noConnection', {}, 'Sem conexão'), false);
         });
 
         db.ref(`salas/${roomCode}/chatMessages`).limitToLast(60).on('value', (snapshot) => {
@@ -567,7 +572,7 @@
             root.setTimeout(() => {
                 transaction((state) => {
                     if (!applyNextBotDecision(state, Date.now())) {
-                        throw new Error('Nenhuma ação de IA pendente.');
+                        throw new Error(t('ranked.noPendingAiAction', {}, 'Nenhuma ação de IA pendente.'));
                     }
                     return state;
                 }, { silent: true }).catch(() => null).finally(() => {
@@ -583,7 +588,7 @@
             matchmakingPending = true;
             transaction((state) => {
                 if (!Engine.advanceMatchmaking(state, Date.now())) {
-                    throw new Error('Nenhum avanço de matchmaking pendente.');
+                    throw new Error(t('ranked.noPendingMatchmaking', {}, 'Nenhum avanço de matchmaking pendente.'));
                 }
             }, { silent: true }).catch(() => null).finally(() => {
                 matchmakingPending = false;
@@ -606,7 +611,7 @@
 
     function boot() {
         if (!roomCode || roomCode.length !== 4) {
-            redirectToLobby('Código de sala ranqueada inválido.');
+            redirectToLobby(t('ranked.invalidRoomCode', {}, 'Código de sala ranqueada inválido.'));
             return;
         }
 
@@ -616,7 +621,7 @@
                 return;
             }
             if (user.isAnonymous) {
-                redirectToLobby('O modo ranqueado exige login com uma conta Google.');
+                redirectToLobby(t('ranked.googleRequired', {}, 'O modo ranqueado exige login com uma conta Google.'));
                 return;
             }
 

@@ -3,6 +3,14 @@ const anonymousLoginBtn = document.getElementById('anonymous-login-btn');
 const installPwaBtn = document.getElementById('installPwaBtn');
 let deferredInstallPrompt = null;
 
+function t(key, params) {
+    return window.CoupLanguage?.t(key, params) || key;
+}
+
+function waitForLanguage() {
+    return window.CoupLanguage?.ready || Promise.resolve();
+}
+
 function isPwaInstalled() {
     return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 }
@@ -52,9 +60,9 @@ function getUserDisplayData(user) {
     if (!safeName && user.email) {
         safeName = user.email.split('@')[0];
     } else if (!safeName && user.isAnonymous) {
-        safeName = "Visitante";
+        safeName = t('login.visitorName');
     } else if (!safeName) {
-        safeName = "Visitante";
+        safeName = t('login.visitorName');
     }
 
     const safePhoto = user.photoURL || "assets/img/icons/ghost.svg";
@@ -81,19 +89,19 @@ if (closeErrorBtn) {
 
 if (googleLoginBtn) {
     googleLoginBtn.onclick = () => {
-        showLoader('Entrando com Google...');
+        showLoader(t('login.googleLoading'));
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider).catch(error => {
-            showError("Erro ao fazer login com Google: " + error.message);
+            showError(t('login.googleError', { message: error.message }));
         });
     };
 }
 
 if (anonymousLoginBtn) {
     anonymousLoginBtn.onclick = () => {
-        showLoader('Entrando como visitante...');
+        showLoader(t('login.guestLoading'));
         auth.signInAnonymously().catch(error => {
-            showError("Erro ao entrar como visitante: " + error.message);
+            showError(t('login.guestError', { message: error.message }));
         });
     };
 }
@@ -123,7 +131,9 @@ if (installPwaBtn) {
     };
 }
 
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async user => {
+    await waitForLanguage();
+
     if (!user) {
         sessionStorage.removeItem('currentUID');
         sessionStorage.removeItem('currentName');
@@ -134,11 +144,12 @@ auth.onAuthStateChanged(user => {
     }
 
     persistUserSession(user);
-    showLoader('Carregando lobby...');
+    showLoader(t('login.lobbyLoading'));
     window.location.href = 'lobby.html';
 });
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    await waitForLanguage();
     updateInstallButtonVisibility();
-    setLoaderMessage('Carregando recursos...');
+    setLoaderMessage(t('common.loadingResources'));
 });

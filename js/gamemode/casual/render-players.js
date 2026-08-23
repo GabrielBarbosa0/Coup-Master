@@ -7,10 +7,15 @@
     uid: null
   });
 
+  function t(key, params = {}, fallback = '') {
+    const translated = root.CoupLanguage?.t?.(key, params);
+    return translated && translated !== key ? translated : fallback || key;
+  }
+
   function renderEmptyPlayerSlot(playerEl, pid) {
     playerEl.style.removeProperty('display');
     playerEl.classList.add('is-empty');
-    playerEl.setAttribute('aria-label', `Slot ${pid} vazio`);
+    playerEl.setAttribute('aria-label', t('casual.emptySlotAria', { seat: pid }, `Slot ${pid} vazio`));
     playerEl.style.boxShadow = '';
     playerEl.style.border = '';
 
@@ -34,7 +39,7 @@
     if (hand) {
       const emptyLabel = document.createElement('div');
       emptyLabel.className = 'empty-seat-label';
-      emptyLabel.textContent = 'Aguardando jogador';
+      emptyLabel.textContent = t('casual.waitingPlayer', {}, 'Aguardando jogador');
       hand.appendChild(emptyLabel);
     }
   }
@@ -106,8 +111,8 @@
 
     if (avatarImg) {
       avatarImg.src = player.photo || 'img/coup.png';
-      avatarImg.alt = `Perfil de ${player.name || 'Jogador ' + pid}`;
-      avatarImg.title = 'Ver perfil do jogador';
+      avatarImg.alt = t('ranked.profileOf', { name: player.name || t('casual.playerSeat', { seat: pid }, `Jogador ${pid}`) }, `Perfil de ${player.name || 'Jogador ' + pid}`);
+      avatarImg.title = t('ranked.viewPlayerProfile', {}, 'Ver perfil do jogador');
       avatarImg.style.cursor = 'pointer';
       avatarImg.tabIndex = 0;
       avatarImg.onclick = (event) => {
@@ -122,7 +127,7 @@
     }
 
     if (nameTxt) {
-      nameTxt.textContent = player.name || `Jogador ${pid}`;
+      nameTxt.textContent = player.name || t('casual.playerSeat', { seat: pid }, `Jogador ${pid}`);
       nameTxt.style.cursor = 'pointer';
       nameTxt.onclick = () => {
         if (typeof openQuickActions === 'function') openQuickActions(pid);
@@ -148,7 +153,7 @@
 
     religionIcon.src = iconPath;
     religionIcon.alt = player.religion;
-    religionIcon.title = isProtestante ? 'Protestante' : 'Cat\u00f3lico';
+    religionIcon.title = isProtestante ? t('casual.protestant', {}, 'Protestante') : t('casual.catholic', {}, 'Católico');
 
     religionIcon.onclick = (event) => {
       event.stopPropagation();
@@ -197,7 +202,7 @@
       return;
     }
 
-    playerEl.setAttribute('aria-label', player.name || `Jogador ${pid}`);
+    playerEl.setAttribute('aria-label', player.name || t('casual.playerSeat', { seat: pid }, `Jogador ${pid}`));
 
     if (pid === options.myPlayerId) {
       playerEl.classList.add('local-player');

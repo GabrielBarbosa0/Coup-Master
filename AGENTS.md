@@ -20,6 +20,7 @@ Pontos de entrada:
 Scripts principais:
 
 - `js/firebase/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
+- `js/i18n/language-service.js`: sistema global de idioma alternativo, carrega `lang/*.json`, aplica `data-i18n`, persiste idioma local e expoe `window.CoupLanguage.t()`.
 - `js/login/login-manager.js`: login Google/anonimo e persistencia de sessao local.
 - `js/gamemode/game-modes.js`: contrato compartilhado dos modos casual, ranqueado e Sala Personalizada.
 - `js/core/rules.js`: tipos de carta, criacao de deck e utilitarios.
@@ -83,6 +84,7 @@ Depois de alterar JavaScript, rode:
 
 ```powershell
 node --check js\firebase\firebase.js
+node --check js\i18n\language-service.js
 node --check js\gamemode\game-modes.js
 node --check js\core\rules.js
 node --check js\core\gameState.js

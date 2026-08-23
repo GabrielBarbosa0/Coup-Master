@@ -40,6 +40,11 @@
   let attachBalatroEffectHandler = null;
   let attachCompatiblePointerDragHandler = null;
 
+  function t(key, params = {}, fallback = '') {
+    const translated = root.CoupLanguage?.t?.(key, params);
+    return translated && translated !== key ? translated : fallback || key;
+  }
+
   function setup(options = {}) {
     if (typeof options.getState === 'function') getState = options.getState;
     if (typeof options.getMyPlayerId === 'function') getMyPlayerId = options.getMyPlayerId;
@@ -85,9 +90,12 @@
   }
 
   function getCardDisplayName(type) {
-    if (!type) return 'Carta';
+    if (!type) return t('ranked.cardFallback', {}, 'Carta');
 
     const normalizedType = String(type).toLowerCase();
+    const translated = t(`casual.cards.${normalizedType}`, {}, '');
+    if (translated) return translated;
+
     return CARD_DISPLAY_NAMES[normalizedType]
       || normalizedType.charAt(0).toUpperCase() + normalizedType.slice(1);
   }
@@ -157,7 +165,7 @@
   }
 
   function attachCardTooltip(element, card) {
-    const label = shouldShowBack(card) ? 'Carta oculta' : getCardDisplayName(card.type);
+    const label = shouldShowBack(card) ? t('ranked.hiddenCard', {}, 'Carta oculta') : getCardDisplayName(card.type);
     attachElementTooltip(element, label);
   }
 

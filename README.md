@@ -34,6 +34,7 @@ com foco em escalabilidade e consistência de estado.
 - Sincronização: Event-driven via listeners em tempo real
 - Chat: mensagens em tempo real da sala com atalhos rápidos
 - PWA: manifest + service worker para instalação e cache de assets locais
+- Idiomas: sistema i18n com dicionários JSON para `pt-BR` e `en-US`
 - Monetizacao: banner responsivo do Google AdSense na sala de espera ranqueada
 
 > O PWA melhora instalação, abertura em modo standalone e cache do shell. O multiplayer continua exigindo conexão com Firebase.
@@ -99,6 +100,8 @@ com foco em escalabilidade e consistência de estado.
 * **Sistema de Salas Privadas:** Criação e entrada em salas via códigos únicos de 4 dígitos com função de cópia rápida no cabeçalho.
 * **Modo Ranqueado Beta:** Tela e fluxo próprios para contas Google, sem host, com matchmaking simulado que preenche a mesa com bots IA de personalidade sorteada antes da partida. Turnos, custos, alvos, contestações, bloqueios, perdas de influência e tempos de resposta são controlados pelo sistema. Rating e leaderboard continuam suspensos até existir validação autoritativa antifraude.
 * **Sala Personalizada:** Fluxo paralelo criado a partir do ranqueado automatizado, usando `mode = "personalized"` e `personalizedState` para permitir evoluir salas com amigos e bots sem alterar os arquivos do ranqueado.
+* **Idioma Alternativo:** Interface preparada para alternar entre Português do Brasil e Inglês, com preferência salva localmente e dicionários em JSON.
+* **Carregamento sem Flicker de Idioma:** Telas de loading e páginas legais respeitam o idioma salvo desde a primeira renderização para evitar piscadas temporárias em português quando o usuário usa inglês.
 * **Banner AdSense na Espera Ranqueada:** Slot responsivo de publicidade carregado apenas em `ranked/ranked-waiting.html`, antes da partida ativa.
 * **Controle de Áudio Integrado:** Música de fundo e efeitos sonoros sincronizados para ações como compra de cartas, moedas e impacto.
 * **Gestão de Bots:** Capacidade de usar bots para testes de mesa, com controle manual concentrado na Sala Personalizada e preenchimento automático no ranqueado.
@@ -110,6 +113,7 @@ com foco em escalabilidade e consistência de estado.
 
 - **Frontend:** HTML5, CSS3 (Flexbox/Grid), Vanilla JavaScript (ES Modules)
 - **Arquitetura:** Modular com separação de responsabilidades
+- **Internacionalização:** Dicionários JSON em `lang/` com serviço i18n client-side
 - **Backend (BaaS):** Firebase Realtime Database
 - **Autenticação:** Firebase Authentication (Google Provider + Anonymous Provider)
 - **Hospedagem:** GitHub Pages
@@ -136,6 +140,8 @@ O projeto segue uma arquitetura modular com separação clara de responsabilidad
 - **js/gamemode/game-modes.js** → Contrato compartilhado dos modos Casual, Ranqueado e Sala Personalizada
 - **rules.js** → Constantes e manipulação estrutural do baralho
 - **gameState.js** → Gerenciamento de estado e transações Firebase
+- **js/i18n/initial-language.js** → Define o idioma inicial antes da primeira pintura visível da interface
+- **js/i18n/language-service.js** → Carrega dicionários JSON, aplica traduções e sincroniza seletores de idioma
 - **js/gamemode/casual/audio-service.js** → Audio casual, BGM, volume e sincronizacao de efeitos
 - **js/gamemode/casual/card-preview.js** → Preview ampliado de cartas e flip do modal
 - **js/gamemode/casual/modal-service.js** → Helpers compartilhados de abertura e fechamento de modais
@@ -199,6 +205,9 @@ Coup-Master/
 │   │   └── rules.js            # Definição matemática de cartas e baralhos
 │   ├── 📂 firebase/            # Infraestrutura Firebase
 │   │   └── firebase.js         # Inicialização e conexões com o banco de dados
+│   ├── 📂 i18n/                # Sistema de idioma client-side
+│   │   ├── initial-language.js # Define idioma inicial antes da renderização
+│   │   └── language-service.js # Carrega JSONs e aplica traduções na UI
 │   ├── 📂 gamemode/            # Lógicas específicas por modo de jogo
 │   │   ├── 📂 casual/          # Scripts dedicados à mesa clássica casual
 │   │   │   ├── audio-service.js # Audio casual e sincronizacao SFX
@@ -238,6 +247,16 @@ Coup-Master/
 │       ├── ad-slots.js         # Renderizacao dos slots AdSense
 │       ├── background-audio-guard.js
 │       └── selection-lock.js
+├── 📂 lang/                    # Dicionários de tradução
+│   ├── pt-BR.json              # Texto base em português do Brasil
+│   └── en-US.json              # Tradução em inglês
+├── 📂 lab/                     # Laboratórios HTML isolados para testes visuais
+│   ├── loading-lab.html        # Testes de tela de carregamento
+│   ├── lab-cards.html          # Testes de efeito Balatro/perspectiva
+│   ├── card-physics.html       # Testes de física de cartas
+│   ├── card-physics-balatro.html # Combinação de física e perspectiva
+│   ├── rules-flipbook.html     # Protótipo de manual em formato livro
+│   └── landing.html            # Landing experimental
 ├── 📄 index.html               # Tabuleiro principal do jogo em modo normal 2D
 ├── 📄 login.html               # Tela de autenticação Google/visitante
 ├── 📄 lobby.html               # Perfil autenticado, criação e entrada em salas
@@ -258,10 +277,12 @@ Coup-Master/
 * **`assets/img/cards/`**: Organizado estrategicamente em subpastas (`base`, `promo`, `dlc1`, `dlc2`) para permitir que o renderer de cartas (`render-cards.js`) monte dinamicamente as URLs das texturas com base no tipo e na expansão configurada nos presets de baralho.
 * **`js/core/`**: Funciona como o motor lógico invisível do jogo. O `gameState.js` escuta e injeta alterações diretamente no Firebase, garantindo que o jogo funcione como um sandbox em tempo real.
 * **`js/firebase/`**: Centraliza a inicialização do Firebase e expõe `window.db` e `window.auth` para os demais scripts.
+* **`js/i18n/` e `lang/`**: Mantêm o sistema de idioma alternativo. `initial-language.js` aplica o idioma salvo cedo para reduzir flicker, enquanto `language-service.js` carrega `pt-BR.json` e `en-US.json`, traduz atributos `data-i18n*` e atualiza seletores de idioma.
 * **`js/gamemode/casual/`**: Concentra a mesa casual. `board-renderer.js` atua como coordenador principal, chamando setup dos modulos e preservando `renderAll`, `setupUI` e `setupAutoScroll` para `gameState.js`. `audio-service.js` centraliza BGM/efeitos, `card-preview.js` cuida do preview ampliado, `modal-service.js` padroniza modais, `chat-service.js` controla o chat em tempo real, `board-status.js` atualiza contadores e codigo da sala, `visual-effects.js` centraliza efeito Balatro e leques, `admin-controls.js` controla a UI de host, `rules-guides.js` gerencia guias de acoes/personagens e regras alternativas, `spectator-service.js` controla o fluxo de espectador, `quick-actions.js` gerencia perfil rapido e acoes rapidas, `settings-service.js` centraliza preferencias locais, `room-ui.js` agrupa sair da sala, fullscreen, feedback e configuracoes simples, `asylum-controls.js` centraliza duplo clique, botoes e tooltip do asilo, `tutorial-service.js` controla o tutorial inicial e `tutorialSeen`, `deck-presets.js` concentra presets de baralho, `drag-drop.js` centraliza o arraste legado e compativel, `render-cards.js` monta as cartas visuais, `render-players.js` renderiza os slots de jogadores e `table-render.js` renderiza a area central do tabuleiro.
 * **`js/gamemode/ranked/`**: Concentra o fluxo automatizado do modo ranqueado, incluindo regras, máquina de estados, renderização e integração Firebase.
 * **`js/gamemode/personalized/`**: Mantém a primeira cópia isolada da Sala Personalizada, permitindo evoluir convites, bots e controles próprios sem renomear o ranqueado atual.
 * **`js/ui/`**: Centraliza utilitarios de interface compartilhados, incluindo protecao de audio em background, bloqueio de selecao e renderizacao dos slots AdSense.
+* **`lab/`**: Guarda protótipos visuais independentes, como laboratórios de loading, física de cartas, efeito Balatro, landing experimental e manual flipbook.
 * **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
 
 ### Documentos legais
@@ -269,6 +290,21 @@ Coup-Master/
 O projeto possui páginas públicas para a **Política de Privacidade** (`legal/privacy.html`) e os **Termos de Serviço** (`legal/terms.html`). Os links ficam no rodapé de `login.html` e `lobby.html`, fora das telas de partida e da sala de espera ranqueada, para manter o jogo limpo e ainda permitir consulta antes da entrada em salas.
 
 Esses textos são uma base operacional para o beta do Coup Master e devem passar por revisão jurídica antes de uso comercial ou coleta ampliada de dados.
+
+---
+
+### Internacionalização
+
+O Coup Master possui suporte inicial a idiomas com dicionários JSON:
+
+- `lang/pt-BR.json`: idioma base do projeto.
+- `lang/en-US.json`: tradução em inglês.
+- `js/i18n/initial-language.js`: roda cedo no `<head>` para aplicar o idioma salvo antes da primeira renderização.
+- `js/i18n/language-service.js`: carrega os dicionários, aplica textos por atributos `data-i18n*` e sincroniza os seletores de idioma.
+
+A preferência do usuário fica salva em `localStorage` na chave `coupMasterLanguage`. O seletor de idioma aparece no lobby e dentro das configurações das mesas casual, ranqueada e personalizada.
+
+Ao adicionar texto novo na interface, prefira criar uma chave nos dois arquivos de `lang/` e ligar o elemento com `data-i18n`, `data-i18n-placeholder`, `data-i18n-title`, `data-i18n-aria-label`, `data-i18n-alt`, `data-i18n-value` ou `data-i18n-content`. Telas de carregamento e páginas legais usam bloqueios visuais temporários para evitar flicker de idioma enquanto o JSON é carregado.
 
 ---
 

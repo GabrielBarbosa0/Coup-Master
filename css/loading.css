@@ -4,15 +4,11 @@
 
 :root {
     --loading-bg: #14171e;
-    --loading-panel-bg: #0f141c;
-    --loading-panel-border: rgba(255, 255, 255, 0.12);
-    --loading-panel-shadow: 0 20px 45px rgba(0, 0, 0, 0.28);
-    --loading-panel-width: min(90vw, 520px);
-    --loading-panel-min-height: 172px;
-    --loading-panel-padding: 32px 36px;
-    --loading-panel-radius: 10px;
-    --loading-title-size: clamp(42px, 8vw, 58px);
+    --loading-panel-width: min(90vw, 360px);
+    --loading-panel-min-height: 148px;
+    --loading-panel-padding: 26px 22px;
     --loading-message-size: 13px;
+    --loading-spinner-size: 58px;
 }
 
 html,
@@ -96,38 +92,65 @@ textarea::-moz-selection,
     min-height: var(--loading-panel-min-height);
     padding: var(--loading-panel-padding);
     text-align: center;
-    background: var(--loading-panel-bg);
-    border: 1px solid var(--loading-panel-border);
-    border-radius: var(--loading-panel-radius);
-    box-shadow: var(--loading-panel-shadow);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 15px;
+    box-sizing: border-box;
+}
+
+.loader-content::before,
+.game-loading-content::before {
+    content: "";
+    width: var(--loading-spinner-size);
+    height: var(--loading-spinner-size);
+    border: 3px solid rgba(230, 238, 246, 0.12);
+    border-top-color: var(--accent, #1e90ff);
+    border-right-color: rgba(30, 144, 255, 0.68);
+    border-radius: 50%;
+    filter: drop-shadow(0 0 8px rgba(30, 144, 255, 0.32));
+    animation: loadingSpin 0.92s linear infinite;
     box-sizing: border-box;
 }
 
 .loader-content h1,
 .game-loading-content h1 {
-    font-family: 'Tilda Script', 'Cinzel', cursive !important;
-    font-weight: normal;
-    font-size: var(--loading-title-size);
-    line-height: 1.1;
-    margin: 0 0 18px;
-    letter-spacing: 0;
-    animation: none;
+    display: none;
 }
 
 .loader-content p,
 .game-loading-content p {
-    font-family: 'Cinzel', serif !important;
+    font-family: Georgia, "Times New Roman", serif !important;
     font-size: var(--loading-message-size);
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 0.4px;
     color: rgba(230, 238, 246, 0.78);
     margin: 0;
     opacity: 1;
     text-transform: uppercase;
+}
+
+[data-loading-lang="en-US"] {
+    display: none;
+}
+
+html[data-loading-language="en-US"] [data-loading-lang="pt-BR"] {
+    display: none;
+}
+
+html[data-loading-language="en-US"] [data-loading-lang="en-US"] {
+    display: inline;
+}
+
+@keyframes loadingSpin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (max-width: 480px) {

@@ -5,6 +5,11 @@
     return document.getElementById(id);
   }
 
+  function t(key, params = {}, fallback = '') {
+    const translated = root.CoupLanguage?.t?.(key, params);
+    return translated && translated !== key ? translated : fallback || key;
+  }
+
   function callHandler(name, ...args) {
     const handler = config[name] || root[name];
     if (typeof handler === 'function') return handler(...args);
@@ -24,7 +29,7 @@
     const asylumImage = asylumArea.querySelector('.asylum-image-wrapper img');
 
     if (asylumImageWrapper) {
-      attachTooltip(asylumImageWrapper, 'Asilo');
+      attachTooltip(asylumImageWrapper, t('casual.asylum', {}, 'Asilo'));
     }
 
     if (asylumImage) {

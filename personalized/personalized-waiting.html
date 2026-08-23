@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-i18n-title="personalizedWaiting.title">
 
 <head>
     <meta charset="utf-8">
@@ -15,8 +15,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
+    <script src="js/i18n/initial-language.js?v=i18n-v3"></script>
 
-    <link rel="stylesheet" href="css/loading.css?v=selection-lock-v1">
+    <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v2">
     <link rel="stylesheet" href="css/ranked-mode.css?v=personalized-kick-icon-v1">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
     <link rel="stylesheet" href="css/ads.css?v=ads-disabled-v1">
@@ -29,97 +30,102 @@
 <body data-rank-view="waiting">
     <div id="rankLoading" class="game-loading-overlay">
         <div class="game-loading-content">
-            <h1>Coup Master</h1>
-            <p id="rankLoadingMessage">Entrando na sala personalizada...</p>
+            <p id="rankLoadingMessage" data-i18n="personalizedWaiting.loading"><span data-loading-lang="pt-BR">Entrando na sala personalizada...</span><span data-loading-lang="en-US">Entering custom room...</span></p>
         </div>
     </div>
 
     <main class="rank-shell rank-waiting-shell">
         <header class="rank-header rank-waiting-header">
             <div class="rank-header-actions rank-room-actions">
-                <button id="leaveRankBtn" class="rank-icon-btn" type="button" title="Sair da Sala">
-                    <img src="assets/img/icons/logout.svg" alt="Sair">
+                <button id="leaveRankBtn" class="rank-icon-btn" type="button" title="Sair da Sala"
+                    data-i18n-title="ranked.leaveRoom">
+                    <img src="assets/img/icons/logout.svg" alt="Sair" data-i18n-alt="ranked.leaveRoom">
                 </button>
             </div>
 
             <div class="rank-waiting-room">
-                <span id="rankConnectionStatus" class="rank-connection-status">Conectando...</span>
+                <span id="rankConnectionStatus" class="rank-connection-status" data-i18n="ranked.connecting">Conectando...</span>
             </div>
         </header>
 
         <section class="rank-waiting-card" aria-live="polite">
             <div>
-                <span class="rank-kicker">Sala personalizada</span>
-                <h1 id="rankPhaseTitle">Aguardando jogadores</h1>
-                <p id="rankPhaseDescription" class="rank-phase-description">Todos os jogadores precisam confirmar prontidão para iniciar.</p>
+                <span class="rank-kicker" data-i18n="personalizedWaiting.kicker">Sala personalizada</span>
+                <h1 id="rankPhaseTitle" data-i18n="personalizedWaiting.waitingTitle">Aguardando jogadores</h1>
+                <p id="rankPhaseDescription" class="rank-phase-description" data-i18n="personalizedWaiting.waitingDescription">Todos os jogadores precisam confirmar prontidão para iniciar.</p>
             </div>
-            <aside class="rank-waiting-invite" aria-label="Convite da sala por QR Code">
-                <button id="rankRoomCode" class="rank-room-code" type="button" title="Copiar código da sala">Sala: ----</button>
-                <img id="rankRoomQr" alt="QR Code para entrar nesta sala personalizada">
-                <span>Escaneie para entrar</span>
+            <aside class="rank-waiting-invite" aria-label="Convite da sala por QR Code"
+                data-i18n-aria-label="ranked.roomInviteQr">
+                <button id="rankRoomCode" class="rank-room-code" type="button" title="Copiar código da sala"
+                    data-i18n-title="ranked.copyRoomCode">Sala: ----</button>
+                <img id="rankRoomQr" alt="QR Code para entrar nesta sala personalizada" data-i18n-alt="personalizedWaiting.qrAlt">
+                <span data-i18n="ranked.scanToJoin">Escaneie para entrar</span>
             </aside>
             <div id="rankInteraction" class="rank-interaction rank-waiting-interaction"></div>
         </section>
 
-        <section id="rankPlayers" class="rank-players rank-waiting-players" aria-label="Jogadores da sala personalizada"></section>
-        <section class="coup-ad-slot coup-ad-slot-rank-waiting" data-ad-slot-key="rankedWaiting" data-ad-status="disabled" aria-label="Publicidade na sala de espera personalizada"></section>
+        <section id="rankPlayers" class="rank-players rank-waiting-players" aria-label="Jogadores da sala personalizada"
+            data-i18n-aria-label="personalizedWaiting.playersLabel"></section>
+        <section class="coup-ad-slot coup-ad-slot-rank-waiting" data-ad-slot-key="rankedWaiting" data-ad-status="disabled"
+            aria-label="Publicidade na sala de espera personalizada" data-i18n-aria-label="personalizedWaiting.adLabel"></section>
     </main>
 
     <div id="rankErrorModal" class="rank-modal-overlay" hidden>
         <section class="rank-modal rank-error-modal" role="alertdialog" aria-modal="true" aria-labelledby="rankErrorTitle">
-            <span class="rank-kicker">Atenção</span>
-            <h2 id="rankErrorTitle">Não foi possível continuar</h2>
+            <span class="rank-kicker" data-i18n="common.attention">Atenção</span>
+            <h2 id="rankErrorTitle" data-i18n="ranked.errorTitle">Não foi possível continuar</h2>
             <p id="rankErrorText"></p>
-            <button id="rankErrorConfirm" class="rank-primary-btn" type="button">Entendi</button>
+            <button id="rankErrorConfirm" class="rank-primary-btn" type="button" data-i18n="ranked.understood">Entendi</button>
         </section>
     </div>
 
     <div id="rankAddAiModal" class="rank-modal-overlay" hidden>
         <section class="rank-modal rank-add-ai-modal" role="dialog" aria-modal="true" aria-labelledby="rankAddAiTitle">
-            <button id="closeRankAddAiBtn" class="rank-close-btn" type="button" aria-label="Fechar">&times;</button>
-            <span class="rank-kicker">Jogador IA</span>
-            <h2 id="rankAddAiTitle">Adicionar bot</h2>
-            <p class="rank-phase-description">
+            <button id="closeRankAddAiBtn" class="rank-close-btn" type="button" aria-label="Fechar"
+                data-i18n-aria-label="common.close">&times;</button>
+            <span class="rank-kicker" data-i18n="ranked.aiPlayer">Jogador IA</span>
+            <h2 id="rankAddAiTitle" data-i18n="ranked.addBot">Adicionar bot</h2>
+            <p class="rank-phase-description" data-i18n="ranked.addBotDescription">
                 Defina o nome e, se quiser, ajuste a personalidade. Sem ajuste manual, o sistema escolhe os valores.
             </p>
 
             <form id="rankAddAiForm" class="rank-add-ai-form">
                 <label class="rank-field">
-                    <span>Nome do bot</span>
+                    <span data-i18n="ranked.botName">Nome do bot</span>
                     <div class="rank-ai-name-row">
                         <input id="rankAiName" type="text" maxlength="24" autocomplete="off" required>
-                        <button id="rankRandomAiNameBtn" class="rank-secondary-btn" type="button">Aleatório</button>
+                        <button id="rankRandomAiNameBtn" class="rank-secondary-btn" type="button" data-i18n="ranked.random">Aleatório</button>
                     </div>
                 </label>
 
                 <label class="rank-toggle-field">
                     <input id="rankChooseAiPersonality" type="checkbox">
-                    <span>Escolher personalidade manualmente</span>
+                    <span data-i18n="ranked.manualPersonality">Escolher personalidade manualmente</span>
                 </label>
 
                 <div id="rankAiPersonalityFields" class="rank-ai-personality-fields is-disabled">
                     <label class="rank-range-field">
-                        <span>Vingança <strong id="rankAiVengefulnessValue">50%</strong></span>
+                        <span data-i18n-label="ranked.vengefulness">Vingança <strong id="rankAiVengefulnessValue">50%</strong></span>
                         <input id="rankAiVengefulness" type="range" min="0" max="100" value="50">
-                        <small>Prioriza jogadores que prejudicaram o bot.</small>
+                        <small data-i18n="ranked.vengefulnessHelp">Prioriza jogadores que prejudicaram o bot.</small>
                     </label>
 
                     <label class="rank-range-field">
-                        <span>Honestidade <strong id="rankAiHonestyValue">50%</strong></span>
+                        <span data-i18n-label="ranked.honesty">Honestidade <strong id="rankAiHonestyValue">50%</strong></span>
                         <input id="rankAiHonesty" type="range" min="0" max="100" value="50">
-                        <small>Quanto maior, menos o bot blefa.</small>
+                        <small data-i18n="ranked.honestyHelp">Quanto maior, menos o bot blefa.</small>
                     </label>
 
                     <label class="rank-range-field">
-                        <span>Ceticismo <strong id="rankAiSkepticismValue">50%</strong></span>
+                        <span data-i18n-label="ranked.skepticism">Ceticismo <strong id="rankAiSkepticismValue">50%</strong></span>
                         <input id="rankAiSkepticism" type="range" min="0" max="100" value="50">
-                        <small>Quanto maior, mais o bot contesta e evita bloqueios prováveis.</small>
+                        <small data-i18n="ranked.skepticismHelp">Quanto maior, mais o bot contesta e evita bloqueios prováveis.</small>
                     </label>
                 </div>
 
                 <div class="rank-modal-actions">
-                    <button class="rank-secondary-btn" type="button" id="closeRankAddAiBtnSecondary">Cancelar</button>
-                    <button class="rank-primary-btn" type="submit">Adicionar</button>
+                    <button class="rank-secondary-btn" type="button" id="closeRankAddAiBtnSecondary" data-i18n="ranked.cancel">Cancelar</button>
+                    <button class="rank-primary-btn" type="submit" data-i18n="ranked.add">Adicionar</button>
                 </div>
             </form>
         </section>
@@ -127,16 +133,16 @@
 
     <div id="kickPlayerModal" class="modal-overlay" style="display: none;">
         <div class="modal-content standard-modal-content" style="text-align: center;">
-            <h2 class="config-title">Remover Jogador?</h2>
+            <h2 class="config-title" data-i18n="personalizedWaiting.removePlayerTitle">Remover Jogador?</h2>
             <p id="kickPlayerText" class="config-p-title"
                 style="font-size: 14px; opacity: 0.7; margin-bottom: 20px; margin-top: 20px;">
                 Tem certeza que deseja remover este jogador da sala?
             </p>
             <div style="display: flex; gap: 10px; justify-content: center;">
                 <button id="confirmKickBtn" class="icon-btn"
-                    style="background: #ff3b3b; color: #fff; flex: 1; justify-content: center; font-weight: bold; border: none;">REMOVER</button>
+                    style="background: #ff3b3b; color: #fff; flex: 1; justify-content: center; font-weight: bold; border: none;" data-i18n="personalizedWaiting.remove">REMOVER</button>
                 <button id="cancelKickBtn" class="icon-btn"
-                    style="background: rgba(255,255,255,0.1); flex: 1; justify-content: center; border: none;">CANCELAR</button>
+                    style="background: rgba(255,255,255,0.1); flex: 1; justify-content: center; border: none;" data-i18n="ranked.cancel">CANCELAR</button>
             </div>
         </div>
     </div>
@@ -150,6 +156,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/ui/selection-lock.js?v=selection-lock-v1" defer></script>
+    <script src="js/i18n/language-service.js?v=i18n-v3" defer></script>
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/ui/ad-slots.js?v=ads-disabled-v1" defer></script>

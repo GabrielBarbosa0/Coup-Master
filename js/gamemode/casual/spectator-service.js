@@ -3,6 +3,11 @@
     return document.getElementById(id);
   }
 
+  function t(key, params = {}, fallback = '') {
+    const translated = root.CoupLanguage?.t?.(key, params);
+    return translated && translated !== key ? translated : fallback || key;
+  }
+
   function play(options, soundId) {
     const handler = options.playSound || root.playSound;
     if (typeof handler === 'function') handler(soundId);
@@ -30,7 +35,7 @@
     avatar.alt = '';
 
     const name = document.createElement('span');
-    name.textContent = player.name || `Jogador ${pid}`;
+    name.textContent = player.name || t('casual.playerSeat', { seat: pid }, `Jogador ${pid}`);
 
     button.append(avatar, name);
     button.onclick = () => {
@@ -45,7 +50,7 @@
   function renderEmptyState(list) {
     const emptyMessage = document.createElement('p');
     emptyMessage.className = 'muted spectator-empty-message';
-    emptyMessage.textContent = 'N\u00e3o tem jogadores dispon\u00edveis.';
+    emptyMessage.textContent = t('casual.noAvailablePlayers', {}, 'Não tem jogadores disponíveis.');
     list.appendChild(emptyMessage);
   }
 

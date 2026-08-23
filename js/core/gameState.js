@@ -17,7 +17,7 @@ const currentUser = {
 // 3. Validação de Segurança: Redireciona se os dados obrigatórios estiverem ausentes
 if (!roomCode || !currentUser.uid) {
   const loadingMessage = document.getElementById('game-loading-message');
-  if (loadingMessage) loadingMessage.textContent = 'Retornando ao lobby...';
+  if (loadingMessage) loadingMessage.textContent = window.CoupLanguage?.t('casual.returningLobby') || 'Retornando ao lobby...';
   window.location.href = 'lobby.html';
 }
 

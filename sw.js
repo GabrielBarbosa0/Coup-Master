@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coup-master-pwa-v106';
+const CACHE_NAME = 'coup-master-pwa-v110';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '::1', '[::1]'];
 const IS_LOCALHOST = LOCAL_HOSTNAMES.includes(new URL(self.location.href).hostname);
 
@@ -21,6 +21,10 @@ const APP_SHELL = [
   './css/compat.css',
   './css/casual-mode.css',
   './js/pwa/pwa.js',
+  './js/i18n/initial-language.js',
+  './js/i18n/language-service.js',
+  './lang/pt-BR.json',
+  './lang/en-US.json',
   './js/firebase/firebase.js',
   './js/login/login-manager.js',
   './js/core/rules.js',
