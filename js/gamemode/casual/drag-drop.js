@@ -53,9 +53,11 @@
     const sourceRect = sourceElement.getBoundingClientRect();
     const computedStyle = window.getComputedStyle(sourceElement);
     const ghost = sourceElement.cloneNode(true);
+    const isDeckGhost = sourceElement.id === 'deck';
 
     ghost.removeAttribute('id');
     ghost.setAttribute('aria-hidden', 'true');
+    if (isDeckGhost) ghost.replaceChildren();
     ghost.classList.remove('balatro-effect', 'is-tilting', 'is-dragging', 'lifting');
     ghost.classList.add('compatible-drag-ghost');
     ghost.style.width = `${sourceRect.width}px`;
@@ -68,6 +70,8 @@
     ghost.style.backgroundRepeat = computedStyle.backgroundRepeat;
     ghost.style.borderRadius = computedStyle.borderRadius;
     ghost.style.border = computedStyle.border;
+    ghost.style.color = 'transparent';
+    ghost.style.textIndent = '-9999px';
     ghost.style.overflow = 'hidden';
     ghost.style.left = `${pointerEvent.clientX}px`;
     ghost.style.top = `${pointerEvent.clientY}px`;

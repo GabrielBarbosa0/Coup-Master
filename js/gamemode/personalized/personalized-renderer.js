@@ -415,12 +415,20 @@
         if (cardInteractionsBound) return;
         cardInteractionsBound = true;
 
+        document.addEventListener('dragstart', (event) => {
+            if (!event.target.closest('.rank-card, img')) return;
+            event.preventDefault();
+        });
+
         document.addEventListener('contextmenu', (event) => {
-            if (event.pointerType === 'touch' || event.pointerType === 'pen') return;
             const cardElement = event.target.closest('.rank-card');
-            if (!cardElement) return;
+            const rankImage = event.target.closest('img');
+            if (!cardElement && !rankImage) return;
 
             event.preventDefault();
+            if (event.pointerType === 'touch' || event.pointerType === 'pen') return;
+            if (!cardElement) return;
+
             hideRankCardTooltip();
             openRankCardPreviewModal({
                 label: cardElement.dataset.cardLabel || t('ranked.hiddenCard', {}, 'Carta oculta'),
@@ -1025,6 +1033,7 @@
         const previewImage = isVisible ? role.image : 'assets/img/cards/base/back.png';
         image.src = previewImage;
         image.alt = label;
+        image.draggable = false;
         wrapper.dataset.cardId = card.id || '';
         wrapper.dataset.previewImage = previewImage;
         wrapper.dataset.previewHidden = isVisible ? 'false' : 'true';

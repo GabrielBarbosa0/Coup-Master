@@ -265,6 +265,17 @@ textarea::-moz-selection,
     filter: brightness(0) invert(1);
 }
 
+.rank-shell img,
+.rank-floating-panels img,
+.rank-card,
+.rank-card img {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 .musicBtn.muted {
     opacity: 0.55;
 }
