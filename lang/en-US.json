@@ -834,6 +834,120 @@
     "turnLog": "Turn {turn}",
     "noMessages": "No messages yet."
   },
+  "rankedCallouts": {
+    "income": {
+      "0": "Income",
+      "1": "I'll take income",
+      "2": "+1 coin",
+      "3": "Just one coin",
+      "4": "Simple start"
+    },
+    "foreignAid": {
+      "0": "Foreign Aid",
+      "1": "I'll ask for Foreign Aid",
+      "2": "Aid from the treasury",
+      "3": "I need two coins"
+    },
+    "coup": {
+      "0": "Coup!",
+      "1": "I launch a Coup!",
+      "2": "No negotiation",
+      "3": "Put a card on the table",
+      "4": "Put it on the table!",
+      "5": "Coup now!",
+      "6": "No talking!"
+    },
+    "tax": {
+      "0": "I am the Duke",
+      "1": "I have the Duke",
+      "2": "Duke",
+      "3": "Tax",
+      "4": "Duke coffers"
+    },
+    "steal": {
+      "0": "I am the Captain",
+      "1": "I'll Steal",
+      "2": "As Captain...",
+      "3": "Two coins over here",
+      "4": "Captain collects"
+    },
+    "assassinate": {
+      "0": "I am the Assassin",
+      "1": "Put it on the table",
+      "2": "Contract accepted",
+      "3": "Die!",
+      "4": "End of the line",
+      "5": "Assassin at the table"
+    },
+    "exchangeAmbassador": {
+      "0": "I am the Ambassador",
+      "1": "I'll exchange",
+      "2": "I'll draw two cards",
+      "3": "Time to exchange"
+    },
+    "exchangeInquisitor": {
+      "0": "I am the Inquisitor",
+      "1": "I'll exchange",
+      "2": "I'll draw one card",
+      "3": "Time to exchange"
+    },
+    "examine": {
+      "0": "I'll investigate",
+      "1": "Let me see your card",
+      "2": "Show that influence",
+      "3": "The Inquisitor wants to see"
+    },
+    "block": {
+      "0": "I block",
+      "1": "Block",
+      "2": "Not happening",
+      "3": "Nope, I block...",
+      "4": "I have an answer",
+      "5": "That won't pass"
+    },
+    "contessaBlock": {
+      "0": "I have the Contessa",
+      "1": "I am the Contessa",
+      "2": "Contessa blocks",
+      "3": "Blocking with Contessa",
+      "4": "Assassination denied"
+    },
+    "challenge": {
+      "0": "I challenge!",
+      "1": "Challenge...",
+      "2": "CHALLENGE!",
+      "3": "I doubt it!",
+      "4": "Show it then!",
+      "5": "I want to see that card"
+    },
+    "pass": {
+      "0": "Pass",
+      "1": "Fine",
+      "2": "I'll believe it",
+      "3": "No way, but OK!",
+      "4": "Uh oh...",
+      "5": "Ok lol",
+      "6": "Go on",
+      "7": "I'll let it pass",
+      "8": "Hmm..."
+    },
+    "proven": {
+      "0": "Too bad for you",
+      "1": "Here it is",
+      "2": "I really had it lol",
+      "3": "I never lie",
+      "4": "That was rough",
+      "5": "It was true",
+      "6": "Card on the table"
+    },
+    "bluff": {
+      "0": "Liar",
+      "1": "Got you",
+      "2": "I knew it",
+      "3": "It was a bluff",
+      "4": "Caught"
+    }
+  },
   "rankedLog": {
     "roomReset": "Room reset for a new match.",
     "rankedStarted": "The ranked match has started. Drawing the first player.",

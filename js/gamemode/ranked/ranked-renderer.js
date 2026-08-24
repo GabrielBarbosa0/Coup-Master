@@ -31,6 +31,10 @@
     let rankProfileLoadKey = 0;
     let sideStackResizeObserver = null;
     let languageEventsBound = false;
+    let rankCalloutLogInitialized = false;
+    const seenRankCalloutLogIds = new Set();
+    const rankPlayerCallouts = new Map();
+    const rankCalloutTimers = new Map();
 
     const TENSION_FADE_IN_MS = 900;
     const TENSION_FADE_OUT_MS = 1400;
@@ -39,6 +43,7 @@
     const RANK_BGM_POSITION_KEY = 'rankBgmPosition';
     const DEFAULT_RANK_MUSIC_VOLUME = 0.1;
     const DEFAULT_RANK_SFX_VOLUME = 0.2;
+    const RANK_CALLOUT_DURATION_MS = 2800;
     const RANK_BALATRO_HOVER = Object.freeze({
         tilt: 36,
         glowOffset: 23.4
@@ -98,6 +103,40 @@
         'Inquisidor': 'inquisidor'
     });
 
+    const CALLOUT_ACTION_KEYS = Object.freeze({
+        'Renda': 'income',
+        'Ajuda externa': 'foreignAid',
+        'Golpe de Estado': 'coup',
+        'Taxar': 'tax',
+        'Extorquir': 'steal',
+        'Assassinar': 'assassinate',
+        'Trocar (Embaixador)': 'exchangeAmbassador',
+        'Trocar (Inquisidor)': 'exchangeInquisitor',
+        'Investigar': 'examine'
+    });
+
+    function calloutKeys(group, count) {
+        return Array.from({ length: count }, (_, index) => `rankedCallouts.${group}.${index}`);
+    }
+
+    const CALLOUT_VARIANTS = Object.freeze({
+        income: calloutKeys('income', 5),
+        foreignAid: calloutKeys('foreignAid', 4),
+        coup: calloutKeys('coup', 7),
+        tax: calloutKeys('tax', 5),
+        steal: calloutKeys('steal', 5),
+        assassinate: calloutKeys('assassinate', 6),
+        exchangeAmbassador: calloutKeys('exchangeAmbassador', 4),
+        exchangeInquisitor: calloutKeys('exchangeInquisitor', 4),
+        examine: calloutKeys('examine', 4),
+        block: calloutKeys('block', 6),
+        contessaBlock: calloutKeys('contessaBlock', 5),
+        challenge: calloutKeys('challenge', 6),
+        pass: calloutKeys('pass', 9),
+        proven: calloutKeys('proven', 7),
+        bluff: calloutKeys('bluff', 5)
+    });
+
     function translateLoggedAction(label) {
         const actionKey = LOG_ACTION_KEYS[String(label || '').trim()];
         return actionKey ? actionLabel(actionKey) : label;
@@ -106,6 +145,124 @@
     function translateLoggedRole(label) {
         const roleKey = LOG_ROLE_KEYS[String(label || '').trim()];
         return roleKey ? roleLabel(roleKey) : label;
+    }
+
+    function getLogEntryKey(entry) {
+        return entry?.id || `${entry?.turn || 0}:${entry?.createdAt || 0}:${entry?.type || 'info'}:${entry?.message || ''}`;
+    }
+
+    function hashString(value) {
+        return String(value || '').split('').reduce((hash, char) => {
+            return ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+        }, 0);
+    }
+
+    function pickCalloutText(group, entryKey) {
+        const keys = CALLOUT_VARIANTS[group] || [];
+        if (!keys.length) return '';
+        const index = Math.abs(hashString(entryKey)) % keys.length;
+        return t(keys[index], {}, keys[index]);
+    }
+
+    function findPlayerByLogName(name) {
+        const normalized = String(name || '').trim();
+        if (!normalized) return null;
+        return Engine.getPlayers(state).find((player) => String(player.name || '').trim() === normalized) || null;
+    }
+
+    function buildRankCallout(entry) {
+        const message = String(entry?.message || '').trim();
+        const key = getLogEntryKey(entry);
+        let match = null;
+
+        if (entry?.type === 'action') {
+            match = message.match(/^(.+) escolheu (.+?) contra .+\.$/) || message.match(/^(.+) escolheu (.+?)\.$/);
+            if (!match) return null;
+            const player = findPlayerByLogName(match[1]);
+            const group = CALLOUT_ACTION_KEYS[String(match[2] || '').trim()];
+            if (!player || !group) return null;
+            return { uid: player.uid, text: pickCalloutText(group, key), kind: group === 'coup' ? 'coup' : 'action' };
+        }
+
+        if (entry?.type === 'block') {
+            match = message.match(/^(.+) bloqueou com (.+)\.$/);
+            if (!match) return null;
+            const player = findPlayerByLogName(match[1]);
+            const role = String(match[2] || '').trim();
+            const group = role === 'Condessa' ? 'contessaBlock' : 'block';
+            return player ? { uid: player.uid, text: pickCalloutText(group, key), kind: 'block' } : null;
+        }
+
+        if (entry?.type === 'challenge') {
+            match = message.match(/^(.+) contestou .+\.$/);
+            if (!match) return null;
+            const player = findPlayerByLogName(match[1]);
+            return player ? { uid: player.uid, text: pickCalloutText('challenge', key), kind: 'challenge' } : null;
+        }
+
+        if (entry?.type === 'response') {
+            match = message.match(/^(.+) passou\.$/);
+            if (!match) return null;
+            const player = findPlayerByLogName(match[1]);
+            return player ? { uid: player.uid, text: pickCalloutText('pass', key), kind: 'pass' } : null;
+        }
+
+        if (entry?.type === 'challenge-result') {
+            match = message.match(/^(.+) provou (?:ter .+|o bloqueio)\.$/);
+            if (match) {
+                const player = findPlayerByLogName(match[1]);
+                return player ? { uid: player.uid, text: pickCalloutText('proven', key), kind: 'proof' } : null;
+            }
+
+            match = message.match(/^(.+) (?:não tinha .+|blefou o bloqueio)\.$/);
+            if (!match) return null;
+            const player = findPlayerByLogName(match[1]);
+            return player ? { uid: player.uid, text: pickCalloutText('bluff', key), kind: 'challenge' } : null;
+        }
+
+        return null;
+    }
+
+    function showRankPlayerCallout(callout) {
+        if (!callout?.uid || !callout.text) return;
+        const token = `${Date.now()}-${Math.random()}`;
+        rankPlayerCallouts.set(callout.uid, { ...callout, token, expiresAt: Date.now() + RANK_CALLOUT_DURATION_MS });
+        window.clearTimeout(rankCalloutTimers.get(callout.uid));
+        rankCalloutTimers.set(callout.uid, window.setTimeout(() => {
+            const active = rankPlayerCallouts.get(callout.uid);
+            if (!active || active.token !== token) return;
+            rankPlayerCallouts.delete(callout.uid);
+            rankCalloutTimers.delete(callout.uid);
+            if (state?.status !== PHASES.WAITING) renderPlayers();
+        }, RANK_CALLOUT_DURATION_MS));
+    }
+
+    function updateRankPlayerCallouts(previousState, nextState) {
+        const entries = Array.isArray(nextState?.log) ? nextState.log : [];
+        if (!rankCalloutLogInitialized || !previousState) {
+            entries.forEach((entry) => seenRankCalloutLogIds.add(getLogEntryKey(entry)));
+            rankCalloutLogInitialized = true;
+            return;
+        }
+
+        entries.forEach((entry) => {
+            const key = getLogEntryKey(entry);
+            if (seenRankCalloutLogIds.has(key)) return;
+            seenRankCalloutLogIds.add(key);
+            const callout = buildRankCallout(entry);
+            if (callout) showRankPlayerCallout(callout);
+        });
+    }
+
+    function createRankPlayerCallout(uid) {
+        const callout = rankPlayerCallouts.get(uid);
+        if (!callout || callout.expiresAt <= Date.now()) {
+            rankPlayerCallouts.delete(uid);
+            return null;
+        }
+        const node = element('div', `rank-player-callout is-${callout.kind || 'action'}`, callout.text);
+        node.setAttribute('aria-hidden', 'true');
+        return node;
     }
 
     function translateLogMessage(message) {
@@ -826,6 +983,7 @@
         if (!state) return;
         hideLoading();
         playStateSfx(previousState, state);
+        updateRankPlayerCallouts(previousState, state);
         renderPlayers();
         renderPhase();
         renderStarterDrawOverlay();
@@ -929,6 +1087,8 @@
                 });
                 slot.append(header, hand);
             }
+            const callout = createRankPlayerCallout(player.uid);
+            if (callout) slot.append(callout);
             container.append(slot);
         }
     }

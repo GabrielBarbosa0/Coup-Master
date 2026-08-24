@@ -834,6 +834,120 @@
     "turnLog": "Turno {turn}",
     "noMessages": "Nenhuma mensagem ainda."
   },
+  "rankedCallouts": {
+    "income": {
+      "0": "Renda",
+      "1": "Vou de renda",
+      "2": "+1 moeda",
+      "3": "Só uma moeda",
+      "4": "Começo simples"
+    },
+    "foreignAid": {
+      "0": "Ajuda externa",
+      "1": "Vou pedir Ajuda Externa",
+      "2": "Ajuda do tesouro",
+      "3": "Preciso de duas moedas"
+    },
+    "coup": {
+      "0": "Golpe de Estado!",
+      "1": "Eu dou um Golpe!",
+      "2": "Sem negociação",
+      "3": "Coloca uma carta na mesa",
+      "4": "Coloca na mesa!",
+      "5": "Golpe agora!",
+      "6": "Sem conversa!"
+    },
+    "tax": {
+      "0": "Eu sou o Duque",
+      "1": "Tenho o Duque",
+      "2": "Duque",
+      "3": "Taxar",
+      "4": "Cofres do Duque"
+    },
+    "steal": {
+      "0": "Eu sou o Capitão",
+      "1": "Vou Extorquir",
+      "2": "Eu como Capitão...",
+      "3": "Duas moedas pra cá",
+      "4": "Capitão cobra"
+    },
+    "assassinate": {
+      "0": "Eu sou o Assassino",
+      "1": "Bota na mesa",
+      "2": "Contrato aceito",
+      "3": "Morre!",
+      "4": "Fim da linha",
+      "5": "Assassino na mesa"
+    },
+    "exchangeAmbassador": {
+      "0": "Sou o Embaixador",
+      "1": "Vou trocar",
+      "2": "Vou comprar duas cartas",
+      "3": "Hora da troca"
+    },
+    "exchangeInquisitor": {
+      "0": "Sou o Inquisidor",
+      "1": "Vou trocar",
+      "2": "Vou comprar uma carta",
+      "3": "Hora da troca"
+    },
+    "examine": {
+      "0": "Vou investigar",
+      "1": "Deixa eu ver sua carta",
+      "2": "Mostra essa influência",
+      "3": "Inquisidor quer ver"
+    },
+    "block": {
+      "0": "Eu bloqueio",
+      "1": "Bloqueio",
+      "2": "Nem pensar",
+      "3": "Não mesmo, bloqueio...",
+      "4": "Tenho resposta",
+      "5": "Essa não passa"
+    },
+    "contessaBlock": {
+      "0": "Tenho a Condessa",
+      "1": "Sou a Condessa",
+      "2": "Condessa bloqueia",
+      "3": "Bloqueio com Condessa",
+      "4": "Assassinato negado"
+    },
+    "challenge": {
+      "0": "Eu contesto!",
+      "1": "Contesto...",
+      "2": "CONTESTO!",
+      "3": "Duvido!",
+      "4": "Mostra então!",
+      "5": "Quero ver essa carta"
+    },
+    "pass": {
+      "0": "Passo",
+      "1": "Beleza",
+      "2": "Vou acreditar",
+      "3": "Suspeito ein",
+      "4": "Ok",
+      "5": "Blz",
+      "6": "Segue",
+      "7": "Vou deixar",
+      "8": "Hmm..."
+    },
+    "proven": {
+      "0": "Se lascou",
+      "1": "Tá aqui",
+      "2": "Eu tinha mesmo kkkk",
+      "3": "Nunca minto",
+      "4": "Foi triste",
+      "5": "Era verdade",
+      "6": "Carta na mesa"
+    },
+    "bluff": {
+      "0": "Mentiroso",
+      "1": "Peguei",
+      "2": "Sabia",
+      "3": "Era blefe",
+      "4": "Caiu"
+    }
+  },
   "rankedLog": {
     "roomReset": "Sala reiniciada para uma nova partida.",
     "rankedStarted": "A partida ranqueada começou. Sorteando quem joga primeiro.",
