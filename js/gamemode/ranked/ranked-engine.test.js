@@ -228,17 +228,19 @@ function testTruthfulBlockCancelsAssassination() {
     assert.equal(Engine.getActiveUid(state), 'u2');
 }
 
-function testProvenAssassinationOnlyTargetCanRespond() {
+function testProvenAssassinationExecutesAfterChallenge() {
     const state = createStartedStateWithThree();
     state.players.u1.coins = 3;
     state.players.u1.influences[0].role = Rules.ROLES.ASSASSIN;
     Engine.performAction(state, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 2000);
     Engine.challengeAction(state, 'u3', 2100);
     Engine.loseInfluence(state, 'u3', firstHiddenCard(state, 'u3').id, 2200);
-    assert.deepEqual(Engine.getResponseUids(state), ['u2']);
+    assert.equal(state.phase, Rules.PHASES.INFLUENCE_LOSS);
+    assert.equal(state.pendingLoss.playerUid, 'u2');
+    assert.equal(state.pendingLoss.reason, 'Vítima de assassinato.');
     assert.throws(
-        () => Engine.passResponse(state, 'u3', 2300),
-        /Você não pode responder agora/
+        () => Engine.declareBlock(state, 'u2', Rules.ROLES.CONTESSA, 2300),
+        /Este bloqueio não é permitido/
     );
 }
 
@@ -425,7 +427,7 @@ testRestartMatchPreservesRoomParticipants();
 testSuccessfulChallengeCancelsBluff();
 testFailedChallengeResumesAction();
 testTruthfulBlockCancelsAssassination();
-testProvenAssassinationOnlyTargetCanRespond();
+testProvenAssassinationExecutesAfterChallenge();
 testStealBlockScope();
 testTurnTimeoutUsesIncome();
 testExchangeSelection();

@@ -164,10 +164,23 @@
         return t(keys[index], {}, keys[index]);
     }
 
+    function canRankPlayerSpeak(uid) {
+        const player = Engine.getPlayer(state, uid);
+        return Boolean(player && !player.eliminated && Engine.countInfluences(player) > 0);
+    }
+
+    function clearRankPlayerCallout(uid) {
+        if (!uid) return;
+        window.clearTimeout(rankCalloutTimers.get(uid));
+        rankCalloutTimers.delete(uid);
+        rankPlayerCallouts.delete(uid);
+    }
+
     function findPlayerByLogName(name) {
         const normalized = String(name || '').trim();
         if (!normalized) return null;
-        return Engine.getPlayers(state).find((player) => String(player.name || '').trim() === normalized) || null;
+        const player = Engine.getPlayers(state).find((candidate) => String(candidate.name || '').trim() === normalized);
+        return player && canRankPlayerSpeak(player.uid) ? player : null;
     }
 
     function buildRankCallout(entry) {
@@ -225,6 +238,10 @@
 
     function showRankPlayerCallout(callout) {
         if (!callout?.uid || !callout.text) return;
+        if (!canRankPlayerSpeak(callout.uid)) {
+            clearRankPlayerCallout(callout.uid);
+            return;
+        }
         const token = `${Date.now()}-${Math.random()}`;
         rankPlayerCallouts.set(callout.uid, { ...callout, token, expiresAt: Date.now() + RANK_CALLOUT_DURATION_MS });
         window.clearTimeout(rankCalloutTimers.get(callout.uid));
@@ -239,6 +256,10 @@
 
     function updateRankPlayerCallouts(previousState, nextState) {
         const entries = Array.isArray(nextState?.log) ? nextState.log : [];
+        Array.from(rankPlayerCallouts.keys()).forEach((uid) => {
+            if (!canRankPlayerSpeak(uid)) clearRankPlayerCallout(uid);
+        });
+
         if (!rankCalloutLogInitialized || !previousState) {
             entries.forEach((entry) => seenRankCalloutLogIds.add(getLogEntryKey(entry)));
             rankCalloutLogInitialized = true;
@@ -256,8 +277,8 @@
 
     function createRankPlayerCallout(uid) {
         const callout = rankPlayerCallouts.get(uid);
-        if (!callout || callout.expiresAt <= Date.now()) {
-            rankPlayerCallouts.delete(uid);
+        if (!callout || callout.expiresAt <= Date.now() || !canRankPlayerSpeak(uid)) {
+            clearRankPlayerCallout(uid);
             return null;
         }
         const node = element('div', `rank-player-callout is-${callout.kind || 'action'}`, callout.text);

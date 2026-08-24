@@ -757,7 +757,7 @@
                 replaceProvenInfluence(state, actor.uid, truthfulCard.id);
             }
             pending.claimConfirmed = true;
-            scheduleLoss(state, challengerUid, 'Contestação incorreta.', 'resume-action', now);
+            scheduleLoss(state, challengerUid, 'Contestação incorreta.', 'execute-action', now);
             addLog(state, `${actor.name} provou ter ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
         } else {
             challengerStats.successfulChallenges += 1;
