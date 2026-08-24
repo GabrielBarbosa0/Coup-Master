@@ -460,7 +460,7 @@ Fluxo de UI:
 
 Pontos tecnicos importantes:
 
-- `og:image` aponta para `assets/img/ico-coup-master.png`, mas o arquivo real esta em `assets/img/logo/ico-coup-master.png`.
+- `og:image` usa o icone oficial em `assets/img/logo/ico-coup-master.png`.
 - O HTML possui ids usados diretamente por JS global; renomear ids quebra comportamento.
 - A pasta `lab/` concentra experimentos visuais isolados; o runtime principal nao importa seus arquivos.
 
@@ -2211,7 +2211,6 @@ Esta secao documenta achados do estado atual, nao necessariamente bugs fatais.
 
 ### 21.1 Caminhos Incorretos
 
-- `index.html` `og:image` aponta para `assets/img/ico-coup-master.png`; arquivo real esta em `assets/img/logo/ico-coup-master.png`.
 - `sitemap.xml` aponta para `/img/asilo.png` e `/img/dlc3-actions.jpg`; estrutura real usa `assets/img/...`.
 - Segundo `@font-face` em `css/lobby.css` usa `assets/fonts/...` relativo ao CSS, provavelmente incorreto.
 
