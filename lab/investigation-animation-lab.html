@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investigation Animation Lab - Coup Master</title>
+  <style>
+    :root {
+      --bg: #14171e;
+      --panel: #1b222c;
+      --panel-soft: #101720;
+      --line: rgba(230, 238, 246, 0.16);
+      --text: #e6eef6;
+      --muted: rgba(230, 238, 246, 0.64);
+      --accent: #1e90ff;
+      --cyan: #7ee8ff;
+      --violet: #8b5cf6;
+      --gold: #ffcc00;
+      --investigation-duration: 1680ms;
+      --investigation-shake: 6px;
+      --investigation-flash: 0.38;
+      --investigation-ring: 1.22;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at 15% 12%, rgba(30, 144, 255, 0.14), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(139, 92, 246, 0.14), transparent 26%),
+        linear-gradient(135deg, #10141b 0%, #171c24 52%, #0e1117 100%);
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    .lab-shell {
+      display: grid;
+      grid-template-columns: minmax(290px, 360px) minmax(0, 1fr);
+      gap: 18px;
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .controls,
+    .stage-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(27, 34, 44, 0.88);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+    }
+
+    .controls {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      padding: 16px;
+    }
+
+    .controls h1,
+    .stage-header h2 {
+      margin: 0;
+      font-size: 1.42rem;
+      line-height: 1.1;
+    }
+
+    .controls p,
+    .stage-header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .control-row {
+      display: grid;
+      gap: 7px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+
+    .control-value {
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 38px;
+      color: var(--text);
+    }
+
+    .toggle-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .primary-button,
+    .secondary-button {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid rgba(230, 238, 246, 0.22);
+      border-radius: 8px;
+      color: var(--text);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .primary-button {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .secondary-button {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .config-output {
+      width: 100%;
+      min-height: 170px;
+      resize: vertical;
+      border: 1px solid rgba(230, 238, 246, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text);
+      background: rgba(10, 16, 23, 0.82);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+
+    .stage-wrap {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: calc(100vh - 36px);
+      overflow: hidden;
+    }
+
+    .stage-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .metric {
+      min-width: 92px;
+      padding: 8px 10px;
+      border: 1px solid rgba(230, 238, 246, 0.14);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.035);
+      font-size: 0.72rem;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--text);
+      font-size: 1rem;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .stage {
+      display: grid;
+      place-items: center;
+      min-height: 520px;
+      padding: 24px;
+      background:
+        linear-gradient(rgba(30, 144, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 144, 255, 0.04) 1px, transparent 1px),
+        radial-gradient(circle at center, rgba(126, 232, 255, 0.08), transparent 38%);
+      background-size: 26px 26px, 26px 26px, 100% 100%;
+    }
+
+    .arena {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: min(520px, 100%);
+      min-height: 330px;
+      isolation: isolate;
+    }
+
+    .arena.is-investigating {
+      animation: arenaShake var(--investigation-duration) ease-out;
+    }
+
+    .investigation-panel {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: min(420px, calc(100vw - 64px));
+      min-height: 220px;
+      padding: 26px 22px;
+      overflow: hidden;
+      border: 1px solid rgba(126, 232, 255, 0.34);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(126, 232, 255, 0.09), rgba(139, 92, 246, 0.08)),
+        rgba(17, 25, 35, 0.94);
+      box-shadow:
+        0 24px 62px rgba(0, 0, 0, 0.46),
+        inset 0 0 34px rgba(126, 232, 255, 0.07);
+    }
+
+    .investigation-panel::before,
+    .investigation-panel::after {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border: 1px solid rgba(126, 232, 255, 0.16);
+      border-radius: 8px;
+      pointer-events: none;
+    }
+
+    .investigation-panel::after {
+      inset: -60% 45%;
+      width: 54px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, rgba(126, 232, 255, 0.34), transparent);
+      opacity: 0;
+      transform: rotate(12deg) translateX(-140px);
+    }
+
+    .arena.is-investigating .investigation-panel::after {
+      animation: scanBeam var(--investigation-duration) ease-in-out;
+    }
+
+    .investigation-stamp {
+      position: relative;
+      z-index: 2;
+      min-width: min(310px, 100%);
+      padding: 14px 20px;
+      border: 3px solid rgba(126, 232, 255, 0.94);
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(15, 26, 38, 0.92);
+      box-shadow:
+        0 0 0 2px rgba(139, 92, 246, 0.28),
+        0 18px 38px rgba(0, 0, 0, 0.38);
+      font-size: clamp(1.35rem, 5vw, 2.3rem);
+      font-weight: 900;
+      line-height: 1;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.015em;
+      transform: scale(0.82);
+      opacity: 0;
+    }
+
+    .arena.is-investigating .investigation-stamp {
+      animation: investigationStamp var(--investigation-duration) cubic-bezier(0.16, 0.96, 0.22, 1);
+    }
+
+    .investigation-copy {
+      max-width: 330px;
+      margin: 14px auto 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    .investigation-flash {
+      position: absolute;
+      inset: -20%;
+      z-index: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, rgba(126, 232, 255, var(--investigation-flash)), transparent 24%),
+        radial-gradient(circle at center, rgba(139, 92, 246, 0.22), transparent 42%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .arena.is-investigating .investigation-flash {
+      animation: investigationFlash var(--investigation-duration) ease-out;
+    }
+
+    .scan-ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 180px;
+      height: 180px;
+      border: 2px solid rgba(126, 232, 255, 0.52);
+      border-radius: 50%;
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.46);
+      pointer-events: none;
+    }
+
+    .scan-ring::before,
+    .scan-ring::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 1px solid rgba(139, 92, 246, 0.5);
+      border-radius: 50%;
+    }
+
+    .scan-ring::after {
+      inset: 38px;
+      border-color: rgba(126, 232, 255, 0.36);
+    }
+
+    .arena.is-investigating .scan-ring {
+      animation: scanRing var(--investigation-duration) ease-out;
+    }
+
+    .particle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 4;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 14px rgba(126, 232, 255, 0.72);
+      opacity: 0;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .arena.is-investigating .particle {
+      animation: particleBurst var(--investigation-duration) ease-out;
+    }
+
+    .particle:nth-child(4) { --dx: -170px; --dy: -74px; animation-delay: 70ms; }
+    .particle:nth-child(5) { --dx: 152px; --dy: -64px; animation-delay: 110ms; }
+    .particle:nth-child(6) { --dx: -124px; --dy: 96px; animation-delay: 140ms; }
+    .particle:nth-child(7) { --dx: 132px; --dy: 88px; animation-delay: 190ms; }
+    .particle:nth-child(8) { --dx: 0; --dy: -142px; animation-delay: 220ms; }
+    .particle:nth-child(9) { --dx: 0; --dy: 138px; animation-delay: 260ms; }
+
+    @keyframes arenaShake {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      12% { transform: translate3d(calc(var(--investigation-shake) * -1), 0, 0); }
+      24% { transform: translate3d(var(--investigation-shake), calc(var(--investigation-shake) * 0.28), 0); }
+      38% { transform: translate3d(calc(var(--investigation-shake) * -0.42), calc(var(--investigation-shake) * -0.24), 0); }
+      52% { transform: translate3d(calc(var(--investigation-shake) * 0.34), 0, 0); }
+    }
+
+    @keyframes scanBeam {
+      0%, 12% { opacity: 0; transform: rotate(12deg) translateX(-180px); }
+      28% { opacity: 0.9; }
+      62% { opacity: 0.7; transform: rotate(12deg) translateX(180px); }
+      100% { opacity: 0; transform: rotate(12deg) translateX(240px); }
+    }
+
+    @keyframes investigationStamp {
+      0% { opacity: 0; transform: translateY(18px) scale(0.82) rotateX(18deg); }
+      22% { opacity: 0; transform: translateY(18px) scale(0.82) rotateX(18deg); }
+      40% { opacity: 1; transform: translateY(-8px) scale(1.05) rotateX(-4deg); }
+      58% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes investigationFlash {
+      0%, 12% { opacity: 0; transform: scale(0.6); }
+      30% { opacity: 0.9; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.65); }
+    }
+
+    @keyframes scanRing {
+      0%, 10% { opacity: 0; transform: translate(-50%, -50%) scale(0.46); }
+      30% { opacity: 0.76; }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(var(--investigation-ring)); }
+    }
+
+    @keyframes particleBurst {
+      0%, 22% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      34% { opacity: 1; }
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.15);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .lab-shell {
+        grid-template-columns: 1fr;
+        padding: 12px;
+      }
+
+      .controls {
+        position: static;
+        max-height: none;
+      }
+
+      .stage-wrap {
+        min-height: 560px;
+      }
+
+      .stage-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .metrics {
+        justify-content: flex-start;
+      }
+
+      .stage {
+        min-height: 430px;
+        padding: 14px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .arena.is-investigating,
+      .arena.is-investigating .investigation-stamp,
+      .arena.is-investigating .investigation-flash,
+      .arena.is-investigating .scan-ring,
+      .arena.is-investigating .particle,
+      .arena.is-investigating .investigation-panel::after {
+        animation: none !important;
+      }
+
+      .investigation-stamp {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="lab-shell">
+    <aside class="controls">
+      <h1>Investigation Animation Lab</h1>
+      <p>Laboratorio para testar a animacao futura de investigacao do Inquisidor no modo ranqueado.</p>
+
+      <div class="control-group">
+        <button class="primary-button" type="button" id="playInvestigation">Tocar investigacao</button>
+        <button class="secondary-button" type="button" id="copyConfig">Copiar parametros</button>
+      </div>
+
+      <div class="control-group">
+        <label class="control-row">
+          <span class="control-label">Duracao <span class="control-value" id="durationValue"></span></span>
+          <input id="duration" type="range" min="900" max="2600" step="20" value="1680">
+        </label>
+
+        <label class="control-row">
+          <span class="control-label">Tremor <span class="control-value" id="shakeValue"></span></span>
+          <input id="shake" type="range" min="0" max="16" step="1" value="6">
+        </label>
+
+        <label class="control-row">
+          <span class="control-label">Flash <span class="control-value" id="flashValue"></span></span>
+          <input id="flash" type="range" min="0" max="0.8" step="0.02" value="0.38">
+        </label>
+
+        <label class="control-row">
+          <span class="control-label">Anel <span class="control-value" id="ringValue"></span></span>
+          <input id="ring" type="range" min="0.8" max="2.2" step="0.02" value="1.22">
+        </label>
+      </div>
+
+      <div class="control-group">
+        <label class="toggle-row">
+          Tocar som de investigacao
+          <input id="soundEnabled" type="checkbox" checked>
+        </label>
+      </div>
+
+      <div class="control-group">
+        <textarea id="configOutput" class="config-output" readonly></textarea>
+      </div>
+    </aside>
+
+    <section class="stage-wrap">
+      <header class="stage-header">
+        <div>
+          <h2>Teste visual de investigacao</h2>
+          <p>Simula o momento em que o Inquisidor examina uma influencia e decide se forca a troca.</p>
+        </div>
+        <div class="metrics" aria-label="Resumo da animacao">
+          <div class="metric">Acao<strong>Investigar</strong></div>
+          <div class="metric">Som<strong>Suspense</strong></div>
+        </div>
+      </header>
+
+      <div class="stage">
+        <section class="arena" id="arena" aria-label="Cenario de investigacao">
+          <div class="investigation-panel">
+            <div class="investigation-stamp" aria-hidden="true">Investigacao</div>
+            <p class="investigation-copy">O Inquisidor examina uma influencia e pode manter ou forcar a troca.</p>
+          </div>
+          <div class="investigation-flash" aria-hidden="true"></div>
+          <div class="scan-ring" aria-hidden="true"></div>
+          <span class="particle" aria-hidden="true"></span>
+          <span class="particle" aria-hidden="true"></span>
+          <span class="particle" aria-hidden="true"></span>
+          <span class="particle" aria-hidden="true"></span>
+          <span class="particle" aria-hidden="true"></span>
+          <span class="particle" aria-hidden="true"></span>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <audio id="investigationAudio" preload="auto" src="../assets/sounds/vfx/suspense-investigation.mp3"></audio>
+
+  <script>
+    const state = {
+      duration: 1680,
+      shake: 6,
+      flash: 0.38,
+      ring: 1.22,
+      soundEnabled: true
+    };
+
+    const els = {
+      arena: document.getElementById('arena'),
+      playInvestigation: document.getElementById('playInvestigation'),
+      copyConfig: document.getElementById('copyConfig'),
+      duration: document.getElementById('duration'),
+      shake: document.getElementById('shake'),
+      flash: document.getElementById('flash'),
+      ring: document.getElementById('ring'),
+      soundEnabled: document.getElementById('soundEnabled'),
+      durationValue: document.getElementById('durationValue'),
+      shakeValue: document.getElementById('shakeValue'),
+      flashValue: document.getElementById('flashValue'),
+      ringValue: document.getElementById('ringValue'),
+      configOutput: document.getElementById('configOutput'),
+      audio: document.getElementById('investigationAudio')
+    };
+
+    function syncControls() {
+      document.documentElement.style.setProperty('--investigation-duration', `${state.duration}ms`);
+      document.documentElement.style.setProperty('--investigation-shake', `${state.shake}px`);
+      document.documentElement.style.setProperty('--investigation-flash', state.flash);
+      document.documentElement.style.setProperty('--investigation-ring', state.ring);
+
+      els.durationValue.textContent = `${state.duration}ms`;
+      els.shakeValue.textContent = `${state.shake}px`;
+      els.flashValue.textContent = state.flash.toFixed(2);
+      els.ringValue.textContent = state.ring.toFixed(2);
+      els.soundEnabled.checked = state.soundEnabled;
+
+      els.configOutput.value = `const INVESTIGATION_ANIMATION = {
+  duration: ${state.duration},
+  shake: ${state.shake},
+  flash: ${state.flash.toFixed(2)},
+  ring: ${state.ring.toFixed(2)},
+  sound: 'assets/sounds/vfx/suspense-investigation.mp3'
+};`;
+    }
+
+    function setNumericValue(key, value) {
+      state[key] = Number(value);
+      syncControls();
+    }
+
+    function playSound() {
+      if (!state.soundEnabled) return;
+      els.audio.currentTime = 0;
+      els.audio.volume = 0.7;
+      els.audio.play().catch(() => null);
+    }
+
+    function playInvestigation() {
+      els.arena.classList.remove('is-investigating');
+      void els.arena.offsetWidth;
+      playSound();
+      els.arena.classList.add('is-investigating');
+
+      window.clearTimeout(playInvestigation.clearTimer);
+      playInvestigation.clearTimer = window.setTimeout(() => {
+        els.arena.classList.remove('is-investigating');
+      }, state.duration + 120);
+    }
+
+    els.duration.addEventListener('input', (event) => setNumericValue('duration', event.target.value));
+    els.shake.addEventListener('input', (event) => setNumericValue('shake', event.target.value));
+    els.flash.addEventListener('input', (event) => setNumericValue('flash', event.target.value));
+    els.ring.addEventListener('input', (event) => setNumericValue('ring', event.target.value));
+    els.soundEnabled.addEventListener('change', (event) => {
+      state.soundEnabled = event.target.checked;
+      syncControls();
+    });
+    els.playInvestigation.addEventListener('click', playInvestigation);
+    els.copyConfig.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(els.configOutput.value);
+        els.copyConfig.textContent = 'Copiado';
+        window.setTimeout(() => {
+          els.copyConfig.textContent = 'Copiar parametros';
+        }, 1200);
+      } catch (error) {
+        els.configOutput.focus();
+        els.configOutput.select();
+      }
+    });
+
+    syncControls();
+    window.setTimeout(playInvestigation, 260);
+  </script>
+</body>
+
+</html>
