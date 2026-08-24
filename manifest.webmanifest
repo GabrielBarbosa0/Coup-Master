@@ -11,13 +11,13 @@
   "categories": ["games", "entertainment"],
   "icons": [
     {
-      "src": "assets/img/logo/coup-master-192x192.png",
+      "src": "assets/img/logo/coup-master-192x192.png?v=gold-coin-v1",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "assets/img/logo/coup-master-512x512.png",
+      "src": "assets/img/logo/coup-master-512x512.png?v=gold-coin-v1",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
