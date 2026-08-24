@@ -267,7 +267,8 @@ Coup-Master/
 │   ├── 📄 modo-ranqueado.md    # Design e regras do modo ranqueado
 │   ├── 📄 modo-personalizado.md # Design e regras da Sala Personalizada
 │   ├── 📄 modo-duelo.md        # Documentação do Modo Duelo
-│   └── 📄 modo-roguelike.md    # Proposta de modo roguelike
+│   ├── 📄 modo-roguelike.md    # Proposta de modo roguelike
+│   └── 📄 modo-treinamento.md  # Planejamento do modo offline contra IA
 └── 📄 README.md                # Documentação técnica do projeto
 
 ```

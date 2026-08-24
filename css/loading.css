@@ -2,6 +2,14 @@
    === LOADING PADRAO DO APP ===
    ======================================================= */
 
+@font-face {
+    font-family: "Cinzel";
+    src: url("../assets/fonts/Cinzel-VariableFont_wght.ttf") format("truetype");
+    font-weight: 400 900;
+    font-style: normal;
+    font-display: block;
+}
+
 :root {
     --loading-bg: #14171e;
     --loading-panel-width: min(90vw, 360px);
@@ -125,7 +133,7 @@ textarea::-moz-selection,
 
 .loader-content p,
 .game-loading-content p {
-    font-family: Georgia, "Times New Roman", serif !important;
+    font-family: "Cinzel", Georgia, "Times New Roman", serif !important;
     font-size: var(--loading-message-size);
     font-weight: 800;
     letter-spacing: 0.4px;

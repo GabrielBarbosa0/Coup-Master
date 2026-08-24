@@ -174,6 +174,7 @@ Coup-Master/
     modo-personalizado.md
     modo-ranqueado.md
     modo-roguelike.md
+    modo-treinamento.md
   js/
     core/
       gameState.js

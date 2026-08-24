@@ -284,9 +284,9 @@ Estas dividas bloqueiam qualquer tentativa de tratar ranking como competitivo se
    - resumo copiavel;
    - rematch mais evidente.
 
-3. **Tutorial/treino ainda nao existe**
+3. **Tutorial/treinamento offline ainda nao existe**
 
-   Com bots IA e motor ranqueado, um modo treino ficou natural.
+   Com bots IA e motor ranqueado, um modo treinamento ficou natural. A ideia planejada e criar uma experiencia local/offline contra IA, sem login Google, sem Firebase obrigatorio e sem impacto em estatisticas ranqueadas.
 
    Oportunidades:
 
@@ -294,7 +294,8 @@ Estas dividas bloqueiam qualquer tentativa de tratar ranking como competitivo se
    - ensinar contestacao;
    - ensinar bloqueio;
    - explicar blefe e perda de influencia;
-   - permitir partida guiada contra IA.
+   - permitir partida guiada contra IA;
+   - permitir teste rapido do jogo antes de criar conta ou entrar no ranqueado.
 
 ## 4. Roadmap Recomendado
 
@@ -406,13 +407,16 @@ Resultado esperado:
 - conquistas e estatisticas ficam mais visiveis;
 - jogador tem motivo para jogar novamente.
 
-### Fase 5 - Tutorial E Treino Contra IA
+### Fase 5 - Modo Treinamento Offline
 
 Objetivo: reduzir barreira de entrada.
 
 Tarefas:
 
-- Criar modo treino a partir do motor ranqueado.
+- Criar modo Treinamento offline/local a partir do motor ranqueado.
+- Permitir jogar contra bots IA sem login Google.
+- Evitar dependencia obrigatoria de Firebase, sala remota ou presenca online.
+- Garantir que o modo nao grave `rankedStats`, `rankedResults` ou pontos ranqueados.
 - Criar roteiro guiado para:
   - renda;
   - ajuda externa;
@@ -425,10 +429,12 @@ Tarefas:
   - revelar influencia.
 - Permitir partida simples contra IA.
 - Adicionar dicas contextuais.
+- Documentacao base: `docs/modo-treinamento.md`.
 
 Resultado esperado:
 
 - novos jogadores aprendem sem depender de explicacao externa;
+- jogadores testam o fluxo automatizado sem conta;
 - ranqueado fica menos intimidador.
 
 ### Fase 6 - Modularizacao Gradual
