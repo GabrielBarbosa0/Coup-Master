@@ -114,22 +114,21 @@ function testMatchmakingFillsRoomAndReadiesBots() {
     assert.equal(Engine.advanceMatchmaking(state, 2000, () => 0), true);
     assert.equal(Engine.getPlayers(state).length, 1);
     assert.equal(state.deadline, null);
-    assert.equal(Engine.advanceMatchmaking(state, 2999, () => 0), false);
+    assert.equal(Engine.advanceMatchmaking(state, 2799, () => 0), false);
 
-    let now = 3000;
+    let now = 2800;
     assert.equal(Engine.advanceMatchmaking(state, now, () => 0), true);
     const firstBot = Engine.getPlayers(state).find((player) => player.ai);
     assert.ok(firstBot);
     assert.equal(firstBot.ready, false);
-    assert.equal(Engine.advanceMatchmaking(state, 3999, () => 0), false);
-    assert.equal(Engine.advanceMatchmaking(state, 4000, () => 0), true);
+    assert.equal(Engine.advanceMatchmaking(state, 3800, () => 0), true);
     assert.equal(state.players[firstBot.uid].ready, true);
     assert.ok(Engine.getPlayers(state).length < Rules.SETTINGS.maxPlayers);
 
-    now = 7000;
+    now = 4600;
     while (Engine.getPlayers(state).length < Rules.SETTINGS.maxPlayers) {
         assert.equal(Engine.advanceMatchmaking(state, now, () => 0), true);
-        now += 3000;
+        now += 1800;
     }
 
     const players = Engine.getPlayers(state);
@@ -140,7 +139,7 @@ function testMatchmakingFillsRoomAndReadiesBots() {
 
     while (bots.some((bot) => !bot.ready)) {
         assert.equal(Engine.advanceMatchmaking(state, now, () => 0), true);
-        now += 3000;
+        now += 1800;
     }
 
     assert.ok(Engine.getPlayers(state).every((player) => player.ready));
@@ -242,6 +241,22 @@ function testProvenAssassinationExecutesAfterChallenge() {
         () => Engine.declareBlock(state, 'u2', Rules.ROLES.CONTESSA, 2300),
         /Este bloqueio não é permitido/
     );
+}
+
+function testAssassinationTargetFailedChallengeLosesBothAutomatically() {
+    const state = createStartedStateWithThree();
+    state.players.u1.coins = 3;
+    state.players.u1.influences[0].role = Rules.ROLES.ASSASSIN;
+
+    Engine.performAction(state, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 2000);
+    Engine.challengeAction(state, 'u2', 2100);
+
+    assert.equal(state.pendingLoss, null);
+    assert.equal(state.players.u2.eliminated, true);
+    assert.equal(Engine.countInfluences(state.players.u2), 0);
+    assert.equal(state.discard.length, 2);
+    assert.equal(state.phase, Rules.PHASES.TURN);
+    assert.equal(Engine.getActiveUid(state), 'u3');
 }
 
 function testStealBlockScope() {
@@ -428,6 +443,7 @@ testSuccessfulChallengeCancelsBluff();
 testFailedChallengeResumesAction();
 testTruthfulBlockCancelsAssassination();
 testProvenAssassinationExecutesAfterChallenge();
+testAssassinationTargetFailedChallengeLosesBothAutomatically();
 testStealBlockScope();
 testTurnTimeoutUsesIncome();
 testExchangeSelection();
@@ -442,6 +458,6 @@ testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 
-console.log('ranked-engine: 23 testes aprovados');
+console.log('ranked-engine: 24 testes aprovados');
 
 

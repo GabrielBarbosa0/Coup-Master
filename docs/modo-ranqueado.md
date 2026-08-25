@@ -82,7 +82,7 @@ O sistema preenche a mesa até 6 jogadores:
 - até 5 bots IA;
 - todos os bots aparecem marcados como IA.
 
-Os bots entram em intervalos aleatórios de 1 a 2 segundos para criar uma sensação mais orgânica.
+Os bots entram em intervalos aleatórios de 0,8 a 1,6 segundos para criar uma sensação mais orgânica.
 
 Assim que um bot entra, ele recebe seu próprio tempo aleatório para confirmar prontidão. Isso significa que bots podem ficar prontos enquanto outros bots ainda estão entrando na sala, simulando melhor o comportamento humano em uma espera real.
 
@@ -100,7 +100,7 @@ A partida só agenda o início quando:
 - todos os bots estão prontos;
 - o jogador real está pronto.
 
-Depois disso, o sistema inicia uma contagem de 5 segundos antes de começar a partida.
+Depois disso, o sistema inicia uma contagem de 3 segundos antes de começar a partida.
 
 ## 5. Setup da Partida
 
@@ -370,13 +370,21 @@ Os bots tomam decisões por transação durante:
 
 As decisões possuem pequenos atrasos para evitar que o fluxo avance instantaneamente.
 
+## 13. Feedback de Mesa
+
+O modo ranqueado exibe falas temporarias sobre os slots para deixar o fluxo legivel sem depender apenas do registro oficial.
+
+- Acoes, passes, bloqueios, contestacoes, provas e blefes geram frases curtas no slot do jogador responsavel.
+- Passes e reacoes usam atraso variado para evitar uma ordem sempre linear entre os bots.
+- Quando alguem sofre Assassinato ou Golpe de Estado, ate dois jogadores vivos que nao sejam o atacante, a vitima ou o jogador local podem reagir com comentarios curtos de mesa.
+
 ## 14. Temporizadores e Fallbacks
 
 O ranqueado usa temporizadores para impedir que a partida fique travada.
 
 ### Tempos atuais
 
-- Contagem de início: 5 segundos.
+- Contagem de início: 3 segundos.
 - Sorteio inicial: 5 segundos.
 - Turno: 40 segundos.
 - Resposta, bloqueio ou contestação: 15 segundos.

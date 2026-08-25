@@ -12,8 +12,8 @@
     if (!Rules) throw new Error('CoupRankedRules precisa ser carregado antes do motor ranqueado.');
 
     const { ACTIONS, PHASES, ROLES, SETTINGS } = Rules;
-    const MATCHMAKING_BOT_JOIN_MIN_MS = 1000;
-    const MATCHMAKING_BOT_JOIN_SPAN_MS = 1000;
+    const MATCHMAKING_BOT_JOIN_MIN_MS = 800;
+    const MATCHMAKING_BOT_JOIN_SPAN_MS = 800;
     const MATCHMAKING_READY_MIN_MS = 1000;
     const MATCHMAKING_READY_SPAN_MS = 1000;
     const MATCHMAKING_BOT_NAMES = Object.freeze([
@@ -757,13 +757,14 @@
                 replaceProvenInfluence(state, actor.uid, truthfulCard.id);
             }
             pending.claimConfirmed = true;
-            scheduleLoss(state, challengerUid, 'Contestação incorreta.', 'execute-action', now);
             addLog(state, `${actor.name} provou ter ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
+            const lossPlan = getFailedActionChallengeLossPlan(state, challengerUid);
+            scheduleLoss(state, challengerUid, lossPlan.reason, lossPlan.continuation, now, lossPlan.count);
         } else {
             challengerStats.successfulChallenges += 1;
             ensureMatchStats(state, actor.uid).provenBluffs += 1;
-            scheduleLoss(state, actor.uid, 'Blefe contestado.', 'cancel-action', now);
             addLog(state, `${actor.name} não tinha ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
+            scheduleLoss(state, actor.uid, 'Blefe contestado.', 'cancel-action', now);
         }
         return state;
     }
@@ -811,16 +812,28 @@
         if (truthfulCard) {
             challengerStats.failedChallenges += 1;
             replaceProvenInfluence(state, blocker.uid, truthfulCard.id);
-            scheduleLoss(state, challengerUid, 'Contestação incorreta do bloqueio.', 'accept-block', now);
             addLog(state, `${blocker.name} provou o bloqueio.`, 'challenge-result', now);
+            scheduleLoss(state, challengerUid, 'Contestação incorreta do bloqueio.', 'accept-block', now);
         } else {
             challengerStats.successfulChallenges += 1;
             ensureMatchStats(state, blocker.uid).provenBluffs += 1;
             const lossPlan = getBluffedBlockLossPlan(state, blocker.uid);
-            scheduleLoss(state, blocker.uid, 'Bloqueio blefado.', lossPlan.continuation, now, lossPlan.count);
             addLog(state, `${blocker.name} blefou o bloqueio.`, 'challenge-result', now);
+            scheduleLoss(state, blocker.uid, 'Bloqueio blefado.', lossPlan.continuation, now, lossPlan.count);
         }
         return state;
+    }
+
+    function getFailedActionChallengeLossPlan(state, challengerUid) {
+        const pending = state.pendingAction;
+        if (pending?.type === ACTIONS.ASSASSINATE && pending.targetUid === challengerUid) {
+            return {
+                count: Math.min(2, Math.max(1, countInfluences(getPlayer(state, challengerUid)))),
+                continuation: 'end-turn',
+                reason: 'Contestação incorreta e vítima de assassinato.'
+            };
+        }
+        return { count: 1, continuation: 'execute-action', reason: 'Contestação incorreta.' };
     }
 
     function getBluffedBlockLossPlan(state, blockerUid) {

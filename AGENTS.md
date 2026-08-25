@@ -165,8 +165,8 @@ Preserve:
 - Host e determinado por `salas/{roomCode}/hostUID`.
 - Sala sem `mode` e casual; sala ranqueada exige conta Google, baralho padrao e simula matchmaking preenchendo a espera com bots IA ate seis jogadores.
 - O ranqueado nao possui host ou controles administrativos. Todos os clientes passam pelo mesmo motor de regras.
-- No matchmaking ranqueado, bots entram em intervalos aleatorios de 1 a 2 segundos e recebem horario proprio de prontidao assim que entram; a prontidao automatica nao deve alternar de volta.
-- O ranqueado agenda uma contagem de 5 segundos depois que a mesa esta cheia e todos estao prontos antes de iniciar a partida.
+- No matchmaking ranqueado, bots entram em intervalos aleatorios de 0,8 a 1,6 segundos e recebem horario proprio de prontidao assim que entram; a prontidao automatica nao deve alternar de volta.
+- O ranqueado agenda uma contagem de 3 segundos depois que a mesa esta cheia e todos estao prontos antes de iniciar a partida.
 - A Sala Personalizada usa `mode = "personalized"` e `personalizedState`, preservando o ranqueado em `mode = "ranked"` e `rankedState`.
 - Na Sala Personalizada, o criador salvo em `hostUID` pode remover jogadores humanos ou bots apenas durante a sala de espera.
 - `rankedStats/{uid}` e `rankedResults/{resultKey}` existem para perfil/estatisticas beta. As Firebase Security Rules precisam liberar esses caminhos, ou o lobby nao consegue exibir partidas, vitorias, derrotas e conquistas do ranqueado. Nao trate esses dados como rating confiavel enquanto influencias secretas e transicoes puderem ser lidas/escritas diretamente pelo cliente.

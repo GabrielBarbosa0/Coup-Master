@@ -97,7 +97,7 @@
         startingCoins: 2,
         startingInfluences: 2,
         mandatoryCoupCoins: 10,
-        readyCountdownSeconds: 5,
+        readyCountdownSeconds: 3,
         starterDrawSeconds: 5,
         responseSeconds: 15,
         turnSeconds: 40,

@@ -1558,14 +1558,15 @@ Regras atuais:
 - redireciona primeiro para `ranked/ranked-waiting.html`, sem carregar `gameState.js` ou `board-renderer.js`;
 - nao possui host, administrador, reset manual ou configuracao de baralho;
 - simula matchmaking na sala de espera: `ranked-game.js` avanca `rankedState.matchmaking` por transacao e `ranked-engine.js` preenche a mesa com bots IA ate o alvo de seis jogadores;
-- os bots entram gradualmente com nome e personalidade sorteados, aparecem como IA, usam intervalos aleatorios de 1 a 2 segundos e recebem horario proprio de prontidao assim que entram, permitindo bots prontos enquanto outros ainda estao chegando;
+- os bots entram gradualmente com nome e personalidade sorteados, aparecem como IA, usam intervalos aleatorios de 0,8 a 1,6 segundos e recebem horario proprio de prontidao assim que entram, permitindo bots prontos enquanto outros ainda estao chegando;
 - desenha seis lugares na sala de espera e, com matchmaking ativo, so inicia quando a mesa esta cheia e todos marcam pronto;
 - exibe QR Code de convite na sala de espera, apontando para `ranked/ranked-waiting.html?room={codigo}`;
 - renderiza um banner responsivo AdSense abaixo da lista de jogadores, antes da partida ativa;
-- antes de iniciar, agenda uma contagem de 5 segundos para evitar que a sala comece instantaneamente por clique impulsivo em "Estou pronto";
+- antes de iniciar, agenda uma contagem de 3 segundos para evitar que a sala comece instantaneamente por clique impulsivo em "Estou pronto";
 - ao sair da espera, cria deck, distribui influencias iniciais sem permitir Embaixador na mao inicial e entra em `starter-draw`, uma fase curta de sorteio visual em overlay que define aleatoriamente quem abre a partida;
 - quando o estado sai de `waiting`, `ranked/ranked-waiting.html` redireciona para `ranked/ranked.html`, que renderiza apenas a mesa ativa, as acoes e o registro oficial;
 - em desktop, `ranked/ranked.html` organiza a mesa em uma coluna principal com slots e acoes, e uma lateral persistente com chat e registro oficial; em telas menores, chat e registro viram modais centrais acionados por botoes flutuantes na lateral direita;
+- mostra falas temporarias sobre os slots para acoes, passes, bloqueios, contestacoes, provas, blefes e reacoes discretas de mesa quando alguem sofre Assassinato ou Golpe de Estado;
 - ao finalizar, a mesa abre o resultado em modal padronizado, com melhor jogador, pontuacao por participante, detalhamento expansivel, acao para voltar ao lobby e acao para reiniciar a partida na mesma sala;
 - usa cinco copias de Duque, Capitao, Assassino, Condessa, Embaixador e Inquisidor;
 - Embaixadores permanecem no baralho inicial, mas so podem aparecer depois por compra, troca ou efeitos posteriores;

@@ -45,7 +45,7 @@
     const DEFAULT_RANK_MUSIC_VOLUME = 0.1;
     const DEFAULT_RANK_SFX_VOLUME = 0.2;
     const RANK_CALLOUT_DURATION_MS = 3800;
-    const RANK_CALLOUT_SEQUENCE_STEP_MS = 760;
+    const RANK_CALLOUT_PASS_JITTER_MS = 620;
     const RANK_BALATRO_HOVER = Object.freeze({
         tilt: 36,
         glowOffset: 23.4
@@ -134,6 +134,9 @@
         block: calloutKeys('block', 5),
         contessaBlock: calloutKeys('contessaBlock', 5),
         challenge: calloutKeys('challenge', 6),
+        assassinationReaction: calloutKeys('assassinationReaction', 10),
+        coupReaction: calloutKeys('coupReaction', 10),
+        eliminationReaction: calloutKeys('eliminationReaction', 20),
         pass: calloutKeys('pass', 9),
         proven: calloutKeys('proven', 7),
         bluff: calloutKeys('bluff', 5)
@@ -166,6 +169,34 @@
         return t(keys[index], {}, keys[index]);
     }
 
+    function stableCalloutJitter(callout, rangeMs) {
+        const range = Math.max(0, Number(rangeMs) || 0);
+        if (!range) return 0;
+        return Math.abs(hashString(`${callout?.key || ''}:${callout?.uid || ''}:${callout?.kind || ''}`)) % range;
+    }
+
+    function getRankCalloutDelay(callout, fallbackIndex = 0) {
+        const indexDelay = Math.max(0, Number(fallbackIndex) || 0) * 180;
+        switch (callout?.kind) {
+            case 'action':
+            case 'coup':
+                return 0;
+            case 'block':
+            case 'challenge':
+                return 140 + stableCalloutJitter(callout, 120);
+            case 'pass':
+                return stableCalloutJitter(callout, RANK_CALLOUT_PASS_JITTER_MS);
+            case 'proof':
+                return 220 + stableCalloutJitter(callout, 140);
+            case 'bluff':
+                return 240 + stableCalloutJitter(callout, 160);
+            case 'reaction':
+                return 520 + (Number(callout.sequenceIndex) || 0) * 360 + stableCalloutJitter(callout, 260);
+            default:
+                return indexDelay;
+        }
+    }
+
     function canRankPlayerSpeak(uid) {
         const player = Engine.getPlayer(state, uid);
         return Boolean(player && !player.eliminated && Engine.countInfluences(player) > 0);
@@ -189,6 +220,7 @@
         const timer = window.setTimeout(() => {
             rankScheduledCalloutTimers.delete(timer);
             showRankPlayerCallout(callout);
+            if (state?.status !== PHASES.WAITING) renderPlayers();
         }, delay);
         rankScheduledCalloutTimers.add(timer);
     }
@@ -200,57 +232,132 @@
         return player && canRankPlayerSpeak(player.uid) ? player : null;
     }
 
-    function buildRankCallout(entry) {
+    function findRankPlayerByLogName(name) {
+        const normalized = String(name || '').trim();
+        if (!normalized) return null;
+        return Engine.getPlayers(state).find((candidate) => String(candidate.name || '').trim() === normalized) || null;
+    }
+
+    function findRecentTargetedAttack(entries, entryIndex, victimName) {
+        const victim = String(victimName || '').trim();
+        if (!victim) return null;
+
+        for (let index = entryIndex - 1; index >= 0; index -= 1) {
+            const candidate = entries[index];
+            if (!candidate || candidate.turn !== entries[entryIndex]?.turn) continue;
+            if (candidate.type !== 'action') continue;
+
+            const match = String(candidate.message || '').trim().match(/^(.+) escolheu (Golpe de Estado|Assassinar) contra (.+)\.$/);
+            if (!match) continue;
+            if (String(match[3] || '').trim() !== victim) continue;
+
+            return {
+                index,
+                key: getLogEntryKey(candidate),
+                actorName: String(match[1] || '').trim(),
+                actionLabel: String(match[2] || '').trim(),
+                victimName: victim
+            };
+        }
+
+        return null;
+    }
+
+    function buildAttackReactionCallouts(entry, entries, entryIndex) {
+        if (entry?.type !== 'loss') return [];
+        const lossMatch = String(entry.message || '').trim().match(/^(.+) perdeu .+\.$/);
+        if (!lossMatch) return [];
+
+        const attack = findRecentTargetedAttack(entries, entryIndex, lossMatch[1]);
+        if (!attack) return [];
+
+        const hadPreviousLossForSameAttack = entries
+            .slice(attack.index + 1, entryIndex)
+            .some((candidate) => {
+                if (candidate?.type !== 'loss') return false;
+                const previousLoss = String(candidate.message || '').trim().match(/^(.+) perdeu .+\.$/);
+                return previousLoss && String(previousLoss[1] || '').trim() === attack.victimName;
+            });
+        if (hadPreviousLossForSameAttack) return [];
+
+        const actor = findRankPlayerByLogName(attack.actorName);
+        const victim = findRankPlayerByLogName(attack.victimName);
+        const excludedUids = new Set([actor?.uid, victim?.uid, currentUid].filter(Boolean));
+        const group = attack.actionLabel === 'Assassinar' ? 'assassinationReaction' : 'coupReaction';
+        const key = getLogEntryKey(entry);
+        const speakers = Engine.getPlayers(state)
+            .filter((player) => canRankPlayerSpeak(player.uid) && !excludedUids.has(player.uid))
+            .map((player) => ({
+                player,
+                order: Math.abs(hashString(`${key}:${attack.key}:${player.uid}`))
+            }))
+            .sort((left, right) => left.order - right.order)
+            .slice(0, 2);
+
+        return speakers.map(({ player }, index) => ({
+            uid: player.uid,
+            text: pickCalloutText(group, `${key}:${player.uid}`),
+            key: `${key}:${player.uid}`,
+            kind: 'reaction',
+            sequenceIndex: index
+        }));
+    }
+
+    function buildRankCallouts(entry, entries, entryIndex) {
         const message = String(entry?.message || '').trim();
         const key = getLogEntryKey(entry);
         let match = null;
 
         if (entry?.type === 'action') {
             match = message.match(/^(.+) escolheu (.+?) contra .+\.$/) || message.match(/^(.+) escolheu (.+?)\.$/);
-            if (!match) return null;
+            if (!match) return [];
             const player = findPlayerByLogName(match[1]);
             const group = CALLOUT_ACTION_KEYS[String(match[2] || '').trim()];
-            if (!player || !group) return null;
-            return { uid: player.uid, text: pickCalloutText(group, key), kind: group === 'coup' ? 'coup' : 'action' };
+            if (!player || !group) return [];
+            return [{ uid: player.uid, text: pickCalloutText(group, key), key, kind: group === 'coup' ? 'coup' : 'action' }];
         }
 
         if (entry?.type === 'block') {
             match = message.match(/^(.+) bloqueou com (.+)\.$/);
-            if (!match) return null;
+            if (!match) return [];
             const player = findPlayerByLogName(match[1]);
             const role = String(match[2] || '').trim();
             const group = role === 'Condessa' ? 'contessaBlock' : 'block';
-            return player ? { uid: player.uid, text: pickCalloutText(group, key), kind: 'block' } : null;
+            return player ? [{ uid: player.uid, text: pickCalloutText(group, key), key, kind: 'block' }] : [];
         }
 
         if (entry?.type === 'challenge') {
             match = message.match(/^(.+) contestou .+\.$/);
-            if (!match) return null;
+            if (!match) return [];
             const player = findPlayerByLogName(match[1]);
-            return player ? { uid: player.uid, text: pickCalloutText('challenge', key), kind: 'challenge' } : null;
+            return player ? [{ uid: player.uid, text: pickCalloutText('challenge', key), key, kind: 'challenge' }] : [];
         }
 
         if (entry?.type === 'response') {
             match = message.match(/^(.+) passou\.$/);
-            if (!match) return null;
+            if (!match) return [];
             const player = findPlayerByLogName(match[1]);
-            return player ? { uid: player.uid, text: pickCalloutText('pass', key), kind: 'pass' } : null;
+            return player ? [{ uid: player.uid, text: pickCalloutText('pass', key), key, kind: 'pass' }] : [];
         }
 
         if (entry?.type === 'challenge-result') {
             match = message.match(/^(.+) provou (?:ter .+|o bloqueio)\.$/);
             if (match) {
                 const player = findPlayerByLogName(match[1]);
-                return player ? { uid: player.uid, text: pickCalloutText('proven', key), kind: 'proof' } : null;
+                return player ? [{ uid: player.uid, text: pickCalloutText('proven', key), key, kind: 'proof' }] : [];
             }
 
             match = message.match(/^(.+) (?:não tinha .+|blefou o bloqueio)\.$/);
-            if (!match) return null;
+            if (!match) return [];
             const player = findPlayerByLogName(match[1]);
-            return player ? { uid: player.uid, text: pickCalloutText('bluff', key), kind: 'challenge' } : null;
+            return player ? [{ uid: player.uid, text: pickCalloutText('bluff', key), key, kind: 'bluff' }] : [];
         }
 
-        return null;
+        if (entry?.type === 'loss') {
+            return buildAttackReactionCallouts(entry, entries, entryIndex);
+        }
+
+        return [];
     }
 
     function showRankPlayerCallout(callout) {
@@ -259,8 +366,25 @@
             clearRankPlayerCallout(callout.uid);
             return;
         }
+        const active = rankPlayerCallouts.get(callout.uid);
+        if (
+            active
+            && active.key === callout.key
+            && active.kind === callout.kind
+            && active.text === callout.text
+            && active.expiresAt > Date.now()
+        ) {
+            return;
+        }
+
+        const startedAt = Date.now();
         const token = `${Date.now()}-${Math.random()}`;
-        rankPlayerCallouts.set(callout.uid, { ...callout, token, expiresAt: Date.now() + RANK_CALLOUT_DURATION_MS });
+        rankPlayerCallouts.set(callout.uid, {
+            ...callout,
+            token,
+            startedAt,
+            expiresAt: startedAt + RANK_CALLOUT_DURATION_MS
+        });
         window.clearTimeout(rankCalloutTimers.get(callout.uid));
         rankCalloutTimers.set(callout.uid, window.setTimeout(() => {
             const active = rankPlayerCallouts.get(callout.uid);
@@ -284,17 +408,19 @@
         }
 
         const newCallouts = [];
-        entries.forEach((entry) => {
+        entries.forEach((entry, index) => {
             const key = getLogEntryKey(entry);
             if (seenRankCalloutLogIds.has(key)) return;
             seenRankCalloutLogIds.add(key);
-            const callout = buildRankCallout(entry);
-            if (callout) newCallouts.push(callout);
+            newCallouts.push(...buildRankCallouts(entry, entries, index));
         });
 
-        newCallouts.forEach((callout, index) => {
-            scheduleRankPlayerCallout(callout, index * RANK_CALLOUT_SEQUENCE_STEP_MS);
-        });
+        newCallouts
+            .map((callout, index) => ({ callout, delay: getRankCalloutDelay(callout, index) }))
+            .sort((a, b) => a.delay - b.delay)
+            .forEach(({ callout, delay }) => {
+                scheduleRankPlayerCallout(callout, delay);
+            });
     }
 
     function createRankPlayerCallout(uid) {
@@ -304,6 +430,9 @@
             return null;
         }
         const node = element('div', `rank-player-callout is-${callout.kind || 'action'}`, callout.text);
+        const elapsed = Math.max(0, Date.now() - Number(callout.startedAt || Date.now()));
+        const safeElapsed = Math.min(elapsed, RANK_CALLOUT_DURATION_MS - 16);
+        node.style.animationDelay = `${-safeElapsed}ms`;
         node.setAttribute('aria-hidden', 'true');
         return node;
     }
