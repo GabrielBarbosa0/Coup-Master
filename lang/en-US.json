@@ -706,6 +706,7 @@
     "settings": "Settings",
     "musicLabel": "Music:",
     "effectsLabel": "Effects:",
+    "calloutsLabel": "Player messages:",
     "playerProfile": "Player profile",
     "playerFallback": "Player",
     "loadingStats": "Loading stats...",

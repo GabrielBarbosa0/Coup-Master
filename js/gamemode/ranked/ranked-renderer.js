@@ -32,6 +32,7 @@
     let sideStackResizeObserver = null;
     let languageEventsBound = false;
     let rankCalloutLogInitialized = false;
+    let rankCalloutsEnabled = true;
     const seenRankCalloutLogIds = new Set();
     const rankPlayerCallouts = new Map();
     const rankCalloutTimers = new Map();
@@ -46,6 +47,7 @@
     const DEFAULT_RANK_SFX_VOLUME = 0.2;
     const RANK_CALLOUT_DURATION_MS = 3800;
     const RANK_CALLOUT_PASS_JITTER_MS = 620;
+    const RANK_CALLOUTS_ENABLED_KEY = 'rankCalloutsEnabled';
     const RANK_BALATRO_HOVER = Object.freeze({
         tilt: 36,
         glowOffset: 23.4
@@ -209,8 +211,16 @@
         rankPlayerCallouts.delete(uid);
     }
 
+    function clearAllRankPlayerCallouts() {
+        Array.from(rankCalloutTimers.values()).forEach((timer) => window.clearTimeout(timer));
+        Array.from(rankScheduledCalloutTimers.values()).forEach((timer) => window.clearTimeout(timer));
+        rankCalloutTimers.clear();
+        rankScheduledCalloutTimers.clear();
+        rankPlayerCallouts.clear();
+    }
+
     function scheduleRankPlayerCallout(callout, delayMs = 0) {
-        if (!callout?.uid || !callout.text) return;
+        if (!rankCalloutsEnabled || !callout?.uid || !callout.text) return;
         const delay = Math.max(0, Number(delayMs) || 0);
         if (!delay) {
             showRankPlayerCallout(callout);
@@ -361,7 +371,7 @@
     }
 
     function showRankPlayerCallout(callout) {
-        if (!callout?.uid || !callout.text) return;
+        if (!rankCalloutsEnabled || !callout?.uid || !callout.text) return;
         if (!canRankPlayerSpeak(callout.uid)) {
             clearRankPlayerCallout(callout.uid);
             return;
@@ -400,6 +410,12 @@
         Array.from(rankPlayerCallouts.keys()).forEach((uid) => {
             if (!canRankPlayerSpeak(uid)) clearRankPlayerCallout(uid);
         });
+        if (!rankCalloutsEnabled) {
+            clearAllRankPlayerCallouts();
+            entries.forEach((entry) => seenRankCalloutLogIds.add(getLogEntryKey(entry)));
+            rankCalloutLogInitialized = true;
+            return;
+        }
 
         if (!rankCalloutLogInitialized || !previousState) {
             entries.forEach((entry) => seenRankCalloutLogIds.add(getLogEntryKey(entry)));
@@ -424,6 +440,7 @@
     }
 
     function createRankPlayerCallout(uid) {
+        if (!rankCalloutsEnabled) return null;
         const callout = rankPlayerCallouts.get(uid);
         if (!callout || callout.expiresAt <= Date.now() || !canRankPlayerSpeak(uid)) {
             clearRankPlayerCallout(uid);
@@ -589,6 +606,7 @@
         renderRoomCode();
         setupChat();
         setupAudioControls();
+        setupRankCalloutControls();
         setupSideStackSync();
         bindLanguageEvents();
     }
@@ -2053,6 +2071,22 @@
         }
     }
 
+    function setupRankCalloutControls() {
+        const toggle = document.getElementById('rankCalloutsToggle');
+        rankCalloutsEnabled = readRankStoredFlag(RANK_CALLOUTS_ENABLED_KEY, true);
+        if (!toggle) return;
+
+        toggle.checked = rankCalloutsEnabled;
+        toggle.addEventListener('change', () => {
+            rankCalloutsEnabled = Boolean(toggle.checked);
+            localStorage.setItem(RANK_CALLOUTS_ENABLED_KEY, rankCalloutsEnabled ? 'true' : 'false');
+            if (!rankCalloutsEnabled) {
+                clearAllRankPlayerCallouts();
+                renderPlayers();
+            }
+        });
+    }
+
     function normalizeVolume(value, fallback = 1) {
         if (value === null || value === undefined || value === '') return fallback;
         const number = Number(value);
@@ -2063,6 +2097,13 @@
     function readRankStoredVolume(key, fallback) {
         const storedValue = localStorage.getItem(key);
         return normalizeVolume(storedValue, fallback);
+    }
+
+    function readRankStoredFlag(key, fallback) {
+        const storedValue = localStorage.getItem(key);
+        if (storedValue === 'true') return true;
+        if (storedValue === 'false') return false;
+        return Boolean(fallback);
     }
 
     function playRankSfx(id) {

@@ -2008,6 +2008,29 @@ button.rank-card {
     outline-offset: 2px;
 }
 
+.rank-settings-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+    min-height: 42px;
+    color: var(--rank-text);
+    font-size: 13px;
+    font-weight: 800;
+    text-align: right;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.rank-settings-toggle input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    flex: 0 0 auto;
+    accent-color: var(--rank-accent);
+    cursor: pointer;
+}
+
 .rank-modal-overlay[hidden] {
     display: none;
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coup-master-pwa-v118';
+const CACHE_NAME = 'coup-master-pwa-v119';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '::1', '[::1]'];
 const IS_LOCALHOST = LOCAL_HOSTNAMES.includes(new URL(self.location.href).hostname);
 
