@@ -839,51 +839,39 @@
       "0": "Renda",
       "1": "Vou de renda",
       "2": "+1 moeda",
-      "3": "Só uma moeda",
-      "4": "Começo simples"
+      "3": "Só uma moeda"
     },
     "foreignAid": {
       "0": "Ajuda externa",
-      "1": "Vou pedir Ajuda Externa",
-      "2": "Ajuda do tesouro",
-      "3": "Preciso de duas moedas"
+      "1": "Vou pedir Ajuda Externa"
     },
     "coup": {
       "0": "Golpe de Estado!",
-      "1": "Eu dou um Golpe!",
-      "2": "Sem negociação",
-      "3": "Coloca uma carta na mesa",
-      "4": "Coloca na mesa!",
-      "5": "Golpe agora!",
-      "6": "Sem conversa!"
+      "1": "Coloca uma carta na mesa",
+      "2": "Coloca na mesa!",
+      "3": "Sem conversa!"
     },
     "tax": {
       "0": "Eu sou o Duque",
       "1": "Tenho o Duque",
-      "2": "Duque",
-      "3": "Taxar",
-      "4": "Cofres do Duque"
+      "2": "Duque"
     },
     "steal": {
       "0": "Eu sou o Capitão",
       "1": "Vou Extorquir",
       "2": "Eu como Capitão...",
-      "3": "Duas moedas pra cá",
-      "4": "Capitão cobra"
+      "3": "Duas moedas pra cá"
     },
     "assassinate": {
       "0": "Eu sou o Assassino",
       "1": "Bota na mesa",
-      "2": "Contrato aceito",
-      "3": "Morre!",
-      "4": "Fim da linha",
-      "5": "Assassino na mesa"
+      "2": "Morre!",
+      "3": "Fim da linha"
     },
     "exchangeAmbassador": {
       "0": "Sou o Embaixador",
       "1": "Vou trocar",
-      "2": "Vou comprar duas cartas",
-      "3": "Hora da troca"
+      "2": "Hora da troca"
     },
     "exchangeInquisitor": {
       "0": "Sou o Inquisidor",
@@ -892,24 +880,23 @@
       "3": "Hora da troca"
     },
     "examine": {
-      "0": "Vou investigar",
+      "0": "Quero investigar",
       "1": "Deixa eu ver sua carta",
-      "2": "Mostra essa influência",
-      "3": "Inquisidor quer ver"
+      "2": "Mostra a carta",
+      "3": "Deixa eu examinar"
     },
     "block": {
       "0": "Eu bloqueio",
       "1": "Bloqueio",
       "2": "Nem pensar",
-      "3": "Não mesmo, bloqueio...",
-      "4": "Tenho resposta",
-      "5": "Essa não passa"
+      "3": "Não mesmo...",
+      "4": "Essa não passa"
     },
     "contessaBlock": {
       "0": "Tenho a Condessa",
       "1": "Sou a Condessa",
       "2": "Condessa bloqueia",
-      "3": "Bloqueio com Condessa",
+      "3": "Bloqueio com a Condessa",
       "4": "Assassinato negado"
     },
     "challenge": {
@@ -932,7 +919,7 @@
       "8": "Hmm..."
     },
     "proven": {
-      "0": "Se lascou",
+      "0": "Se ferrou kk",
       "1": "Tá aqui",
       "2": "Eu tinha mesmo kkkk",
       "3": "Nunca minto",
@@ -944,8 +931,8 @@
       "0": "Mentiroso",
       "1": "Peguei",
       "2": "Sabia",
-      "3": "Era blefe",
-      "4": "Caiu"
+      "3": "Não tinha como",
+      "4": "Chora"
     }
   },
   "rankedLog": {

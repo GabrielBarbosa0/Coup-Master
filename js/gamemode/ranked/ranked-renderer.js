@@ -35,6 +35,7 @@
     const seenRankCalloutLogIds = new Set();
     const rankPlayerCallouts = new Map();
     const rankCalloutTimers = new Map();
+    const rankScheduledCalloutTimers = new Set();
 
     const TENSION_FADE_IN_MS = 900;
     const TENSION_FADE_OUT_MS = 1400;
@@ -43,7 +44,8 @@
     const RANK_BGM_POSITION_KEY = 'rankBgmPosition';
     const DEFAULT_RANK_MUSIC_VOLUME = 0.1;
     const DEFAULT_RANK_SFX_VOLUME = 0.2;
-    const RANK_CALLOUT_DURATION_MS = 2800;
+    const RANK_CALLOUT_DURATION_MS = 3800;
+    const RANK_CALLOUT_SEQUENCE_STEP_MS = 760;
     const RANK_BALATRO_HOVER = Object.freeze({
         tilt: 36,
         glowOffset: 23.4
@@ -120,16 +122,16 @@
     }
 
     const CALLOUT_VARIANTS = Object.freeze({
-        income: calloutKeys('income', 5),
-        foreignAid: calloutKeys('foreignAid', 4),
-        coup: calloutKeys('coup', 7),
-        tax: calloutKeys('tax', 5),
-        steal: calloutKeys('steal', 5),
-        assassinate: calloutKeys('assassinate', 6),
-        exchangeAmbassador: calloutKeys('exchangeAmbassador', 4),
+        income: calloutKeys('income', 4),
+        foreignAid: calloutKeys('foreignAid', 2),
+        coup: calloutKeys('coup', 4),
+        tax: calloutKeys('tax', 3),
+        steal: calloutKeys('steal', 4),
+        assassinate: calloutKeys('assassinate', 4),
+        exchangeAmbassador: calloutKeys('exchangeAmbassador', 3),
         exchangeInquisitor: calloutKeys('exchangeInquisitor', 4),
         examine: calloutKeys('examine', 4),
-        block: calloutKeys('block', 6),
+        block: calloutKeys('block', 5),
         contessaBlock: calloutKeys('contessaBlock', 5),
         challenge: calloutKeys('challenge', 6),
         pass: calloutKeys('pass', 9),
@@ -174,6 +176,21 @@
         window.clearTimeout(rankCalloutTimers.get(uid));
         rankCalloutTimers.delete(uid);
         rankPlayerCallouts.delete(uid);
+    }
+
+    function scheduleRankPlayerCallout(callout, delayMs = 0) {
+        if (!callout?.uid || !callout.text) return;
+        const delay = Math.max(0, Number(delayMs) || 0);
+        if (!delay) {
+            showRankPlayerCallout(callout);
+            return;
+        }
+
+        const timer = window.setTimeout(() => {
+            rankScheduledCalloutTimers.delete(timer);
+            showRankPlayerCallout(callout);
+        }, delay);
+        rankScheduledCalloutTimers.add(timer);
     }
 
     function findPlayerByLogName(name) {
@@ -266,12 +283,17 @@
             return;
         }
 
+        const newCallouts = [];
         entries.forEach((entry) => {
             const key = getLogEntryKey(entry);
             if (seenRankCalloutLogIds.has(key)) return;
             seenRankCalloutLogIds.add(key);
             const callout = buildRankCallout(entry);
-            if (callout) showRankPlayerCallout(callout);
+            if (callout) newCallouts.push(callout);
+        });
+
+        newCallouts.forEach((callout, index) => {
+            scheduleRankPlayerCallout(callout, index * RANK_CALLOUT_SEQUENCE_STEP_MS);
         });
     }
 
