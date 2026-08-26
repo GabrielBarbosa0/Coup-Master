@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab Onda Senoidal - Coup Master</title>
+  <link rel="icon" href="../assets/img/logo/favicon-coup-master-circulo.png?v=custom-logo-v2">
+  <style>
+    :root {
+      --bg: #111820;
+      --panel: #18222e;
+      --panel-strong: #101722;
+      --line: rgba(110, 150, 190, 0.26);
+      --text: #f4f7fb;
+      --muted: #9aa8b7;
+      --accent: #1e90ff;
+      --gold: #d7aa35;
+      --danger: #ff4f57;
+      --card-w: clamp(86px, 11vw, 154px);
+      --card-h: calc(var(--card-w) * 1.4);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        linear-gradient(180deg, rgba(30, 144, 255, 0.08), transparent 34%),
+        linear-gradient(135deg, #0d1219 0%, #111820 46%, #171b1e 100%);
+      overflow-x: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .lab-shell {
+      width: min(1180px, calc(100vw - 28px));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 22px 0 26px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 16px;
+    }
+
+    .lab-header,
+    .lab-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(24, 34, 46, 0.88);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+    }
+
+    .lab-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+
+    .lab-title {
+      display: grid;
+      gap: 4px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .lab-header p,
+    .hint {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .controls {
+      padding: 16px;
+      display: grid;
+      align-content: start;
+      gap: 14px;
+    }
+
+    .control-row {
+      display: grid;
+      gap: 7px;
+    }
+
+    .control-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .control-value {
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+    .lab-btn {
+      min-height: 40px;
+      border: 1px solid rgba(30, 144, 255, 0.48);
+      border-radius: 6px;
+      color: var(--text);
+      background: rgba(30, 144, 255, 0.13);
+      cursor: pointer;
+      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+
+    .lab-btn:hover,
+    .lab-btn:focus-visible {
+      border-color: var(--accent);
+      background: rgba(30, 144, 255, 0.24);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .lab-btn.is-danger {
+      border-color: rgba(255, 79, 87, 0.45);
+      background: rgba(255, 79, 87, 0.12);
+    }
+
+    .stage-card {
+      min-height: min(64vh, 620px);
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .stage-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .stage-toolbar h2 {
+      font-size: 1.1rem;
+      text-transform: uppercase;
+    }
+
+    .wave-stage {
+      position: relative;
+      min-height: 420px;
+      border: 1px solid rgba(30, 144, 255, 0.28);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(90deg, rgba(30, 144, 255, 0.10) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(215, 170, 53, 0.08) 1px, transparent 1px),
+        var(--panel-strong);
+      background-size: 64px 64px;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .wave-line {
+      position: absolute;
+      inset: 50% 4% auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(30, 144, 255, 0.72), transparent);
+      opacity: 0.65;
+      pointer-events: none;
+    }
+
+    .wave-card {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: var(--card-w);
+      height: var(--card-h);
+      padding: 0;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      cursor: pointer;
+      transform-origin: center;
+      will-change: transform, filter;
+      transition: filter 180ms ease;
+    }
+
+    .wave-card img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      object-fit: cover;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .wave-card::after {
+      content: attr(data-label);
+      position: absolute;
+      left: 50%;
+      bottom: -34px;
+      translate: -50% 0;
+      max-width: 150px;
+      padding: 5px 10px;
+      border: 1px solid rgba(244, 247, 251, 0.25);
+      border-radius: 6px;
+      color: var(--text);
+      background: rgba(16, 23, 34, 0.82);
+      font-size: 0.78rem;
+      font-weight: 700;
+      opacity: 0;
+      white-space: nowrap;
+      transition: opacity 140ms ease, translate 140ms ease;
+      pointer-events: none;
+    }
+
+    .wave-card:hover,
+    .wave-card.is-focused {
+      filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.34)) drop-shadow(0 0 12px rgba(30, 144, 255, 0.34));
+    }
+
+    .wave-card:hover::after,
+    .wave-card.is-focused::after {
+      opacity: 1;
+      translate: -50% -4px;
+    }
+
+    .readout {
+      min-height: 76px;
+      padding: 12px;
+      border: 1px solid rgba(110, 150, 190, 0.18);
+      border-radius: var(--radius);
+      color: var(--muted);
+      background: rgba(16, 23, 34, 0.72);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 780px) {
+      .lab-shell {
+        width: min(100vw - 18px, 520px);
+        padding: 10px 0 18px;
+      }
+
+      .lab-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .stage-card {
+        min-height: 460px;
+      }
+
+      .wave-stage {
+        min-height: 330px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="lab-shell">
+    <header class="lab-header">
+      <div class="lab-title">
+        <span class="eyebrow">Laboratório de cartas</span>
+        <h1>Onda senoidal</h1>
+        <p>Teste uma mão de cartas se movendo em onda contínua, com fase individual por carta.</p>
+      </div>
+      <button class="lab-btn" id="toggleMotion" type="button">Pausar</button>
+    </header>
+
+    <section class="workspace">
+      <aside class="lab-card controls" aria-label="Controles da onda">
+        <p class="hint">A ideia aqui é simular aquele movimento orgânico de cartas vivas, sem alterar o modo casual ou ranqueado.</p>
+
+        <div class="control-row">
+          <label class="control-label" for="amplitude">Amplitude <span class="control-value" id="amplitudeValue"></span></label>
+          <input id="amplitude" type="range" min="0" max="80" value="12">
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="speed">Velocidade <span class="control-value" id="speedValue"></span></label>
+          <input id="speed" type="range" min="10" max="220" value="40">
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="phase">Fase entre cartas <span class="control-value" id="phaseValue"></span></label>
+          <input id="phase" type="range" min="12" max="180" value="40">
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="rotation">Rotação <span class="control-value" id="rotationValue"></span></label>
+          <input id="rotation" type="range" min="0" max="28" value="0">
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="spacing">Espaçamento <span class="control-value" id="spacingValue"></span></label>
+          <input id="spacing" type="range" min="54" max="150" value="85">
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="scale">Pulso de escala <span class="control-value" id="scaleValue"></span></label>
+          <input id="scale" type="range" min="0" max="12" value="0">
+        </div>
+
+        <div class="preset-grid">
+          <button class="lab-btn" data-preset="soft" type="button">Suave</button>
+          <button class="lab-btn" data-preset="balatro" type="button">Balatro</button>
+          <button class="lab-btn" data-preset="table" type="button">Mesa</button>
+          <button class="lab-btn is-danger" id="resetMotion" type="button">Resetar</button>
+        </div>
+      </aside>
+
+      <section class="lab-card stage-card">
+        <div class="stage-toolbar">
+          <h2>Prévia da mão</h2>
+          <span class="hint">Passe o mouse para destacar uma carta.</span>
+        </div>
+
+        <div class="wave-stage" id="waveStage" aria-label="Cartas em onda senoidal">
+          <div class="wave-line" aria-hidden="true"></div>
+        </div>
+
+        <pre class="readout" id="readout"></pre>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const CARD_DATA = [
+      { label: 'Duque', src: '../assets/img/cards/base/duque.png' },
+      { label: 'Capitão', src: '../assets/img/cards/base/capitao.png' },
+      { label: 'Assassino', src: '../assets/img/cards/base/assassino.png' },
+      { label: 'Condessa', src: '../assets/img/cards/base/condessa.png' },
+      { label: 'Embaixador', src: '../assets/img/cards/base/embaixador.png' },
+      { label: 'Inquisidor', src: '../assets/img/cards/base/inquisidor.png' }
+    ];
+
+    const DEFAULTS = {
+      amplitude: 12,
+      speed: 40,
+      phase: 40,
+      rotation: 0,
+      spacing: 85,
+      scale: 0
+    };
+
+    const PRESETS = {
+      soft: { amplitude: 18, speed: 48, phase: 48, rotation: 5, spacing: 102, scale: 2 },
+      balatro: { amplitude: 7, speed: 10, phase: 50, rotation: 2, spacing: 150, scale: 0 },
+      table: { amplitude: 10, speed: 34, phase: 34, rotation: 3, spacing: 96, scale: 1 }
+    };
+
+    const controls = {
+      amplitude: document.getElementById('amplitude'),
+      speed: document.getElementById('speed'),
+      phase: document.getElementById('phase'),
+      rotation: document.getElementById('rotation'),
+      spacing: document.getElementById('spacing'),
+      scale: document.getElementById('scale')
+    };
+
+    const labels = {
+      amplitude: document.getElementById('amplitudeValue'),
+      speed: document.getElementById('speedValue'),
+      phase: document.getElementById('phaseValue'),
+      rotation: document.getElementById('rotationValue'),
+      spacing: document.getElementById('spacingValue'),
+      scale: document.getElementById('scaleValue')
+    };
+
+    const stage = document.getElementById('waveStage');
+    const readout = document.getElementById('readout');
+    const toggleMotion = document.getElementById('toggleMotion');
+    const resetMotion = document.getElementById('resetMotion');
+    const cardElements = [];
+
+    let running = true;
+    let time = 0;
+    let lastFrame = 0;
+
+    function getState() {
+      return Object.fromEntries(
+        Object.entries(controls).map(([key, input]) => [key, Number(input.value)])
+      );
+    }
+
+    function setState(nextState) {
+      Object.entries(nextState).forEach(([key, value]) => {
+        if (controls[key]) {
+          controls[key].value = value;
+        }
+      });
+      syncLabels();
+    }
+
+    function syncLabels() {
+      const state = getState();
+      labels.amplitude.textContent = `${state.amplitude}px`;
+      labels.speed.textContent = `${(state.speed / 100).toFixed(2)}x`;
+      labels.phase.textContent = `${state.phase}°`;
+      labels.rotation.textContent = `${state.rotation}°`;
+      labels.spacing.textContent = `${state.spacing}px`;
+      labels.scale.textContent = `${state.scale}%`;
+
+      readout.textContent = `const SINE_WAVE_CARDS = {
+  amplitude: ${state.amplitude},
+  speed: ${(state.speed / 100).toFixed(2)},
+  phase: ${state.phase},
+  rotation: ${state.rotation},
+  spacing: ${state.spacing},
+  scalePulse: ${state.scale}
+};`;
+    }
+
+    function createCards() {
+      CARD_DATA.forEach((card, index) => {
+        const button = document.createElement('button');
+        button.className = 'wave-card';
+        button.type = 'button';
+        button.dataset.index = index;
+        button.dataset.label = card.label;
+        button.setAttribute('aria-label', card.label);
+
+        const image = document.createElement('img');
+        image.src = card.src;
+        image.alt = card.label;
+        image.draggable = false;
+        button.appendChild(image);
+
+        button.addEventListener('focus', () => button.classList.add('is-focused'));
+        button.addEventListener('blur', () => button.classList.remove('is-focused'));
+
+        stage.appendChild(button);
+        cardElements.push(button);
+      });
+    }
+
+    function render(now) {
+      if (!lastFrame) {
+        lastFrame = now;
+      }
+
+      const delta = Math.min((now - lastFrame) / 1000, 0.05);
+      lastFrame = now;
+
+      if (running) {
+        time += delta;
+      }
+
+      const state = getState();
+      const stageRect = stage.getBoundingClientRect();
+      const sampleCard = cardElements[0];
+      const cardWidth = sampleCard.offsetWidth;
+      const cardHeight = sampleCard.offsetHeight;
+      const rawGap = state.spacing;
+      const safeGap = Math.min(rawGap, Math.max(48, (stageRect.width - cardWidth - 24) / (CARD_DATA.length - 1)));
+      const totalWidth = cardWidth + safeGap * (CARD_DATA.length - 1);
+      const startX = (stageRect.width - totalWidth) / 2;
+      const centerY = (stageRect.height - cardHeight) / 2;
+      const speed = state.speed / 100;
+      const phase = state.phase * Math.PI / 180;
+      const scalePulse = state.scale / 100;
+
+      cardElements.forEach((card, index) => {
+        const wave = Math.sin(time * speed * Math.PI * 2 + index * phase);
+        const drift = Math.cos(time * speed * Math.PI + index * phase * 0.7);
+        const x = startX + safeGap * index + drift * 4;
+        const y = centerY + wave * state.amplitude;
+        const rotation = wave * state.rotation + drift * 2;
+        const scale = 1 + ((wave + 1) / 2) * scalePulse;
+
+        card.style.zIndex = index + 1;
+        card.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg) scale(${scale})`;
+      });
+
+      requestAnimationFrame(render);
+    }
+
+    Object.values(controls).forEach((input) => {
+      input.addEventListener('input', syncLabels);
+    });
+
+    document.querySelectorAll('[data-preset]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const preset = PRESETS[button.dataset.preset];
+        setState(preset);
+      });
+    });
+
+    toggleMotion.addEventListener('click', () => {
+      running = !running;
+      toggleMotion.textContent = running ? 'Pausar' : 'Continuar';
+    });
+
+    resetMotion.addEventListener('click', () => {
+      time = 0;
+      setState(DEFAULTS);
+    });
+
+    createCards();
+    syncLabels();
+    requestAnimationFrame(render);
+  </script>
+</body>
+
+</html>

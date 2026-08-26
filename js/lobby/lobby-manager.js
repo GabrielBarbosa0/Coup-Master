@@ -96,25 +96,38 @@ function requiresGoogleAccount(mode) {
     return CoupGameModes.isAutomated(mode);
 }
 
-function setRankedModeAvailability(user) {
-    const canAccessRanked = CoupGameModes.canAccessRanked(user);
+function getModeHelpText(mode, user) {
+    const normalizedMode = CoupGameModes.normalize(mode);
+    const canAccessAutomated = CoupGameModes.canAccessRanked(user);
 
-    [rankedModeInput, personalizedModeInput].forEach((input) => {
-        if (!input) return;
-        input.disabled = !canAccessRanked;
-
-        if (!canAccessRanked && input.checked) {
-            const casualModeInput = document.querySelector('input[name="game-mode"][value="casual"]');
-            if (casualModeInput) casualModeInput.checked = true;
-        }
-    });
-
-    if (rankedModeNote) {
-        rankedModeNote.hidden = false;
-        rankedModeNote.textContent = canAccessRanked
+    if (CoupGameModes.isRanked(normalizedMode)) {
+        return canAccessAutomated
             ? t('lobby.rankedNoteAvailable')
             : t('lobby.rankedNoteLocked');
     }
+
+    if (CoupGameModes.isPersonalized(normalizedMode)) {
+        return canAccessAutomated
+            ? t('lobby.personalizedNoteAvailable')
+            : t('lobby.personalizedNoteLocked');
+    }
+
+    return t('lobby.casualNote');
+}
+
+function updateModeHelpText(user = currentLobbyUser) {
+    if (!rankedModeNote) return;
+    rankedModeNote.hidden = false;
+    rankedModeNote.textContent = getModeHelpText(getSelectedGameMode(), user);
+}
+
+function setRankedModeAvailability(user) {
+    [rankedModeInput, personalizedModeInput].forEach((input) => {
+        if (!input) return;
+        input.disabled = false;
+    });
+
+    updateModeHelpText(user);
 }
 
 function openRoom(code, mode) {
@@ -603,6 +616,10 @@ if (userPhotoImg) {
 closePlayerStatsModalBtn?.addEventListener('click', closePlayerStatsModal);
 playerStatsModal?.addEventListener('click', (event) => {
     if (event.target === playerStatsModal) closePlayerStatsModal();
+});
+
+document.querySelectorAll('input[name="game-mode"]').forEach((input) => {
+    input.addEventListener('change', () => updateModeHelpText());
 });
 
 leaderboardBtn?.addEventListener('click', openLeaderboardModal);

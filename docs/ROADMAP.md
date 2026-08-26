@@ -240,7 +240,7 @@ Estas dividas bloqueiam qualquer tentativa de tratar ranking como competitivo se
 
    Exemplos conhecidos:
 
-   - `index.html` ainda aponta `og:image` para caminho incorreto;
+   - `og:image` foi padronizado para a nova logo em `assets/img/logo/logo-coup-master.png`;
    - `sitemap.xml` referencia `/img/...`, mas assets reais estao em `assets/img/...`.
 
 2. **HTML invalido no lobby**
@@ -325,7 +325,6 @@ Objetivo: reduzir risco sem mudar arquitetura.
 
 Tarefas:
 
-- Corrigir `og:image` do `index.html`.
 - Corrigir caminhos incorretos no `sitemap.xml`.
 - Corrigir HTML invalido do `lobby.html`.
 - Atualizar README para refletir estado real dos arquivos.
@@ -593,7 +592,7 @@ Se a ideia for escolher uma frente pequena e de alto impacto, a melhor sequencia
 - criar `docs/audio-assets.md`;
 - corrigir moedas/asilo com transacoes;
 - remover `innerHTML` inseguro no espectador;
-- corrigir `og:image` e `sitemap.xml`;
+- corrigir caminhos restantes do `sitemap.xml`;
 - versionar `database.rules.json`;
 - adicionar um primeiro microbanner visual no ranqueado para ultima acao.
 
