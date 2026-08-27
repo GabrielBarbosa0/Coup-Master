@@ -106,7 +106,7 @@
     }
   }
 
-  function getCompatiblePhysicsScope(sourceElement) {
+  function getCompatiblePhysicsScopeForElement(sourceElement) {
     if (!sourceElement) return null;
 
     const handContainer = sourceElement.closest('[data-hand]');
@@ -128,6 +128,30 @@
     return null;
   }
 
+  function getCompatiblePhysicsScopeFromDropzone(dropzone) {
+    if (!dropzone) return null;
+
+    if (dropzone.id === 'graveyardArea') {
+      const graveyardContainer = dropzone.querySelector('.graveyard-cards') || dropzone;
+      return {
+        element: graveyardContainer,
+        selector: '.graveyard-card'
+      };
+    }
+
+    if (dropzone.classList.contains('player-area') && !dropzone.classList.contains('is-empty')) {
+      const handContainer = dropzone.querySelector('[data-hand]');
+      if (handContainer) {
+        return {
+          element: handContainer,
+          selector: '.slot .card'
+        };
+      }
+    }
+
+    return null;
+  }
+
   function getMedian(values) {
     if (!values.length) return null;
 
@@ -138,11 +162,11 @@
       : (sorted[middle - 1] + sorted[middle]) / 2;
   }
 
-  function getCompatiblePhysicsSetup(sourceElement, physics) {
-    const scope = getCompatiblePhysicsScope(sourceElement);
+  function getCompatiblePhysicsSetup(sourceElement, physics, scope = getCompatiblePhysicsScopeForElement(sourceElement)) {
     if (!scope?.element) {
       return {
         repelRadius: physics.repelRadius,
+        scope: null,
         targets: []
       };
     }
@@ -195,7 +219,40 @@
 
     return {
       repelRadius,
+      scope,
       targets
+    };
+  }
+
+  function isSamePhysicsScope(currentState, scope) {
+    return currentState?.physicsScopeElement === scope?.element
+      && currentState?.physicsScopeSelector === scope?.selector;
+  }
+
+  function syncCompatiblePhysicsTargets(dropzone) {
+    if (!compatibleDragState?.activated || compatibleDragState.returning) return;
+
+    const scope = getCompatiblePhysicsScopeFromDropzone(dropzone);
+    if (isSamePhysicsScope(compatibleDragState, scope)) return;
+
+    resetCompatiblePhysicsCards(compatibleDragState.physicsTargets);
+
+    if (!scope) {
+      compatibleDragState.physicsTargets = [];
+      compatibleDragState.physicsScopeElement = null;
+      compatibleDragState.physicsScopeSelector = null;
+      compatibleDragState.physics = compatibleDragState.basePhysics || compatibleDragState.physics || CARD_PHYSICS;
+      return;
+    }
+
+    const basePhysics = compatibleDragState.basePhysics || compatibleDragState.physics || CARD_PHYSICS;
+    const physicsSetup = getCompatiblePhysicsSetup(compatibleDragState.sourceElement, basePhysics, scope);
+    compatibleDragState.physicsTargets = physicsSetup.targets;
+    compatibleDragState.physicsScopeElement = physicsSetup.scope?.element || null;
+    compatibleDragState.physicsScopeSelector = physicsSetup.scope?.selector || null;
+    compatibleDragState.physics = {
+      ...basePhysics,
+      repelRadius: physicsSetup.repelRadius
     };
   }
 
@@ -414,10 +471,13 @@
     const physics = getScaledCardPhysics(sourceRect);
     const physicsSetup = getCompatiblePhysicsSetup(compatibleDragState.sourceElement, physics);
     compatibleDragState.ghost = createCompatibleDragGhost(compatibleDragState.sourceElement, sourceRect);
+    compatibleDragState.basePhysics = physics;
     compatibleDragState.physics = {
       ...physics,
       repelRadius: physicsSetup.repelRadius
     };
+    compatibleDragState.physicsScopeElement = physicsSetup.scope?.element || null;
+    compatibleDragState.physicsScopeSelector = physicsSetup.scope?.selector || null;
     compatibleDragState.sourceSlot = compatibleDragState.sourceElement.closest('.slot');
     compatibleDragState.sourceGraveyardCard = compatibleDragState.sourceElement.classList.contains('graveyard-card')
       ? compatibleDragState.sourceElement
@@ -684,6 +744,7 @@
     scheduleCompatibleDragPhysics();
 
     const dropzone = getCompatibleDropzone(event.clientX, event.clientY);
+    syncCompatiblePhysicsTargets(dropzone);
     updateCompatibleDropHighlight(dropzone);
   }
 
