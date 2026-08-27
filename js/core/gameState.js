@@ -273,18 +273,32 @@ function returnCardToDeck(cardId) {
  * MOVIMENTAÇÃO DE CARTAS
  * Função genérica para mover cartas entre mãos de jogadores, deck ou cemitério.
  */
-function moveCard(cardId, targetLocation, targetPlayerId = null) {
+function moveCard(cardId, targetLocation, targetPlayerId = null, options = {}) {
+  options = options || {};
   updateRoomActivity();
 
   // Feedback sonoro baseado no destino
-  if (targetLocation === 'player') triggerSound('card-slide');
-  if (targetLocation === 'free') triggerSound('knife');
-  if (targetLocation === 'deck') triggerSound('shuffle');
+  if (!options.suppressSound) {
+    if (targetLocation === 'player') triggerSound('card-slide');
+    if (targetLocation === 'free') triggerSound('knife');
+    if (targetLocation === 'deck') triggerSound('shuffle');
+  }
 
   gameStateRef.transaction((currentState) => {
     if (!currentState) return currentState;
     const card = findCardById(currentState, cardId);
     if (!card) return currentState;
+    const insertIndex = Number.isInteger(options.insertIndex) ? options.insertIndex : null;
+
+    function insertCard(targetArray, cardToInsert) {
+      if (insertIndex === null) {
+        targetArray.push(cardToInsert);
+        return;
+      }
+
+      const safeIndex = Math.max(0, Math.min(insertIndex, targetArray.length));
+      targetArray.splice(safeIndex, 0, cardToInsert);
+    }
 
     // Lógica para mover para a mão de um jogador
     if (targetLocation === 'player') {
@@ -293,7 +307,7 @@ function moveCard(cardId, targetLocation, targetPlayerId = null) {
       card.location = 'player-' + targetPlayerId;
       card.visible = false;
       if (!currentState.players[targetPlayerId].hand) currentState.players[targetPlayerId].hand = [];
-      currentState.players[targetPlayerId].hand.push(card);
+      insertCard(currentState.players[targetPlayerId].hand, card);
     }
     // Lógica para mover para o cemitério (aberta para todos)
     else if (targetLocation === 'free') {
@@ -302,7 +316,7 @@ function moveCard(cardId, targetLocation, targetPlayerId = null) {
       card.location = 'free';
       card.visible = true;
       if (!currentState.freeCards) currentState.freeCards = [];
-      currentState.freeCards.push(card);
+      insertCard(currentState.freeCards, card);
     }
     // Lógica para devolver ao baralho
     else if (targetLocation === 'deck') {

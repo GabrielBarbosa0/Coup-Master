@@ -1911,12 +1911,24 @@ h2 {
     transition-delay: 0s;
 }
 
+.game-table .slot.is-compatible-drag-source-slot {
+    flex-basis: clamp(38px, calc(var(--card-width) * 0.65), 54px);
+    width: clamp(38px, calc(var(--card-width) * 0.65), 54px);
+    min-width: clamp(38px, calc(var(--card-width) * 0.65), 54px);
+    margin-left: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: none;
+}
+
 .game-table .card,
 .game-table .deck {
     --tilt-x: 0deg;
     --tilt-y: 0deg;
     --card-scale: 1;
     --card-lift: 0px;
+    --card-repel-x: 0px;
+    --card-repel-y: 0px;
     --card-base-shift: 0px;
     --card-base-rotation: 0deg;
     width: var(--card-width);
@@ -1930,7 +1942,9 @@ h2 {
     background-repeat: no-repeat;
     box-shadow: 0 7px 12px rgba(0, 0, 0, 0.28);
     transform: perspective(820px)
+        translateX(var(--card-repel-x))
         translateY(calc(var(--card-base-shift) + var(--card-lift)))
+        translateY(var(--card-repel-y))
         rotateZ(var(--card-base-rotation))
         rotateX(var(--tilt-x))
         rotateY(var(--tilt-y))
@@ -1979,10 +1993,11 @@ h2 {
     position: fixed;
     z-index: 30000;
     pointer-events: none;
-    opacity: 0.88;
-    transform: translate3d(-50%, -50%, 0) scale(1.04);
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
     transform-origin: center;
-    filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.55));
+    filter: drop-shadow(0 28px 28px rgba(0, 0, 0, 0.46));
+    will-change: left, top, transform, filter;
 }
 
 .compatible-drop-hover {
@@ -2016,6 +2031,15 @@ h2 {
 
 .game-table .card.lifting {
     transform: perspective(820px) translateY(-10px) rotateZ(5deg) scale(1.15) !important;
+}
+
+.game-table .card.is-compatible-drag-source {
+    opacity: 0;
+}
+
+.game-table .card.is-physics-repel-target {
+    z-index: 35;
+    transition: none;
 }
 
 .game-table .card.is-dragging {
@@ -2206,6 +2230,16 @@ h2 {
 
 .game-table .graveyard-card:first-child {
     margin-left: 0;
+}
+
+.game-table .graveyard-card.is-compatible-drag-source-graveyard-card {
+    flex-basis: clamp(38px, calc(var(--card-width) * 0.65), 54px);
+    width: clamp(38px, calc(var(--card-width) * 0.65), 54px);
+    min-width: clamp(38px, calc(var(--card-width) * 0.65), 54px);
+    margin-left: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: none;
 }
 
 .game-table .graveyard-card.balatro-effect.is-tilting {

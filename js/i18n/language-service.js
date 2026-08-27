@@ -118,6 +118,10 @@
         });
 
         scope.querySelectorAll?.('[data-i18n-title]').forEach((node) => {
+            if (node === document.documentElement) {
+                node.removeAttribute('title');
+                return;
+            }
             node.setAttribute('title', translate(node.dataset.i18nTitle));
         });
 
