@@ -2667,6 +2667,14 @@ body.hide-religion .game-table .center-area {
 }
 
 @media (orientation: landscape) and (max-width: 1024px) and (max-height: 560px) {
+    .game-table .center-area.extra-row-hidden {
+        grid-template-areas:
+            "players-top players-top players-top"
+            "asylum graveyard deck"
+            "status status status";
+        grid-template-rows: 150px 150px auto;
+    }
+
     .game-table .player-row.mobile-row-hidden,
     .game-table .player-area.mobile-seat-hidden {
         display: none !important;

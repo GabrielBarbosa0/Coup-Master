@@ -63,6 +63,7 @@
   function applyMobileSeatVisibility(players = {}, maxPlayers = 8) {
     const visibleLimit = getVisibleMobileSeatLimit(players, maxPlayers);
     const bottomRow = document.querySelector('.player-row-bottom');
+    const centerArea = document.getElementById('centerArea');
 
     for (let pid = 1; pid <= maxPlayers; pid++) {
       const playerEl = document.getElementById(`player-${pid}`);
@@ -75,6 +76,10 @@
 
     if (bottomRow) {
       bottomRow.classList.toggle('mobile-row-hidden', visibleLimit <= 4);
+    }
+
+    if (centerArea) {
+      centerArea.classList.toggle('extra-row-hidden', visibleLimit <= 4);
     }
   }
 
