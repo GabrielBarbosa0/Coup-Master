@@ -479,31 +479,44 @@ h2 {
 }
 
 .share-room-modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     width: min(92vw, 360px);
-    padding: 26px 22px 22px;
+    padding: 24px 18px 18px;
     text-align: center;
 }
 
 .share-room-modal-content h2 {
-    margin: 0 32px 18px;
+    margin: 0 32px 14px;
     font-size: 22px;
 }
 
-.share-room-code-panel {
+.share-room-invite-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 16px;
-    padding: 14px;
+    gap: 8px;
+    width: min(210px, 68vw);
+    margin: 0 auto 16px;
+    padding: 14px 12px 12px;
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 8px;
     background: rgba(10, 15, 22, 0.45);
 }
 
+.share-room-code-panel {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+}
+
 .share-room-label {
-    color: var(--muted);
-    font-size: 11px;
+    color: #f8fafc;
+    font-size: 13px;
     font-weight: 800;
     letter-spacing: 0;
     text-transform: uppercase;
@@ -511,19 +524,21 @@ h2 {
 
 #shareRoomCode {
     color: #f8fafc;
-    font-size: 34px;
+    font-size: 15px;
     line-height: 1;
     letter-spacing: 0;
+    text-transform: uppercase;
 }
 
 .share-room-qr-frame {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 210px;
-    height: 210px;
-    margin: 0 auto 18px;
-    padding: 10px;
+    width: min(150px, 48vw);
+    height: auto;
+    aspect-ratio: 1;
+    margin: 0;
+    padding: 8px;
     border-radius: 8px;
     background: #fff;
 }
@@ -533,6 +548,14 @@ h2 {
     width: 100%;
     height: 100%;
     object-fit: contain;
+}
+
+.share-room-scan-label {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
 }
 
 .share-room-actions {
@@ -558,6 +581,53 @@ h2 {
 .share-room-actions .icon-btn.copied {
     background: var(--active);
     color: #0b121a;
+}
+
+@media (orientation: landscape) and (max-width: 1024px) and (max-height: 560px) {
+    #shareRoomModal .share-room-modal-content {
+        width: min(360px, calc(100vw - 28px));
+        max-height: calc(100dvh - 28px);
+        padding: 16px 18px;
+        overflow: visible;
+    }
+
+    #shareRoomModal .close-btn {
+        z-index: 1010;
+    }
+
+    #shareRoomModal .share-room-modal-content h2 {
+        margin: 0 34px 10px;
+        padding-right: 0;
+        font-size: clamp(17px, 4.6dvh, 22px);
+        line-height: 1.1;
+    }
+
+    #shareRoomModal .share-room-invite-card {
+        width: min(190px, 44vw);
+        gap: 4px;
+        margin-bottom: 10px;
+        padding: 8px 10px;
+    }
+
+    #shareRoomCode {
+        font-size: 14px;
+    }
+
+    #shareRoomModal .share-room-qr-frame {
+        width: clamp(82px, 27dvh, 116px);
+        padding: 6px;
+    }
+
+    #shareRoomModal .share-room-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    #shareRoomModal .share-room-actions .icon-btn {
+        min-height: 32px;
+        padding: 7px 8px;
+        font-size: 10px;
+    }
 }
 
 
@@ -731,6 +801,105 @@ h2 {
 
 #quickActionsModal .quick-player-modal {
     padding: 25px;
+}
+
+@media (orientation: landscape) and (max-width: 1024px) and (max-height: 560px) {
+    #quickActionsModal .quick-player-modal {
+        display: flex;
+        flex-direction: column;
+        width: min(560px, calc(100vw - 28px));
+        max-width: 560px;
+        max-height: calc(100dvh - 24px);
+        padding: 14px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+        scrollbar-width: thin;
+    }
+
+    #quickActionsModal .quick-player-modal::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #quickActionsModal .quick-player-modal::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+
+    #quickActionsModal .quick-player-modal::-webkit-scrollbar-thumb {
+        background: var(--accent);
+        border-radius: 10px;
+    }
+
+    #quickActionsModal #quickActionsTitle {
+        margin-bottom: 8px !important;
+        font-size: 16px !important;
+        line-height: 1.15;
+    }
+
+    #quickActionsModal .quick-player-profile {
+        margin-bottom: 10px;
+    }
+
+    #quickActionsModal .quick-player-profile-header {
+        gap: 10px;
+        padding: 8px;
+    }
+
+    #quickActionsModal .quick-player-profile-avatar {
+        width: 42px;
+        height: 42px;
+        flex-basis: 42px;
+    }
+
+    #quickActionsModal .quick-player-profile-eyebrow,
+    #quickActionsModal .quick-player-profile-stat span,
+    #quickActionsModal .quick-player-profile-loading,
+    #quickActionsModal #quickPlayerProfileStatus {
+        font-size: 10px;
+    }
+
+    #quickActionsModal #quickPlayerProfileName {
+        font-size: 15px;
+    }
+
+    #quickActionsModal .quick-player-profile-loading {
+        margin-top: 8px;
+        padding: 8px;
+    }
+
+    #quickActionsModal .quick-player-profile-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    #quickActionsModal .quick-player-profile-stat {
+        padding: 7px 6px;
+    }
+
+    #quickActionsModal .quick-player-profile-stat strong {
+        margin-top: 2px;
+        font-size: 16px;
+    }
+
+    #quickActionsModal .quick-player-profile-stat-wide {
+        grid-column: auto;
+    }
+
+    #quickActionsModal .quick-actions-grid {
+        gap: 7px !important;
+    }
+
+    #quickActionsModal .quick-actions-divider {
+        margin: 2px 0;
+    }
+
+    #quickActionsModal .icon-btn {
+        min-height: 34px;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
 }
 
 @media (max-width: 560px) {
@@ -1188,6 +1357,7 @@ h2 {
     width: 80%;
     max-width: 380px;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 /* Área de lista com rolagem interna e altura limitada */
@@ -1198,7 +1368,10 @@ h2 {
     margin: 0;
     max-height: 60vh;
     /* Mantém a proporção do outro modal */
+    overflow-x: hidden;
     overflow-y: auto;
+    scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+    scrollbar-width: thin;
 }
 
 /* Títulos das Expansões (Estilo idêntico ao "Gráficos") */
@@ -1293,6 +1466,78 @@ h2 {
 }
 
 
+
+@media (orientation: landscape) and (max-width: 1024px) and (max-height: 560px) {
+    #configModal .modal-content {
+        display: flex;
+        flex-direction: column;
+        width: min(520px, calc(100vw - 28px));
+        max-width: 520px;
+        max-height: calc(100dvh - 24px);
+        padding: 14px;
+        overflow: visible;
+    }
+
+    #configModal .config-title {
+        margin: 0;
+        font-size: clamp(20px, 5dvh, 26px);
+        line-height: 1.1;
+    }
+
+    #configModal .config-p-title {
+        margin: 2px 0 10px;
+        font-size: 10px;
+        line-height: 1.2;
+    }
+
+    #configModal .card-config-list {
+        flex: 1 1 auto;
+        max-height: calc(100dvh - 158px);
+        min-height: 0;
+        padding-right: 8px;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    #configModal .deck-presets-container {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+        margin-bottom: 12px;
+    }
+
+    #configModal .preset-btn {
+        min-height: 32px;
+        padding: 6px 8px;
+        font-size: 0.68rem;
+    }
+
+    #configModal .card-config-item {
+        padding: 6px 0;
+    }
+
+    #configModal .card-config-item label,
+    #configModal .card-config-item input {
+        font-size: 14px;
+    }
+
+    #configModal .card-config-item input {
+        width: 46px;
+        padding: 4px 6px;
+    }
+
+    #configModal .title-dlc-card-config-item {
+        margin: 14px 0 8px;
+        padding-bottom: 5px;
+        font-size: 15px;
+    }
+
+    #configModal #applyDeckConfigBtn {
+        flex: 0 0 auto;
+        margin-top: 10px;
+        padding: 11px;
+        font-size: 14px;
+    }
+}
 
 /* =======================================================
        === ANIMAÇÃO FLIP-CARD (REGRAS) ===

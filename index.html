@@ -356,13 +356,17 @@
       <button id="closeShareRoomBtn" class="close-btn" type="button" aria-label="Fechar" data-i18n-aria-label="common.close">&times;</button>
       <h2 data-i18n="casual.shareRoom">Compartilhar Sala</h2>
 
-      <div class="share-room-code-panel" aria-label="Código da sala" data-i18n-aria-label="casual.roomCode">
-        <span class="share-room-label" data-i18n="casual.code">Código</span>
-        <strong id="shareRoomCode">...</strong>
-      </div>
+      <div class="share-room-invite-card" aria-label="Convite da sala" data-i18n-aria-label="casual.roomInvite">
+        <div class="share-room-code-panel" aria-label="Código da sala" data-i18n-aria-label="casual.roomCode">
+          <span class="share-room-label" data-i18n="casual.roomShortLabel">Sala:</span>
+          <strong id="shareRoomCode">...</strong>
+        </div>
 
-      <div class="share-room-qr-frame">
-        <img id="shareRoomQr" src="" alt="QR Code da sala" data-i18n-alt="casual.roomQr">
+        <div class="share-room-qr-frame">
+          <img id="shareRoomQr" src="" alt="QR Code da sala" data-i18n-alt="casual.roomQr">
+        </div>
+
+        <span class="share-room-scan-label" data-i18n="casual.scanToJoin">Escaneie para entrar</span>
       </div>
 
       <div class="share-room-actions">
