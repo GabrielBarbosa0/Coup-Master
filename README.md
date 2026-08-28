@@ -454,17 +454,30 @@ Com o tempo, o acúmulo de salas pode deixar o console do Firebase lento ou ativ
 
 ### 🧹 Procedimento de Limpeza Manual
 
-Caso o banco de dados apresente lentidão devido ao excesso de registros:
+Caso o banco de dados apresente lentidão devido ao excesso de salas, limpe **somente** o nó `salas`.
+
+> [!CAUTION]
+> **Nunca importe um JSON vazio na raiz do Realtime Database.** A raiz também guarda `rankedStats` e `rankedResults`; apagar a raiz remove estatísticas, conquistas e histórico ranqueado dos jogadores.
+
+Opção recomendada pelo console:
 
 1. Acesse o [Console do Firebase](https://console.firebase.google.com/).
 2. No menu lateral, vá em **Realtime Database**.
-3. Clique nos **três pontos (⋮)** localizados no canto superior direito da visualização de dados.
-4. Selecione a opção **"Importar JSON"**.
-5. Clique em navegar e escolha o arquivo **`limpeza.json`** localizado na raiz deste repositório.
-6. Confirme a importação.
+3. Abra o nó **`salas`**.
+4. Use o menu de ações do próprio nó **`salas`** e remova esse nó.
+5. Mantenha intactos os nós **`rankedStats`** e **`rankedResults`**.
 
-> [!CAUTION]
-> **Atenção:** Este procedimento substituirá o nó selecionado (ex: `salas`) por um objeto vazio `{}`. Isso removerá **todas** as salas ativas e acumuladas instantaneamente, restaurando a performance total do painel.
+Opção usando importação:
+
+1. Acesse o [Console do Firebase](https://console.firebase.google.com/).
+2. No menu lateral, vá em **Realtime Database**.
+3. Clique especificamente no nó **`salas`** para que ele seja o caminho selecionado.
+4. Com **`salas`** selecionado, clique nos **três pontos (⋮)** da visualização de dados.
+5. Selecione **"Importar JSON"**.
+6. Escolha o arquivo **`limpeza-salas.json`** localizado na raiz deste repositório.
+7. Confirme a importação.
+
+Esse procedimento substitui apenas `salas` por `{}`. As conquistas ficam preservadas porque permanecem em `rankedStats`, e os resultados ranqueados permanecem em `rankedResults`.
 
 ### 🤖 Limpeza em Tempo de Execução
 
