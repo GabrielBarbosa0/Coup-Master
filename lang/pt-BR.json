@@ -160,7 +160,7 @@
     "rankedHint": "Baralho padrão",
     "personalized": "Sala Personalizada",
     "personalizedHint": "Amigos e bots IA",
-    "casualNote": "Casual é uma mesa livre para jogar com amigos, bots e baralhos personalizados. Visitantes podem jogar sem conta Google.",
+    "casualNote": "Mesa livre para jogar com amigos e baralhos personalizados.",
     "rankedNoteAvailable": "Ranqueado usa conta Google, baralho padrão, matchmaking com bots IA e registra estatísticas.",
     "rankedNoteLocked": "Ranqueado exige login com Google para registrar estatísticas. O casual continua liberado para visitantes.",
     "personalizedNoteAvailable": "Sala Personalizada usa conta Google, permite amigos e bots IA e não gera pontos ranqueados.",
