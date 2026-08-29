@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lobby Moderno Lab | Coup Master</title>
+  <link rel="icon" href="../assets/img/logo/favicon-coup-master-circulo.png?v=custom-logo-v2" type="image/png">
+  <style>
+    @font-face {
+      font-family: 'Cinzel Local';
+      src: url('../assets/fonts/Cinzel-VariableFont_wght.ttf') format('truetype');
+      font-weight: 400 900;
+      font-style: normal;
+      font-display: block;
+    }
+
+    :root {
+      --bg: #07101a;
+      --bg-soft: #0c1824;
+      --panel: #101d29;
+      --panel-2: #152433;
+      --line: rgba(230, 238, 246, 0.15);
+      --line-strong: rgba(230, 238, 246, 0.28);
+      --text: #f4ead8;
+      --muted: #aab9c8;
+      --blue: #1e90ff;
+      --blue-soft: rgba(30, 144, 255, 0.14);
+      --gold: #f2bd52;
+      --red: #ff3b3b;
+      --green: #0bde74;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      color: var(--text);
+      font-family: 'Cinzel Local', Georgia, serif;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(145deg, #07101a 0%, #0f2434 48%, #111217 100%);
+      background-size: 42px 42px, 42px 42px, auto;
+      overflow-x: hidden;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    .lab-shell {
+      width: min(1180px, calc(100% - 32px));
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding: 18px 0 28px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 18px;
+    }
+
+    .lab-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .brand img {
+      width: clamp(148px, 18vw, 236px);
+      height: auto;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(16, 29, 41, 0.84);
+      color: var(--text);
+      transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+    }
+
+    .icon-btn:hover,
+    .icon-btn:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(30, 144, 255, 0.72);
+      outline: 0;
+    }
+
+    .icon-btn img {
+      width: 21px;
+      height: 21px;
+      filter: brightness(0) invert(1);
+      opacity: 0.9;
+    }
+
+    .lobby-stage {
+      align-self: center;
+      display: grid;
+      grid-template-columns: minmax(0, 760px);
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .entry-panel,
+    .profile-modal {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        rgba(16, 29, 41, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .entry-panel {
+      min-height: 610px;
+      padding: clamp(18px, 3vw, 34px);
+      display: grid;
+      align-content: center;
+      gap: 24px;
+    }
+
+    .entry-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .hero-copy {
+      max-width: 620px;
+    }
+
+    .profile-trigger {
+      width: 64px;
+      height: 64px;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--blue);
+      border-radius: 50%;
+      background: rgba(12, 20, 30, 0.82);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.24);
+      transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .profile-trigger:hover,
+    .profile-trigger:focus-visible {
+      transform: translateY(-2px);
+      border-color: var(--gold);
+      box-shadow: 0 16px 34px rgba(30, 144, 255, 0.18);
+      outline: 0;
+    }
+
+    .profile-trigger img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 12px;
+      color: #73dcff;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 28px;
+      height: 2px;
+      background: #73dcff;
+      content: "";
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin-bottom: 14px;
+      font-size: clamp(42px, 7vw, 82px);
+      line-height: 0.98;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow: 0 8px 30px rgba(0, 0, 0, 0.42);
+    }
+
+    .hero-lead {
+      max-width: 560px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: clamp(15px, 1.55vw, 18px);
+      font-weight: 650;
+      line-height: 1.52;
+    }
+
+    .quick-entry {
+      display: grid;
+      gap: 14px;
+      max-width: 720px;
+    }
+
+    .mode-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .mode-header h2 {
+      margin-bottom: 0;
+      font-size: 15px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .mode-header span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .mode-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .mode-card {
+      position: relative;
+      min-width: 0;
+    }
+
+    .mode-card input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .mode-body {
+      min-height: 86px;
+      padding: 14px;
+      display: grid;
+      align-content: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(12, 20, 30, 0.68);
+      transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+    }
+
+    .mode-body strong,
+    .mode-body small {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mode-body strong {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .mode-body small {
+      color: rgba(230, 238, 246, 0.62);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .mode-card input:checked + .mode-body {
+      border-color: var(--blue);
+      background: linear-gradient(180deg, rgba(30, 144, 255, 0.22), rgba(30, 144, 255, 0.08));
+      box-shadow: inset 0 -3px 0 rgba(30, 144, 255, 0.72);
+    }
+
+    .mode-card input:focus-visible + .mode-body {
+      outline: 2px solid rgba(30, 144, 255, 0.5);
+      outline-offset: 3px;
+    }
+
+    .mode-card:hover .mode-body {
+      transform: translateY(-2px);
+      border-color: rgba(30, 144, 255, 0.56);
+    }
+
+    .mode-note {
+      min-height: 46px;
+      margin: 0;
+      padding: 13px 14px;
+      border: 1px solid rgba(30, 144, 255, 0.18);
+      border-radius: var(--radius);
+      background: rgba(30, 144, 255, 0.08);
+      color: rgba(230, 238, 246, 0.76);
+      font-size: 12px;
+      font-weight: 760;
+      line-height: 1.42;
+      text-transform: uppercase;
+    }
+
+    .room-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(150px, 0.42fr);
+      gap: 10px;
+    }
+
+    .room-field {
+      min-width: 0;
+      height: 54px;
+      padding: 0 16px;
+      border: 1px solid rgba(30, 144, 255, 0.72);
+      border-radius: var(--radius);
+      background: rgba(7, 12, 18, 0.68);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+      outline: 0;
+    }
+
+    .room-field::placeholder {
+      color: rgba(230, 238, 246, 0.48);
+    }
+
+    .room-field:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(242, 189, 82, 0.14);
+    }
+
+    .primary-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .btn {
+      min-height: 54px;
+      padding: 0 18px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
+      transition: transform 150ms ease, filter 150ms ease, border-color 150ms ease;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+      outline: 0;
+    }
+
+    .btn-primary {
+      border-color: rgba(30, 144, 255, 0.86);
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 16px 34px rgba(30, 144, 255, 0.18);
+    }
+
+    .btn-secondary {
+      background: rgba(21, 36, 51, 0.95);
+    }
+
+    .feedback-line {
+      min-height: 20px;
+      margin: -2px 0 0;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .legal-links {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 180px));
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .player-card {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .player-avatar {
+      width: 58px;
+      height: 58px;
+      border: 2px solid var(--blue);
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--panel-2);
+    }
+
+    .player-card p {
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .player-card strong {
+      display: block;
+      overflow: hidden;
+      color: var(--blue);
+      font-size: 17px;
+      font-weight: 900;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .stat {
+      min-width: 0;
+      padding: 12px 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(12, 20, 30, 0.58);
+      text-align: center;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--text);
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .side-actions {
+      display: grid;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .mini-link {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 900;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    .mini-link img {
+      width: 16px;
+      height: 16px;
+      filter: brightness(0) invert(1);
+      opacity: 0.86;
+    }
+
+    .status-rail {
+      display: grid;
+      gap: 8px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .status-item strong {
+      color: var(--green);
+      white-space: nowrap;
+    }
+
+    .mobile-priority {
+      display: none;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.62);
+      backdrop-filter: blur(3px);
+      overflow: auto;
+    }
+
+    .modal-overlay[hidden] {
+      display: none;
+    }
+
+    .profile-modal {
+      position: relative;
+      width: min(440px, calc(100vw - 32px));
+      max-height: calc(100dvh - 32px);
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+      overflow: visible;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: -17px;
+      right: -17px;
+      z-index: 2;
+      width: 38px;
+      height: 38px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: var(--red);
+      color: #fff;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .profile-modal-title {
+      margin: 0;
+      font-size: 28px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .achievements-block {
+      display: grid;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .achievements-block h3 {
+      margin: 0;
+      font-size: 15px;
+      text-transform: uppercase;
+    }
+
+    .achievement-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .achievement-card {
+      min-height: 72px;
+      padding: 10px;
+      display: grid;
+      align-content: center;
+      gap: 4px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(12, 20, 30, 0.58);
+    }
+
+    .achievement-card strong {
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .achievement-card span {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 900px) {
+      .lab-shell {
+        width: min(720px, calc(100% - 24px));
+        padding-top: 12px;
+      }
+
+      .lobby-stage {
+        grid-template-columns: 1fr;
+        align-self: start;
+      }
+
+      .entry-panel {
+        min-height: auto;
+      }
+
+      .legal-links {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .lab-shell {
+        width: min(420px, calc(100% - 18px));
+        padding-bottom: 18px;
+      }
+
+      .lab-topbar {
+        align-items: flex-start;
+      }
+
+      .topbar-actions {
+        gap: 6px;
+      }
+
+      .icon-btn {
+        width: 39px;
+        height: 39px;
+      }
+
+      .entry-panel {
+        padding: 18px;
+        gap: 18px;
+      }
+
+      .entry-head {
+        align-items: center;
+      }
+
+      .profile-trigger {
+        width: 54px;
+        height: 54px;
+      }
+
+      .profile-trigger img {
+        width: 35px;
+        height: 35px;
+      }
+
+      h1 {
+        font-size: clamp(34px, 13vw, 48px);
+      }
+
+      .hero-lead {
+        font-size: 14px;
+      }
+
+      .mode-header {
+        align-items: start;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .mode-list {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-padding-inline: 2px;
+        scrollbar-color: var(--blue) rgba(255, 255, 255, 0.05);
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .mode-list::-webkit-scrollbar {
+        height: 6px;
+      }
+
+      .mode-list::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 999px;
+      }
+
+      .mode-list::-webkit-scrollbar-thumb {
+        background: var(--blue);
+        border-radius: 999px;
+      }
+
+      .mode-card {
+        flex: 0 0 158px;
+      }
+
+      .mode-body {
+        min-height: 74px;
+      }
+
+      .room-form,
+      .primary-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .primary-actions .btn-primary {
+        order: -1;
+      }
+
+      .player-card {
+        grid-template-columns: 48px minmax(0, 1fr);
+      }
+
+      .player-avatar {
+        width: 48px;
+        height: 48px;
+      }
+
+      .stats-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .stat strong {
+        font-size: 18px;
+      }
+
+      .profile-modal {
+        padding: 18px;
+      }
+
+      .mobile-priority {
+        display: inline;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 560px) {
+      .lab-shell {
+        width: min(980px, calc(100% - 24px));
+        padding: 10px 0 14px;
+        gap: 10px;
+      }
+
+      .brand img {
+        width: 136px;
+      }
+
+      .lobby-stage {
+        grid-template-columns: minmax(0, 760px);
+        align-self: start;
+      }
+
+      .entry-panel {
+        min-height: 0;
+        padding: 16px;
+        gap: 12px;
+      }
+
+      h1 {
+        font-size: clamp(30px, 6vw, 48px);
+        margin-bottom: 8px;
+      }
+
+      .hero-lead,
+      .mode-note {
+        font-size: 11px;
+      }
+
+      .mode-list {
+        grid-template-columns: repeat(3, minmax(130px, 1fr));
+      }
+
+      .mode-body {
+        min-height: 62px;
+        padding: 10px;
+      }
+
+      .room-field,
+      .btn {
+        min-height: 44px;
+      }
+
+      .profile-modal {
+        width: min(520px, calc(100vw - 36px));
+        max-height: calc(100dvh - 26px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="lab-shell">
+    <header class="lab-topbar" aria-label="Topo do lobby">
+      <a class="brand" href="../landing.html" aria-label="Coup Master">
+        <img src="../assets/img/logo/logo-coup-master-transparente.png" alt="Coup Master">
+      </a>
+      <div class="topbar-actions">
+        <button class="icon-btn" type="button" aria-label="Classificação">
+          <img src="../assets/img/icons/trophy.svg" alt="" aria-hidden="true">
+        </button>
+        <button class="icon-btn" type="button" aria-label="Idioma">
+          <img src="../assets/img/icons/translate.svg" alt="" aria-hidden="true">
+        </button>
+      </div>
+    </header>
+
+    <section class="lobby-stage" aria-label="Protótipo de lobby moderno">
+      <div class="entry-panel">
+        <div class="entry-head">
+          <div class="hero-copy">
+            <p class="eyebrow">Lobby experimental</p>
+            <h1>Entre na mesa</h1>
+            <p class="hero-lead">Crie uma sala, entre com um código ou escolha um modo de jogo sem perder tempo no caminho.</p>
+          </div>
+          <button class="profile-trigger" id="profileTrigger" type="button" aria-label="Abrir perfil" aria-haspopup="dialog" aria-controls="profileModal">
+            <img src="../assets/img/icons/ghost.svg" alt="" aria-hidden="true">
+          </button>
+        </div>
+
+        <form class="quick-entry" id="lobbyLabForm">
+          <div class="mode-header">
+            <h2>Modo da nova sala</h2>
+            <span id="modeStatus">Casual selecionado</span>
+          </div>
+
+          <div class="mode-list" role="radiogroup" aria-label="Seleção de modos de jogo">
+            <label class="mode-card">
+              <input type="radio" name="mode" value="casual" checked>
+              <span class="mode-body">
+                <strong>Casual</strong>
+                <small>Mesa livre</small>
+              </span>
+            </label>
+
+            <label class="mode-card">
+              <input type="radio" name="mode" value="ranked">
+              <span class="mode-body">
+                <strong>Ranqueado</strong>
+                <small>Competitivo IA</small>
+              </span>
+            </label>
+
+            <label class="mode-card">
+              <input type="radio" name="mode" value="personalized">
+              <span class="mode-body">
+                <strong>Sala personalizada</strong>
+                <small>Amigos e bots</small>
+              </span>
+            </label>
+          </div>
+
+          <p class="mode-note" id="modeNote">Mesa livre para jogar com amigos e baralhos personalizados.</p>
+
+          <div class="room-form">
+            <input class="room-field" id="roomCodeInput" type="text" inputmode="latin-prose" maxlength="4" placeholder="Código da sala" aria-label="Código da sala">
+            <button class="btn btn-secondary" type="button" id="joinRoomBtn">Entrar</button>
+          </div>
+
+          <div class="primary-actions">
+            <button class="btn btn-secondary" type="button" id="signOutBtn">Sair da conta</button>
+            <button class="btn btn-primary" type="button" id="createRoomBtn">Criar nova sala</button>
+          </div>
+
+          <p class="feedback-line" id="feedbackLine" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <nav class="legal-links" aria-label="Links legais">
+        <a class="mini-link" href="../legal/privacy.html">
+          <img src="../assets/img/icons/pen-paper.svg" alt="" aria-hidden="true">
+          Privacidade
+        </a>
+        <a class="mini-link" href="../legal/terms.html">
+          <img src="../assets/img/icons/gavel.svg" alt="" aria-hidden="true">
+          Termos
+        </a>
+      </nav>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="profileModal" hidden>
+    <section class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+      <button class="close-btn" id="closeProfileModalBtn" type="button" aria-label="Fechar">×</button>
+      <h2 class="profile-modal-title" id="profileModalTitle">Perfil</h2>
+
+      <div class="player-card">
+        <img class="player-avatar" src="../assets/img/icons/ghost.svg" alt="Avatar do jogador">
+        <div>
+          <p>Bem-vindo</p>
+          <strong>Gabriel Barbosa</strong>
+        </div>
+      </div>
+
+      <div class="stats-strip" aria-label="Resumo ranqueado">
+        <div class="stat">
+          <span>Jogos</span>
+          <strong>42</strong>
+        </div>
+        <div class="stat">
+          <span>Vitórias</span>
+          <strong>24</strong>
+        </div>
+        <div class="stat">
+          <span>Conquistas</span>
+          <strong>18</strong>
+        </div>
+      </div>
+
+      <section class="achievements-block" aria-label="Conquistas em destaque">
+        <h3>Conquistas</h3>
+        <div class="achievement-grid">
+          <div class="achievement-card">
+            <strong>Primeiro blefe</strong>
+            <span>Venceu uma contestação sem revelar o jogo cedo demais.</span>
+          </div>
+          <div class="achievement-card">
+            <strong>Mesa dominada</strong>
+            <span>Terminou uma partida ranqueada em primeiro lugar.</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="status-rail">
+        <div class="status-item">
+          <span>Conta</span>
+          <strong>Google</strong>
+        </div>
+        <div class="status-item">
+          <span>PWA</span>
+          <strong>Instalável</strong>
+        </div>
+        <div class="status-item">
+          <span>Serviço</span>
+          <strong>Online</strong>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const modeNotes = {
+      casual: {
+        status: 'Casual selecionado',
+        note: 'Mesa livre para jogar com amigos e baralhos personalizados.'
+      },
+      ranked: {
+        status: 'Ranqueado selecionado',
+        note: 'Partida competitiva com bots IA, baralho padrao e progresso ranqueado.'
+      },
+      personalized: {
+        status: 'Sala personalizada selecionada',
+        note: 'Mesa automatizada para jogar com amigos, bots IA e ajustes de sala.'
+      }
+    };
+
+    const modeStatus = document.getElementById('modeStatus');
+    const modeNote = document.getElementById('modeNote');
+    const roomCodeInput = document.getElementById('roomCodeInput');
+    const feedbackLine = document.getElementById('feedbackLine');
+    const profileTrigger = document.getElementById('profileTrigger');
+    const profileModal = document.getElementById('profileModal');
+    const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
+
+    function getSelectedMode() {
+      return document.querySelector('input[name="mode"]:checked')?.value || 'casual';
+    }
+
+    function setFeedback(message) {
+      feedbackLine.textContent = message;
+    }
+
+    function openProfileModal() {
+      profileModal.hidden = false;
+      document.body.classList.add('modal-open');
+      closeProfileModalBtn.focus();
+    }
+
+    function closeProfileModal() {
+      profileModal.hidden = true;
+      document.body.classList.remove('modal-open');
+      profileTrigger.focus();
+    }
+
+    document.querySelectorAll('input[name="mode"]').forEach((input) => {
+      input.addEventListener('change', () => {
+        const selected = modeNotes[input.value];
+        modeStatus.textContent = selected.status;
+        modeNote.textContent = selected.note;
+        setFeedback('');
+      });
+    });
+
+    roomCodeInput.addEventListener('input', () => {
+      roomCodeInput.value = roomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+      setFeedback('');
+    });
+
+    document.getElementById('joinRoomBtn').addEventListener('click', () => {
+      const code = roomCodeInput.value.trim();
+      if (code.length !== 4) {
+        setFeedback('Digite um codigo com 4 caracteres');
+        return;
+      }
+      setFeedback(`Entrando na sala ${code}`);
+    });
+
+    document.getElementById('createRoomBtn').addEventListener('click', () => {
+      const selectedMode = modeNotes[getSelectedMode()];
+      setFeedback(`Criando ${selectedMode.status.toLowerCase()}`);
+    });
+
+    document.getElementById('signOutBtn').addEventListener('click', () => {
+      setFeedback('Saindo da conta');
+    });
+
+    profileTrigger.addEventListener('click', openProfileModal);
+    closeProfileModalBtn.addEventListener('click', closeProfileModal);
+
+    profileModal.addEventListener('click', (event) => {
+      if (event.target === profileModal) {
+        closeProfileModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !profileModal.hidden) {
+        closeProfileModal();
+      }
+    });
+  </script>
+</body>
+
+</html>

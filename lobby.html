@@ -54,27 +54,29 @@
 
 <body class="lobby-page">
 
-    <details class="language-floating">
-        <summary class="language-floating-toggle" aria-label="Idioma" title="Idioma"
-            data-i18n-aria-label="language.label" data-i18n-title="language.label">
-            <img src="assets/img/icons/translate.svg" alt="" aria-hidden="true">
-        </summary>
-        <div class="language-floating-panel">
-            <div class="language-switcher">
-                <label for="languageSelectLobby" data-i18n="language.label">Idioma</label>
-                <select id="languageSelectLobby" data-language-select>
-                    <option value="pt-BR" data-i18n="language.portuguese">Português</option>
-                    <option value="en-US" data-i18n="language.english">English</option>
-                </select>
-            </div>
-        </div>
-    </details>
+    <div class="lobby-floating-actions">
+        <button id="leaderboardBtn" class="leaderboard-floating-btn" type="button"
+            aria-label="Abrir classificação mundial" title="Classificação mundial"
+            data-i18n-aria-label="lobby.leaderboardButton" data-i18n-title="lobby.leaderboardButton">
+            <img src="assets/img/icons/trophy.svg" alt="" aria-hidden="true">
+        </button>
 
-    <button id="leaderboardBtn" class="leaderboard-floating-btn" type="button"
-        aria-label="Abrir classificação mundial" title="Classificação mundial"
-        data-i18n-aria-label="lobby.leaderboardButton" data-i18n-title="lobby.leaderboardButton">
-        <img src="assets/img/icons/trophy.svg" alt="" aria-hidden="true">
-    </button>
+        <details class="language-floating">
+            <summary class="language-floating-toggle" aria-label="Idioma" title="Idioma"
+                data-i18n-aria-label="language.label" data-i18n-title="language.label">
+                <img src="assets/img/icons/translate.svg" alt="" aria-hidden="true">
+            </summary>
+            <div class="language-floating-panel">
+                <div class="language-switcher">
+                    <label for="languageSelectLobby" data-i18n="language.label">Idioma</label>
+                    <select id="languageSelectLobby" data-language-select>
+                        <option value="pt-BR" data-i18n="language.portuguese">Português</option>
+                        <option value="en-US" data-i18n="language.english">English</option>
+                    </select>
+                </div>
+            </div>
+        </details>
+    </div>
 
     <div class="lobby-box">
         <!-- <button id="communityBtn" class="communityBtn-lobby" title="Tutoriais e Apoio">
