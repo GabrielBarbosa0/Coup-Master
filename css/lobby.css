@@ -8,8 +8,8 @@
 }
 
 :root {
-    --bg: #14171e;
-    --panel: #232a33;
+    --bg: #07101a;
+    --panel: #101d29;
     --accent: #1e90ff;
     --text: #e6eef6;
 }
@@ -110,8 +110,12 @@ body {
     align-items: center;
     justify-content: center;
 
-    /* 4. ESTÉTICA: Fundo escuro simples e texto centralizado */
-    background: #14171e;
+    /* 4. ESTÉTICA: Fundo com grade sutil do lobby moderno */
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(145deg, #07101a 0%, #0f2434 48%, #111217 100%);
+    background-size: 42px 42px, 42px 42px, auto;
     color: var(--text);
     text-align: center;
 
@@ -161,12 +165,14 @@ body::-webkit-scrollbar {
     z-index: 10;
     /* Fica acima do fundo e da vinheta */
 
-    /* Estética Glassmorphism (Vidro Fosco) */
-    background: rgba(35, 42, 51, 0.9);
+    /* Estética do entry-panel do lobby moderno */
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        rgba(16, 29, 41, 0.92);
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(230, 238, 246, 0.15);
     border-radius: 10px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
 
     /* Layout Centralizado */
     display: flex;
@@ -306,6 +312,62 @@ h2 {
 #closeErrorModalBtn {
     margin-top: 0px;
     /* Adiciona espaço acima do botão OK */
+}
+
+.logout-confirm-modal {
+    padding: 18px;
+}
+
+.logout-confirm-content {
+    width: min(340px, calc(100vw - 36px));
+    border: 1px solid rgba(230, 238, 246, 0.14);
+    text-align: center;
+}
+
+.logout-confirm-content p {
+    margin: 0 0 20px;
+    color: rgba(230, 238, 246, 0.78);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.logout-confirm-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.logout-confirm-actions button {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    margin-top: 0;
+    border: 1px solid rgba(230, 238, 246, 0.12);
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.logout-confirm-cancel {
+    background: #2b3440;
+}
+
+.logout-confirm-action {
+    background: #ff3b3b;
+}
+
+.logout-confirm-cancel:hover,
+.logout-confirm-cancel:focus-visible {
+    background: #36414e;
+    outline: 0;
+}
+
+.logout-confirm-action:hover,
+.logout-confirm-action:focus-visible {
+    background: #ff5555;
+    outline: 0;
 }
 
 
@@ -455,6 +517,47 @@ h2 {
     position: relative;
 }
 
+.login-page .language-floating {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 30;
+}
+
+.logout-floating-btn {
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 30;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    margin-top: 0;
+    border: 1px solid rgba(230, 238, 246, 0.16);
+    border-radius: 8px;
+    background: rgba(35, 42, 51, 0.92);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.logout-floating-btn img {
+    width: 23px;
+    height: 23px;
+    opacity: 0.92;
+}
+
+.logout-floating-btn:hover,
+.logout-floating-btn:focus-visible {
+    border-color: rgba(255, 59, 59, 0.78);
+    background: rgba(35, 42, 51, 1);
+    outline: 0;
+    transform: translateY(-1px);
+}
+
 .language-floating summary {
     list-style: none;
 }
@@ -549,11 +652,23 @@ h2 {
         right: 10px;
     }
 
+    .logout-floating-btn {
+        top: 10px;
+        left: 10px;
+    }
+
+    .login-page .language-floating {
+        top: 10px;
+        right: 10px;
+    }
+
+    .logout-floating-btn,
     .language-floating-toggle {
         width: 40px;
         height: 40px;
     }
 
+    .logout-floating-btn img,
     .language-floating-toggle img {
         width: 21px;
         height: 21px;
@@ -1568,7 +1683,7 @@ body.lobby-page {
 }
 
 .lobby-page #user-info {
-    margin-bottom: clamp(12px, 1.8dvh, 18px);
+    margin-bottom: 0;
 }
 
 .lobby-page #user-info img {
@@ -1582,14 +1697,13 @@ body.lobby-page {
     font-size: clamp(14px, 1.7dvh, 16px);
 }
 
-.lobby-page #logout-btn,
 .lobby-page #join-room-btn,
 .lobby-page #create-room-btn {
     min-height: clamp(42px, 5.2dvh, 50px);
 }
 
 .lobby-page #room-actions {
-    margin-top: clamp(8px, 1.5dvh, 12px);
+    margin-top: 0;
     padding-top: clamp(12px, 2dvh, 18px);
 }
 
@@ -1674,7 +1788,6 @@ body.lobby-page {
         min-height: 44px;
     }
 
-    .lobby-page #logout-btn,
     .lobby-page #join-room-btn,
     .lobby-page #create-room-btn {
         min-height: 40px;

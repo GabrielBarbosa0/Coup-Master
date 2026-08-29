@@ -21,6 +21,10 @@ const leaderboardModal = document.getElementById('leaderboardModal');
 const closeLeaderboardModalBtn = document.getElementById('closeLeaderboardModalBtn');
 const leaderboardLoading = document.getElementById('leaderboardLoading');
 const leaderboardList = document.getElementById('leaderboardList');
+const logoutConfirmModal = document.getElementById('logoutConfirmModal');
+const closeLogoutConfirmModalBtn = document.getElementById('closeLogoutConfirmModalBtn');
+const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
 
 let currentLobbyUser = null;
 let lastRenderedStats = null;
@@ -171,13 +175,20 @@ if (closeErrorBtn) {
 /**
  * Realiza o Logout do usuário atual.
  */
-if (logoutBtn) {
-    logoutBtn.onclick = () => {
-        showLoader(t('lobby.returningLogin'));
-        auth.signOut().finally(() => {
-            window.location.href = 'login.html';
-        });
-    };
+function openLogoutConfirmModal() {
+    if (logoutConfirmModal) logoutConfirmModal.style.display = 'flex';
+}
+
+function closeLogoutConfirmModal() {
+    if (logoutConfirmModal) logoutConfirmModal.style.display = 'none';
+}
+
+function signOutCurrentUser() {
+    closeLogoutConfirmModal();
+    showLoader(t('lobby.returningLogin'));
+    auth.signOut().finally(() => {
+        window.location.href = 'login.html';
+    });
 }
 
 function getUserDisplayData(user) {
@@ -628,8 +639,19 @@ leaderboardModal?.addEventListener('click', (event) => {
     if (event.target === leaderboardModal) closeLeaderboardModal();
 });
 
+logoutBtn?.addEventListener('click', openLogoutConfirmModal);
+confirmLogoutBtn?.addEventListener('click', signOutCurrentUser);
+cancelLogoutBtn?.addEventListener('click', closeLogoutConfirmModal);
+closeLogoutConfirmModalBtn?.addEventListener('click', closeLogoutConfirmModal);
+logoutConfirmModal?.addEventListener('click', (event) => {
+    if (event.target === logoutConfirmModal) closeLogoutConfirmModal();
+});
+
 document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeLeaderboardModal();
+    if (event.key === 'Escape') {
+        closeLeaderboardModal();
+        closeLogoutConfirmModal();
+    }
 });
 
 /**
@@ -644,6 +666,7 @@ auth.onAuthStateChanged(async user => {
         // Usuário está Logado: Ajusta visibilidade da interface
         if (userInfoDiv) userInfoDiv.style.display = 'block';
         if (roomActionsDiv) roomActionsDiv.style.display = 'block';
+        if (logoutBtn) logoutBtn.hidden = false;
 
         const { safeName, safePhoto } = persistUserSession(user);
 
@@ -670,6 +693,7 @@ auth.onAuthStateChanged(async user => {
         sessionStorage.removeItem('currentIsAnonymous');
         sessionStorage.removeItem('currentRoomMode');
         sessionStorage.removeItem('lobbyError');
+        if (logoutBtn) logoutBtn.hidden = true;
         showLoader(t('lobby.returningLogin'));
         window.location.href = 'login.html';
     }

@@ -54,6 +54,12 @@
 
 <body class="lobby-page">
 
+    <button id="logout-btn" class="logout-floating-btn" type="button" hidden
+        aria-label="Sair da conta" title="Sair da conta"
+        data-i18n-aria-label="lobby.logout" data-i18n-title="lobby.logout">
+        <img src="assets/img/icons/logout.svg" alt="" aria-hidden="true">
+    </button>
+
     <div class="lobby-floating-actions">
         <button id="leaderboardBtn" class="leaderboard-floating-btn" type="button"
             aria-label="Abrir classificação mundial" title="Classificação mundial"
@@ -92,8 +98,6 @@
             <div class="welcome-text">
                 <span data-i18n="lobby.welcome">BEM-VINDO,</span><br> <span id="user-name"></span>!
             </div>
-
-            <button id="logout-btn" style="background: #ff3b3b; color: white; font-weight: bold;" data-i18n="lobby.logout">SAIR DA CONTA</button>
         </div>
 
         <div id="room-actions" class="room-actions">
@@ -147,6 +151,22 @@
                 ter 4 caracteres.</p>
             <button id="closeErrorModalBtn"
                 style="background: #1e90ff; color: white; border: 0; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; font-family: 'Cinzel', serif;" data-i18n="common.ok">OK</button>
+        </div>
+    </div>
+
+    <div id="logoutConfirmModal" class="modal-overlay logout-confirm-modal" style="display: none;">
+        <div class="modal-content logout-confirm-content" role="dialog" aria-modal="true"
+            aria-labelledby="logoutConfirmTitle">
+            <button id="closeLogoutConfirmModalBtn" class="close-btn logout-confirm-close" type="button"
+                aria-label="Fechar" data-i18n-aria-label="common.close">&times;</button>
+            <h2 id="logoutConfirmTitle" data-i18n="lobby.logoutConfirmTitle">Sair da conta?</h2>
+            <p data-i18n="lobby.logoutConfirmText">Tem certeza que deseja sair da sua conta?</p>
+            <div class="logout-confirm-actions">
+                <button id="cancelLogoutBtn" class="logout-confirm-cancel" type="button"
+                    data-i18n="lobby.logoutConfirmCancel">Cancelar</button>
+                <button id="confirmLogoutBtn" class="logout-confirm-action" type="button"
+                    data-i18n="lobby.logout">Sair da conta</button>
+            </div>
         </div>
     </div>
 
