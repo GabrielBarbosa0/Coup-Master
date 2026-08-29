@@ -516,7 +516,6 @@ function renderLeaderboard(entries) {
 
         [
             [t('lobby.rateMetric'), formatPercent(entry.winRate)],
-            [t('lobby.gamesMetric'), entry.games],
             [t('lobby.winsMetric'), entry.wins],
             [t('lobby.lossesMetric'), entry.losses],
             [t('lobby.bestStreakMetric'), entry.bestWinStreak]

@@ -1354,7 +1354,7 @@ h2 {
 
 /* Unifica o tamanho do modal com o de Configurações */
 #configModal .modal-content {
-    width: 80%;
+    width: min(380px, calc(100vw - 28px));
     max-width: 380px;
     padding: 20px;
     box-sizing: border-box;
@@ -1471,8 +1471,8 @@ h2 {
     #configModal .modal-content {
         display: flex;
         flex-direction: column;
-        width: min(520px, calc(100vw - 28px));
-        max-width: 520px;
+        width: min(380px, calc(100vw - 28px));
+        max-width: 380px;
         max-height: calc(100dvh - 24px);
         padding: 14px;
         overflow: visible;
