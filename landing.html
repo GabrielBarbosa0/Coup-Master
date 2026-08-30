@@ -279,10 +279,20 @@
       position: relative;
       width: min(100%, 560px);
       height: 440px;
-      transform-style: preserve-3d;
+      isolation: isolate;
     }
 
-    .hero-card {
+    .hero-card,
+    .hero-duke-hitbox {
+      --duke-offset-x: 0px;
+      --duke-offset-y: 0px;
+      --duke-rotation: 0deg;
+      --duke-tilt-x: 0deg;
+      --duke-tilt-y: 0deg;
+      --duke-scale: 1.06;
+      --duke-glow-x: 0px;
+      --duke-glow-y: 0px;
+      --duke-glow-alpha: 0;
       position: absolute;
       left: 50%;
       top: 50%;
@@ -294,6 +304,26 @@
       box-shadow: 0 24px 50px rgba(0, 0, 0, 0.48);
       transform-origin: 50% 105%;
       transition: transform 220ms ease, filter 220ms ease;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .hero-duke-hitbox {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      cursor: grab;
+      opacity: 0;
+      touch-action: none;
+      transform: translate(-50%, -58%) rotate(0deg) scale(1.06);
+      z-index: 80;
+    }
+
+    .hero-duke-hitbox.is-dragging {
+      cursor: grabbing;
     }
 
     .hero-card:nth-child(1) {
@@ -314,6 +344,46 @@
       z-index: 5;
     }
 
+    .hero-card.hero-duke-card {
+      cursor: grab;
+      pointer-events: none;
+      transform-style: preserve-3d;
+      transform-origin: center;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform: perspective(820px)
+        translate(-50%, -58%)
+        translate3d(var(--duke-offset-x), var(--duke-offset-y), 0)
+        rotateZ(var(--duke-rotation))
+        rotateX(var(--duke-tilt-x))
+        rotateY(var(--duke-tilt-y))
+        scale(var(--duke-scale));
+      touch-action: none;
+      z-index: 40;
+      box-shadow:
+        var(--duke-glow-x) var(--duke-glow-y) 30px rgba(0, 191, 255, var(--duke-glow-alpha)),
+        0 24px 50px rgba(0, 0, 0, 0.48);
+      transition: transform 40ms ease, box-shadow 150ms ease, filter 150ms ease;
+      will-change: transform, box-shadow;
+    }
+
+    .hero-card.hero-duke-card.is-drag-source {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .hero-duke-drag-ghost {
+      position: fixed;
+      z-index: 30000;
+      pointer-events: none;
+      overflow: hidden;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      box-shadow: 0 28px 28px rgba(0, 0, 0, 0.46);
+      transform-origin: center;
+      will-change: left, top, transform, filter;
+    }
+
     .hero-card:nth-child(4) {
       background-image: url("assets/img/cards/base/assassino.png");
       transform: translate(-33%, -50%) rotate(10deg);
@@ -326,12 +396,8 @@
       z-index: 1;
     }
 
-    .card-fan:hover .hero-card {
+    .card-fan:hover .hero-card:not(.hero-duke-card) {
       filter: saturate(1.08) brightness(1.04);
-    }
-
-    .card-fan:hover .hero-card:nth-child(3) {
-      transform: translate(-50%, -62%) rotate(0deg) scale(1.12);
     }
 
     .hero-chip-row {
@@ -647,7 +713,8 @@
         height: 300px;
       }
 
-      .hero-card {
+      .hero-card,
+      .hero-duke-hitbox {
         width: clamp(102px, 31vw, 140px);
       }
 
@@ -709,9 +776,10 @@
             <div class="card-fan">
               <span class="hero-card"></span>
               <span class="hero-card"></span>
+              <span class="hero-card hero-duke-card"></span>
               <span class="hero-card"></span>
               <span class="hero-card"></span>
-              <span class="hero-card"></span>
+              <span class="hero-duke-hitbox"></span>
               <!-- <div class="hero-chip-row">
                 <span class="hero-chip">Conteste</span>
                 <span class="hero-chip">Bloqueie</span>
@@ -818,6 +886,270 @@
       Coup Master é um projeto independente de mesa online inspirado em jogos de blefe, estratégia política e dedução social.
     </footer>
   </div>
+  <script>
+    (() => {
+      const dukeCard = document.querySelector('.hero-duke-card');
+      const dukeHitbox = document.querySelector('.hero-duke-hitbox');
+      if (!dukeCard || !dukeHitbox) return;
+
+      const CARD_PHYSICS_BALATRO = {
+        spring: 0.18,
+        damping: 0.86,
+        pointerLag: 0.28,
+        tiltMax: 36,
+        swing: 0.13,
+        lift: 18,
+        dragScale: 1,
+        returnScale: 1,
+        friction: 0.88,
+        balatroTilt: 36,
+        glowStrength: 0.40,
+        glowBlur: 30,
+        perspective: 820
+      };
+
+      const state = {
+        x: 0,
+        y: 0,
+        vx: 0,
+        vy: 0,
+        targetX: 0,
+        targetY: 0,
+        angle: 0,
+        angleVelocity: 0,
+        scale: CARD_PHYSICS_BALATRO.returnScale,
+        targetScale: CARD_PHYSICS_BALATRO.returnScale,
+        pointerX: 0,
+        pointerY: 0,
+        pointerOffsetX: 0,
+        pointerOffsetY: 0,
+        homeX: 0,
+        homeY: 0,
+        ghost: null,
+        frame: 0,
+        dragging: false,
+        returning: false,
+        hovering: false,
+        lastTime: performance.now()
+      };
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function isPointInsideRect(event, rect, padding = 0) {
+        return event.clientX >= rect.left - padding
+          && event.clientX <= rect.right + padding
+          && event.clientY >= rect.top - padding
+          && event.clientY <= rect.bottom + padding;
+      }
+
+      function scheduleTick() {
+        if (state.frame) return;
+        state.frame = requestAnimationFrame(tick);
+      }
+
+      function createDragGhost(rect) {
+        const computed = getComputedStyle(dukeCard);
+        const ghost = document.createElement('span');
+        ghost.className = 'hero-duke-drag-ghost';
+        ghost.style.left = `${rect.left}px`;
+        ghost.style.top = `${rect.top}px`;
+        ghost.style.width = `${rect.width}px`;
+        ghost.style.height = `${rect.height}px`;
+        ghost.style.border = computed.border;
+        ghost.style.borderRadius = computed.borderRadius;
+        ghost.style.backgroundImage = computed.backgroundImage;
+        ghost.style.backgroundColor = computed.backgroundColor;
+        ghost.style.backgroundPosition = computed.backgroundPosition;
+        ghost.style.backgroundSize = computed.backgroundSize;
+        ghost.style.backgroundRepeat = computed.backgroundRepeat;
+        ghost.style.filter = computed.filter;
+        ghost.style.transform = `perspective(${CARD_PHYSICS_BALATRO.perspective}px) translate3d(0, 0, 0) rotate(0deg) scale(1)`;
+        document.body.appendChild(ghost);
+        return ghost;
+      }
+
+      function updateTilt(event) {
+        if (state.dragging || dukeCard.classList.contains('is-drag-source')) return;
+        const rect = dukeHitbox.getBoundingClientRect();
+        if (!isPointInsideRect(event, rect)) {
+          resetTilt();
+          return;
+        }
+        state.hovering = true;
+        const x = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+        const y = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+        const normalizedX = x - 0.5;
+        const normalizedY = y - 0.5;
+        const rotateX = normalizedY * -CARD_PHYSICS_BALATRO.balatroTilt;
+        const rotateY = normalizedX * CARD_PHYSICS_BALATRO.balatroTilt;
+        const glowX = -normalizedX * CARD_PHYSICS_BALATRO.glowBlur * 0.78;
+        const glowY = -normalizedY * CARD_PHYSICS_BALATRO.glowBlur * 0.78;
+
+        dukeCard.style.setProperty('--duke-tilt-x', `${rotateX.toFixed(2)}deg`);
+        dukeCard.style.setProperty('--duke-tilt-y', `${rotateY.toFixed(2)}deg`);
+        dukeCard.style.setProperty('--duke-glow-x', `${glowX.toFixed(2)}px`);
+        dukeCard.style.setProperty('--duke-glow-y', `${glowY.toFixed(2)}px`);
+        dukeCard.style.setProperty('--duke-glow-alpha', CARD_PHYSICS_BALATRO.glowStrength.toFixed(2));
+      }
+
+      function handleFanPointerMove(event) {
+        if (state.dragging || state.returning) return;
+        updateTilt(event);
+      }
+
+      function resetTilt() {
+        state.hovering = false;
+        dukeCard.style.setProperty('--duke-tilt-x', '0deg');
+        dukeCard.style.setProperty('--duke-tilt-y', '0deg');
+        dukeCard.style.setProperty('--duke-glow-x', '0px');
+        dukeCard.style.setProperty('--duke-glow-y', '0px');
+        dukeCard.style.setProperty('--duke-glow-alpha', '0');
+      }
+
+      function startDrag(event) {
+        if (event.button !== undefined && event.button !== 0) return;
+        event.preventDefault();
+        resetTilt();
+        const rect = dukeHitbox.getBoundingClientRect();
+        state.dragging = true;
+        state.returning = false;
+        state.lastTime = performance.now();
+        state.pointerX = event.clientX;
+        state.pointerY = event.clientY;
+        state.pointerOffsetX = event.clientX - rect.left;
+        state.pointerOffsetY = event.clientY - rect.top;
+        state.homeX = rect.left;
+        state.homeY = rect.top;
+        state.x = rect.left;
+        state.y = rect.top;
+        state.targetX = rect.left;
+        state.targetY = rect.top;
+        state.vx = 0;
+        state.vy = 0;
+        state.angle = 0;
+        state.angleVelocity = 0;
+        state.scale = CARD_PHYSICS_BALATRO.returnScale;
+        state.targetScale = CARD_PHYSICS_BALATRO.dragScale;
+        state.ghost = createDragGhost(rect);
+        dukeCard.classList.add('is-drag-source');
+        dukeHitbox.classList.add('is-dragging');
+        document.addEventListener('pointermove', moveDrag, { passive: false });
+        document.addEventListener('pointerup', endDrag);
+        document.addEventListener('pointercancel', endDrag);
+        scheduleTick();
+      }
+
+      function moveDrag(event) {
+        if (!state.dragging || state.returning) return;
+        event.preventDefault();
+        state.pointerX = event.clientX;
+        state.pointerY = event.clientY;
+      }
+
+      function endDrag() {
+        if (!state.dragging || state.returning) return;
+        state.returning = true;
+        state.targetX = state.homeX;
+        state.targetY = state.homeY;
+        state.targetScale = CARD_PHYSICS_BALATRO.returnScale;
+        document.removeEventListener('pointermove', moveDrag);
+        document.removeEventListener('pointerup', endDrag);
+        document.removeEventListener('pointercancel', endDrag);
+        scheduleTick();
+      }
+
+      function finishDrag() {
+        if (state.ghost) {
+          state.ghost.remove();
+        }
+        state.ghost = null;
+        state.dragging = false;
+        state.returning = false;
+        state.x = 0;
+        state.y = 0;
+        state.vx = 0;
+        state.vy = 0;
+        state.angle = 0;
+        state.angleVelocity = 0;
+        state.scale = CARD_PHYSICS_BALATRO.returnScale;
+        state.targetScale = CARD_PHYSICS_BALATRO.returnScale;
+        dukeCard.classList.remove('is-drag-source');
+        dukeHitbox.classList.remove('is-dragging');
+        resetTilt();
+      }
+
+      function renderGhost() {
+        if (!state.ghost) return;
+        state.ghost.style.left = `${state.x.toFixed(2)}px`;
+        state.ghost.style.top = `${state.y.toFixed(2)}px`;
+        state.ghost.style.transform = [
+          `perspective(${CARD_PHYSICS_BALATRO.perspective}px)`,
+          'translate3d(0, 0, 0)',
+          `rotate(${state.angle.toFixed(2)}deg)`,
+          `scale(${state.scale.toFixed(3)})`
+        ].join(' ');
+      }
+
+      function tick(now) {
+        state.frame = 0;
+        const delta = Math.min(2.2, (now - state.lastTime) / 16.667);
+        state.lastTime = now;
+
+        if (!state.ghost) return;
+
+        if (!state.returning) {
+          state.targetX = state.pointerX - state.pointerOffsetX;
+          state.targetY = state.pointerY - state.pointerOffsetY - CARD_PHYSICS_BALATRO.lift;
+        }
+
+        const springX = (state.targetX - state.x) * CARD_PHYSICS_BALATRO.spring;
+        const springY = (state.targetY - state.y) * CARD_PHYSICS_BALATRO.spring;
+        state.vx = (state.vx + springX) * CARD_PHYSICS_BALATRO.damping;
+        state.vy = (state.vy + springY) * CARD_PHYSICS_BALATRO.damping;
+
+        if (state.returning) {
+          state.vx *= CARD_PHYSICS_BALATRO.friction;
+          state.vy *= CARD_PHYSICS_BALATRO.friction;
+        }
+
+        state.x += state.vx * delta;
+        state.y += state.vy * delta;
+
+        const velocityTilt = clamp(
+          state.vx * CARD_PHYSICS_BALATRO.swing,
+          -CARD_PHYSICS_BALATRO.tiltMax,
+          CARD_PHYSICS_BALATRO.tiltMax
+        );
+        const targetAngle = velocityTilt;
+        state.angleVelocity = (state.angleVelocity + (targetAngle - state.angle) * 0.16) * 0.78;
+        state.angle += state.angleVelocity * delta;
+        state.scale += (state.targetScale - state.scale) * 0.18;
+
+        renderGhost();
+
+        const closeToHome = state.returning
+          && Math.abs(state.x - state.homeX) < 0.45
+          && Math.abs(state.y - state.homeY) < 0.45
+          && Math.abs(state.vx) < 0.45
+          && Math.abs(state.vy) < 0.45;
+
+        if (closeToHome) {
+          finishDrag();
+          return;
+        }
+
+        scheduleTick();
+      }
+
+      dukeHitbox.addEventListener('pointerdown', startDrag);
+      dukeHitbox.addEventListener('pointermove', handleFanPointerMove);
+      dukeHitbox.addEventListener('pointerleave', resetTilt);
+
+      resetTilt();
+    })();
+  </script>
 </body>
 
 </html>
