@@ -1171,16 +1171,21 @@ button {
 }
 
 .player-actions-grid span {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: center;
+    gap: 6px;
     padding: 12px;
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
+    word-break: normal;
 }
 
 .player-actions-grid strong {
     color: #ffffff;
-    font-size: 14px;
+    font-size: 12px;
+    line-height: 1.1;
+    text-align: right;
+    white-space: nowrap;
 }
 
 .player-achievements {
