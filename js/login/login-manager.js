@@ -2,6 +2,8 @@ const googleLoginBtn = document.getElementById('google-login-btn');
 const anonymousLoginBtn = document.getElementById('anonymous-login-btn');
 const installPwaBtn = document.getElementById('installPwaBtn');
 let deferredInstallPrompt = null;
+let authReady = false;
+let isSigningIn = false;
 
 function t(key, params) {
     return window.CoupLanguage?.t(key, params) || key;
@@ -20,7 +22,16 @@ function updateInstallButtonVisibility() {
     installPwaBtn.hidden = isPwaInstalled() || !deferredInstallPrompt;
 }
 
+function setAuthControlsEnabled(enabled) {
+    [googleLoginBtn, anonymousLoginBtn, installPwaBtn].forEach(button => {
+        if (button) button.disabled = !enabled;
+    });
+}
+
 function showError(message) {
+    authReady = true;
+    isSigningIn = false;
+    setAuthControlsEnabled(true);
     hideLoader();
     const modal = document.getElementById('errorModal');
     const text = document.getElementById('errorModalText');
@@ -89,6 +100,9 @@ if (closeErrorBtn) {
 
 if (googleLoginBtn) {
     googleLoginBtn.onclick = () => {
+        if (!authReady || isSigningIn) return;
+        isSigningIn = true;
+        setAuthControlsEnabled(false);
         showLoader(t('login.googleLoading'));
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider).catch(error => {
@@ -99,6 +113,9 @@ if (googleLoginBtn) {
 
 if (anonymousLoginBtn) {
     anonymousLoginBtn.onclick = () => {
+        if (!authReady || isSigningIn) return;
+        isSigningIn = true;
+        setAuthControlsEnabled(false);
         showLoader(t('login.guestLoading'));
         auth.signInAnonymously().catch(error => {
             showError(t('login.guestError', { message: error.message }));
@@ -135,14 +152,19 @@ auth.onAuthStateChanged(async user => {
     await waitForLanguage();
 
     if (!user) {
+        authReady = true;
+        isSigningIn = false;
         sessionStorage.removeItem('currentUID');
         sessionStorage.removeItem('currentName');
         sessionStorage.removeItem('currentPhoto');
         sessionStorage.removeItem('currentIsAnonymous');
+        setAuthControlsEnabled(true);
         waitForFonts().then(hideLoader);
         return;
     }
 
+    authReady = true;
+    setAuthControlsEnabled(false);
     persistUserSession(user);
     showLoader(t('login.lobbyLoading'));
     window.location.href = 'lobby.html';
@@ -151,5 +173,9 @@ auth.onAuthStateChanged(async user => {
 document.addEventListener("DOMContentLoaded", async () => {
     await waitForLanguage();
     updateInstallButtonVisibility();
-    setLoaderMessage(t('common.loadingResources'));
+    if (!authReady && !isSigningIn) {
+        setLoaderMessage(t('login.sessionLoading'));
+    }
 });
+
+setAuthControlsEnabled(false);

@@ -137,6 +137,7 @@
     "googleLoading": "Signing in with Google...",
     "guestLoading": "Continuing as guest...",
     "lobbyLoading": "Loading lobby...",
+    "sessionLoading": "Checking session...",
     "googleError": "Google sign-in failed: {message}",
     "guestError": "Guest sign-in failed: {message}",
     "visitorName": "Guest"

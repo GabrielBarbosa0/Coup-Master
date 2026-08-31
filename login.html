@@ -74,12 +74,12 @@
         <p class="auth-subtitle" data-i18n="login.subtitle">Entre para criar ou acessar uma sala.</p>
 
         <div class="auth-actions">
-            <button id="google-login-btn" class="auth-btn google-auth-btn">
+            <button id="google-login-btn" class="auth-btn google-auth-btn" disabled>
                 <img src="assets/img/icons/google.svg" alt="G" class="google-icon">
                 <span data-i18n="login.google">Entrar com Google</span>
             </button>
 
-            <button id="anonymous-login-btn" class="auth-btn anonymous-auth-btn">
+            <button id="anonymous-login-btn" class="auth-btn anonymous-auth-btn" disabled>
                 <span data-i18n="login.guest">Entrar como visitante</span>
             </button>
 
@@ -111,6 +111,12 @@
     </footer>
 
     <div class="vignette"></div>
+
+    <div id="font-loader" class="loader-overlay">
+        <div class="loader-content">
+            <p id="loader-message" data-i18n="login.sessionLoading"><span data-loading-lang="pt-BR">Verificando sessão...</span><span data-loading-lang="en-US">Checking session...</span></p>
+        </div>
+    </div>
 
 
     <script src="js/ui/selection-lock.js?v=selection-lock-v1" defer></script>

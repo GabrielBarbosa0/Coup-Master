@@ -137,6 +137,7 @@
     "googleLoading": "Entrando com Google...",
     "guestLoading": "Entrando como visitante...",
     "lobbyLoading": "Carregando lobby...",
+    "sessionLoading": "Verificando sessão...",
     "googleError": "Erro ao fazer login com Google: {message}",
     "guestError": "Erro ao entrar como visitante: {message}",
     "visitorName": "Visitante"
