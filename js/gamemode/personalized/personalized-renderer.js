@@ -32,6 +32,12 @@
     let rankProfileLoadKey = 0;
     let sideStackResizeObserver = null;
     let languageEventsBound = false;
+    let rankCalloutLogInitialized = false;
+    let rankCalloutsEnabled = true;
+    const seenRankCalloutLogIds = new Set();
+    const rankPlayerCallouts = new Map();
+    const rankCalloutTimers = new Map();
+    const rankScheduledCalloutTimers = new Set();
 
     const TENSION_FADE_IN_MS = 900;
     const TENSION_FADE_OUT_MS = 1400;
@@ -40,6 +46,9 @@
     const RANK_BGM_POSITION_KEY = 'rankBgmPosition';
     const DEFAULT_RANK_MUSIC_VOLUME = 0.1;
     const DEFAULT_RANK_SFX_VOLUME = 0.2;
+    const RANK_CALLOUT_DURATION_MS = 3800;
+    const RANK_CALLOUT_PASS_JITTER_MS = 620;
+    const RANK_CALLOUTS_ENABLED_KEY = 'rankCalloutsEnabled';
     const RANK_BALATRO_HOVER = Object.freeze({
         tilt: 36,
         glowOffset: 23.4
@@ -99,6 +108,43 @@
         'Inquisidor': 'inquisidor'
     });
 
+    const CALLOUT_ACTION_KEYS = Object.freeze({
+        'Renda': 'income',
+        'Ajuda externa': 'foreignAid',
+        'Golpe de Estado': 'coup',
+        'Taxar': 'tax',
+        'Extorquir': 'steal',
+        'Assassinar': 'assassinate',
+        'Trocar (Embaixador)': 'exchangeAmbassador',
+        'Trocar (Inquisidor)': 'exchangeInquisitor',
+        'Investigar': 'examine'
+    });
+
+    function calloutKeys(group, count) {
+        return Array.from({ length: count }, (_, index) => `rankedCallouts.${group}.${index}`);
+    }
+
+    const CALLOUT_VARIANTS = Object.freeze({
+        income: calloutKeys('income', 4),
+        foreignAid: calloutKeys('foreignAid', 2),
+        coup: calloutKeys('coup', 4),
+        tax: calloutKeys('tax', 3),
+        steal: calloutKeys('steal', 4),
+        assassinate: calloutKeys('assassinate', 4),
+        exchangeAmbassador: calloutKeys('exchangeAmbassador', 3),
+        exchangeInquisitor: calloutKeys('exchangeInquisitor', 4),
+        examine: calloutKeys('examine', 4),
+        block: calloutKeys('block', 5),
+        contessaBlock: calloutKeys('contessaBlock', 5),
+        challenge: calloutKeys('challenge', 6),
+        assassinationReaction: calloutKeys('assassinationReaction', 10),
+        coupReaction: calloutKeys('coupReaction', 10),
+        eliminationReaction: calloutKeys('eliminationReaction', 20),
+        pass: calloutKeys('pass', 9),
+        proven: calloutKeys('proven', 7),
+        bluff: calloutKeys('bluff', 5)
+    });
+
     function translateLoggedAction(label) {
         const actionKey = LOG_ACTION_KEYS[String(label || '').trim()];
         return actionKey ? actionLabel(actionKey) : label;
@@ -107,6 +153,306 @@
     function translateLoggedRole(label) {
         const roleKey = LOG_ROLE_KEYS[String(label || '').trim()];
         return roleKey ? roleLabel(roleKey) : label;
+    }
+
+    function getLogEntryKey(entry) {
+        return entry?.id || `${entry?.turn || 0}:${entry?.createdAt || 0}:${entry?.type || 'info'}:${entry?.message || ''}`;
+    }
+
+    function hashString(value) {
+        return String(value || '').split('').reduce((hash, char) => {
+            return ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+        }, 0);
+    }
+
+    function pickCalloutText(group, entryKey) {
+        const keys = CALLOUT_VARIANTS[group] || [];
+        if (!keys.length) return '';
+        const index = Math.abs(hashString(entryKey)) % keys.length;
+        return t(keys[index], {}, keys[index]);
+    }
+
+    function stableCalloutJitter(callout, rangeMs) {
+        const range = Math.max(0, Number(rangeMs) || 0);
+        if (!range) return 0;
+        return Math.abs(hashString(`${callout?.key || ''}:${callout?.uid || ''}:${callout?.kind || ''}`)) % range;
+    }
+
+    function getRankCalloutDelay(callout, fallbackIndex = 0) {
+        const indexDelay = Math.max(0, Number(fallbackIndex) || 0) * 180;
+        switch (callout?.kind) {
+            case 'action':
+            case 'coup':
+                return 0;
+            case 'block':
+            case 'challenge':
+                return 140 + stableCalloutJitter(callout, 120);
+            case 'pass':
+                return stableCalloutJitter(callout, RANK_CALLOUT_PASS_JITTER_MS);
+            case 'proof':
+                return 220 + stableCalloutJitter(callout, 140);
+            case 'bluff':
+                return 240 + stableCalloutJitter(callout, 160);
+            case 'reaction':
+                return 520 + (Number(callout.sequenceIndex) || 0) * 360 + stableCalloutJitter(callout, 260);
+            default:
+                return indexDelay;
+        }
+    }
+
+    function canRankPlayerSpeak(uid) {
+        const player = Engine.getPlayer(state, uid);
+        return Boolean(player && !player.eliminated && Engine.countInfluences(player) > 0);
+    }
+
+    function clearRankPlayerCallout(uid) {
+        if (!uid) return;
+        window.clearTimeout(rankCalloutTimers.get(uid));
+        rankCalloutTimers.delete(uid);
+        rankPlayerCallouts.delete(uid);
+    }
+
+    function clearAllRankPlayerCallouts() {
+        Array.from(rankCalloutTimers.values()).forEach((timer) => window.clearTimeout(timer));
+        Array.from(rankScheduledCalloutTimers.values()).forEach((timer) => window.clearTimeout(timer));
+        rankCalloutTimers.clear();
+        rankScheduledCalloutTimers.clear();
+        rankPlayerCallouts.clear();
+    }
+
+    function scheduleRankPlayerCallout(callout, delayMs = 0) {
+        if (!rankCalloutsEnabled || !callout?.uid || !callout.text) return;
+        const delay = Math.max(0, Number(delayMs) || 0);
+        if (!delay) {
+            showRankPlayerCallout(callout);
+            return;
+        }
+
+        const timer = window.setTimeout(() => {
+            rankScheduledCalloutTimers.delete(timer);
+            showRankPlayerCallout(callout);
+            if (state?.status !== PHASES.WAITING) renderPlayers();
+        }, delay);
+        rankScheduledCalloutTimers.add(timer);
+    }
+
+    function findPlayerByLogName(name) {
+        const normalized = String(name || '').trim();
+        if (!normalized) return null;
+        const player = Engine.getPlayers(state).find((candidate) => String(candidate.name || '').trim() === normalized);
+        return player && canRankPlayerSpeak(player.uid) ? player : null;
+    }
+
+    function findRankPlayerByLogName(name) {
+        const normalized = String(name || '').trim();
+        if (!normalized) return null;
+        return Engine.getPlayers(state).find((candidate) => String(candidate.name || '').trim() === normalized) || null;
+    }
+
+    function findRecentTargetedAttack(entries, entryIndex, victimName) {
+        const victim = String(victimName || '').trim();
+        if (!victim) return null;
+
+        for (let index = entryIndex - 1; index >= 0; index -= 1) {
+            const candidate = entries[index];
+            if (!candidate || candidate.turn !== entries[entryIndex]?.turn) continue;
+            if (candidate.type !== 'action') continue;
+
+            const match = String(candidate.message || '').trim().match(/^(.+) escolheu (Golpe de Estado|Assassinar) contra (.+)\.$/);
+            if (!match) continue;
+            if (String(match[3] || '').trim() !== victim) continue;
+
+            return {
+                index,
+                key: getLogEntryKey(candidate),
+                actorName: String(match[1] || '').trim(),
+                actionLabel: String(match[2] || '').trim(),
+                victimName: victim
+            };
+        }
+
+        return null;
+    }
+
+    function buildAttackReactionCallouts(entry, entries, entryIndex) {
+        if (entry?.type !== 'loss') return [];
+        const lossMatch = String(entry.message || '').trim().match(/^(.+) perdeu .+\.$/);
+        if (!lossMatch) return [];
+
+        const attack = findRecentTargetedAttack(entries, entryIndex, lossMatch[1]);
+        if (!attack) return [];
+
+        const hadPreviousLossForSameAttack = entries
+            .slice(attack.index + 1, entryIndex)
+            .some((candidate) => {
+                if (candidate?.type !== 'loss') return false;
+                const previousLoss = String(candidate.message || '').trim().match(/^(.+) perdeu .+\.$/);
+                return previousLoss && String(previousLoss[1] || '').trim() === attack.victimName;
+            });
+        if (hadPreviousLossForSameAttack) return [];
+
+        const actor = findRankPlayerByLogName(attack.actorName);
+        const victim = findRankPlayerByLogName(attack.victimName);
+        const excludedUids = new Set([actor?.uid, victim?.uid, currentUid].filter(Boolean));
+        const group = attack.actionLabel === 'Assassinar' ? 'assassinationReaction' : 'coupReaction';
+        const key = getLogEntryKey(entry);
+        const speakers = Engine.getPlayers(state)
+            .filter((player) => canRankPlayerSpeak(player.uid) && !excludedUids.has(player.uid))
+            .map((player) => ({
+                player,
+                order: Math.abs(hashString(`${key}:${attack.key}:${player.uid}`))
+            }))
+            .sort((left, right) => left.order - right.order)
+            .slice(0, 2);
+
+        return speakers.map(({ player }, index) => ({
+            uid: player.uid,
+            text: pickCalloutText(group, `${key}:${player.uid}`),
+            key: `${key}:${player.uid}`,
+            kind: 'reaction',
+            sequenceIndex: index
+        }));
+    }
+
+    function buildRankCallouts(entry, entries, entryIndex) {
+        const message = String(entry?.message || '').trim();
+        const key = getLogEntryKey(entry);
+        let match = null;
+
+        if (entry?.type === 'action') {
+            match = message.match(/^(.+) escolheu (.+?) contra .+\.$/) || message.match(/^(.+) escolheu (.+?)\.$/);
+            if (!match) return [];
+            const player = findPlayerByLogName(match[1]);
+            const group = CALLOUT_ACTION_KEYS[String(match[2] || '').trim()];
+            if (!player || !group) return [];
+            return [{ uid: player.uid, text: pickCalloutText(group, key), key, kind: group === 'coup' ? 'coup' : 'action' }];
+        }
+
+        if (entry?.type === 'block') {
+            match = message.match(/^(.+) bloqueou com (.+)\.$/);
+            if (!match) return [];
+            const player = findPlayerByLogName(match[1]);
+            const role = String(match[2] || '').trim();
+            const group = role === 'Condessa' ? 'contessaBlock' : 'block';
+            return player ? [{ uid: player.uid, text: pickCalloutText(group, key), key, kind: 'block' }] : [];
+        }
+
+        if (entry?.type === 'challenge') {
+            match = message.match(/^(.+) contestou .+\.$/);
+            if (!match) return [];
+            const player = findPlayerByLogName(match[1]);
+            return player ? [{ uid: player.uid, text: pickCalloutText('challenge', key), key, kind: 'challenge' }] : [];
+        }
+
+        if (entry?.type === 'response') {
+            match = message.match(/^(.+) passou\.$/);
+            if (!match) return [];
+            const player = findPlayerByLogName(match[1]);
+            return player ? [{ uid: player.uid, text: pickCalloutText('pass', key), key, kind: 'pass' }] : [];
+        }
+
+        if (entry?.type === 'challenge-result') {
+            match = message.match(/^(.+) provou (?:ter .+|o bloqueio)\.$/);
+            if (match) {
+                const player = findPlayerByLogName(match[1]);
+                return player ? [{ uid: player.uid, text: pickCalloutText('proven', key), key, kind: 'proof' }] : [];
+            }
+
+            match = message.match(/^(.+) (?:não tinha .+|blefou o bloqueio)\.$/);
+            if (!match) return [];
+            const player = findPlayerByLogName(match[1]);
+            return player ? [{ uid: player.uid, text: pickCalloutText('bluff', key), key, kind: 'bluff' }] : [];
+        }
+
+        if (entry?.type === 'loss') {
+            return buildAttackReactionCallouts(entry, entries, entryIndex);
+        }
+
+        return [];
+    }
+
+    function showRankPlayerCallout(callout) {
+        if (!rankCalloutsEnabled || !callout?.uid || !callout.text) return;
+        if (!canRankPlayerSpeak(callout.uid)) {
+            clearRankPlayerCallout(callout.uid);
+            return;
+        }
+        const active = rankPlayerCallouts.get(callout.uid);
+        if (
+            active
+            && active.key === callout.key
+            && active.kind === callout.kind
+            && active.text === callout.text
+            && active.expiresAt > Date.now()
+        ) {
+            return;
+        }
+
+        const startedAt = Date.now();
+        const token = `${Date.now()}-${Math.random()}`;
+        rankPlayerCallouts.set(callout.uid, {
+            ...callout,
+            token,
+            startedAt,
+            expiresAt: startedAt + RANK_CALLOUT_DURATION_MS
+        });
+        window.clearTimeout(rankCalloutTimers.get(callout.uid));
+        rankCalloutTimers.set(callout.uid, window.setTimeout(() => {
+            const active = rankPlayerCallouts.get(callout.uid);
+            if (!active || active.token !== token) return;
+            rankPlayerCallouts.delete(callout.uid);
+            rankCalloutTimers.delete(callout.uid);
+            if (state?.status !== PHASES.WAITING) renderPlayers();
+        }, RANK_CALLOUT_DURATION_MS));
+    }
+
+    function updateRankPlayerCallouts(previousState, nextState) {
+        const entries = Array.isArray(nextState?.log) ? nextState.log : [];
+        Array.from(rankPlayerCallouts.keys()).forEach((uid) => {
+            if (!canRankPlayerSpeak(uid)) clearRankPlayerCallout(uid);
+        });
+        if (!rankCalloutsEnabled) {
+            clearAllRankPlayerCallouts();
+            entries.forEach((entry) => seenRankCalloutLogIds.add(getLogEntryKey(entry)));
+            rankCalloutLogInitialized = true;
+            return;
+        }
+
+        if (!rankCalloutLogInitialized || !previousState) {
+            entries.forEach((entry) => seenRankCalloutLogIds.add(getLogEntryKey(entry)));
+            rankCalloutLogInitialized = true;
+            return;
+        }
+
+        const newCallouts = [];
+        entries.forEach((entry, index) => {
+            const key = getLogEntryKey(entry);
+            if (seenRankCalloutLogIds.has(key)) return;
+            seenRankCalloutLogIds.add(key);
+            newCallouts.push(...buildRankCallouts(entry, entries, index));
+        });
+
+        newCallouts
+            .map((callout, index) => ({ callout, delay: getRankCalloutDelay(callout, index) }))
+            .sort((a, b) => a.delay - b.delay)
+            .forEach(({ callout, delay }) => {
+                scheduleRankPlayerCallout(callout, delay);
+            });
+    }
+
+    function createRankPlayerCallout(uid) {
+        if (!rankCalloutsEnabled) return null;
+        const callout = rankPlayerCallouts.get(uid);
+        if (!callout || callout.expiresAt <= Date.now() || !canRankPlayerSpeak(uid)) {
+            clearRankPlayerCallout(uid);
+            return null;
+        }
+        const node = element('div', `rank-player-callout is-${callout.kind || 'action'}`, callout.text);
+        const elapsed = Math.max(0, Date.now() - Number(callout.startedAt || Date.now()));
+        const safeElapsed = Math.min(elapsed, RANK_CALLOUT_DURATION_MS - 16);
+        node.style.animationDelay = `${-safeElapsed}ms`;
+        node.setAttribute('aria-hidden', 'true');
+        return node;
     }
 
     function translateLogMessage(message) {
@@ -261,6 +607,7 @@
         renderRoomCode();
         setupChat();
         setupAudioControls();
+        setupRankCalloutControls();
         setupSideStackSync();
         bindLanguageEvents();
     }
@@ -891,6 +1238,7 @@
         if (!state) return;
         hideLoading();
         playStateSfx(previousState, state);
+        updateRankPlayerCallouts(previousState, state);
         renderPlayers();
         renderPhase();
         renderStarterDrawOverlay();
@@ -997,6 +1345,8 @@
                 });
                 slot.append(header, hand);
             }
+            const callout = createRankPlayerCallout(player.uid);
+            if (callout) slot.append(callout);
             container.append(slot);
         }
     }
@@ -1787,6 +2137,22 @@
         }
     }
 
+    function setupRankCalloutControls() {
+        const toggle = document.getElementById('rankCalloutsToggle');
+        rankCalloutsEnabled = readRankStoredFlag(RANK_CALLOUTS_ENABLED_KEY, true);
+        if (!toggle) return;
+
+        toggle.checked = rankCalloutsEnabled;
+        toggle.addEventListener('change', () => {
+            rankCalloutsEnabled = Boolean(toggle.checked);
+            localStorage.setItem(RANK_CALLOUTS_ENABLED_KEY, rankCalloutsEnabled ? 'true' : 'false');
+            if (!rankCalloutsEnabled) {
+                clearAllRankPlayerCallouts();
+                renderPlayers();
+            }
+        });
+    }
+
     function normalizeVolume(value, fallback = 1) {
         if (value === null || value === undefined || value === '') return fallback;
         const number = Number(value);
@@ -1797,6 +2163,13 @@
     function readRankStoredVolume(key, fallback) {
         const storedValue = localStorage.getItem(key);
         return normalizeVolume(storedValue, fallback);
+    }
+
+    function readRankStoredFlag(key, fallback) {
+        const storedValue = localStorage.getItem(key);
+        if (storedValue === 'true') return true;
+        if (storedValue === 'false') return false;
+        return Boolean(fallback);
     }
 
     function playRankSfx(id) {
