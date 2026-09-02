@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NPC Tutorial Lab - Coup Master</title>
+  <style>
+    :root {
+      --bg: #07101a;
+      --panel: #101d29;
+      --panel-raised: #172432;
+      --line: rgba(230, 238, 246, 0.15);
+      --line-strong: rgba(30, 144, 255, 0.56);
+      --text: #e6eef6;
+      --muted: rgba(230, 238, 246, 0.64);
+      --soft: rgba(230, 238, 246, 0.38);
+      --accent: #1e90ff;
+      --gold: #ffcc00;
+      --danger: #ff3b3b;
+      --npc-size: 236px;
+      --bubble-width: min(560px, 68vw);
+    }
+
+    @font-face {
+      font-family: "Cinzel";
+      src: url("../assets/fonts/Cinzel-VariableFont_wght.ttf") format("truetype");
+      font-weight: 400 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Tilda Script";
+      src: url("../assets/fonts/tilda-script-bold.woff2") format("woff2");
+      font-weight: bold;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Cinzel", Georgia, "Times New Roman", serif;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        radial-gradient(circle at 16% 12%, rgba(30, 144, 255, 0.18), transparent 24%),
+        radial-gradient(circle at 86% 18%, rgba(255, 204, 0, 0.1), transparent 26%),
+        linear-gradient(145deg, #07101a 0%, #0f2434 48%, #111217 100%);
+      background-size: 42px 42px, 42px 42px, auto, auto, auto;
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+    }
+
+    .lab-shell {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 18px;
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .controls,
+    .stage-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        rgba(16, 29, 41, 0.92);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+      backdrop-filter: blur(8px);
+    }
+
+    .controls {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      display: grid;
+      gap: 16px;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      padding: 18px;
+    }
+
+    .controls h1,
+    .stage-header h2 {
+      margin: 0;
+      color: var(--text);
+      font-size: 1.42rem;
+      line-height: 1.15;
+    }
+
+    .controls p,
+    .stage-header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 10px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .control-group h2 {
+      margin: 0;
+      color: var(--soft);
+      font-size: 0.82rem;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .lab-btn,
+    .ghost-btn {
+      min-height: 42px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: var(--text);
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .lab-btn {
+      background: var(--accent);
+    }
+
+    .ghost-btn {
+      border: 1px solid var(--line);
+      background: rgba(23, 36, 50, 0.88);
+    }
+
+    .lab-btn:hover,
+    .ghost-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .ghost-btn.is-active {
+      border-color: var(--line-strong);
+      background: rgba(30, 144, 255, 0.18);
+    }
+
+    .control-row {
+      display: grid;
+      gap: 7px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .control-value {
+      color: var(--gold);
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    select {
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #101720;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .stage-wrap {
+      min-height: calc(100vh - 36px);
+      overflow: hidden;
+    }
+
+    .stage-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 82px;
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .stage-pill {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 204, 0, 0.44);
+      border-radius: 999px;
+      color: var(--gold);
+      font-size: 0.75rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .stage {
+      position: relative;
+      min-height: calc(100vh - 119px);
+      padding: clamp(16px, 3vw, 34px);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(circle at 50% 32%, rgba(30, 144, 255, 0.12), transparent 28%),
+        radial-gradient(circle at 66% 78%, rgba(255, 204, 0, 0.08), transparent 32%);
+    }
+
+    .mock-lobby {
+      position: relative;
+      display: grid;
+      gap: 18px;
+      width: min(640px, 100%);
+      min-height: 620px;
+      padding: clamp(18px, 3vw, 34px);
+      border: 1px solid rgba(230, 238, 246, 0.14);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        rgba(16, 29, 41, 0.52);
+      box-shadow: 0 18px 58px rgba(0, 0, 0, 0.36);
+      opacity: 0.34;
+      filter: blur(1px) saturate(0.62);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .mock-lobby::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: rgba(7, 16, 26, 0.62);
+      pointer-events: none;
+    }
+
+    .brand {
+      margin: 0;
+      font-family: "Tilda Script", "Cinzel", serif;
+      font-size: clamp(2.4rem, 5vw, 4.7rem);
+      font-weight: normal;
+      line-height: 1;
+    }
+
+    .mock-profile {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(7, 16, 26, 0.52);
+    }
+
+    .mock-avatar {
+      display: grid;
+      place-items: center;
+      width: 56px;
+      height: 56px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      background: #111d2a;
+      color: var(--text);
+      font-size: 1.3rem;
+      font-weight: 900;
+    }
+
+    .mock-profile span,
+    .mock-card small {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+    }
+
+    .mock-profile strong {
+      display: block;
+      margin-top: 3px;
+      color: var(--accent);
+      font-size: 1.05rem;
+    }
+
+    .mock-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mock-card {
+      min-height: 96px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(7, 16, 26, 0.48);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .mock-card strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+
+    .mock-card.is-focused {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.16), 0 0 24px rgba(30, 144, 255, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .mock-main-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .mock-primary {
+      min-height: 52px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .mock-secondary {
+      min-height: 52px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(23, 36, 50, 0.9);
+      color: #fff;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .npc-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 8;
+    }
+
+    .npc-layer::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 70% 72%, rgba(30, 144, 255, 0.18), transparent 28%),
+        rgba(7, 16, 26, 0.34);
+      pointer-events: none;
+    }
+
+    .npc-widget {
+      position: absolute;
+      right: clamp(14px, 3vw, 34px);
+      bottom: clamp(14px, 3vw, 34px);
+      display: grid;
+      grid-template-columns: minmax(0, var(--bubble-width)) var(--npc-size);
+      align-items: end;
+      gap: clamp(10px, 2vw, 18px);
+      pointer-events: auto;
+    }
+
+    .npc-widget.is-left {
+      right: auto;
+      left: clamp(14px, 3vw, 34px);
+      grid-template-columns: var(--npc-size) minmax(0, var(--bubble-width));
+    }
+
+    .npc-widget.is-left .npc-portrait-wrap {
+      order: 0;
+    }
+
+    .npc-widget.is-left .speech-card {
+      order: 1;
+    }
+
+    .npc-widget.is-compact {
+      grid-template-columns: minmax(0, 1fr);
+      width: min(460px, calc(100% - 28px));
+    }
+
+    .npc-widget.is-compact .npc-portrait-wrap {
+      position: absolute;
+      right: 10px;
+      bottom: calc(100% - 18px);
+      width: 112px;
+      height: 112px;
+    }
+
+    .npc-portrait-wrap {
+      position: relative;
+      width: var(--npc-size);
+      height: var(--npc-size);
+      border-radius: 50%;
+      filter: drop-shadow(0 26px 28px rgba(0, 0, 0, 0.42));
+      animation: npcIdle var(--idle-speed, 3.8s) ease-in-out infinite;
+    }
+
+    .npc-portrait-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 20%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(30, 144, 255, 0.3), transparent 64%);
+      filter: blur(12px);
+      opacity: 0.75;
+    }
+
+    .npc-portrait {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: 2px solid rgba(30, 144, 255, 0.48);
+      border-radius: 50%;
+      background: #e9edf2;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .speech-card {
+      position: relative;
+      padding: 18px;
+      border: 1px solid rgba(230, 238, 246, 0.18);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02)),
+        rgba(16, 29, 41, 0.95);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.38);
+    }
+
+    .speech-card::after {
+      content: "";
+      position: absolute;
+      right: -11px;
+      bottom: 44px;
+      width: 22px;
+      height: 22px;
+      border-top: 1px solid rgba(230, 238, 246, 0.18);
+      border-right: 1px solid rgba(230, 238, 246, 0.18);
+      background: rgba(16, 29, 41, 0.95);
+      transform: rotate(45deg);
+    }
+
+    .npc-widget.is-left .speech-card::after {
+      right: auto;
+      left: -11px;
+      border-right: 0;
+      border-left: 1px solid rgba(230, 238, 246, 0.18);
+      transform: rotate(-45deg);
+    }
+
+    .npc-widget.is-compact .speech-card::after {
+      display: none;
+    }
+
+    .speech-kicker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--gold);
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .speech-title {
+      margin: 8px 0 0;
+      font-size: clamp(1.16rem, 2.4vw, 1.55rem);
+      line-height: 1.14;
+    }
+
+    .speech-text {
+      min-height: 4.4em;
+      margin: 10px 0 0;
+      color: rgba(230, 238, 246, 0.82);
+      font-size: clamp(0.88rem, 1.45vw, 1rem);
+      line-height: 1.48;
+    }
+
+    .speech-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+    }
+
+    .speech-nav {
+      display: flex;
+      gap: 8px;
+    }
+
+    .speech-icon-btn {
+      display: grid;
+      place-items: center;
+      min-width: 40px;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(23, 36, 50, 0.92);
+      color: var(--text);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .speech-icon-btn.primary {
+      border-color: rgba(30, 144, 255, 0.8);
+      background: var(--accent);
+    }
+
+    .progress-dots {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .progress-dots span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(230, 238, 246, 0.22);
+    }
+
+    .progress-dots span.is-active {
+      width: 20px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .npc-widget.is-hidden {
+      transform: translateY(28px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .npc-widget,
+    .speech-card,
+    .npc-portrait-wrap {
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    @keyframes npcIdle {
+      0%,
+      100% {
+        transform: translateY(0) rotate(-0.7deg);
+      }
+
+      50% {
+        transform: translateY(-9px) rotate(0.7deg);
+      }
+    }
+
+    @media (max-width: 960px) {
+      :root {
+        --npc-size: 186px;
+        --bubble-width: min(520px, 62vw);
+      }
+
+      .lab-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 700px) {
+      :root {
+        --npc-size: 134px;
+        --bubble-width: calc(100vw - 32px);
+      }
+
+      .lab-shell {
+        padding: 10px;
+      }
+
+      .stage-wrap {
+        min-height: 740px;
+      }
+
+      .stage-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .stage {
+        min-height: 650px;
+        padding: 12px;
+      }
+
+      .mock-lobby {
+        min-height: 590px;
+        padding: 18px;
+      }
+
+      .mock-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .npc-widget,
+      .npc-widget.is-left {
+        right: 10px;
+        bottom: 10px;
+        left: 10px;
+        grid-template-columns: 1fr;
+        width: auto;
+      }
+
+      .npc-portrait-wrap,
+      .npc-widget.is-left .npc-portrait-wrap {
+        position: absolute;
+        right: 8px;
+        bottom: calc(100% - 20px);
+        order: 0;
+        width: var(--npc-size);
+        height: var(--npc-size);
+      }
+
+      .speech-card,
+      .npc-widget.is-left .speech-card {
+        order: 1;
+        padding: 15px;
+      }
+
+      .speech-card::after,
+      .npc-widget.is-left .speech-card::after {
+        display: none;
+      }
+
+      .speech-text {
+        min-height: 5.8em;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="lab-shell">
+    <aside class="controls">
+      <div>
+        <h1>NPC Tutorial Lab</h1>
+        <p>Laboratório para testar um personagem guia dando boas-vindas e explicando o fluxo inicial do Coup Master.</p>
+      </div>
+
+      <section class="control-group">
+        <h2>Roteiro</h2>
+        <div class="button-grid">
+          <button class="ghost-btn is-active" data-step="0">Boas-vindas</button>
+          <button class="ghost-btn" data-step="1">Entrar</button>
+          <button class="ghost-btn" data-step="2">Criar sala</button>
+          <button class="ghost-btn" data-step="3">Moedas</button>
+          <button class="ghost-btn" data-step="4">Cartas</button>
+          <button class="ghost-btn" data-step="5">Blefe</button>
+        </div>
+      </section>
+
+      <section class="control-group">
+        <h2>Aparência</h2>
+        <div class="button-grid">
+          <button class="ghost-btn is-active" data-npc-image="1">Arte 1</button>
+          <button class="ghost-btn" data-npc-image="2">Arte 2</button>
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="npcPosition">
+            Posição
+            <span class="control-value" id="positionValue">Direita</span>
+          </label>
+          <select id="npcPosition">
+            <option value="right">Direita</option>
+            <option value="left">Esquerda</option>
+            <option value="compact">Compacto</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="npcSize">
+            Tamanho
+            <span class="control-value" id="sizeValue">236px</span>
+          </label>
+          <input id="npcSize" type="range" min="110" max="320" value="236">
+        </div>
+
+        <div class="control-row">
+          <label class="control-label" for="npcSpeed">
+            Movimento
+            <span class="control-value" id="speedValue">3.8s</span>
+          </label>
+          <input id="npcSpeed" type="range" min="20" max="70" value="38">
+        </div>
+      </section>
+
+      <section class="control-group">
+        <h2>Teste rápido</h2>
+        <button class="lab-btn" id="restartBtn">Reiniciar tutorial</button>
+        <button class="ghost-btn" id="toggleNpcBtn">Ocultar NPC</button>
+      </section>
+    </aside>
+
+    <section class="stage-wrap">
+      <header class="stage-header">
+        <div>
+          <h2>Teste de NPC Guia</h2>
+          <p>O personagem sobrepõe o lobby sem tomar o lugar das ações principais.</p>
+        </div>
+        <span class="stage-pill">Protótipo visual</span>
+      </header>
+
+      <div class="stage" id="stage">
+        <section class="mock-lobby" aria-label="Lobby simulado">
+          <h2 class="brand">Coup Master</h2>
+
+          <div class="mock-profile" data-focus="profile">
+            <div class="mock-avatar">G</div>
+            <div>
+              <span>Bem-vindo</span>
+              <strong>Gabriel Barbosa</strong>
+            </div>
+          </div>
+
+          <div class="mock-actions">
+            <article class="mock-card is-focused" data-focus="mode">
+              <small>Modo</small>
+              <strong>Casual</strong>
+            </article>
+            <article class="mock-card" data-focus="join">
+              <small>Código</small>
+              <strong>Entrar na sala</strong>
+            </article>
+            <article class="mock-card" data-focus="create">
+              <small>Nova mesa</small>
+              <strong>Criar sala</strong>
+            </article>
+          </div>
+
+          <div class="mock-actions">
+            <article class="mock-card" data-focus="coins">
+              <small>Economia</small>
+              <strong>Moedas visíveis</strong>
+            </article>
+            <article class="mock-card" data-focus="cards">
+              <small>Influência</small>
+              <strong>Cartas secretas</strong>
+            </article>
+            <article class="mock-card" data-focus="bluff">
+              <small>Blefe</small>
+              <strong>Confiança ou suspeita</strong>
+            </article>
+          </div>
+
+          <div class="mock-main-actions">
+            <button class="mock-primary">Entrar na sala</button>
+            <button class="mock-secondary">Criar nova sala</button>
+          </div>
+        </section>
+
+        <div class="npc-layer">
+          <aside class="npc-widget" id="npcWidget" aria-live="polite">
+            <section class="speech-card">
+              <div class="speech-kicker">
+                <span id="speechKicker">Tutorial rápido</span>
+                <span id="stepCounter">1/6</span>
+              </div>
+              <h3 class="speech-title" id="speechTitle">Bem-vindo à corte</h3>
+              <p class="speech-text" id="speechText"></p>
+              <div class="speech-actions">
+                <div class="progress-dots" id="progressDots" aria-hidden="true"></div>
+                <div class="speech-nav">
+                  <button class="speech-icon-btn" id="prevBtn" type="button" aria-label="Anterior">‹</button>
+                  <button class="speech-icon-btn primary" id="nextBtn" type="button" aria-label="Próximo">›</button>
+                </div>
+              </div>
+            </section>
+
+            <div class="npc-portrait-wrap">
+              <img class="npc-portrait" id="npcPortrait" src="../assets/img/npc/1.png" alt="NPC Duque">
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const steps = [
+      {
+        focus: 'mode',
+        kicker: 'Tutorial rápido',
+        title: 'Bem-vindo à corte',
+        text: 'Eu sou o Duque. Posso te mostrar o básico em poucos passos: como entrar numa sala, criar uma mesa e entender moedas, cartas e blefes.'
+      },
+      {
+        focus: 'join',
+        kicker: 'Primeiro passo',
+        title: 'Entrar em uma sala',
+        text: 'Se um amigo te mandar um código, digite o código da sala e entre direto na mesa. É o caminho mais rápido para jogar.'
+      },
+      {
+        focus: 'create',
+        kicker: 'Mesa nova',
+        title: 'Criar uma sala',
+        text: 'Ao criar uma sala, você vira o anfitrião no modo casual. Dá para convidar amigos, adicionar bots e testar baralhos personalizados.'
+      },
+      {
+        focus: 'coins',
+        kicker: 'Economia',
+        title: 'Moedas ficam visíveis',
+        text: 'O dinheiro de cada jogador aparece na mesa. Se alguém acumular moedas demais, a pressão por um Golpe de Estado começa a ficar séria.'
+      },
+      {
+        focus: 'cards',
+        kicker: 'Influência',
+        title: 'Suas cartas são secretas',
+        text: 'Cada carta representa uma influência. Quando você perde uma influência, a carta vai para o cemitério e todo mundo passa a saber quem saiu da jogada.'
+      },
+      {
+        focus: 'bluff',
+        kicker: 'Coração do jogo',
+        title: 'Você pode blefar',
+        text: 'Dizer “Eu sou o Duque” não prova nada. A graça é decidir quando acreditar, quando bloquear e quando contestar sem medo.'
+      }
+    ];
+
+    const stage = document.getElementById('stage');
+    const npcWidget = document.getElementById('npcWidget');
+    const npcPortrait = document.getElementById('npcPortrait');
+    const speechKicker = document.getElementById('speechKicker');
+    const speechTitle = document.getElementById('speechTitle');
+    const speechText = document.getElementById('speechText');
+    const stepCounter = document.getElementById('stepCounter');
+    const progressDots = document.getElementById('progressDots');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const toggleNpcBtn = document.getElementById('toggleNpcBtn');
+    const npcPosition = document.getElementById('npcPosition');
+    const positionValue = document.getElementById('positionValue');
+    const npcSize = document.getElementById('npcSize');
+    const sizeValue = document.getElementById('sizeValue');
+    const npcSpeed = document.getElementById('npcSpeed');
+    const speedValue = document.getElementById('speedValue');
+    const stepButtons = Array.from(document.querySelectorAll('[data-step]'));
+    const imageButtons = Array.from(document.querySelectorAll('[data-npc-image]'));
+
+    let currentStep = 0;
+    let typingTimer = 0;
+    let hidden = false;
+
+    function setActiveButton(buttons, activeButton) {
+      buttons.forEach((button) => button.classList.toggle('is-active', button === activeButton));
+    }
+
+    function renderDots() {
+      progressDots.replaceChildren();
+      steps.forEach((_, index) => {
+        const dot = document.createElement('span');
+        dot.classList.toggle('is-active', index === currentStep);
+        progressDots.appendChild(dot);
+      });
+    }
+
+    function typeText(text) {
+      clearInterval(typingTimer);
+      speechText.textContent = '';
+
+      let index = 0;
+      typingTimer = setInterval(() => {
+        speechText.textContent = text.slice(0, index + 1);
+        index += 1;
+
+        if (index >= text.length) {
+          clearInterval(typingTimer);
+        }
+      }, 15);
+    }
+
+    function focusMockArea(focusKey) {
+      document.querySelectorAll('[data-focus]').forEach((element) => {
+        element.classList.toggle('is-focused', element.dataset.focus === focusKey);
+      });
+    }
+
+    function renderStep(index, instant = false) {
+      currentStep = (index + steps.length) % steps.length;
+      const step = steps[currentStep];
+
+      speechKicker.textContent = step.kicker;
+      speechTitle.textContent = step.title;
+      stepCounter.textContent = `${currentStep + 1}/${steps.length}`;
+      focusMockArea(step.focus);
+      renderDots();
+
+      if (instant) {
+        clearInterval(typingTimer);
+        speechText.textContent = step.text;
+      } else {
+        typeText(step.text);
+      }
+
+      stepButtons.forEach((button) => {
+        button.classList.toggle('is-active', Number(button.dataset.step) === currentStep);
+      });
+    }
+
+    function setNpcImage(imageNumber) {
+      npcPortrait.style.opacity = '0';
+      setTimeout(() => {
+        npcPortrait.src = `../assets/img/npc/${imageNumber}.png`;
+        npcPortrait.style.opacity = '1';
+      }, 120);
+
+      const activeButton = imageButtons.find((button) => button.dataset.npcImage === String(imageNumber));
+      if (activeButton) setActiveButton(imageButtons, activeButton);
+    }
+
+    function updatePosition(value) {
+      npcWidget.classList.toggle('is-left', value === 'left');
+      npcWidget.classList.toggle('is-compact', value === 'compact');
+      positionValue.textContent = value === 'left' ? 'Esquerda' : value === 'compact' ? 'Compacto' : 'Direita';
+    }
+
+    function updateSize(value) {
+      stage.style.setProperty('--npc-size', `${value}px`);
+      sizeValue.textContent = `${value}px`;
+    }
+
+    function updateSpeed(value) {
+      const seconds = (Number(value) / 10).toFixed(1);
+      stage.style.setProperty('--idle-speed', `${seconds}s`);
+      speedValue.textContent = `${seconds}s`;
+    }
+
+    stepButtons.forEach((button) => {
+      button.addEventListener('click', () => renderStep(Number(button.dataset.step)));
+    });
+
+    imageButtons.forEach((button) => {
+      button.addEventListener('click', () => setNpcImage(button.dataset.npcImage));
+    });
+
+    prevBtn.addEventListener('click', () => renderStep(currentStep - 1));
+    nextBtn.addEventListener('click', () => renderStep(currentStep + 1));
+
+    restartBtn.addEventListener('click', () => {
+      hidden = false;
+      npcWidget.classList.remove('is-hidden');
+      toggleNpcBtn.textContent = 'Ocultar NPC';
+      renderStep(0);
+    });
+
+    toggleNpcBtn.addEventListener('click', () => {
+      hidden = !hidden;
+      npcWidget.classList.toggle('is-hidden', hidden);
+      toggleNpcBtn.textContent = hidden ? 'Mostrar NPC' : 'Ocultar NPC';
+    });
+
+    npcPosition.addEventListener('change', () => updatePosition(npcPosition.value));
+    npcSize.addEventListener('input', () => updateSize(npcSize.value));
+    npcSpeed.addEventListener('input', () => updateSpeed(npcSpeed.value));
+
+    if (window.matchMedia('(max-width: 700px)').matches) {
+      npcSize.value = '134';
+    } else if (window.matchMedia('(max-width: 960px)').matches) {
+      npcSize.value = '186';
+    }
+
+    updatePosition(npcPosition.value);
+    updateSize(npcSize.value);
+    updateSpeed(npcSpeed.value);
+    renderStep(0);
+  </script>
+</body>
+
+</html>

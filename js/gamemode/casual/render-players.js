@@ -27,7 +27,10 @@
     }
 
     const avatar = playerEl.querySelector('.player-avatar');
-    if (avatar) avatar.removeAttribute('src');
+    if (avatar) {
+      avatar.removeAttribute('src');
+      avatar.classList.remove('is-system-avatar', 'is-ai-avatar', 'is-guest-avatar');
+    }
 
     const religion = playerEl.querySelector('.religion-badge');
     if (religion) religion.onclick = null;
@@ -106,6 +109,16 @@
     return headerEl;
   }
 
+  function getPlayerAvatarKind(player) {
+    const photo = String(player?.photo || '');
+    const uid = String(player?.uid || '');
+
+    if (player?.ai || uid.startsWith('bot-') || photo.includes('/robot.svg')) return 'ai';
+    if (photo.includes('/ghost.svg')) return 'guest';
+
+    return '';
+  }
+
   function renderPlayerIdentity(playerEl, player, pid, openQuickActions) {
     const headerEl = ensurePlayerHeader(playerEl);
     const avatarImg = headerEl.querySelector('.player-avatar');
@@ -115,7 +128,11 @@
     nameTxt?.classList.add('player-name');
 
     if (avatarImg) {
+      const avatarKind = getPlayerAvatarKind(player);
       avatarImg.src = player.photo || 'img/coup.png';
+      avatarImg.classList.toggle('is-system-avatar', Boolean(avatarKind));
+      avatarImg.classList.toggle('is-ai-avatar', avatarKind === 'ai');
+      avatarImg.classList.toggle('is-guest-avatar', avatarKind === 'guest');
       avatarImg.alt = t('ranked.profileOf', { name: player.name || t('casual.playerSeat', { seat: pid }, `Jogador ${pid}`) }, `Perfil de ${player.name || 'Jogador ' + pid}`);
       avatarImg.title = t('ranked.viewPlayerProfile', {}, 'Ver perfil do jogador');
       avatarImg.style.cursor = 'pointer';

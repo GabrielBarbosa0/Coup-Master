@@ -207,6 +207,11 @@ function getUserDisplayData(user) {
     return { safeName, safePhoto };
 }
 
+function isSystemAvatar(photo) {
+    const source = String(photo || '');
+    return source.includes('/ghost.svg') || source.includes('/robot.svg');
+}
+
 function persistUserSession(user) {
     const { safeName, safePhoto } = getUserDisplayData(user);
 
@@ -407,7 +412,11 @@ function renderPlayerStats(stats) {
     const title = document.getElementById('playerStatsTitle');
     const subtitle = document.getElementById('playerStatsSubtitle');
 
-    if (photo) photo.src = merged.photo || 'assets/img/icons/ghost.svg';
+    if (photo) {
+        const photoSrc = merged.photo || 'assets/img/icons/ghost.svg';
+        photo.src = photoSrc;
+        photo.classList.toggle('is-system-avatar', isSystemAvatar(photoSrc));
+    }
     if (title) title.textContent = merged.name || t('lobby.statsFallback');
     if (subtitle) {
         subtitle.textContent = numberValue(merged.games)
@@ -671,7 +680,10 @@ auth.onAuthStateChanged(async user => {
 
         // Renderiza dados do perfil
         if (userNameSpan) userNameSpan.textContent = safeName;
-        if (userPhotoImg) userPhotoImg.src = safePhoto;
+        if (userPhotoImg) {
+            userPhotoImg.src = safePhoto;
+            userPhotoImg.classList.toggle('is-system-avatar', isSystemAvatar(safePhoto));
+        }
 
         setRankedModeAvailability(user);
 

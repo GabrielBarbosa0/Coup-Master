@@ -2039,6 +2039,14 @@ h2 {
     cursor: pointer;
 }
 
+.game-table .player-avatar.is-system-avatar {
+    width: 22px;
+    height: 22px;
+    padding: 3px;
+    background: rgba(17, 29, 42, 0.96);
+    object-fit: contain;
+}
+
 .game-table .player-avatar:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
@@ -2650,6 +2658,12 @@ body.hide-religion .game-table .center-area {
         height: 24px;
     }
 
+    .game-table .player-avatar.is-system-avatar {
+        width: 20px;
+        height: 20px;
+        padding: 2px;
+    }
+
     .game-table .player-title {
         font-size: clamp(9px, 1.3vw, 12px) !important;
     }
@@ -2803,6 +2817,12 @@ body.hide-religion .game-table .center-area {
     .game-table .religion-badge {
         width: 20px;
         height: 20px;
+    }
+
+    .game-table .player-avatar.is-system-avatar {
+        width: 16px;
+        height: 16px;
+        padding: 2px;
     }
 
     .game-table .player-title {
