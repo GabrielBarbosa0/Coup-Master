@@ -2165,10 +2165,6 @@ h2 {
 }
 
 .game-table .slot.is-compatible-drag-source-slot {
-    flex-basis: clamp(38px, calc(var(--card-width) * 0.65), 54px);
-    width: clamp(38px, calc(var(--card-width) * 0.65), 54px);
-    min-width: clamp(38px, calc(var(--card-width) * 0.65), 54px);
-    margin-left: 0;
     opacity: 0;
     pointer-events: none;
     transition: none;
@@ -2486,10 +2482,6 @@ h2 {
 }
 
 .game-table .graveyard-card.is-compatible-drag-source-graveyard-card {
-    flex-basis: clamp(38px, calc(var(--card-width) * 0.65), 54px);
-    width: clamp(38px, calc(var(--card-width) * 0.65), 54px);
-    min-width: clamp(38px, calc(var(--card-width) * 0.65), 54px);
-    margin-left: 0;
     opacity: 0;
     pointer-events: none;
     transition: none;
