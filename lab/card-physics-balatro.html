@@ -453,23 +453,31 @@
     const repelStatus = document.getElementById('repelStatus');
     const tiltStatus = document.getElementById('tiltStatus');
 
+    const CARD_PHYSICS_REFERENCE_WIDTH = 150;
+
     const cardsData = [
       { id: 'duque', label: 'Duque', src: '../assets/img/cards/base/duque.png' },
       { id: 'capitao', label: 'Capitão', src: '../assets/img/cards/base/capitao.png' },
       { id: 'assassino', label: 'Assassino', src: '../assets/img/cards/base/assassino.png' },
       { id: 'condessa', label: 'Condessa', src: '../assets/img/cards/base/condessa.png' },
       { id: 'embaixador', label: 'Embaixador', src: '../assets/img/cards/base/embaixador.png' },
-      { id: 'inquisidor', label: 'Inquisidor', src: '../assets/img/cards/base/inquisidor.png' }
+      { id: 'inquisidor', label: 'Inquisidor', src: '../assets/img/cards/base/inquisidor.png' },
+      { id: 'marionetista', label: 'Marionetista', src: '../assets/img/cards/dlc1/marionetista.png' },
+      { id: 'diplomata', label: 'Diplomata', src: '../assets/img/cards/dlc1/diplomata.png' },
+      { id: 'mercenario', label: 'Mercenário', src: '../assets/img/cards/dlc1/mercenario.png' },
+      { id: 'tesoureiro', label: 'Tesoureiro', src: '../assets/img/cards/dlc1/tesoureiro.png' },
+      { id: 'bispo', label: 'Bispo', src: '../assets/img/cards/dlc1/bispo.png' },
+      { id: 'vigilante', label: 'Vigilante', src: '../assets/img/cards/dlc1/vigilante.png' }
     ];
 
     const defaults = {
       spring: 0.18,
       damping: 0.86,
       pointerLag: 0.28,
-      tiltMax: 36,
-      swing: 0.13,
-      lift: 18,
-      dragScale: 1.22,
+      tiltMax: 46,
+      swing: 0.18,
+      lift: 36,
+      dragScale: 1,
       returnScale: 1,
       repelForce: 72,
       repelRadius: 178,
@@ -480,6 +488,9 @@
       glare: 0,
       perspective: 820,
       balatroTilt: 36,
+      hoverScale: 1.22,
+      hoverLift: -18,
+      glowOffset: 23.4,
       glowStrength: 0.40,
       glowBlur: 30,
       shine: 0,
@@ -498,6 +509,8 @@
       { key: 'perspective', label: 'Perspectiva 3D', min: 480, max: 1400, step: 10, suffix: 'px' },
       { key: 'lift', label: 'Elevação ao arrastar', min: 0, max: 84, step: 1, suffix: 'px' },
       { key: 'dragScale', label: 'Escala ao arrastar', min: 1, max: 1.28, step: 0.01 },
+      { key: 'hoverScale', label: 'Escala Balatro', min: 1, max: 1.28, step: 0.01 },
+      { key: 'hoverLift', label: 'Elevação Balatro', min: -36, max: 0, step: 1, suffix: 'px' },
       { key: 'repelForce', label: 'Força de repulsão', min: 0, max: 160, step: 1 },
       { key: 'repelRadius', label: 'Raio de colisão', min: 80, max: 280, step: 1, suffix: 'px' },
       { key: 'fanGap', label: 'Espaço do leque', min: 46, max: 128, step: 1, suffix: 'px' },
@@ -505,6 +518,7 @@
       { key: 'fanRotation', label: 'Rotação do leque', min: 0, max: 12, step: 0.5, suffix: 'deg' },
       { key: 'friction', label: 'Atrito pós-soltura', min: 0.72, max: 0.98, step: 0.01 },
       { key: 'glare', label: 'Reflexo por movimento', min: 0, max: 0.8, step: 0.01 },
+      { key: 'glowOffset', label: 'Deslocamento do glow', min: 0, max: 40, step: 0.1, suffix: 'px' },
       { key: 'glowStrength', label: 'Força do glow', min: 0, max: 0.85, step: 0.01 },
       { key: 'glowBlur', label: 'Tamanho do glow', min: 0, max: 70, step: 1, suffix: 'px' },
       { key: 'shine', label: 'Faixa holográfica', min: 0, max: 0.7, step: 0.01 },
@@ -521,6 +535,25 @@
     let totalPush = 0;
     let layoutVersion = 0;
     let cardSize = { width: 150, height: 210 };
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function getScaledCardPhysics() {
+      const scaleFactor = clamp(cardSize.width / CARD_PHYSICS_REFERENCE_WIDTH, 0.32, 1);
+      const angularFactor = clamp(0.48 + scaleFactor * 0.52, 0.55, 1);
+
+      return {
+        ...settings,
+        scaleFactor,
+        lift: settings.lift * scaleFactor,
+        repelForce: settings.repelForce * scaleFactor,
+        repelRadius: settings.repelRadius * scaleFactor,
+        swing: settings.swing * angularFactor,
+        tiltMax: settings.tiltMax * angularFactor
+      };
+    }
 
     function formatValue(control) {
       const value = settings[control.key];
@@ -604,16 +637,21 @@
 
         el.addEventListener('pointerdown', (event) => startDrag(event, card));
         el.addEventListener('pointerenter', (event) => {
+          if (card.isDragging) return;
           card.isHovering = true;
-          card.el.classList.add('is-hovering');
+          card.el.classList.add('is-hovering', 'is-tilting');
           updateBalatroTilt(card, event);
+          bringToFront(card, 40);
         });
-        el.addEventListener('pointermove', (event) => updateBalatroTilt(card, event));
+        el.addEventListener('pointermove', (event) => {
+          if (!card.isDragging) updateBalatroTilt(card, event);
+        });
         el.addEventListener('pointerleave', () => {
           card.isHovering = false;
-          card.el.classList.remove('is-hovering');
+          card.el.classList.remove('is-hovering', 'is-tilting');
           if (!card.isDragging) {
             resetBalatroTilt(card);
+            updateStacking();
           }
         });
         cards.push(card);
@@ -630,8 +668,8 @@
       const normalizedY = y - 0.5;
       const rotateX = normalizedY * -settings.balatroTilt;
       const rotateY = normalizedX * settings.balatroTilt;
-      const glowX = -normalizedX * settings.glowBlur * 0.78;
-      const glowY = -normalizedY * settings.glowBlur * 0.78;
+      const glowX = -normalizedX * settings.glowOffset * 2;
+      const glowY = -normalizedY * settings.glowOffset * 2;
 
       card.el.style.setProperty('--tilt-x', `${rotateX.toFixed(2)}deg`);
       card.el.style.setProperty('--tilt-y', `${rotateY.toFixed(2)}deg`);
@@ -665,13 +703,15 @@
       pointer = stagePoint(event);
       dragged = card;
       card.isDragging = true;
+      card.isHovering = false;
       card.pointerOffsetX = pointer.x - card.x;
       card.pointerOffsetY = pointer.y - card.y;
+      card.el.classList.remove('is-hovering', 'is-tilting');
+      resetBalatroTilt(card);
       card.el.classList.add('is-dragging');
       card.el.setPointerCapture(event.pointerId);
-      updateBalatroTilt(card, event);
       activeCardLabel.textContent = card.label;
-      bringToFront(card);
+      bringToFront(card, 100);
     }
 
     function moveDrag(event) {
@@ -679,7 +719,6 @@
         return;
       }
       pointer = stagePoint(event);
-      updateBalatroTilt(dragged, event);
     }
 
     function endDrag(event) {
@@ -698,9 +737,9 @@
       updateStacking();
     }
 
-    function bringToFront(card) {
+    function bringToFront(card, zIndex = 100) {
       cards.forEach((item) => {
-        item.el.style.zIndex = item === card ? 100 : 10 + item.index;
+        item.el.style.zIndex = item === card ? zIndex : 10 + item.index;
       });
     }
 
@@ -742,6 +781,7 @@
 
     function updatePhysics(delta) {
       totalPush = 0;
+      const physics = getScaledCardPhysics();
 
       cards.forEach((card) => {
         card.pushX = 0;
@@ -762,10 +802,10 @@
           const dx = centerX - draggedCenterX;
           const dy = centerY - draggedCenterY;
           const distance = Math.max(1, Math.hypot(dx, dy));
-          const overlap = Math.max(0, settings.repelRadius - distance);
+          const overlap = Math.max(0, physics.repelRadius - distance);
 
           if (overlap > 0) {
-            const strength = (overlap / settings.repelRadius) * settings.repelForce;
+            const strength = (overlap / physics.repelRadius) * physics.repelForce;
             const biasY = dy < 0 ? -0.38 : 0.38;
             card.pushX += (dx / distance) * strength;
             card.pushY += (dy / distance + biasY) * strength * 0.55;
@@ -777,30 +817,30 @@
       cards.forEach((card) => {
         if (card.isDragging) {
           const pointerTargetX = pointer.x - card.pointerOffsetX;
-          const pointerTargetY = pointer.y - card.pointerOffsetY - settings.lift;
-          card.tx += (pointerTargetX - card.tx) * settings.pointerLag;
-          card.ty += (pointerTargetY - card.ty) * settings.pointerLag;
-          card.targetScale = settings.dragScale;
+          const pointerTargetY = pointer.y - card.pointerOffsetY - physics.lift;
+          card.tx += (pointerTargetX - card.tx) * physics.pointerLag;
+          card.ty += (pointerTargetY - card.ty) * physics.pointerLag;
+          card.targetScale = physics.dragScale;
         } else {
           card.tx = card.baseX + card.pushX;
-          card.ty = card.baseY + card.pushY;
-          card.targetScale = settings.returnScale;
+          card.ty = card.baseY + card.pushY + (card.isHovering ? settings.hoverLift : 0);
+          card.targetScale = card.isHovering ? settings.hoverScale : physics.returnScale;
         }
 
-        const springX = (card.tx - card.x) * settings.spring;
-        const springY = (card.ty - card.y) * settings.spring;
-        card.vx = (card.vx + springX) * settings.damping;
-        card.vy = (card.vy + springY) * settings.damping;
+        const springX = (card.tx - card.x) * physics.spring;
+        const springY = (card.ty - card.y) * physics.spring;
+        card.vx = (card.vx + springX) * physics.damping;
+        card.vy = (card.vy + springY) * physics.damping;
 
         if (!card.isDragging) {
-          card.vx *= settings.friction;
-          card.vy *= settings.friction;
+          card.vx *= physics.friction;
+          card.vy *= physics.friction;
         }
 
         card.x += card.vx * delta;
         card.y += card.vy * delta;
 
-        const velocityTilt = Math.max(-settings.tiltMax, Math.min(settings.tiltMax, card.vx * settings.swing));
+        const velocityTilt = clamp(card.vx * physics.swing, -physics.tiltMax, physics.tiltMax);
         const restingAngle = card.isDragging ? 0 : card.baseAngle;
         const targetAngle = restingAngle + velocityTilt + card.pushX * 0.035;
         card.angleVelocity = (card.angleVelocity + (targetAngle - card.angle) * 0.16) * 0.78;
