@@ -930,6 +930,7 @@
         dragging: false,
         returning: false,
         hovering: false,
+        activePointerId: null,
         lastTime: performance.now()
       };
 
@@ -1011,10 +1012,13 @@
       function startDrag(event) {
         if (event.button !== undefined && event.button !== 0) return;
         event.preventDefault();
+        if (state.dragging || state.returning || state.activePointerId !== null) return;
+
         resetTilt();
         const rect = dukeHitbox.getBoundingClientRect();
         state.dragging = true;
         state.returning = false;
+        state.activePointerId = event.pointerId;
         state.lastTime = performance.now();
         state.pointerX = event.clientX;
         state.pointerY = event.clientY;
@@ -1032,9 +1036,15 @@
         state.angleVelocity = 0;
         state.scale = CARD_PHYSICS_BALATRO.returnScale;
         state.targetScale = CARD_PHYSICS_BALATRO.dragScale;
+        document.querySelectorAll('.hero-duke-drag-ghost').forEach((ghost) => ghost.remove());
         state.ghost = createDragGhost(rect);
         dukeCard.classList.add('is-drag-source');
         dukeHitbox.classList.add('is-dragging');
+        try {
+          dukeHitbox.setPointerCapture?.(event.pointerId);
+        } catch (error) {
+          // Alguns navegadores mobile podem cancelar a captura durante gestos multi-touch.
+        }
         document.addEventListener('pointermove', moveDrag, { passive: false });
         document.addEventListener('pointerup', endDrag);
         document.addEventListener('pointercancel', endDrag);
@@ -1043,13 +1053,22 @@
 
       function moveDrag(event) {
         if (!state.dragging || state.returning) return;
+        if (event.pointerId !== state.activePointerId) return;
         event.preventDefault();
         state.pointerX = event.clientX;
         state.pointerY = event.clientY;
       }
 
-      function endDrag() {
+      function endDrag(event) {
         if (!state.dragging || state.returning) return;
+        if (event.pointerId !== state.activePointerId) return;
+        try {
+          if (dukeHitbox.hasPointerCapture?.(state.activePointerId)) {
+            dukeHitbox.releasePointerCapture(state.activePointerId);
+          }
+        } catch (error) {
+          // A finalizacao visual continua mesmo se a captura ja tiver sido liberada.
+        }
         state.returning = true;
         state.targetX = state.homeX;
         state.targetY = state.homeY;
@@ -1067,6 +1086,7 @@
         state.ghost = null;
         state.dragging = false;
         state.returning = false;
+        state.activePointerId = null;
         state.x = 0;
         state.y = 0;
         state.vx = 0;
