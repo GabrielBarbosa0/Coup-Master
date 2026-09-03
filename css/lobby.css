@@ -1249,6 +1249,7 @@ button {
     line-height: 1.35;
 }
 
+.discord-floating-btn,
 .leaderboard-floating-btn {
     display: inline-flex;
     align-items: center;
@@ -1264,10 +1265,23 @@ button {
     transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 
+.discord-floating-btn {
+    text-decoration: none;
+}
+
+.discord-floating-btn img,
 .leaderboard-floating-btn img {
     width: 23px;
     height: 23px;
     opacity: 0.92;
+}
+
+.discord-floating-btn:hover,
+.discord-floating-btn:focus-visible {
+    border-color: rgba(88, 101, 242, 0.86);
+    background: rgba(35, 42, 51, 1);
+    outline: 0;
+    transform: translateY(-1px);
 }
 
 .leaderboard-floating-btn:hover,
@@ -1479,12 +1493,14 @@ button {
         flex-direction: column;
     }
 
+    .discord-floating-btn,
     .leaderboard-floating-btn,
     .language-floating-toggle {
         width: 40px;
         height: 40px;
     }
 
+    .discord-floating-btn img,
     .leaderboard-floating-btn img,
     .language-floating-toggle img {
         width: 21px;
@@ -1515,6 +1531,7 @@ button {
 }
 
 @media (max-width: 360px) {
+    .discord-floating-btn,
     .leaderboard-floating-btn,
     .language-floating-toggle {
         width: 38px;
