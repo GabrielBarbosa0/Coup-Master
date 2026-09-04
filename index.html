@@ -44,8 +44,8 @@
 
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
-  <link rel="stylesheet" href="css/casual-mode.css?v=share-room-v1">
-  <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
+  <link rel="stylesheet" href="css/casual-mode.css?v=casual-theme-v2">
+  <link rel="stylesheet" href="css/chat.css?v=casual-theme-v2">
   <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
   <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
 </head>
@@ -640,11 +640,11 @@
         data-i18n="personalizedWaiting.removePlayerText">
         Tem certeza que deseja remover este jogador da sala?
       </p>
-      <div style="display: flex; gap: 10px; justify-content: center;">
-        <button id="confirmKickBtn" class="icon-btn"
-          style="background: #ff3b3b; color: #fff; flex: 1; justify-content: center; font-weight: bold; border: none;" data-i18n="personalizedWaiting.remove">REMOVER</button>
-        <button id="cancelKickBtn" class="icon-btn"
-          style="background: rgba(255,255,255,0.1); flex: 1; justify-content: center; border: none;" data-i18n="ranked.cancel">CANCELAR</button>
+      <div class="kick-modal-actions">
+        <button id="confirmKickBtn" class="icon-btn kick-modal-danger" type="button"
+          data-i18n="personalizedWaiting.remove">REMOVER</button>
+        <button id="cancelKickBtn" class="icon-btn kick-modal-secondary" type="button"
+          data-i18n="ranked.cancel">CANCELAR</button>
       </div>
     </div>
   </div>

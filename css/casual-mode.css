@@ -25,14 +25,15 @@
 }
 
 :root {
-    --bg: #171d26;
-    --panel: #232a33;
+    --bg: #07101a;
+    --panel: #101d29;
+    --panel-raised: #172635;
     --accent: #1e90ff;
-    --accent2: #ff7b00;
+    --accent2: #ff8a1f;
     --card-radius: 10px;
-    --dotted: 3px dotted rgba(255, 255, 255, 0.12);
+    --dotted: 3px dotted rgba(230, 238, 246, 0.14);
     --text: #e6eef6;
-    --muted: rgba(230, 238, 246, 0.25);
+    --muted: rgba(230, 238, 246, 0.34);
     --active: #00ff73;
 }
 
@@ -223,7 +224,10 @@ body {
     min-height: 100vh;
     height: auto;
     margin: 0;
-    background: var(--bg);
+    background:
+        radial-gradient(circle at 18% 18%, rgba(30, 144, 255, 0.12), transparent 34%),
+        linear-gradient(145deg, #07101a 0%, #0f2434 48%, #111217 100%);
+    background-attachment: fixed;
     color: var(--text);
     scroll-behavior: smooth;
     /* Previne que animações criem barras horizontais fantasmas */
@@ -775,6 +779,46 @@ h2 {
     display: none;
 }
 
+.kick-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.kick-modal-actions .icon-btn {
+    flex: 1 1 0;
+    justify-content: center;
+    min-height: 42px;
+    font-weight: 800;
+}
+
+#confirmKickBtn.kick-modal-danger {
+    border-color: rgba(255, 82, 82, 0.7);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 56%),
+        #d84242;
+    color: #fff;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 10px 22px rgba(255, 59, 59, 0.2);
+}
+
+#confirmKickBtn.kick-modal-danger:hover,
+#confirmKickBtn.kick-modal-danger:focus-visible {
+    border-color: rgba(255, 122, 122, 0.92);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 56%),
+        #f04b4b;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        0 12px 26px rgba(255, 59, 59, 0.28);
+    outline: 0;
+}
+
+#cancelKickBtn.kick-modal-secondary {
+    color: var(--text);
+}
+
 /*  Otimização do Modal de Configurações */
 
 /* Define uma largura fixa e centraliza o conteúdo */
@@ -968,9 +1012,11 @@ h2 {
 .preset-btn {
     width: 100%;
     min-height: 40px;
-    background: #20242b;
+    background:
+        linear-gradient(180deg, rgba(230, 238, 246, 0.065), transparent 58%),
+        #132231;
     color: #f8fafc;
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(128, 154, 184, 0.42);
     padding: 8px 10px;
     border-radius: 8px;
     cursor: pointer;
@@ -981,14 +1027,18 @@ h2 {
     text-align: center;
     text-transform: none;
     white-space: nowrap;
-    transition: all 0.2s ease;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .preset-btn:hover {
-    background: #2c3540;
-    border-color: var(--accent);
+    background:
+        linear-gradient(180deg, rgba(30, 144, 255, 0.14), transparent 58%),
+        #183149;
+    border-color: rgba(30, 144, 255, 0.78);
     color: #f8fafc;
-    box-shadow: 0 0 10px rgba(30, 144, 255, 0.25);
+    box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.14), 0 10px 22px rgba(0, 0, 0, 0.24);
+    transform: translateY(-1px);
 }
 
 
@@ -1009,8 +1059,12 @@ h2 {
 .modal-content {
     position: relative;
     padding: 20px;
-    background: var(--panel);
+    background:
+        linear-gradient(180deg, rgba(230, 238, 246, 0.055), transparent 48%),
+        #0f1f2d;
+    border: 1px solid rgba(128, 154, 184, 0.22);
     border-radius: 10px;
+    box-shadow: 0 24px 54px rgba(0, 0, 0, 0.42);
 }
 
 /* 2. Aplicar nos Títulos dos Modais (Configurações, Baralho, etc) */
@@ -1304,19 +1358,27 @@ h2 {
 }
 
 .icon-btn {
-    background: #232a33;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background:
+        linear-gradient(180deg, rgba(230, 238, 246, 0.07), transparent 56%),
+        #142536;
+    border: 1px solid rgba(128, 154, 184, 0.38);
     border-radius: 8px;
     padding: 8px 12px;
     color: var(--text);
     cursor: pointer;
     display: flex;
     align-items: center;
-    transition: background 0.2s;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .icon-btn:hover {
-    background: #2c3540;
+    border-color: rgba(30, 144, 255, 0.7);
+    background:
+        linear-gradient(180deg, rgba(30, 144, 255, 0.15), transparent 56%),
+        #183149;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
+    transform: translateY(-1px);
 }
 
 #volumeSlider,
@@ -1414,8 +1476,8 @@ h2 {
     width: 50px;
     padding: 6px;
     border-radius: 6px;
-    border: 1px solid var(--accent);
-    background: var(--bg);
+    border: 1px solid rgba(30, 144, 255, 0.68);
+    background: #081827;
     color: white;
     font-size: 16px;
     text-align: center;
@@ -1431,15 +1493,17 @@ h2 {
     width: 100%;
     padding: 14px;
     font-size: 16px;
-    background: #00ff73;
-    /* Verde neon */
-    color: #000;
-    border: 0;
+    background:
+        linear-gradient(180deg, rgba(67, 171, 255, 0.28), transparent 58%),
+        var(--accent);
+    color: #ffffff;
+    border: 1px solid rgba(178, 220, 255, 0.38);
     border-radius: 8px;
     cursor: pointer;
     margin-top: 20px;
     font-weight: bold;
-    transition: transform 0.2s, filter 0.2s;
+    box-shadow: 0 12px 26px rgba(30, 144, 255, 0.24);
+    transition: transform 0.2s, filter 0.2s, box-shadow 0.2s ease;
 }
 
 #applyDeckConfigBtn:hover:not(:disabled) {
@@ -1676,9 +1740,11 @@ h2 {
 #settingsModal .room-mode-label {
     min-width: 96px;
     padding: 8px 10px;
-    border: 1px solid rgba(230, 238, 246, 0.16);
+    border: 1px solid rgba(128, 154, 184, 0.32);
     border-radius: 7px;
-    background: #171d26;
+    background:
+        linear-gradient(180deg, rgba(230, 238, 246, 0.055), transparent 56%),
+        #102130;
     color: var(--text);
     font-size: 13px;
     font-weight: 700;
@@ -1702,9 +1768,9 @@ h2 {
     min-width: 120px;
     min-height: 42px;
     padding: 8px 44px 8px 12px;
-    border: 1px solid rgba(230, 238, 246, 0.16);
+    border: 1px solid rgba(128, 154, 184, 0.36);
     border-radius: 7px;
-    background-color: #171d26;
+    background-color: #102130;
     background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23e6eef6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 14px center;
@@ -1718,6 +1784,7 @@ h2 {
 }
 
 #settingsModal .settings-language-select:focus-visible {
+    border-color: rgba(30, 144, 255, 0.78);
     outline: 2px solid var(--accent);
     outline-offset: 2px;
 }
@@ -1746,6 +1813,10 @@ h2 {
     justify-content: center;
     flex: 0 0 var(--settings-control-width);
     box-sizing: border-box;
+    border-color: rgba(128, 154, 184, 0.38);
+    background:
+        linear-gradient(180deg, rgba(230, 238, 246, 0.07), transparent 56%),
+        #142536;
     text-align: center;
 }
 
@@ -1763,8 +1834,11 @@ h2 {
 
 #settingsModal .settings-control-btn.is-active {
     border-color: rgba(30, 144, 255, 0.9);
+    background:
+        linear-gradient(180deg, rgba(30, 144, 255, 0.18), transparent 56%),
+        #17324a;
     color: #ffffff;
-    box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.25), 0 0 12px rgba(30, 144, 255, 0.16);
+    box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.25), 0 10px 22px rgba(0, 0, 0, 0.22);
 }
 
 #openDeckConfigBtn {
@@ -1826,12 +1900,17 @@ h2 {
    ======================================================= */
 
 :root {
-    --panel-strong: #111923;
-    --panel-soft: #1c2530;
+    --panel-strong: #0b1722;
+    --panel-soft: #122231;
+    --surface-glass: rgba(16, 29, 41, 0.88);
+    --surface-glass-strong: rgba(10, 22, 33, 0.94);
+    --surface-blue: linear-gradient(155deg, rgba(16, 34, 50, 0.98), rgba(8, 19, 31, 0.96));
+    --surface-orange: linear-gradient(155deg, rgba(49, 32, 17, 0.98), rgba(15, 20, 25, 0.96));
+    --surface-graveyard: linear-gradient(155deg, rgba(18, 29, 41, 0.98), rgba(10, 16, 25, 0.96));
     --coin: #f6c204;
-    --line: rgba(230, 238, 246, 0.14);
-    --seat-border: rgba(133, 154, 177, 0.25);
-    --table-shadow: 0 10px 22px rgba(0, 0, 0, 0.3);
+    --line: rgba(230, 238, 246, 0.16);
+    --seat-border: rgba(128, 154, 184, 0.24);
+    --table-shadow: 0 18px 36px rgba(0, 0, 0, 0.34);
 }
 
 .muted {
@@ -1849,7 +1928,10 @@ h2 {
     margin: 0;
     padding: 0;
     overflow: auto;
-    background: var(--bg);
+    background:
+        radial-gradient(circle at 18% 18%, rgba(30, 144, 255, 0.12), transparent 34%),
+        linear-gradient(145deg, #07101a 0%, #0f2434 48%, #111217 100%);
+    background-attachment: fixed;
 }
 
 .game-table {
@@ -1868,9 +1950,11 @@ h2 {
     height: 100dvh;
     padding: 14px 18px 12px;
     overflow: hidden;
-    border: 1px solid rgba(230, 238, 246, 0.12);
+    border: 1px solid rgba(230, 238, 246, 0.08);
     border-radius: 0;
-    background: var(--bg);
+    background:
+        linear-gradient(180deg, rgba(230, 238, 246, 0.025), transparent 34%),
+        transparent;
     box-shadow: none;
 }
 
@@ -1902,19 +1986,26 @@ h2 {
     width: 38px;
     height: 38px;
     padding: 0;
-    border: 0;
+    border: 1px solid rgba(230, 238, 246, 0.2);
     border-radius: 7px;
-    background: var(--panel);
+    background:
+        linear-gradient(180deg, rgba(230, 238, 246, 0.08), transparent 54%),
+        var(--panel-raised);
     color: #fff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.34);
     cursor: pointer;
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .game-table .controls button:hover,
 .game-table .room-controls button:hover,
 .game-table .controls button:focus-visible,
 .game-table .room-controls button:focus-visible {
-    background: #2c3540;
+    border-color: rgba(30, 144, 255, 0.72);
+    background:
+        linear-gradient(180deg, rgba(30, 144, 255, 0.16), transparent 54%),
+        #1a2e40;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(30, 144, 255, 0.12);
     outline: 0;
     transform: translateY(-1px);
 }
@@ -1926,6 +2017,7 @@ h2 {
     height: 22px;
     object-fit: contain;
     filter: brightness(0) invert(1);
+    opacity: 0.96;
     pointer-events: none;
 }
 
@@ -1994,15 +2086,21 @@ h2 {
     min-height: 0;
     padding: 12px 14px 10px;
     overflow: visible;
-    border: 2px solid var(--seat-border);
+    border: 1px solid var(--seat-border);
     border-radius: 8px;
-    background: rgba(17, 25, 35, 0.94);
+    background:
+        linear-gradient(180deg, rgba(230, 238, 246, 0.055), transparent 42%),
+        var(--surface-glass);
+    backdrop-filter: blur(8px);
     box-shadow: var(--table-shadow);
 }
 
 .game-table .player-area.local-player {
     border-color: var(--accent);
-    box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.24), var(--table-shadow);
+    background:
+        linear-gradient(180deg, rgba(30, 144, 255, 0.12), transparent 48%),
+        var(--surface-glass);
+    box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.28), 0 18px 38px rgba(0, 0, 0, 0.38);
 }
 
 .game-table .player-area.is-empty .points,
@@ -2043,7 +2141,7 @@ h2 {
     width: 22px;
     height: 22px;
     padding: 3px;
-    background: rgba(17, 29, 42, 0.96);
+    background: var(--surface-glass-strong);
     object-fit: contain;
 }
 
@@ -2301,8 +2399,10 @@ h2 {
     place-items: center;
     align-content: stretch;
     min-height: 0;
-    border: 2px dashed rgba(230, 238, 246, 0.18);
-    background: rgba(255, 255, 255, 0.015);
+    border: 2px dashed rgba(128, 154, 184, 0.26);
+    background:
+        linear-gradient(180deg, rgba(230, 238, 246, 0.035), transparent 46%),
+        rgba(8, 17, 27, 0.5);
     box-shadow: none;
 }
 
@@ -2338,7 +2438,8 @@ h2 {
     min-width: 0;
     min-height: 0;
     border-radius: 8px;
-    background: rgba(28, 37, 48, 0.96);
+    background: var(--surface-glass);
+    backdrop-filter: blur(8px);
     box-shadow: var(--table-shadow);
 }
 
@@ -2354,10 +2455,14 @@ h2 {
 
 .game-table .asylum-area {
     border: 2px solid var(--accent2);
+    background: var(--surface-orange);
+    box-shadow: 0 0 0 1px rgba(255, 138, 31, 0.08), var(--table-shadow);
 }
 
 .game-table .deck-area {
     border: 2px solid var(--accent);
+    background: var(--surface-blue);
+    box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.1), var(--table-shadow);
 }
 
 .game-table .asylum-area .muted,
@@ -2433,7 +2538,9 @@ h2 {
     justify-content: center;
     padding: 12px 16px 10px;
     overflow: visible;
-    border: 2px solid rgba(133, 154, 177, 0.42);
+    border: 2px solid rgba(128, 154, 184, 0.36);
+    background: var(--surface-graveyard);
+    box-shadow: 0 0 0 1px rgba(230, 238, 246, 0.05), var(--table-shadow);
 }
 
 .game-table .graveyard-cards {
@@ -2462,7 +2569,7 @@ h2 {
     background-position: center;
     background-size: contain;
     content: "";
-    opacity: 0.035;
+    opacity: 0.055;
     pointer-events: none;
     transform: translate(-50%, -50%);
 }
@@ -2502,9 +2609,12 @@ h2 {
     max-width: 100%;
     margin: 0 auto;
     padding: 6px 12px;
-    border: 1px solid rgba(230, 238, 246, 0.24);
+    border: 1px solid rgba(230, 238, 246, 0.18);
     border-radius: 7px;
-    background: rgba(17, 25, 35, 0.96);
+    background:
+        linear-gradient(180deg, rgba(230, 238, 246, 0.045), transparent 52%),
+        rgba(10, 22, 33, 0.9);
+    backdrop-filter: blur(8px);
     color: var(--muted);
     font-size: 12px;
     line-height: 1.2;

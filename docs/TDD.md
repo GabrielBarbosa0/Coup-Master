@@ -1,7 +1,7 @@
 # Coup Master - Technical Design Document
 
 Documento gerado a partir da analise do estado atual do repositorio em 2026-06-24.
-Atualizacao parcial: 2026-09-03, com foco nas mudancas recentes de lobby, labs, fisica de cartas e landing.
+Atualizacao parcial: 2026-09-04, com foco nas mudancas recentes de lobby, labs, fisica de cartas, landing e modernizacao visual do casual.
 
 Branch analisada originalmente: `new-css`
 Branch atual da atualizacao parcial: `main`
@@ -1976,6 +1976,7 @@ Os modos transparente, VHS, parallax e flutuacao foram removidos do runtime.
 Responsavel pela tela de jogo:
 
 - variaveis de cor;
+- paleta escura modernizada, alinhada ao lobby/landing, com gradiente azul profundo, sem manchas quentes grandes no fundo;
 - reset visual;
 - esconder scrollbars;
 - layout principal;
@@ -1999,6 +2000,7 @@ Pontos importantes:
 - Configuracoes e Comandos do Mestre compartilham a largura responsiva de `standard-modal-content`.
 - Muitos estilos inline existem no HTML, especialmente em modais e botoes.
 - `.game-table` usa grid no desktop e tablet, e fluxo vertical no mobile.
+- A Mesa 2.0 usa superficies escuras semitransparentes, leve `backdrop-filter` e gradientes discretos em slots, cemitério, asilo, baralho e status. O fundo geral evita manchas quentes grandes; o calor visual fica concentrado no asilo. Botoes flutuantes, toolbar, chat, configuracoes e presets devem manter borda visivel e contraste suficiente sobre o fundo.
 - O breakpoint mobile termina em `700px`; o intermediario cobre `701px` a `1024px`; acima disso vale o layout desktop, com compactacao adicional ate `1200px`.
 - As cartas usam `aspect-ratio: 2 / 3` e a custom property `--card-width`, compartilhada por mao e baralho.
 - O cemiterio renderiza em `.graveyard-cards`, com overlap e rotacoes alternadas.
@@ -2011,7 +2013,7 @@ Pontos importantes:
 Responsavel pela tela de lobby:
 
 - layout central;
-- fundo solido simplificado;
+- fundo escuro modernizado com gradiente e grade sutil;
 - loader;
 - botao Google;
 - dados do usuario;
