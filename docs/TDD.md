@@ -1,10 +1,13 @@
 # Coup Master - Technical Design Document
 
 Documento gerado a partir da analise do estado atual do repositorio em 2026-06-24.
+Atualizacao parcial: 2026-09-03, com foco nas mudancas recentes de lobby, labs, fisica de cartas e landing.
 
-Branch analisada: `new-css`
+Branch analisada originalmente: `new-css`
+Branch atual da atualizacao parcial: `main`
 
-Commit analisado: `452e095` (`atualização nas regras de personagem`)
+Commit analisado originalmente: `452e095` (`atualização nas regras de personagem`)
+Commit base da atualizacao parcial: `9ffcbaf` (`suporte ao discord`)
 
 ## 1. Sumario Executivo
 
@@ -88,8 +91,9 @@ flowchart LR
   Ranked --> RankedState
 ```
 
-O frontend tem sete paginas principais:
+O frontend tem paginas principais e publicas:
 
+- `landing.html`: landing publica principal, com chamada para login, modos de jogo e heroi interativo.
 - `login.html`: tela dedicada de autenticacao com Google ou visitante anonimo.
 - `lobby.html`: perfil autenticado, criacao e entrada em salas.
 - `index.html`: tabuleiro do modo casual.
@@ -226,11 +230,27 @@ Coup-Master/
     pt-BR.json
     en-US.json
   lab/
+    assassination-animation-lab.html
+    block-animation-lab.html
+    card-physics.html
+    card-physics-balatro.html
+    card-reveal-animation-lab.html
+    challenge-animation-lab.html
+    coin-counter-lab.html
+    coup-animation-lab.html
+    investigation-animation-lab.html
     lab-cards.html
+    landing.html
+    loading-lab.html
+    lobby-modern-lab.html
+    npc-tutorial-lab.html
+    rules-flipbook.html
+    sine-wave-cards.html
   AGENTS.md
   .nojekyll
   README.md
   index.html
+  landing.html
   login.html
   lobby.html
   legal/privacy.html
@@ -403,6 +423,7 @@ Responsabilidades:
 - Carrega SDK Firebase v8.
 - Carrega `css/lobby.css`.
 - Renderiza bloco de usuario logado.
+- Renderiza acoes flutuantes de lobby: sair da conta, Discord, classificacao e idioma.
 - Renderiza input de codigo de sala e botoes de entrar/criar sala.
 - Renderiza modal de erro.
 - Renderiza loader simplificado com fundo solido e card central.
@@ -422,6 +443,8 @@ Fluxo de UI:
 Pontos tecnicos importantes:
 
 - O bloco `communityBtn` e `communityModal` esta comentado no HTML, mas o JS ainda tenta localiza-los com guards.
+- O botao do Discord e um link externo estatico para o servidor da comunidade, aberto em nova aba com `rel="noopener noreferrer"`.
+- O icone do Discord vive em `assets/img/icons/discord.svg` e foi salvo branco para uso direto em botoes escuros.
 - O loader `font-loader` aparece depois do `</body>`, o que e HTML invalido, embora o navegador costume corrigir.
 - Ha uma referencia comentada a `img/info.svg`; como esta comentada, nao afeta runtime, mas a pasta `img/` nao existe.
 
@@ -477,6 +500,58 @@ Pontos tecnicos importantes:
 - A pagina nao participa do fluxo de produto, lobby, Firebase, PWA ou partidas reais.
 - Deve continuar isolada em `lab/` para evitar dependencia acidental do runtime principal.
 - Mudancas aprovadas nesse laboratorio precisam ser aplicadas explicitamente nos CSS/JS dos modos de jogo.
+
+### 6.5 `lab/card-physics.html` e `lab/card-physics-balatro.html`
+
+Responsabilidades:
+
+- Servir como laboratorio isolado para testar fisica de cartas, arraste, retorno por mola, repulsao entre cartas e composicao de leque.
+- `card-physics-balatro.html` combina a fisica com o efeito Balatro/tilt usado como referencia para o modo casual.
+- Ambos os labs usam um conjunto de 12 cartas, incluindo base, promocionais e cartas da DLC 1/A Revolucao, para simular pilhas maiores.
+- Os parametros de leque existem para experimentacao, mas a rotacao dinamica forte no cemiterio nao foi adotada no modo casual.
+
+Pontos tecnicos importantes:
+
+- Os labs nao acessam Firebase, nao alteram estado de sala e nao participam do runtime principal.
+- O comportamento aprovado no lab precisa ser portado manualmente para `js/gamemode/casual/visual-effects.js`, `js/gamemode/casual/drag-drop.js` ou CSS correspondente.
+- O lab Balatro deve continuar acompanhando a sensacao final do modo casual quando houver mudancas aprovadas de fisica/hover.
+
+### 6.6 Labs de animacoes de acao
+
+Arquivos:
+
+- `lab/block-animation-lab.html`
+- `lab/challenge-animation-lab.html`
+- `lab/coup-animation-lab.html`
+- `lab/assassination-animation-lab.html`
+- `lab/investigation-animation-lab.html`
+- `lab/card-reveal-animation-lab.html`
+- `lab/coin-counter-lab.html`
+
+Responsabilidades:
+
+- Prototipar animacoes futuras de bloqueio, contestacao, golpe, assassinato, investigacao, revelacao de influencia e moedas.
+- A direcao de produto desejada e usar essas animacoes posteriormente como overlays/modais em tela cheia no ranqueado e na Sala Personalizada.
+- Esses overlays devem escurecer o fundo do jogo, tocar efeito sonoro, exibir a animacao livre sem ficar presa a um card pequeno e so liberar o fluxo depois do fade out.
+
+Pontos tecnicos importantes:
+
+- Os labs ainda sao prototipos isolados e nao devem pausar automaticamente o motor ranqueado enquanto nao forem integrados ao renderer/engine.
+- A integracao futura precisa preservar sincronizacao entre jogadores para que todos vejam a mesma animacao antes de continuar a partida.
+
+### 6.7 `landing.html`
+
+Responsabilidades:
+
+- Servir como landing publica principal do Coup Master, separada dos labs em `lab/`.
+- Apresentar o produto, modos de jogo, screenshots, chamada para login e links de comunidade.
+- Exibir uma composicao interativa de cartas no heroi, com o Duque podendo receber hover/drag visual.
+
+Pontos tecnicos importantes:
+
+- A interacao do Duque usa Pointer Events e mantem `activePointerId` para impedir multitouch concorrente.
+- Durante o arraste, apenas um clone visual `.hero-duke-drag-ghost` deve existir; novos inicios de drag removem qualquer clone antigo antes de criar outro.
+- O fluxo defensivo de `setPointerCapture`/`releasePointerCapture` evita duplicacao de cartas quando o usuario segura um dedo e toca novamente com outro.
 
 ## 7. Scripts Globais e Contratos entre Arquivos
 
@@ -768,7 +843,7 @@ Responsabilidades:
 - Centralizar efeitos visuais de cartas do modo casual.
 - Calcular overlap adaptativo dos leques de mao e cemiterio.
 - Atualizar `--hand-overlap` e `--graveyard-overlap`.
-- Aplicar rotacao e deslocamento base dos slots da mao.
+- Aplicar deslocamento/rotacao base dos slots da mao e preservar as rotacoes discretas do cemiterio definidas por CSS.
 - Agendar recálculo dos leques com `requestAnimationFrame`.
 - Recalcular leques no `resize` da janela.
 - Aplicar e limpar o efeito Balatro/tilt em cartas e no deck.
@@ -987,6 +1062,7 @@ Responsabilidades:
 - Queimar carta do topo via `burnTopCard()`.
 - Manter o fallback de compatibilidade por Pointer Events quando `coupMasterSamsungDragEnabled` esta ativo.
 - Criar e limpar o clone visual `.compatible-drag-ghost`.
+- Marcar a origem do arraste com classes de origem invisivel sem alterar largura, `flex-basis`, `min-width` ou margem dos slots/cartas.
 - Expor `attachCompatiblePointerDrag(element, dragData)` para `render-cards.js`.
 
 Contrato:
@@ -996,6 +1072,7 @@ Contrato:
 - Preserva o wrapper global `attachCompatiblePointerDrag` para compatibilidade com codigo legado.
 - `board-renderer.js` injeta elementos DOM, mutacoes de jogo, `isSamsungDragModeEnabled`, `refreshSamsungDragMode`, `resetBalatroElement` vindo de `window.CoupVisualEffects` e `hideCardTooltip`.
 - O modulo nao remove o legado HTML5; ele apenas move a configuracao para uma fronteira menor.
+- A origem visual do arraste compativel deve ficar invisivel com `opacity: 0` e `pointer-events: none`, mas continuar ocupando o mesmo espaco de layout para evitar reflow em cadeia no leque.
 
 ### 7.23 `js/gamemode/casual/render-players.js`
 
@@ -1752,6 +1829,7 @@ Esse modo e uma camada de compatibilidade sobre o fluxo legado, nao um substitut
 - recalcula imediatamente durante `renderAll()` e novamente em redimensionamentos via `requestAnimationFrame`;
 - conserva `.is-active-card` e o efeito Balatro, permitindo que qualquer carta do leque venha inteira para frente no hover.
 - preserva no cemiterio as rotacoes e deslocamentos alternados definidos por `nth-of-type`.
+- durante drag compativel, a carta de origem fica invisivel sem sair do fluxo visual; isso evita que todas as cartas do cemiterio/mao sejam reposicionadas enquanto o usuario segura uma carta.
 
 ### 11.4 Visibilidade de Carta
 
@@ -2329,6 +2407,9 @@ Para cada mudanca relevante:
 19. Testar modais de regras e regras alternativas.
 20. Testar configuracao de deck e presets.
 21. Testar responsividade em mobile/tablet.
+22. Testar que o botao do Discord no lobby abre o convite em nova aba.
+23. Testar arraste compativel de cartas na mao e no cemiterio sem reflow em cadeia das cartas vizinhas.
+24. Testar multitouch na landing segurando o Duque e tocando novamente para garantir que nao surgem clones duplicados.
 
 ### 22.3 Testes Automatizados Desejaveis
 
@@ -2497,6 +2578,11 @@ Estas invariantes devem ser preservadas:
 | `ranked/ranked-waiting.html` | Sala de espera/prontidao do modo ranqueado | Alto: ids sao contrato com o renderer |
 | `ranked/ranked.html` | Estrutura da mesa ranqueada ativa e scripts dedicados | Alto: ids sao contrato com o renderer |
 | `lobby.html` | Login e entrada/criacao de salas | Medio |
+| `landing.html` | Landing publica com heroi interativo e chamada para o produto | Medio |
+| `lab/card-physics.html` | Laboratorio isolado de fisica e leque de cartas | Baixo/medio: referencia visual, sem runtime principal |
+| `lab/card-physics-balatro.html` | Laboratorio isolado de fisica combinada com efeito Balatro | Baixo/medio: deve acompanhar a sensacao aprovada no casual |
+| `lab/*-animation-lab.html` | Prototipos de animacoes futuras para acoes, bloqueios, contestacoes e revelacoes | Baixo/medio: risco sobe apenas quando integrado ao ranqueado/personalizado |
+| `assets/img/icons/discord.svg` | Icone branco do Discord para lobby e usos futuros | Baixo |
 | `js/firebase/firebase.js` | Inicializacao Firebase global | Alto: ordem e config |
 | `js/core/rules.js` | Tipos de cartas e utilitarios de deck | Alto: fonte de verdade parcial |
 | `js/core/gameState.js` | Mutacoes e sincronizacao Firebase | Muito alto |
