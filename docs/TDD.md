@@ -1,7 +1,7 @@
 # Coup Master - Technical Design Document
 
 Documento gerado a partir da analise do estado atual do repositorio em 2026-06-24.
-Atualizacao parcial: 2026-09-03, com foco nas mudancas recentes de lobby, labs, fisica de cartas e landing.
+Atualizacao parcial: 2026-09-06, com foco nas mudancas recentes de lobby, labs, fisica de cartas, landing e pre-carregamento de assets.
 
 Branch analisada originalmente: `new-css`
 Branch atual da atualizacao parcial: `main`
@@ -109,19 +109,20 @@ Os scripts sao carregados como arquivos globais com `defer`. Eles dependem da or
 Ordem no tabuleiro:
 
 1. Firebase CDN: `firebase-app.js`, `firebase-auth.js`, `firebase-database.js`.
-2. `js/firebase/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
-3. `js/pwa/pwa.js`: registra o service worker quando o navegador oferece suporte.
-4. `js/core/rules.js`: define tipos de carta e utilitarios globais.
-5. `js/core/gameState.js`: conecta sala, Firebase, estado e mutacoes.
-6. `js/gamemode/casual/board-renderer.js`: coordena `renderAll`, `setupUI`, `setupAutoScroll` e setup dos modulos casuais.
+2. `js/ui/asset-preloader.js`: expoe o pre-carregamento de imagens criticas.
+3. `js/firebase/firebase.js`: inicializa Firebase e expoe `window.db` e `window.auth`.
+4. `js/pwa/pwa.js`: registra o service worker quando o navegador oferece suporte.
+5. `js/core/rules.js`: define tipos de carta e utilitarios globais.
+6. `js/core/gameState.js`: conecta sala, Firebase, estado e mutacoes.
+7. `js/gamemode/casual/board-renderer.js`: coordena `renderAll`, `setupUI`, `setupAutoScroll` e setup dos modulos casuais.
 
 Ordem no ranqueado:
 
 1. Firebase CDN e `js/firebase/firebase.js`.
-2. `js/pwa/pwa.js` e `js/gamemode/game-modes.js`.
+2. `js/ui/asset-preloader.js`, `js/pwa/pwa.js` e `js/gamemode/game-modes.js`.
 3. `js/gamemode/ranked/ranked-rules.js`: contrato imutavel de acoes, personagens e tempos.
 4. `js/gamemode/ranked/ranked-engine.js`: transicoes puras da partida.
-5. `js/gamemode/ranked/ranked-renderer.js`: DOM responsivo, respostas, mao, log e chat.
+5. `js/gamemode/ranked/ranked-renderer.js`: DOM responsivo, respostas, mao, log, chat e liberacao do loading apos pre-carregar assets.
 6. `js/gamemode/ranked/ranked-game.js`: autenticacao, sala, presenca, transacoes e deadlines.
 7. `js/gamemode/personalized/personalized-*.js`: clone inicial da base ranqueada para Sala Personalizada, com `personalizedState` proprio.
 
@@ -155,6 +156,7 @@ Coup-Master/
         promo/
         religion/
       guides/
+      perfil-cards/
       icons/
       logo/
       marketing/
@@ -238,6 +240,7 @@ Coup-Master/
     challenge-animation-lab.html
     coin-counter-lab.html
     coup-animation-lab.html
+    guide-generator-lab.html
     investigation-animation-lab.html
     lab-cards.html
     landing.html
@@ -355,7 +358,17 @@ Estrategia do service worker:
 - requisicoes externas, incluindo Firebase CDN/Auth/Realtime Database, nao sao interceptadas;
 - multiplayer offline nao e objetivo, pois salas, autenticacao e sincronizacao dependem de rede e Firebase.
 
-### 5.6 Monetizacao e AdSense
+### 5.6 Pre-carregamento de Assets
+
+`js/ui/asset-preloader.js` centraliza listas de imagens criticas e usa `Image`/`decode()` para aquecer o cache do navegador antes de liberar a tela de jogo.
+
+No modo casual, `gameState.js` mantem `#loadingOverlay` visivel ate tres condicoes acontecerem: usuario conectado ao slot, primeira renderizacao da mesa concluida e pre-carregamento dos assets concluido. A lista casual inclui `assets/img/guides`, o template limpo `clean.png`, retratos em `assets/img/perfil-cards`, cartas `base`, `dlc1`, `dlc2`, `promo` e os assets de religiao `asilo.png`, `catolico-quadrado.png` e `protestante-quadrado.png`.
+
+No modo ranqueado, `ranked-renderer.js` inicia o pre-carregamento no `init()` e so oculta `#rankLoading` depois da primeira renderizacao e do carregamento dos assets essenciais. A lista ranqueada inclui as cartas `base`, o template `clean.png` e os retratos base de `assets/img/perfil-cards`, usados pelo guia dinamico de baralho padrao.
+
+Falhas ou timeouts individuais de imagem nao travam a entrada; o asset e contabilizado como falho e o jogo continua apos a tentativa, evitando loading infinito.
+
+### 5.7 Monetizacao e AdSense
 
 O projeto possui uma integracao pontual com Google AdSense, mantendo a arquitetura estatica e sem adicionar dependencias de build.
 
@@ -539,7 +552,26 @@ Pontos tecnicos importantes:
 - Os labs ainda sao prototipos isolados e nao devem pausar automaticamente o motor ranqueado enquanto nao forem integrados ao renderer/engine.
 - A integracao futura precisa preservar sincronizacao entre jogadores para que todos vejam a mesma animacao antes de continuar a partida.
 
-### 6.7 `landing.html`
+### 6.7 `lab/guide-generator-lab.html`
+
+Responsabilidades:
+
+- Servir como laboratorio isolado para testar guias dinamicos gerados a partir de template visual limpo.
+- Renderizar o guia dentro de um modal/carrossel com o mesmo conceito visual dos flip cards de regras do modo casual.
+- Permitir configurar o baralho localmente no proprio lab, incluindo presets e quantidades por carta, para testar textos condicionais.
+- Permitir ajustar tamanho de titulo, nome, corpo de texto e retrato circular com escala proporcional, mantendo a mesma composicao no desktop e no mobile.
+- Permitir ajustar separadamente a pagina `Resumo de Turno`, com controles proprios de titulo, introducao, texto das acoes, espacamento, largura, posicao vertical e aviso vermelho.
+- Validar textos em portugues e ingles sem duplicar manualmente cada PNG de guia; no PT-BR, os textos de habilidades devem preservar o conteudo integral do PDF de origem, sem resumo.
+- Gerar a pagina `Resumo de Turno` a partir do conteudo do back actions, com textos ampliados, cores por acao e uso da fonte Fraunces local apenas no aviso destacado de 10 ou mais moedas.
+
+Pontos tecnicos importantes:
+
+- O lab usa `assets/img/guides/clean.png` como base visual e `assets/img/perfil-cards` para os retratos circulares, sobrepondo imagens/textos por HTML/CSS.
+- Os paragrafos das habilidades sao justificados; os rotulos das habilidades dentro do texto sao destacados em negrito e usam a cor do personagem da linha.
+- A pagina nao acessa Firebase, nao altera estado de sala e continua isolada do fluxo de partida.
+- O primeiro port aprovado foi aplicado no modo casual e depois reutilizado no ranqueado/Sala Personalizada com baralho padrao fixo: `rules-guides.js` gera o guia principal por HTML/CSS usando o mesmo template limpo do lab.
+
+### 6.8 `landing.html`
 
 Responsabilidades:
 
@@ -890,9 +922,11 @@ Contrato:
 Responsabilidades:
 
 - Centralizar os guias de acoes/personagens do modo casual.
-- Calcular a fila de imagens dos guias com base em `deckConfig`.
-- Alternar entre guia base e guia alternativo quando ha cartas da Revolucao.
-- Adicionar guias extras para cartas promocionais, A Revolucao e Lei e Desordem.
+- Gerar dinamicamente a fila de paginas do guia principal com base em `deckConfig`.
+- Renderizar o guia principal por HTML/CSS sobre `assets/img/guides/clean.png`, usando retratos circulares de `assets/img/perfil-cards`.
+- Adicionar paginas condicionais para cartas promocionais, A Revolucao e Lei e Desordem apenas quando houver cartas desses grupos no baralho.
+- Manter `Resumo de Turno` sempre como a ultima pagina do carrossel.
+- Mostrar cartas removidas do guia principal esmaecidas no runtime casual e centralizar o conjunto quando houver remocao.
 - Controlar abertura e fechamento de `infoModal`.
 - Controlar abertura e fechamento de `altRulesModal`.
 - Controlar abertura e fechamento de `ruleDrawModal`.
@@ -906,10 +940,12 @@ Responsabilidades:
 Contrato:
 
 - Expoe `window.CoupRulesGuides`.
-- Expoe `calculateRuleImages(deckConfig?)` para testes manuais e compatibilidade.
+- Expoe `buildDynamicGuidePages(deckConfig?)` para testes manuais do gerador dinamico.
+- Expoe `renderDynamicGuidePage(page)` para renderizadores que precisam montar o guia sem usar os bindings do modo casual.
 - Expoe `renderAlternativeRuleDraw({ state, isAdmin })` para reagir ao resultado sincronizado pelo Firebase.
 - `board-renderer.js` chama `setup({ getState, getDeckConfig, getRoomCode, getDatabase, getCurrentUser, isAdmin, isRankedMode, playSound, showError })` durante `setupUI()`.
 - `board-renderer.js` chama `renderAlternativeRuleDraw({ state, isAdmin })` durante `renderAll()`.
+- `ranked-renderer.js` e `personalized-renderer.js` consomem `buildDynamicGuidePages()` e `renderDynamicGuidePage()` com uma configuracao fixa de baralho base.
 - Usa `window.CoupModal` para abrir e fechar modais.
 - O servico acessa Firebase apenas para gravar `salas/{roomCode}/gameState/alternativeRuleDraw` e atualizar `lastActivity`; ele nao aplica automaticamente nenhuma regra sorteada.
 
@@ -1870,7 +1906,7 @@ Adicionar uma carta exige atualizar varios lugares:
 4. `getCardFolder(type)`.
 5. Inputs do modal de configuracao em `index.html`.
 6. Presets em `applyDeckPreset`.
-7. Grupos usados por `CoupRulesGuides.calculateRuleImages()`.
+7. Grupos e metadados usados por `CoupRulesGuides.buildDynamicGuidePages()`.
 8. README/TDD, se comportamento mudar.
 
 ### 12.2 Presets Existentes
@@ -2083,19 +2119,14 @@ Pasta: `assets/img/guides`
 
 Arquivos usados:
 
-- `front-actions.png`
-- `front-actions-alternative.png`
-- `back-actions.png`
-- `dlc-actions.png`
-- `dlc2-actions.png`
-- `dlc3-actions.png`
+- `clean.png`
 - `alternative-rules1.png`
 - `alternative-rules2.png`
 - `alternative-rules3.png`
 - `alternative-rules4.png`
 - `alternative-rules5.png`
 
-`CoupRulesGuides.calculateRuleImages()` escolhe quais cartas de regra mostrar com base em `deckConfig`.
+O guia principal do modo casual, ranqueado e Sala Personalizada e renderizado dinamicamente por HTML/CSS sobre `clean.png`. No ranqueado e na Sala Personalizada, o gerador recebe uma configuracao fixa de baralho base. Os PNGs antigos `front-actions`, `back-actions`, `dlc-actions`, `dlc2-actions`, `dlc3-actions` e `front-actions-alternative` nao sao mais usados pelo runtime.
 
 ### 16.3 Icones
 
@@ -2506,7 +2537,7 @@ Checklist:
 4. Atualizar `getCardFolder()`.
 5. Adicionar input no modal de configuracao em `index.html`.
 6. Atualizar presets em `applyDeckPreset`.
-7. Atualizar `calculateRuleImages()` em `rules-guides.js` se a carta pertence a um grupo que muda os guias.
+7. Atualizar `buildDynamicGuidePages()` e os metadados do guia em `rules-guides.js` se a carta pertence a um grupo que muda os guias.
 8. Atualizar README/TDD se for carta publica.
 9. Rodar `node --check`.
 10. Testar criar deck com a carta e renderizar frente/verso.

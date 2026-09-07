@@ -181,7 +181,7 @@ Atualize todos:
 - `getCardFolder()` em `js/gamemode/casual/render-cards.js`.
 - Inputs do modal de deck em `index.html`.
 - Presets em `js/gamemode/casual/deck-presets.js`.
-- Grupos de `CoupRulesGuides.calculateRuleImages()` em `js/gamemode/casual/rules-guides.js`, se afetar guias.
+- Grupos/metadados de `CoupRulesGuides.buildDynamicGuidePages()` em `js/gamemode/casual/rules-guides.js`, se afetar guias.
 
 ## Ao Alterar UI do Tabuleiro
 

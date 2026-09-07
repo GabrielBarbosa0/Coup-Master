@@ -33,6 +33,74 @@ let pendingKickPid = null;
 window.pendingKickPid = null;
 const storedRoomMode = sessionStorage.getItem('currentRoomMode');
 let currentGameMode = CoupGameModes.normalize(storedRoomMode);
+const casualLoadingState = {
+  assetsReady: false,
+  joinReady: false,
+  firstRenderReady: false,
+  assetsPromise: null
+};
+
+function setCasualLoadingMessage(message) {
+  const loadingMessage = document.getElementById('game-loading-message');
+  if (loadingMessage) loadingMessage.textContent = message;
+}
+
+function showCasualLoading() {
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  if (!loadingOverlay) return;
+  loadingOverlay.classList.remove('hidden');
+  loadingOverlay.style.display = 'flex';
+}
+
+function maybeHideCasualLoading() {
+  if (
+    !casualLoadingState.assetsReady
+    || !casualLoadingState.joinReady
+    || !casualLoadingState.firstRenderReady
+  ) {
+    return;
+  }
+
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  if (!loadingOverlay) return;
+  loadingOverlay.classList.add('hidden');
+  window.setTimeout(() => {
+    if (loadingOverlay.classList.contains('hidden')) {
+      loadingOverlay.style.display = 'none';
+    }
+  }, 520);
+}
+
+function markCasualFirstRenderReady() {
+  if (casualLoadingState.firstRenderReady) return;
+  casualLoadingState.firstRenderReady = true;
+  maybeHideCasualLoading();
+}
+
+function startCasualAssetPreload() {
+  if (casualLoadingState.assetsPromise) return casualLoadingState.assetsPromise;
+
+  if (!window.CoupAssetPreloader?.preload) {
+    casualLoadingState.assetsReady = true;
+    maybeHideCasualLoading();
+    return Promise.resolve();
+  }
+
+  casualLoadingState.assetsPromise = window.CoupAssetPreloader
+    .preload('casual', { messageElement: '#game-loading-message' })
+    .catch((error) => {
+      console.warn('Falha ao pré-carregar assets do modo casual:', error);
+    })
+    .finally(() => {
+      casualLoadingState.assetsReady = true;
+      if (!casualLoadingState.joinReady || !casualLoadingState.firstRenderReady) {
+        setCasualLoadingMessage(window.CoupLanguage?.t('casual.loading') || 'Carregando mesa...');
+      }
+      maybeHideCasualLoading();
+    });
+
+  return casualLoadingState.assetsPromise;
+}
 
 
 // =======================================================
@@ -569,8 +637,7 @@ function getPlayerDisplayName(players, existingPlayer = null) {
 }
 
 function joinGame() {
-  const loadingOverlay = document.getElementById('loadingOverlay');
-  if (loadingOverlay) loadingOverlay.style.display = 'flex';
+  showCasualLoading();
   let assignedPlayerName = currentUser.name;
 
   gameStateRef.transaction((currentState) => {
@@ -638,13 +705,12 @@ function joinGame() {
     return; // Sala cheia
 
   }, (error, committed) => {
-    // 1. Sempre remove a tela de carregamento, independente do resultado
-    if (loadingOverlay) loadingOverlay.style.display = 'none';
-
     if (committed && myPlayerId) {
       currentUser.name = assignedPlayerName;
       sessionStorage.setItem('currentName', assignedPlayerName);
       console.log(`✅ Conectado no Slot ${myPlayerId}`);
+      casualLoadingState.joinReady = true;
+      maybeHideCasualLoading();
 
       // 2. Aciona o som global de entrada para todos os jogadores na sala
       triggerSound('player-online');
@@ -698,6 +764,9 @@ let hostUID = null;
 let isAdmin = false;
 
 function startGame() {
+  showCasualLoading();
+  startCasualAssetPreload();
+
   // 1. Identifica o Administrador via UID fixo no banco
   db.ref(`salas/${roomCode}/hostUID`).on('value', (snapshot) => {
     hostUID = snapshot.val();
@@ -732,7 +801,10 @@ function startGame() {
       }
 
       localGameState = state;
-      if (typeof renderAll === "function") renderAll();
+      if (typeof renderAll === "function") {
+        renderAll();
+        markCasualFirstRenderReady();
+      }
     }
   });
 

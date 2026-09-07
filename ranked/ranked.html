@@ -20,7 +20,7 @@
 
     <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
     <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-player-callouts-v12">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=dynamic-guides-v2">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
 </head>
 
@@ -143,12 +143,8 @@
             <div class="flip-card flip-horizontal-left" id="rankActionsFlipCard" role="button" tabindex="0"
                 aria-label="Virar guia de ações" data-i18n-aria-label="ranked.flipActionsGuide">
                 <div class="flip-card-inner">
-                    <div class="flip-card-front">
-                        <img src="assets/img/guides/front-actions.png" alt="Ações dos personagens - frente" data-i18n-alt="ranked.actionsGuideFront">
-                    </div>
-                    <div class="flip-card-back">
-                        <img src="assets/img/guides/back-actions.png" alt="Ações dos personagens - verso" data-i18n-alt="ranked.actionsGuideBack">
-                    </div>
+                    <div class="flip-card-front"></div>
+                    <div class="flip-card-back"></div>
                 </div>
             </div>
         </div>
@@ -280,12 +276,14 @@
     <script src="js/ui/selection-lock.js?v=selection-lock-v1" defer></script>
     <script src="js/i18n/language-service.js?v=i18n-v3" defer></script>
     <script src="js/ui/background-audio-guard.js?v=bgm-random-start-v1" defer></script>
+    <script src="js/ui/asset-preloader.js?v=asset-preload-v1" defer></script>
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=rank-split-v1" defer></script>
+    <script src="js/gamemode/casual/rules-guides.js?v=dynamic-guides-v7" defer></script>
     <script src="js/gamemode/ranked/ranked-rules.js?v=rank-matchmaking-v4" defer></script>
     <script src="js/gamemode/ranked/ranked-engine.js?v=rank-matchmaking-v4" defer></script>
-    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-player-callouts-v14" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=dynamic-guides-v2" defer></script>
     <script src="js/gamemode/ranked/ranked-game.js?v=rank-matchmaking-v4" defer></script>
 </body>
 

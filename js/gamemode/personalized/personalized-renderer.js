@@ -53,6 +53,16 @@
         tilt: 36,
         glowOffset: 23.4
     });
+    const STANDARD_GUIDE_DECK_CONFIG = Object.freeze({
+        duque: 5,
+        capitao: 5,
+        assassino: 5,
+        condessa: 5,
+        embaixador: 5,
+        inquisidor: 5
+    });
+    let currentActionsGuidePages = [];
+    let currentActionsGuideIndex = 0;
 
     const botNameIdeas = [
         'Augusto', 'Berenice', 'Cassandra', 'Dario', 'Eloisa', 'Fausto',
@@ -1175,7 +1185,13 @@
     }
 
     function resetActionsGuide() {
-        document.getElementById('rankActionsFlipCard')?.classList.remove('is-flipped');
+        const flipCard = document.getElementById('rankActionsFlipCard');
+        if (!flipCard) return;
+
+        currentActionsGuidePages = getActionsGuidePages();
+        currentActionsGuideIndex = 0;
+        flipCard.classList.remove('is-flipped');
+        renderActionsGuideFaces(flipCard);
     }
 
     function setupActionsGuide() {
@@ -1183,16 +1199,62 @@
         if (!flipCard) return;
 
         const flip = () => {
+            if (currentActionsGuidePages.length === 0) {
+                resetActionsGuide();
+            }
+
+            if (currentActionsGuidePages.length === 0) return;
+
             playRankSfx('card-slide');
             flipCard.classList.toggle('is-flipped');
+            currentActionsGuideIndex = (currentActionsGuideIndex + 1) % currentActionsGuidePages.length;
+
+            window.setTimeout(() => {
+                const nextPageIndex = (currentActionsGuideIndex + 1) % currentActionsGuidePages.length;
+                const face = flipCard.classList.contains('is-flipped')
+                    ? flipCard.querySelector('.flip-card-front')
+                    : flipCard.querySelector('.flip-card-back');
+
+                renderActionsGuideFace(face, currentActionsGuidePages[nextPageIndex]);
+            }, 500);
         };
 
+        resetActionsGuide();
         flipCard.addEventListener('click', flip);
         flipCard.addEventListener('keydown', (event) => {
             if (event.key !== 'Enter' && event.key !== ' ') return;
             event.preventDefault();
             flip();
         });
+    }
+
+    function getActionsGuidePages() {
+        const guide = root.CoupRulesGuides;
+        if (!guide?.buildDynamicGuidePages || !guide?.renderDynamicGuidePage) return [];
+        return guide.buildDynamicGuidePages(STANDARD_GUIDE_DECK_CONFIG);
+    }
+
+    function renderActionsGuideFaces(flipCard) {
+        const frontFace = flipCard.querySelector('.flip-card-front');
+        const backFace = flipCard.querySelector('.flip-card-back');
+        renderActionsGuideFace(frontFace, currentActionsGuidePages[0]);
+        renderActionsGuideFace(backFace, currentActionsGuidePages[1] || currentActionsGuidePages[0]);
+    }
+
+    function renderActionsGuideFace(face, page) {
+        if (!face) return;
+
+        if (!page || !root.CoupRulesGuides?.renderDynamicGuidePage) {
+            face.innerHTML = `
+                <div class="rank-guide-placeholder">
+                    <h2>Guia da Sala Personalizada</h2>
+                    <p>Não foi possível carregar o guia dinâmico.</p>
+                </div>
+            `;
+            return;
+        }
+
+        face.innerHTML = root.CoupRulesGuides.renderDynamicGuidePage(page);
     }
 
     function renderRoomCode() {

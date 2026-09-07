@@ -25,6 +25,46 @@
     font-weight: 700;
 }
 
+@font-face {
+    font-family: "Harlean";
+    src: url("../assets/fonts/Harlean-Exfont908e.otf") format("opentype");
+    font-display: swap;
+    font-style: normal;
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "AGaramond";
+    src: url("../assets/fonts/AGaramond-Regular-Exfontab8d.otf") format("opentype");
+    font-display: swap;
+    font-style: normal;
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "AGaramond";
+    src: url("../assets/fonts/AGaramond-Semibold-Exfonta037.otf") format("opentype");
+    font-display: swap;
+    font-style: normal;
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: "AGaramondGuideRegular";
+    src: url("../assets/fonts/AGaramond-Regular-Exfontab8d.otf") format("opentype");
+    font-display: swap;
+    font-style: normal;
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "Fraunces";
+    src: url("../assets/fonts/Fraunces-opsz-wght-700.ttf") format("truetype");
+    font-display: swap;
+    font-style: normal;
+    font-weight: 700;
+}
+
 html,
 body,
 body * {
@@ -2143,9 +2183,241 @@ button.rank-card {
     object-fit: cover;
 }
 
+#rankActionsModal .flip-card {
+    width: min(430px, 86vw, calc((100dvh - 86px) * 0.6886));
+    aspect-ratio: 1886 / 2739;
+}
+
+#rankActionsModal .guide-page {
+    position: relative;
+    container-type: inline-size;
+    --guide-title-size: 9cqw;
+    --guide-name-size: 3.8cqw;
+    --guide-body-size: 3.6cqw;
+    --guide-portrait-size: 15%;
+    --guide-list-gap: 1.2%;
+    --guide-content-width: 100%;
+    --guide-list-offset: 0%;
+    --guide-turn-intro-size: 4cqw;
+    --guide-turn-action-size: 4.6cqw;
+    --guide-turn-warning-size: 4.8cqw;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: inherit;
+    color: #111;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),
+        url("../assets/img/guides/clean.png") center / cover no-repeat,
+        #fff;
+}
+
+#rankActionsModal .guide-inner {
+    position: absolute;
+    inset: 4.5% 6% 4.9%;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 1.5%;
+}
+
+#rankActionsModal .guide-title {
+    margin: 0 0 1.2%;
+    color: #050505;
+    font-family: "Harlean", "AGaramond", Georgia, serif !important;
+    font-size: var(--guide-title-size);
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 0.94;
+    text-align: center;
+}
+
+#rankActionsModal .guide-list {
+    display: grid;
+    gap: var(--guide-list-gap);
+    align-content: stretch;
+    min-height: 0;
+    padding-inline: calc((100% - var(--guide-content-width)) / 2);
+    padding-top: var(--guide-list-offset);
+}
+
+#rankActionsModal .guide-entry {
+    display: grid;
+    grid-template-columns: var(--guide-portrait-size) minmax(0, 1fr);
+    gap: 3%;
+    align-items: center;
+    min-height: 0;
+}
+
+#rankActionsModal .guide-entry.is-muted {
+    opacity: 0.42;
+}
+
+#rankActionsModal .guide-portrait {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    display: block;
+    overflow: hidden;
+    border-radius: 50%;
+    background: rgba(180, 180, 180, 0.18);
+    object-fit: contain;
+}
+
+#rankActionsModal .guide-copy,
+#rankActionsModal .guide-copy p,
+#rankActionsModal .guide-copy h3,
+#rankActionsModal .guide-intro,
+#rankActionsModal .guide-turn-action {
+    font-family: "AGaramond", Georgia, "Times New Roman", serif !important;
+    font-variant-caps: normal;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+#rankActionsModal .guide-copy {
+    min-width: 0;
+    color: #111;
+    font-size: var(--guide-body-size);
+    line-height: 1.08;
+}
+
+#rankActionsModal .guide-copy h3 {
+    margin: 0;
+    color: var(--role-color);
+    font-size: var(--guide-name-size);
+    font-weight: 700;
+    line-height: 1;
+}
+
+#rankActionsModal .guide-copy p {
+    margin: 0.15em 0 0;
+    color: #111;
+    font-weight: 400;
+    text-align: justify;
+    text-align-last: left;
+}
+
+#rankActionsModal .guide-copy strong,
+#rankActionsModal .guide-turn-action strong {
+    color: var(--role-color);
+    font-weight: 700;
+    font-variant-caps: normal;
+    text-transform: none;
+}
+
+#rankActionsModal .guide-copy .ability-label,
+#rankActionsModal .guide-turn-action .ability-label {
+    color: var(--role-color);
+    font-family: "AGaramondGuideRegular", Georgia, "Times New Roman", serif !important;
+    font-synthesis: none;
+    font-variant: normal;
+    font-variant-caps: normal;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-shadow: 0.018em 0 0 currentColor;
+    text-transform: none !important;
+}
+
+#rankActionsModal .removed-layout-centered .guide-list {
+    align-content: center;
+}
+
+#rankActionsModal .removed-layout-distributed .guide-list {
+    align-content: stretch;
+}
+
+#rankActionsModal .guide-page.turn-summary .guide-inner {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: 2.1%;
+}
+
+#rankActionsModal .guide-intro {
+    width: 62%;
+    margin: 0 auto 3%;
+    color: #111;
+    font-size: var(--guide-turn-intro-size);
+    font-weight: 400;
+    line-height: 1.28;
+    text-align: center;
+}
+
+#rankActionsModal .guide-turn-list {
+    display: grid;
+    gap: var(--guide-list-gap);
+    align-content: start;
+    min-height: 0;
+    padding-inline: calc((100% - var(--guide-content-width)) / 2);
+    padding-top: var(--guide-list-offset);
+}
+
+#rankActionsModal .guide-turn-action {
+    margin: 0;
+    color: #111;
+    font-size: var(--guide-turn-action-size);
+    font-weight: 400;
+    line-height: 1.18;
+    text-align: justify;
+    text-align-last: left;
+}
+
+#rankActionsModal .guide-turn-action strong,
+#rankActionsModal .guide-turn-action .ability-label {
+    color: #111 !important;
+}
+
+#rankActionsModal .guide-turn-warning {
+    width: 84%;
+    margin: 2.5% auto 0;
+    color: #c5160f;
+    font-family: "Fraunces", "AGaramond", Georgia, serif !important;
+    font-size: var(--guide-turn-warning-size);
+    font-style: italic;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.22;
+    text-align: center;
+    white-space: pre-line;
+}
+
+.rank-guide-placeholder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 14px;
+    padding: 26px;
+    box-sizing: border-box;
+    border: 1px solid rgba(30, 144, 255, 0.34);
+    border-radius: 20px;
+    background: linear-gradient(145deg, rgba(18, 36, 54, 0.98), rgba(7, 12, 20, 0.98));
+    color: #f8fafc;
+    text-align: center;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
+}
+
+.rank-guide-placeholder h2 {
+    margin: 0;
+    color: #f8fafc;
+    font-size: clamp(24px, 7vw, 36px);
+    line-height: 1.05;
+}
+
+.rank-guide-placeholder p {
+    max-width: 24ch;
+    margin: 0;
+    color: rgba(230, 238, 246, 0.74);
+    font-size: clamp(13px, 3.5vw, 16px);
+    line-height: 1.35;
+}
+
 @media (max-width: 560px) {
     .flip-card {
         width: min(300px, 84vw, calc((100dvh - 72px) * 0.6667));
+    }
+
+    #rankActionsModal .flip-card {
+        width: min(330px, 86vw, calc((100dvh - 82px) * 0.6886));
     }
 
     #rankPreviewFlipCard {
@@ -2171,6 +2443,10 @@ button.rank-card {
 
     .flip-card {
         width: min(300px, 78vw, calc((100dvh - 64px) * 0.6667));
+    }
+
+    #rankActionsModal .flip-card {
+        width: min(330px, 78vw, calc((100dvh - 64px) * 0.6886));
     }
 
     #rankPreviewFlipCard {

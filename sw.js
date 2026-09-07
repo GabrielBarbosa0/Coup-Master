@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coup-master-pwa-v123';
+const CACHE_NAME = 'coup-master-pwa-v126';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '::1', '[::1]'];
 const IS_LOCALHOST = LOCAL_HOSTNAMES.includes(new URL(self.location.href).hostname);
 
@@ -21,6 +21,7 @@ const APP_SHELL = [
   './css/compat.css',
   './css/casual-mode.css',
   './js/pwa/pwa.js',
+  './js/ui/asset-preloader.js',
   './js/i18n/initial-language.js',
   './js/i18n/language-service.js',
   './lang/pt-BR.json',
@@ -58,12 +59,21 @@ const APP_SHELL = [
   './assets/img/icons/ghost.svg',
   './assets/img/icons/fullscreen.svg',
   './assets/img/icons/settings.svg',
-  './assets/img/guides/front-actions.png',
-  './assets/img/guides/back-actions.png',
+  './assets/img/guides/clean.png',
+  './assets/img/perfil-cards/base/assassino.png',
+  './assets/img/perfil-cards/base/capitao.png',
+  './assets/img/perfil-cards/base/condessa.png',
+  './assets/img/perfil-cards/base/duque.png',
+  './assets/img/perfil-cards/base/embaixador.png',
+  './assets/img/perfil-cards/base/inquisidor.png',
   './assets/sounds/vfx/blip.mp3',
   './assets/sounds/vfx/card-slide.mp3',
   './assets/sounds/vfx/pop.mp3',
   './assets/fonts/tilda-script-bold.woff2',
+  './assets/fonts/Harlean-Exfont908e.otf',
+  './assets/fonts/AGaramond-Regular-Exfontab8d.otf',
+  './assets/fonts/AGaramond-Semibold-Exfonta037.otf',
+  './assets/fonts/Fraunces-opsz-wght-700.ttf',
   './assets/fonts/PressStart2P-Regular.ttf'
 ];
 

@@ -1,0 +1,2016 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guide Generator Lab - Coup Master</title>
+  <link rel="icon" href="../assets/img/logo/favicon-coup-master-circulo.png?v=custom-logo-v2" type="image/png">
+  <style>
+    @font-face {
+      font-family: "Harlean";
+      src: url("../assets/fonts/Harlean-Exfont908e.otf") format("opentype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "AGaramond";
+      src: url("../assets/fonts/AGaramond-Regular-Exfontab8d.otf") format("opentype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "AGaramond";
+      src: url("../assets/fonts/AGaramond-Semibold-Exfonta037.otf") format("opentype");
+      font-weight: 700;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Fraunces";
+      src: url("../assets/fonts/Fraunces-opsz-wght-700.ttf") format("truetype");
+      font-weight: 700;
+      font-display: swap;
+    }
+
+    :root {
+      --bg: #060d14;
+      --panel: #101d29;
+      --panel-2: #152536;
+      --panel-soft: rgba(16, 29, 41, 0.82);
+      --line: rgba(227, 238, 250, 0.16);
+      --line-strong: rgba(46, 167, 255, 0.44);
+      --text: #f4ead8;
+      --muted: #aab9c8;
+      --accent: #2ea7ff;
+      --gold: #f2bd52;
+      --danger: #ff4048;
+      --guide-ink: #111111;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: AGaramond, Georgia, "Times New Roman", serif;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.026) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+        linear-gradient(145deg, #06101a 0%, #10283a 48%, #111217 100%);
+      background-size: 42px 42px, 42px 42px, auto;
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    .lab-shell {
+      display: grid;
+      grid-template-columns: minmax(300px, 390px) minmax(0, 1fr);
+      gap: 18px;
+      width: min(1440px, calc(100% - 28px));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 18px 0;
+    }
+
+    .control-panel,
+    .preview-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(7, 16, 26, 0.78);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(10px);
+    }
+
+    .control-panel {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      max-height: calc(100dvh - 36px);
+      overflow: auto;
+      padding: 16px;
+      scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+      scrollbar-width: thin;
+    }
+
+    .control-panel::-webkit-scrollbar,
+    .deck-config-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .control-panel::-webkit-scrollbar-track,
+    .deck-config-list::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+
+    .control-panel::-webkit-scrollbar-thumb,
+    .deck-config-list::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 10px;
+    }
+
+    .lab-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .lab-title {
+      margin: 0;
+      color: #ffffff;
+      font-family: "Harlean", AGaramond, serif;
+      font-size: clamp(1.95rem, 5vw, 2.9rem);
+      font-weight: 400;
+      line-height: 0.92;
+    }
+
+    .lab-back {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--text);
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.06);
+      font-weight: 700;
+    }
+
+    .lab-subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.4;
+    }
+
+    .control-row,
+    .config-actions {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .control-row label,
+    .deck-section-title {
+      color: rgba(244, 234, 216, 0.72);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .control-row select {
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 10px;
+      border: 1px solid rgba(227, 238, 250, 0.16);
+      border-radius: var(--radius);
+      background: rgba(12, 22, 32, 0.96);
+      color: var(--text);
+      outline: none;
+    }
+
+    .range-control {
+      display: grid;
+      gap: 7px;
+    }
+
+    .range-control.is-hidden {
+      display: none;
+    }
+
+    .range-control-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .range-control-header output {
+      color: #ffffff;
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .range-control input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .toggle-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 42px;
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(227, 238, 250, 0.12);
+      border-radius: var(--radius);
+      background: rgba(16, 29, 41, 0.48);
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .toggle-control input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .style-control-panel {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px solid rgba(227, 238, 250, 0.12);
+      border-radius: var(--radius);
+      background: rgba(16, 29, 41, 0.48);
+    }
+
+    .main-actions,
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .action-btn,
+    .preset-btn,
+    .icon-btn {
+      min-height: 42px;
+      border: 1px solid rgba(227, 238, 250, 0.16);
+      border-radius: var(--radius);
+      background: rgba(21, 37, 54, 0.9);
+      color: var(--text);
+      font-weight: 700;
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .action-btn:hover,
+    .action-btn:focus-visible,
+    .preset-btn:hover,
+    .preset-btn:focus-visible,
+    .icon-btn:hover,
+    .icon-btn:focus-visible {
+      border-color: var(--accent);
+      background: rgba(46, 167, 255, 0.14);
+      outline: 0;
+      transform: translateY(-1px);
+    }
+
+    .action-btn.primary {
+      border-color: rgba(242, 189, 82, 0.68);
+      background: var(--gold);
+      color: #17130a;
+    }
+
+    .deck-panel {
+      display: none;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .deck-panel.is-open {
+      display: block;
+    }
+
+    .preset-grid {
+      margin-top: 8px;
+    }
+
+    .preset-btn {
+      min-height: 38px;
+      font-size: 0.88rem;
+    }
+
+    .deck-config-list {
+      display: grid;
+      gap: 10px;
+      max-height: min(54vh, 520px);
+      margin-top: 14px;
+      padding-right: 8px;
+      overflow: auto;
+    }
+
+    .card-config-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 114px;
+      gap: 10px;
+      align-items: center;
+      min-height: 46px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .card-config-item label {
+      min-width: 0;
+      color: var(--text);
+      font-size: 1.02rem;
+      font-weight: 700;
+    }
+
+    .card-config-item small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .stepper {
+      display: grid;
+      grid-template-columns: 30px 38px 30px;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .stepper button,
+    .stepper input {
+      height: 32px;
+      border: 1px solid rgba(46, 167, 255, 0.55);
+      border-radius: 7px;
+      background: rgba(6, 13, 20, 0.9);
+      color: #ffffff;
+      text-align: center;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .stepper button {
+      line-height: 1;
+    }
+
+    .stepper input {
+      width: 100%;
+      padding: 0 4px;
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    .stepper input::-webkit-outer-spin-button,
+    .stepper input::-webkit-inner-spin-button {
+      margin: 0;
+      -webkit-appearance: none;
+    }
+
+    .status-card {
+      display: grid;
+      gap: 9px;
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px solid rgba(46, 167, 255, 0.2);
+      border-radius: var(--radius);
+      background: rgba(46, 167, 255, 0.065);
+    }
+
+    .status-card strong {
+      color: #ffffff;
+      font-size: 1.02rem;
+    }
+
+    .status-card p,
+    .page-chip-list {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.38;
+    }
+
+    .page-chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .page-chip-list button {
+      padding: 5px 8px;
+      border: 1px solid rgba(227, 238, 250, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(244, 234, 216, 0.82);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .page-chip-list button {
+      display: block;
+      cursor: pointer;
+    }
+
+    .page-chip-list button.is-active {
+      border-color: rgba(46, 167, 255, 0.58);
+      background: rgba(46, 167, 255, 0.16);
+      color: #ffffff;
+    }
+
+    .preview-panel {
+      min-height: calc(100dvh - 36px);
+      overflow: hidden;
+    }
+
+    .preview-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 48px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(7, 16, 26, 0.72);
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .stage {
+      position: relative;
+      display: grid;
+      min-height: calc(100dvh - 84px);
+      place-items: center;
+      padding: 28px;
+      overflow: hidden;
+    }
+
+    .stage::before {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 48%, rgba(46, 167, 255, 0.12), transparent 34%),
+        radial-gradient(circle at 50% 80%, rgba(0, 0, 0, 0.3), transparent 34%);
+      content: "";
+      pointer-events: none;
+    }
+
+    .guide-preview-frame {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: min(520px, 88vw, calc((100dvh - 126px) * 0.6886));
+      aspect-ratio: 1886 / 2739;
+      filter: drop-shadow(0 26px 38px rgba(0, 0, 0, 0.42));
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.72);
+      padding: 14px;
+    }
+
+    .modal-overlay.is-open {
+      display: flex;
+    }
+
+    .modal-actions-and-rules {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      max-width: calc(100vw - 28px);
+      max-height: calc(100dvh - 28px);
+      padding: 20px;
+      border-radius: 10px;
+      perspective: 1000px;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      z-index: 1010;
+      width: 40px;
+      height: 40px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      background: var(--danger);
+      color: #ffffff;
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 30px;
+      text-align: center;
+      transform: translateZ(60px);
+    }
+
+    .close-btn:hover {
+      background: #ff5555;
+    }
+
+    .flip-card {
+      position: relative;
+      width: min(430px, 86vw, calc((100dvh - 86px) * 0.6886));
+      aspect-ratio: 1886 / 2739;
+      background-color: transparent;
+      perspective: 1000px;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 720ms cubic-bezier(0.2, 0.76, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+
+    .flip-card.is-flipped .flip-card-inner {
+      transform: rotateY(-180deg);
+    }
+
+    .flip-card-front,
+    .flip-card-back {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      border-radius: 20px;
+      backface-visibility: hidden;
+    }
+
+    .flip-card-back {
+      transform: rotateY(-180deg);
+    }
+
+    .carousel-button {
+      position: absolute;
+      top: 50%;
+      z-index: 1010;
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 1px solid rgba(227, 238, 250, 0.24);
+      border-radius: 50%;
+      background: rgba(16, 29, 41, 0.92);
+      color: #ffffff;
+      font-size: 28px;
+      line-height: 1;
+      transform: translateY(-50%) translateZ(60px);
+    }
+
+    .carousel-button:hover,
+    .carousel-button:focus-visible {
+      border-color: var(--accent);
+      outline: 0;
+    }
+
+    .carousel-button.prev {
+      left: -56px;
+    }
+
+    .carousel-button.next {
+      right: -56px;
+    }
+
+    .carousel-footer {
+      position: absolute;
+      left: 50%;
+      bottom: -42px;
+      z-index: 1010;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: rgba(244, 234, 216, 0.84);
+      font-size: 0.9rem;
+      font-weight: 700;
+      transform: translateX(-50%) translateZ(60px);
+      white-space: nowrap;
+    }
+
+    .guide-page {
+      position: relative;
+      container-type: inline-size;
+      --guide-title-size: 10cqw;
+      --guide-name-size: 3.8cqw;
+      --guide-body-size: 3.15cqw;
+      --guide-portrait-size: 16%;
+      --guide-list-gap: 1.2%;
+      --guide-content-width: 100%;
+      --guide-list-offset: 0%;
+      --turn-intro-size: 3.65cqw;
+      --turn-action-size: 3.78cqw;
+      --turn-list-gap: 4.4%;
+      --turn-content-width: 84%;
+      --turn-list-offset: 5%;
+      --turn-warning-size: 3.72cqw;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: inherit;
+      color: var(--guide-ink);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),
+        url("../assets/img/guides/clean.png") center / cover no-repeat,
+        #ffffff;
+    }
+
+    .guide-inner {
+      position: absolute;
+      inset: 4.5% 6% 4.9%;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 1.5%;
+    }
+
+    .guide-title {
+      margin: 0 0 1.2%;
+      color: #050505;
+      font-family: "Harlean", AGaramond, serif;
+      font-size: var(--guide-title-size);
+      font-weight: 400;
+      line-height: 0.94;
+      text-align: center;
+    }
+
+
+    .guide-list {
+      display: grid;
+      gap: var(--guide-list-gap);
+      align-content: stretch;
+      min-height: 0;
+      padding-inline: calc((100% - var(--guide-content-width)) / 2);
+      padding-top: var(--guide-list-offset);
+    }
+
+    .guide-entry {
+      display: grid;
+      grid-template-columns: var(--guide-portrait-size) minmax(0, 1fr);
+      gap: 3%;
+      align-items: center;
+      min-height: 0;
+    }
+
+    .guide-entry.is-muted {
+      opacity: 0.42;
+    }
+
+    .guide-portrait {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 50%;
+      background: rgba(180, 180, 180, 0.18);
+    }
+
+    .guide-portrait img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .guide-copy {
+      min-width: 0;
+      font-size: var(--guide-body-size);
+      line-height: 1.08;
+    }
+
+    .guide-copy h3 {
+      margin: 0;
+      color: var(--role-color);
+      font-size: var(--guide-name-size);
+      line-height: 1;
+    }
+
+    .guide-copy p {
+      margin: 0.15em 0 0;
+      text-align: justify;
+      text-align-last: left;
+    }
+
+    .guide-copy strong {
+      color: var(--role-color);
+      font-weight: 700;
+    }
+
+    .guide-copy .ability-label {
+      color: var(--role-color);
+      font-weight: 700;
+    }
+
+    .guide-copy b {
+      font-weight: 700;
+    }
+
+    .guide-page.compact .guide-list {
+      gap: var(--guide-list-gap);
+      align-content: center;
+    }
+
+    .guide-page.compact .guide-entry {
+      grid-template-columns: var(--guide-portrait-size) minmax(0, 1fr);
+    }
+
+    .guide-page.compact .guide-copy {
+      font-size: var(--guide-body-size);
+      line-height: 1.12;
+    }
+
+    .guide-page.actions .guide-entry {
+      grid-template-columns: var(--guide-portrait-size) minmax(0, 1fr);
+    }
+
+    .guide-page.actions .guide-copy {
+      font-size: var(--guide-body-size);
+      line-height: 1.12;
+    }
+
+    .guide-page.no-media .guide-list {
+      gap: var(--guide-list-gap);
+      align-content: center;
+    }
+
+    .guide-page.no-media .guide-entry {
+      grid-template-columns: 1fr;
+      padding: 0 8%;
+    }
+
+    .guide-page.no-media .guide-copy {
+      font-size: var(--guide-body-size);
+      line-height: 1.08;
+    }
+
+    .guide-page.no-media .guide-copy h3 {
+      margin-bottom: 0.1em;
+    }
+
+    .guide-page.removed-layout-centered .guide-list {
+      align-content: center;
+    }
+
+    .guide-page.removed-layout-distributed .guide-list {
+      align-content: stretch;
+    }
+
+    .guide-page.turn-summary .guide-inner {
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      gap: 2.1%;
+    }
+
+    .guide-intro {
+      width: 62%;
+      margin: 0 auto 3%;
+      font-family: AGaramond, Georgia, serif;
+      font-size: var(--turn-intro-size);
+      font-weight: 400;
+      line-height: 1.28;
+      text-align: center;
+    }
+
+    .guide-turn-warning {
+      width: 84%;
+      margin: 2.5% auto 0;
+      color: #c5160f;
+      font-family: Fraunces, AGaramond, Georgia, serif;
+      font-size: var(--turn-warning-size);
+      font-style: italic;
+      font-weight: 700;
+      line-height: 1.22;
+      text-align: center;
+      white-space: pre-line;
+    }
+
+    .guide-page.turn-summary .guide-list {
+      display: grid;
+      gap: var(--turn-list-gap);
+      align-content: start;
+      padding-inline: calc((100% - var(--turn-content-width)) / 2);
+      padding-top: var(--turn-list-offset);
+    }
+
+    .guide-page.turn-summary .guide-entry {
+      display: block;
+      padding: 0;
+    }
+
+    .guide-page.turn-summary .guide-copy {
+      font-family: AGaramond, Georgia, serif;
+      font-size: var(--turn-action-size);
+      font-weight: 400;
+      line-height: 1.18;
+    }
+
+    .guide-page.turn-summary .guide-copy h3 {
+      display: none;
+    }
+
+    .guide-page.turn-summary .guide-copy p {
+      margin: 0;
+      text-align: justify;
+      text-align-last: left;
+    }
+
+    @media (max-width: 980px) {
+      .lab-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .control-panel {
+        position: relative;
+        top: auto;
+        max-height: none;
+      }
+
+      .preview-panel,
+      .stage {
+        min-height: 620px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .lab-shell {
+        width: min(100% - 18px, 1440px);
+        padding: 9px 0;
+      }
+
+      .main-actions,
+      .preset-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stage {
+        padding: 16px;
+      }
+
+      .guide-preview-frame {
+        width: min(360px, 86vw, calc((100dvh - 134px) * 0.6886));
+      }
+
+      .modal-actions-and-rules {
+        padding: 12px;
+      }
+
+      .carousel-button {
+        top: auto;
+        bottom: -54px;
+        transform: translateZ(60px);
+      }
+
+      .carousel-button.prev {
+        left: 22%;
+      }
+
+      .carousel-button.next {
+        right: 22%;
+      }
+
+      .carousel-footer {
+        bottom: -94px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="lab-shell">
+    <aside class="control-panel" aria-label="Controles do laboratório">
+      <header class="lab-header">
+        <div>
+          <h1 class="lab-title">Guias Dinâmicos</h1>
+          <p class="lab-subtitle">Protótipo de guia com template limpo, texto gerado por baralho e modal em carrossel.</p>
+        </div>
+        <a class="lab-back" href="landing.html">Labs</a>
+      </header>
+
+      <div class="control-row">
+        <label for="languageSelect">Idioma</label>
+        <select id="languageSelect">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+
+      <section class="style-control-panel" aria-label="Controles visuais por página">
+        <span class="deck-section-title">Ajuste por Página</span>
+
+        <div class="control-row">
+          <label for="pageStyleSelect">Página</label>
+          <select id="pageStyleSelect">
+            <option value="characters">Ações de Personagens</option>
+            <option value="actions">Resumo de Turno</option>
+            <option value="promo">Sombras do Palácio</option>
+            <option value="revolution">A Revolução</option>
+            <option value="dlc2">Lei e Desordem</option>
+          </select>
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="titleSizeRange">Título da página</label>
+            <output id="titleSizeValue" for="titleSizeRange">10.0 cqw</output>
+          </div>
+          <input id="titleSizeRange" type="range" min="8" max="17" step="0.1" value="10">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="nameSizeRange">Nome do personagem</label>
+            <output id="nameSizeValue" for="nameSizeRange">3.8 cqw</output>
+          </div>
+          <input id="nameSizeRange" type="range" min="2.4" max="5.4" step="0.1" value="3.8">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="bodySizeRange">Texto da habilidade</label>
+            <output id="bodySizeValue" for="bodySizeRange">3.15 cqw</output>
+          </div>
+          <input id="bodySizeRange" type="range" min="2.2" max="4.4" step="0.05" value="3.15">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="portraitSizeRange">Foto circular</label>
+            <output id="portraitSizeValue" for="portraitSizeRange">16%</output>
+          </div>
+          <input id="portraitSizeRange" type="range" min="10" max="26" step="0.5" value="16">
+        </div>
+      </section>
+
+      <section class="style-control-panel" aria-label="Controles avançados da página">
+        <span class="deck-section-title">Layout da Página</span>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="turnListGapRange">Espaço entre linhas</label>
+            <output id="turnListGapValue" for="turnListGapRange">1.2%</output>
+          </div>
+          <input id="turnListGapRange" type="range" min="0.5" max="8" step="0.1" value="1.2">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="turnContentWidthRange">Largura do bloco</label>
+            <output id="turnContentWidthValue" for="turnContentWidthRange">100%</output>
+          </div>
+          <input id="turnContentWidthRange" type="range" min="64" max="100" step="1" value="100">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="turnListOffsetRange">Posição do bloco</label>
+            <output id="turnListOffsetValue" for="turnListOffsetRange">0%</output>
+          </div>
+          <input id="turnListOffsetRange" type="range" min="0" max="12" step="0.5" value="0">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="turnIntroSizeRange">Texto inicial</label>
+            <output id="turnIntroSizeValue" for="turnIntroSizeRange">3.65 cqw</output>
+          </div>
+          <input id="turnIntroSizeRange" type="range" min="2.4" max="5.2" step="0.05" value="3.65">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="turnActionSizeRange">Texto das ações</label>
+            <output id="turnActionSizeValue" for="turnActionSizeRange">3.78 cqw</output>
+          </div>
+          <input id="turnActionSizeRange" type="range" min="2.6" max="5.4" step="0.05" value="3.78">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="turnWarningSizeRange">Aviso vermelho</label>
+            <output id="turnWarningSizeValue" for="turnWarningSizeRange">3.72 cqw</output>
+          </div>
+          <input id="turnWarningSizeRange" type="range" min="2.6" max="5.4" step="0.05" value="3.72">
+        </div>
+      </section>
+
+      <label class="toggle-control" for="showRemovedCardsToggle">
+        <input id="showRemovedCardsToggle" type="checkbox" checked>
+        <span>Mostrar removidas esmaecidas</span>
+      </label>
+
+      <label class="toggle-control" for="centerRemainingCardsToggle">
+        <input id="centerRemainingCardsToggle" type="checkbox" checked>
+        <span>Centralizar cartas restantes</span>
+      </label>
+
+      <div class="config-actions">
+        <div class="main-actions">
+          <button id="openGuideModalBtn" class="action-btn primary" type="button">Abrir modal</button>
+          <button id="toggleDeckConfigBtn" class="action-btn" type="button" aria-expanded="false">Configurar baralho</button>
+        </div>
+      </div>
+
+      <section id="deckPanel" class="deck-panel" aria-label="Configuração do baralho">
+        <span class="deck-section-title">Presets</span>
+        <div class="preset-grid" role="group" aria-label="Presets de baralho">
+          <button class="preset-btn" type="button" data-preset="standard">Base</button>
+          <button class="preset-btn" type="button" data-preset="base_promo">Base + Promo</button>
+          <button class="preset-btn" type="button" data-preset="base_dlc1">Base + DLC 1</button>
+          <button class="preset-btn" type="button" data-preset="base_dlc2">Base + DLC 2</button>
+          <button class="preset-btn" type="button" data-preset="all">Tudo</button>
+          <button class="preset-btn" type="button" data-preset="clear">Zerar</button>
+        </div>
+
+        <div id="deckConfigList" class="deck-config-list"></div>
+      </section>
+
+      <section class="status-card" aria-live="polite">
+        <strong id="deckSummary">0 cartas ativas</strong>
+        <p id="dynamicSummary"></p>
+        <ul id="pageChipList" class="page-chip-list"></ul>
+      </section>
+    </aside>
+
+    <section class="preview-panel" aria-label="Preview do guia">
+      <div class="preview-topbar">
+        <span id="previewPageLabel">Página 1</span>
+        <span id="previewDeckLabel">Base</span>
+      </div>
+      <div class="stage">
+        <div id="inlinePreview" class="guide-preview-frame"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="guideModal" class="modal-overlay" aria-modal="true" role="dialog" aria-label="Guia dinâmico">
+    <div class="modal-actions-and-rules">
+      <button id="closeGuideModalBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+      <button id="prevPageBtn" class="carousel-button prev" type="button" aria-label="Página anterior">&lsaquo;</button>
+      <div id="flipCard" class="flip-card">
+        <div class="flip-card-inner">
+          <div id="frontFace" class="flip-card-front"></div>
+          <div id="backFace" class="flip-card-back"></div>
+        </div>
+      </div>
+      <button id="nextPageBtn" class="carousel-button next" type="button" aria-label="Próxima página">&rsaquo;</button>
+      <div id="carouselFooter" class="carousel-footer">1 / 1</div>
+    </div>
+  </div>
+
+  <script>
+    const CARD_GROUPS = {
+      base: ["duque", "capitao", "assassino", "condessa", "embaixador", "inquisidor"],
+      promo: ["bufao", "burocrata", "benfeitor", "burgues"],
+      dlc1: ["marionetista", "diplomata", "mercenario", "bispo", "tesoureiro", "vigilante"],
+      dlc2: ["pistoleiro", "magnata", "estrategista", "ladrao", "vigarista", "xerife"]
+    };
+
+    const CARD_META = {
+      duque: { folder: "base", color: "#ff66c4", pt: "Duque", en: "Duke" },
+      capitao: { folder: "base", color: "#075dc3", pt: "Capitão", en: "Captain" },
+      assassino: { folder: "base", color: "#626262", pt: "Assassino", en: "Assassin" },
+      condessa: { folder: "base", color: "#11a7b9", pt: "Condessa", en: "Contessa" },
+      embaixador: { folder: "base", color: "#0dbf70", pt: "Embaixador", en: "Ambassador" },
+      inquisidor: { folder: "base", color: "#ff5757", pt: "Inquisidor", en: "Inquisitor" },
+      bufao: { folder: "promo", color: "#0dbf70", pt: "Bufão", en: "Jester" },
+      burocrata: { folder: "promo", color: "#ff66c4", pt: "Burocrata", en: "Bureaucrat" },
+      benfeitor: { folder: "promo", color: "#0dbf70", pt: "Benfeitor", en: "Benefactor" },
+      burgues: { folder: "promo", color: "#ff66c4", pt: "Burguês", en: "Bourgeois" },
+      marionetista: { folder: "dlc1", color: "#b947ff", pt: "Marionetista", en: "Puppeteer" },
+      diplomata: { folder: "dlc1", color: "#1a77d2", pt: "Diplomata", en: "Diplomat" },
+      mercenario: { folder: "dlc1", color: "#e1272f", pt: "Mercenário", en: "Mercenary" },
+      bispo: { folder: "dlc1", color: "#c7212f", pt: "Bispo", en: "Bishop" },
+      tesoureiro: { folder: "dlc1", color: "#d99a16", pt: "Tesoureiro", en: "Treasurer" },
+      vigilante: { folder: "dlc1", color: "#ff66c4", pt: "Vigilante", en: "Vigilante" },
+      pistoleiro: { folder: "dlc2", color: "#e1272f", pt: "Pistoleiro", en: "Gunslinger" },
+      magnata: { folder: "dlc2", color: "#d8a018", pt: "Magnata", en: "Tycoon" },
+      estrategista: { folder: "dlc2", color: "#27aee4", pt: "Estrategista", en: "Strategist" },
+      ladrao: { folder: "dlc2", color: "#2a6b48", pt: "Ladrão", en: "Thief" },
+      vigarista: { folder: "dlc2", color: "#f17a21", pt: "Vigarista", en: "Swindler" },
+      xerife: { folder: "dlc2", color: "#075dc3", pt: "Xerife", en: "Sheriff" }
+    };
+
+    const ABILITY_LABELS = [
+      "Taxar",
+      "Extorquir",
+      "Assassinar",
+      "Persuasão",
+      "Trocar",
+      "Investigar",
+      "Desordem",
+      "Cooperação",
+      "Redistribuição",
+      "Dividendos",
+      "Puxar Fios",
+      "Negociar",
+      "Interceder",
+      "Execução Bruta",
+      "Expurgar",
+      "Tributação",
+      "Vingança",
+      "Cabeça a Prêmio",
+      "Suborno",
+      "Manobra",
+      "Roubo",
+      "Fortuna Arriscada",
+      "Procurado",
+      "Renda",
+      "Ajuda Externa",
+      "Golpe de Estado",
+      "Ação de um Personagem",
+      "Contestação",
+      "Tax",
+      "Steal",
+      "Assassinate",
+      "Persuasion",
+      "Exchange",
+      "Investigate",
+      "Disorder",
+      "Cooperation",
+      "Redistribution",
+      "Dividends",
+      "Pull Strings",
+      "Negotiate",
+      "Intercede",
+      "Brutal Execution",
+      "Purge",
+      "Taxation",
+      "Revenge",
+      "Bounty",
+      "Bribe",
+      "Maneuver",
+      "Robbery",
+      "Risky Fortune",
+      "Wanted",
+      "Income",
+      "Foreign Aid",
+      "Coup",
+      "Character Action",
+      "Challenge"
+    ];
+
+    const COPY = {
+      pt: {
+        page: "Página",
+        base: "Base",
+        activeCards: "cartas ativas",
+        dynamicSummary: "Bloqueios e textos condicionais recalculados conforme o baralho.",
+        removed: "removida no teste",
+        titles: {
+          characters: "Ações de Personagens",
+          backActions: "Resumo de Turno",
+          promo: "Sombras do Palácio",
+          revolution: "A Revolução",
+          dlc2: "Lei e Desordem"
+        },
+        notes: {
+          characters: "Carta base: personagens principais sempre aparecem; textos de bloqueio mudam por configuração.",
+          backActions: "Resumo gerado a partir das cartas capazes de alterar ações comuns.",
+          optional: "Esta página só entra no carrossel quando há ao menos uma carta do grupo ativa."
+        },
+        actions: {
+          duke: (taxationBlock) => taxationBlock
+            ? "Taxar: Pegue 3 moedas do tesouro central. Bloqueia Tributação do Tesoureiro contra si."
+            : "Taxar: Pegue 3 moedas do tesouro central. Não pode ser bloqueado.",
+          captain: (blockers) => `Extorquir: Pegue 2 moedas de um oponente. ${blockers ? `Pode ser bloqueado pelo ${blockers}.` : "Sem bloqueios ativos neste baralho."}`,
+          assassin: (blockers) => `Assassinar: Pague 3 moedas. escolha um oponente que perderá uma influência. ${blockers ? `Pode ser bloqueado ${blockers}.` : "Sem bloqueios ativos neste baralho."}`,
+          contessa: "Persuasão: Bloqueia qualquer Assassinato direcionado a você. Não pode ser bloqueado.",
+          ambassador: (expandedRules) => expandedRules
+            ? "Trocar: Pegue 2 cartas e em seguida devolva 2 cartas para o baralho. Bloqueia Extosão direcionada a você."
+            : "Trocar: Pegue 2 cartas e em seguida devolva 2 cartas ao baralho. Não pode ser bloqueado. Bloqueia Extosão direcionada a você.",
+          inquisitor: (bishop) => bishop
+            ? "Trocar: Compre 1 carta e em seguida devolva 1 carta para o baralho. Investigar: Escolha um jogador; olhe uma de suas cartas. Force, ou não a troca. Pode ser bloqueado pelo Bispo. Bloqueia Extosão direcionada a você."
+            : "Trocar: Compre 1 carta e em seguida devolva 1 carta para o baralho. Não pode ser bloqueado. Investigar: Escolha um jogador; olhe uma de suas cartas. Force, ou não a troca. Não pode ser bloqueado. Bloqueia Extosão direcionada a você.",
+          foreignAid: (blockers) => `Ajuda Externa: Pegue 2 moedas do Tesouro Central. ${blockers ? `Pode ser bloqueada pelo ${blockers}.` : "Nenhuma carta ativa bloqueia esta ação no teste."}`,
+          coup: "Golpe de Estado: Pague 7 moedas e escolha um oponente; ele perderá uma de suas influências. Não pode ser bloqueado ou contestado.",
+          income: "Renda: Pegue 1 moeda do Tesouro Central. Não pode ser bloqueado ou contestado.",
+          turnIntro: "No seu turno você deve realizar uma das seguintes ações.",
+          characterAction: "Ação de um Personagem: Declare um personagem. Você pode dizer a verdade ou blefar.",
+          coinPressure: "Se você possuir 10+ moedas,\ndeverá dar um Golpe de Estado.",
+          challenge: "Contestação: Quando alguém declara uma influência, outro jogador pode contestar. Quem estiver errado perde uma influência.",
+          bufao: "Desordem: Pegue 1 carta do Baralho e 1 carta de um adversário (escolhida por ele). Escolha uma delas para trocar por uma de suas influências e devolva a outra ao seu local de origem. Pode bloquear Extorsão e Desordem. Ao bloquear Desordem, sua influência não é tomada, mas o jogador ativo ainda pega 1 carta do Baralho e pode realizar a troca normalmente.",
+          burocrata: "Cooperação: Pegue 3 moedas do Tesouro Central e entregue 1 moeda para um adversário. Pode bloquear Ajuda Externa.",
+          benfeitor: "Redistribuição: Pegue 3 moedas do jogador com mais moedas e entregue-as ao jogador com menos moedas. Em caso de empate, o jogador ativo escolhe o alvo. Qualquer jogador que declarar Benfeitor pode bloquear a Redistribuição, impedindo que qualquer moeda seja redistribuída.",
+          burgues: "Dividendos: Pegue 4 moedas. Outros jogadores podem declarar que possuem um Burguês. Após a resolução das contestações, o jogador ativo paga 1 moeda para cada declarante que não foi contestado com sucesso.",
+          marionetista: "Puxar Fios: Pague 3 moedas e escolha um jogador; você decide a próxima ação dele, exceto Golpe de Estado. O efeito termina após essa ação ou se o Marionetista morrer.",
+          diplomata: "Negociar: Pague 2 moedas, escolha dois jogadores (incluindo você, se desejar). Até seu próximo turno, eles não podem usar ações ofensivas um contra o outro. Não pode ser bloqueado. Interceder: Bloqueia Execução Bruta contra si",
+          mercenario: "Execução Bruta: Pague 5 moedas para eliminar qualquer carta. Pode ser bloqueado pelo Diplomata",
+          bispo: "Expurgar: Pague 2 moedas e escolha um jogador. Ele deve revelar uma influência e colocá-la permanentemente no cemitério. Em seguida, compra uma nova carta do baralho. Bloqueia ações do Inquisidor contra si.",
+          tesoureiro: "Tributação: Ganhe 2 moedas; todos os outros jogadores pagam 1 moeda ao banco. Pode ser bloqueado pelo Duque",
+          vigilante: "Vingança: Escolha um jogador que tenha usado uma ação ofensiva contra você desde seu último turno. Ele deve lhe pagar 2 moedas. Se não puder, revela uma de suas influências e permanece com ela revelada no cemitério até que seja trocada.",
+          pistoleiro: "Cabeça a Prêmio: Pague 2 moedas e escolha um alvo. Outro jogador pode pagar 2 moedas para fazer o alvo perder 1 influência. Pode ser bloqueado pelo Xerife.",
+          magnata: "Suborno: Troque uma de suas cartas com o baralho. Você pode pagar X moedas para comprar X cartas extras, escolha uma e devolva o restante ao baralho.",
+          estrategista: "Manobra: Receba 2 moedas e troque uma de suas cartas com outro jogador.",
+          ladrao: "Roubo: Pegue 1 moeda de cada jogador. Outros Ladrões bloqueiam o roubo contra si.",
+          vigarista: "Fortuna Arriscada: Dobre suas moedas (máx.5) Se for contestado e perder, entregue todas as suas moedas ao desafiante.",
+          xerife: "Procurado: Pague 1 moeda e escolha um jogador. Até seu próximo turno, habilidades ofensivas usadas por ele que custem moedas custam 2 moedas adicionais. Bloqueia Cabeça a Prêmio contra qualquer jogador incluindo você."
+        }
+      },
+      en: {
+        page: "Page",
+        base: "Base",
+        activeCards: "active cards",
+        dynamicSummary: "Blockers and conditional text are recalculated from the deck.",
+        removed: "removed in this test",
+        titles: {
+          characters: "Character Actions",
+          backActions: "Turn Summary",
+          promo: "Palace Shadows",
+          revolution: "The Revolution",
+          dlc2: "Law and Disorder"
+        },
+        notes: {
+          characters: "Base card: core characters stay visible; blocker text changes with deck configuration.",
+          backActions: "Summary generated from cards that can change common actions.",
+          optional: "This page enters the carousel only when at least one card from the group is active."
+        },
+        actions: {
+          duke: (taxationBlock) => taxationBlock
+            ? "Tax: Take 3 coins from the central treasury. Blocks the Treasurer's Taxation against yourself."
+            : "Tax: Take 3 coins from the central treasury. Cannot be blocked.",
+          captain: (blockers) => `Steal: Take 2 coins from an opponent. ${blockers ? `Can be blocked by ${blockers}.` : "No active blockers in this deck."}`,
+          assassin: (blockers) => `Assassinate: Pay 3 coins. Choose an opponent who will lose one influence. ${blockers ? `Can be blocked by ${blockers}.` : "No active blockers in this deck."}`,
+          contessa: "Persuasion: Blocks any Assassination targeting you. Cannot be blocked.",
+          ambassador: (expandedRules) => expandedRules
+            ? "Exchange: Draw 2 cards and then return 2 cards to the deck. Blocks Steal targeting you."
+            : "Exchange: Draw 2 cards and then return 2 cards to the deck. Cannot be blocked. Blocks Steal targeting you.",
+          inquisitor: (bishop) => bishop
+            ? "Exchange: Draw 1 card and then return 1 card to the deck. Investigate: Choose a player; look at one of their cards. Force the exchange, or not. Can be blocked by the Bishop. Blocks Steal targeting you."
+            : "Exchange: Draw 1 card and then return 1 card to the deck. Cannot be blocked. Investigate: Choose a player; look at one of their cards. Force the exchange, or not. Cannot be blocked. Blocks Steal targeting you.",
+          foreignAid: (blockers) => `Foreign Aid: Take 2 coins from the central treasury. ${blockers ? `Can be blocked by ${blockers}.` : "No active card blocks this action in the test."}`,
+          coup: "Coup: Pay 7 coins and choose an opponent; they will lose one of their influences. Cannot be blocked or challenged.",
+          income: "Income: Take 1 coin from the central treasury. Cannot be blocked or challenged.",
+          turnIntro: "On your turn you must perform one of the following actions.",
+          characterAction: "Character Action: Declare a character. You may tell the truth or bluff.",
+          coinPressure: "If you have 10+ coins,\nyou must perform a Coup.",
+          challenge: "Challenge: When someone declares an influence, another player may challenge. Whoever is wrong loses one influence.",
+          bufao: "Disorder: Take 1 card from the deck and 1 card from an opponent (chosen by them). Choose one of them to exchange for one of your influences and return the other to its place of origin. Can block Steal and Disorder. When blocking Disorder, your influence is not taken, but the active player still takes 1 card from the deck and may perform the exchange normally.",
+          burocrata: "Cooperation: Take 3 coins from the central treasury and give 1 coin to an opponent. Can block Foreign Aid.",
+          benfeitor: "Redistribution: Take 3 coins from the player with the most coins and give them to the player with the fewest coins. In case of a tie, the active player chooses the target. Any player declaring Benefactor can block Redistribution, preventing any coins from being redistributed.",
+          burgues: "Dividends: Take 4 coins. Other players may declare that they have a Bourgeois. After challenges are resolved, the active player pays 1 coin to each claimant who was not successfully challenged.",
+          marionetista: "Pull Strings: Pay 3 coins and choose a player; you decide their next action, except Coup. The effect ends after that action or if the Puppeteer dies.",
+          diplomata: "Negotiate: Pay 2 coins, choose two players (including yourself, if desired). Until your next turn, they cannot use offensive actions against each other. Cannot be blocked. Intercede: Blocks Brutal Execution against yourself",
+          mercenario: "Brutal Execution: Pay 5 coins to eliminate any card. Can be blocked by the Diplomat",
+          bispo: "Purge: Pay 2 coins and choose a player. They must reveal an influence and place it permanently in the cemetery. Then they draw a new card from the deck. Blocks Inquisitor actions against yourself.",
+          tesoureiro: "Taxation: Gain 2 coins; all other players pay 1 coin to the bank. Can be blocked by the Duke",
+          vigilante: "Revenge: Choose a player who used an offensive action against you since your last turn. They must pay you 2 coins. If they cannot, they reveal one of their influences and keep it revealed in the cemetery until it is exchanged.",
+          pistoleiro: "Bounty: Pay 2 coins and choose a target. Another player may pay 2 coins to make the target lose 1 influence. Can be blocked by the Sheriff.",
+          magnata: "Bribe: Exchange one of your cards with the deck. You may pay X coins to draw X extra cards, choose one, and return the rest to the deck.",
+          estrategista: "Maneuver: Receive 2 coins and exchange one of your cards with another player.",
+          ladrao: "Robbery: Take 1 coin from each player. Other Thieves block the robbery against themselves.",
+          vigarista: "Risky Fortune: Double your coins (max. 5). If challenged and you lose, give all your coins to the challenger.",
+          xerife: "Wanted: Pay 1 coin and choose a player. Until your next turn, offensive abilities used by them that cost coins cost 2 additional coins. Blocks Bounty against any player including you."
+        }
+      }
+    };
+
+    const deckConfig = {};
+    const BASE_PAGE_STYLE = {
+      titleSize: 9,
+      nameSize: 3.8,
+      bodySize: 3.6,
+      portraitSize: 15,
+      turnIntroSize: 3.65,
+      turnActionSize: 3.78,
+      turnWarningSize: 3.72
+    };
+
+    const PAGE_STYLES = {
+      characters: { ...BASE_PAGE_STYLE, listGap: 1.2, contentWidth: 100, listOffset: 0 },
+      actions: { ...BASE_PAGE_STYLE, turnIntroSize: 4, turnActionSize: 4.6, turnWarningSize: 4.8, listGap: 3.2, contentWidth: 90, listOffset: 1.5 },
+      promo: { ...BASE_PAGE_STYLE, bodySize: 3.65, listGap: 2, contentWidth: 100, listOffset: 0 },
+      revolution: { ...BASE_PAGE_STYLE, nameSize: 3.6, bodySize: 3.15, listGap: 2, contentWidth: 100, listOffset: 0 },
+      dlc2: { ...BASE_PAGE_STYLE, listGap: 2, contentWidth: 100, listOffset: 0 }
+    };
+    const CAROUSEL_PAGE_ORDER = ["characters", "promo", "revolution", "dlc2", "actions"];
+
+    let selectedStylePage = "characters";
+    let currentLanguage = "pt";
+    let currentPage = 0;
+    let guidePages = [];
+    let visibleFace = "front";
+    let isAnimating = false;
+    let showRemovedCards = true;
+    let centerRemainingCards = true;
+
+    const languageSelect = document.getElementById("languageSelect");
+    const pageStyleSelect = document.getElementById("pageStyleSelect");
+    const showRemovedCardsToggle = document.getElementById("showRemovedCardsToggle");
+    const centerRemainingCardsToggle = document.getElementById("centerRemainingCardsToggle");
+    const deckPanel = document.getElementById("deckPanel");
+    const toggleDeckConfigBtn = document.getElementById("toggleDeckConfigBtn");
+    const deckConfigList = document.getElementById("deckConfigList");
+    const deckSummary = document.getElementById("deckSummary");
+    const dynamicSummary = document.getElementById("dynamicSummary");
+    const pageChipList = document.getElementById("pageChipList");
+    const inlinePreview = document.getElementById("inlinePreview");
+    const previewPageLabel = document.getElementById("previewPageLabel");
+    const previewDeckLabel = document.getElementById("previewDeckLabel");
+    const guideModal = document.getElementById("guideModal");
+    const flipCard = document.getElementById("flipCard");
+    const frontFace = document.getElementById("frontFace");
+    const backFace = document.getElementById("backFace");
+    const carouselFooter = document.getElementById("carouselFooter");
+    const prevPageBtn = document.getElementById("prevPageBtn");
+    const nextPageBtn = document.getElementById("nextPageBtn");
+    const styleControls = {
+      titleSize: {
+        input: document.getElementById("titleSizeRange"),
+        output: document.getElementById("titleSizeValue"),
+        unit: "cqw",
+        decimals: 1,
+        visibleFor: () => true
+      },
+      nameSize: {
+        input: document.getElementById("nameSizeRange"),
+        output: document.getElementById("nameSizeValue"),
+        unit: "cqw",
+        decimals: 1,
+        visibleFor: (pageType) => pageType !== "actions"
+      },
+      bodySize: {
+        input: document.getElementById("bodySizeRange"),
+        output: document.getElementById("bodySizeValue"),
+        unit: "cqw",
+        decimals: 2,
+        visibleFor: (pageType) => pageType !== "actions"
+      },
+      portraitSize: {
+        input: document.getElementById("portraitSizeRange"),
+        output: document.getElementById("portraitSizeValue"),
+        unit: "%",
+        decimals: 1,
+        visibleFor: (pageType) => pageType !== "actions"
+      },
+      turnIntroSize: {
+        input: document.getElementById("turnIntroSizeRange"),
+        output: document.getElementById("turnIntroSizeValue"),
+        unit: "cqw",
+        decimals: 2,
+        visibleFor: (pageType) => pageType === "actions"
+      },
+      turnActionSize: {
+        input: document.getElementById("turnActionSizeRange"),
+        output: document.getElementById("turnActionSizeValue"),
+        unit: "cqw",
+        decimals: 2,
+        visibleFor: (pageType) => pageType === "actions"
+      },
+      listGap: {
+        input: document.getElementById("turnListGapRange"),
+        output: document.getElementById("turnListGapValue"),
+        unit: "%",
+        decimals: 1,
+        visibleFor: () => true
+      },
+      contentWidth: {
+        input: document.getElementById("turnContentWidthRange"),
+        output: document.getElementById("turnContentWidthValue"),
+        unit: "%",
+        decimals: 0,
+        visibleFor: () => true
+      },
+      listOffset: {
+        input: document.getElementById("turnListOffsetRange"),
+        output: document.getElementById("turnListOffsetValue"),
+        unit: "%",
+        decimals: 1,
+        visibleFor: () => true
+      },
+      turnWarningSize: {
+        input: document.getElementById("turnWarningSizeRange"),
+        output: document.getElementById("turnWarningSizeValue"),
+        unit: "cqw",
+        decimals: 2,
+        visibleFor: (pageType) => pageType === "actions"
+      }
+    };
+
+    function getCopy() {
+      return COPY[currentLanguage];
+    }
+
+    function getCardName(card) {
+      return CARD_META[card]?.[currentLanguage] || CARD_META[card]?.pt || card;
+    }
+
+    function getCardImage(card) {
+      const meta = CARD_META[card];
+      return `../assets/img/perfil-cards/${meta.folder}/${card}.png`;
+    }
+
+    function hasCard(card) {
+      return Number(deckConfig[card] || 0) > 0;
+    }
+
+    function hasAny(cards) {
+      return cards.some(hasCard);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderFormattedText(value) {
+      let html = escapeHtml(value);
+      ABILITY_LABELS.forEach((label) => {
+        const safeLabel = escapeHtml(label);
+        html = html.replaceAll(`${safeLabel}:`, `<strong class="ability-label">${safeLabel}:</strong>`);
+      });
+      return html;
+    }
+
+    function resolveAction(action, ...args) {
+      return typeof action === "function" ? action(...args) : action;
+    }
+
+    function formatControlValue(value, decimals, unit) {
+      const fixed = Number(value).toFixed(decimals);
+      const compact = fixed.replace(/\.0+$|(\.\d*[1-9])0+$/, "$1");
+      return `${compact}${unit}`;
+    }
+
+    function getPageStyle(pageType) {
+      return PAGE_STYLES[pageType] || PAGE_STYLES.characters;
+    }
+
+    function updateStyleControlVisibility() {
+      Object.entries(styleControls).forEach(([, control]) => {
+        const controlRow = control.input.closest(".range-control");
+        if (!controlRow) return;
+
+        const isVisible = control.visibleFor ? control.visibleFor(selectedStylePage) : true;
+        controlRow.classList.toggle("is-hidden", !isVisible);
+      });
+    }
+
+    function getGuideStyleAttr(pageType) {
+      const style = getPageStyle(pageType);
+      return [
+        `--guide-title-size: ${style.titleSize}cqw`,
+        `--guide-name-size: ${style.nameSize}cqw`,
+        `--guide-body-size: ${style.bodySize}cqw`,
+        `--guide-portrait-size: ${style.portraitSize}%`,
+        `--guide-list-gap: ${style.listGap}%`,
+        `--guide-content-width: ${style.contentWidth}%`,
+        `--guide-list-offset: ${style.listOffset}%`,
+        `--turn-intro-size: ${style.turnIntroSize}cqw`,
+        `--turn-action-size: ${style.turnActionSize}cqw`,
+        `--turn-list-gap: ${style.listGap}%`,
+        `--turn-content-width: ${style.contentWidth}%`,
+        `--turn-list-offset: ${style.listOffset}%`,
+        `--turn-warning-size: ${style.turnWarningSize}cqw`
+      ].join("; ");
+    }
+
+    function applyStyleToPageElement(page, pageType) {
+      const style = getPageStyle(pageType);
+      page.style.setProperty("--guide-title-size", `${style.titleSize}cqw`);
+      page.style.setProperty("--guide-name-size", `${style.nameSize}cqw`);
+      page.style.setProperty("--guide-body-size", `${style.bodySize}cqw`);
+      page.style.setProperty("--guide-portrait-size", `${style.portraitSize}%`);
+      page.style.setProperty("--guide-list-gap", `${style.listGap}%`);
+      page.style.setProperty("--guide-content-width", `${style.contentWidth}%`);
+      page.style.setProperty("--guide-list-offset", `${style.listOffset}%`);
+      page.style.setProperty("--turn-intro-size", `${style.turnIntroSize}cqw`);
+      page.style.setProperty("--turn-action-size", `${style.turnActionSize}cqw`);
+      page.style.setProperty("--turn-list-gap", `${style.listGap}%`);
+      page.style.setProperty("--turn-content-width", `${style.contentWidth}%`);
+      page.style.setProperty("--turn-list-offset", `${style.listOffset}%`);
+      page.style.setProperty("--turn-warning-size", `${style.turnWarningSize}cqw`);
+    }
+
+    function syncStyleControlsFromPage() {
+      const style = getPageStyle(selectedStylePage);
+      Object.entries(styleControls).forEach(([key, control]) => {
+        control.input.value = String(style[key]);
+        control.output.textContent = formatControlValue(style[key], control.decimals, control.unit);
+      });
+      updateStyleControlVisibility();
+    }
+
+    function applyGuideStyleControls() {
+      const style = getPageStyle(selectedStylePage);
+      Object.entries(styleControls).forEach(([key, control]) => {
+        style[key] = Number(control.input.value);
+        control.output.textContent = formatControlValue(style[key], control.decimals, control.unit);
+      });
+
+      document.querySelectorAll(".guide-page").forEach((page) => {
+        applyStyleToPageElement(page, page.dataset.pageType || "characters");
+      });
+    }
+
+    function formatList(cards) {
+      const names = cards.filter(hasCard).map(getCardName);
+      if (names.length === 0) return "";
+      if (names.length === 1) return names[0];
+      const connector = currentLanguage === "pt" ? " ou " : " or ";
+      return `${names.slice(0, -1).join(", ")}${connector}${names.at(-1)}`;
+    }
+
+    function formatAndList(cards) {
+      const names = cards.filter(hasCard).map(getCardName);
+      if (names.length === 0) return "";
+      if (names.length === 1) return names[0];
+      const connector = currentLanguage === "pt" ? " e " : " and ";
+      return `${names.slice(0, -1).join(", ")}${connector}${names.at(-1)}`;
+    }
+
+    function formatAssassinBlockers() {
+      if (currentLanguage !== "pt") return formatList(["condessa", "diplomata"]);
+
+      const blockers = [];
+      if (hasCard("condessa")) blockers.push("pela Condessa");
+      if (hasCard("diplomata")) blockers.push("pelo Diplomata");
+
+      if (blockers.length === 0) return "";
+      if (blockers.length === 1) return blockers[0];
+      return `${blockers.slice(0, -1).join(", ")} ou ${blockers.at(-1)}`;
+    }
+
+    function setPreset(preset) {
+      const allCards = Object.values(CARD_GROUPS).flat();
+      allCards.forEach((card) => {
+        let value = 0;
+
+        if (preset === "standard" && CARD_GROUPS.base.includes(card)) value = 5;
+        if (preset === "base_promo" && (CARD_GROUPS.base.includes(card) || CARD_GROUPS.promo.includes(card))) value = 5;
+        if (preset === "base_dlc1" && (CARD_GROUPS.base.includes(card) || CARD_GROUPS.dlc1.includes(card))) value = 5;
+        if (preset === "base_dlc2" && (CARD_GROUPS.base.includes(card) || CARD_GROUPS.dlc2.includes(card))) value = 5;
+        if (preset === "all") value = 5;
+        if (preset === "clear") value = 0;
+
+        deckConfig[card] = value;
+      });
+
+      syncInputs();
+      rebuildGuides();
+    }
+
+    function createEntry(card, text) {
+      const meta = CARD_META[card];
+      return {
+        card,
+        title: getCardName(card),
+        image: getCardImage(card),
+        color: meta.color,
+        text,
+        muted: !hasCard(card)
+      };
+    }
+
+    function prepareGuidePage(page) {
+      const allEntries = page.entries || [];
+      return {
+        ...page,
+        entries: showRemovedCards ? allEntries : allEntries.filter((entry) => !entry.muted),
+        hasHiddenEntries: !showRemovedCards && allEntries.some((entry) => entry.muted)
+      };
+    }
+
+    function buildBaseEntries() {
+      const copy = getCopy();
+      const hasExpandedBaseRules = hasAny(CARD_GROUPS.dlc1) || hasAny(CARD_GROUPS.promo);
+      return [
+        createEntry("duque", resolveAction(copy.actions.duke, hasCard("tesoureiro"))),
+        createEntry("capitao", resolveAction(copy.actions.captain, formatList(["capitao", "embaixador", "inquisidor", "bufao"]))),
+        createEntry("assassino", resolveAction(copy.actions.assassin, formatAssassinBlockers())),
+        createEntry("condessa", resolveAction(copy.actions.contessa)),
+        createEntry("embaixador", resolveAction(copy.actions.ambassador, hasExpandedBaseRules)),
+        createEntry("inquisidor", resolveAction(copy.actions.inquisitor, hasCard("bispo")))
+      ];
+    }
+
+    function buildActionEntries() {
+      const copy = getCopy();
+      return [
+        {
+          title: currentLanguage === "pt" ? "Renda" : "Income",
+          color: "#111111",
+          text: copy.actions.income
+        },
+        {
+          title: currentLanguage === "pt" ? "Ajuda Externa" : "Foreign Aid",
+          color: "#111111",
+          text: copy.actions.foreignAid(formatAndList(["duque", "burocrata"]))
+        },
+        {
+          title: currentLanguage === "pt" ? "Golpe de Estado" : "Coup",
+          color: "#111111",
+          text: copy.actions.coup
+        },
+        {
+          title: currentLanguage === "pt" ? "Ação de um Personagem" : "Character Action",
+          color: "#111111",
+          text: copy.actions.characterAction
+        }
+      ];
+    }
+
+    function buildGroupEntries(cards) {
+      const copy = getCopy();
+      return cards.map((card) => createEntry(card, copy.actions[card]));
+    }
+
+    function buildGuidePageByType(type, options = {}) {
+      const copy = getCopy();
+      const force = Boolean(options.force);
+
+      if (type === "characters") {
+        return prepareGuidePage({
+          type: "characters",
+          title: copy.titles.characters,
+          note: copy.notes.characters,
+          className: "actions",
+          entries: buildBaseEntries()
+        });
+      }
+
+      if (type === "actions") {
+        return prepareGuidePage({
+          type: "actions",
+          title: copy.titles.backActions,
+          note: copy.notes.backActions,
+          intro: copy.actions.turnIntro,
+          warning: copy.actions.coinPressure,
+          className: "compact no-media turn-summary",
+          entries: buildActionEntries()
+        });
+      }
+
+      if (type === "promo" && (force || hasAny(CARD_GROUPS.promo))) {
+        return prepareGuidePage({
+          type: "promo",
+          title: copy.titles.promo,
+          note: copy.notes.optional,
+          className: "compact",
+          entries: buildGroupEntries(CARD_GROUPS.promo)
+        });
+      }
+
+      if (type === "revolution" && (force || hasAny(CARD_GROUPS.dlc1))) {
+        return prepareGuidePage({
+          type: "revolution",
+          title: copy.titles.revolution,
+          note: copy.notes.optional,
+          className: "compact",
+          entries: buildGroupEntries(CARD_GROUPS.dlc1)
+        });
+      }
+
+      if (type === "dlc2" && (force || hasAny(CARD_GROUPS.dlc2))) {
+        return prepareGuidePage({
+          type: "dlc2",
+          title: copy.titles.dlc2,
+          note: copy.notes.optional,
+          className: "compact",
+          entries: buildGroupEntries(CARD_GROUPS.dlc2)
+        });
+      }
+
+      return null;
+    }
+
+    function buildGuidePages() {
+      return CAROUSEL_PAGE_ORDER
+        .map((pageType) => buildGuidePageByType(pageType))
+        .filter(Boolean);
+    }
+
+    function getSelectedPreviewPage() {
+      return guidePages.find((page) => page.type === selectedStylePage)
+        || buildGuidePageByType(selectedStylePage, { force: true })
+        || guidePages[0]
+        || buildGuidePageByType("characters", { force: true });
+    }
+
+    function renderGuidePage(page) {
+      const removalLayoutClass = page.hasHiddenEntries
+        ? centerRemainingCards
+          ? " removed-layout-centered"
+          : " removed-layout-distributed"
+        : "";
+      const intro = page.intro
+        ? `<p class="guide-intro">${renderFormattedText(page.intro)}</p>`
+        : "";
+      const warning = page.warning
+        ? `<p class="guide-turn-warning">${escapeHtml(page.warning)}</p>`
+        : "";
+      const entries = page.entries.map((entry) => {
+        const hasImage = Boolean(entry.image);
+        const portrait = hasImage
+          ? `<div class="guide-portrait"><img src="${escapeHtml(entry.image)}" alt=""></div>`
+          : "";
+
+        return `
+          <article class="guide-entry${entry.muted ? " is-muted" : ""}${hasImage ? "" : " no-portrait"}" style="--role-color: ${escapeHtml(entry.color)};">
+            ${portrait}
+            <div class="guide-copy">
+              <h3>${escapeHtml(entry.title)}</h3>
+              <p>${renderFormattedText(entry.text)}</p>
+            </div>
+          </article>`;
+      }).join("");
+
+      return `
+        <article class="guide-page ${escapeHtml(page.className || "")}${removalLayoutClass}" data-page-type="${escapeHtml(page.type)}" style="${getGuideStyleAttr(page.type)}">
+          <div class="guide-inner">
+            <header>
+              <h2 class="guide-title">${escapeHtml(page.title)}</h2>
+            </header>
+            ${intro}
+            <div class="guide-list">${entries}</div>
+            ${warning}
+          </div>
+        </article>`;
+    }
+
+    function renderDeckConfig() {
+      const fragment = document.createDocumentFragment();
+      Object.entries(CARD_GROUPS).forEach(([group, cards]) => {
+        const title = document.createElement("span");
+        title.className = "deck-section-title";
+        title.textContent = group === "base"
+          ? "Base"
+          : group === "promo"
+            ? "Promo"
+            : group === "dlc1"
+              ? "DLC 1"
+              : "DLC 2";
+        fragment.append(title);
+
+        cards.forEach((card) => {
+          const item = document.createElement("div");
+          item.className = "card-config-item";
+
+          const label = document.createElement("label");
+          label.htmlFor = `config-${card}`;
+          label.innerHTML = `${escapeHtml(getCardName(card))}<small>${escapeHtml(card)}</small>`;
+
+          const stepper = document.createElement("div");
+          stepper.className = "stepper";
+
+          const minus = document.createElement("button");
+          minus.type = "button";
+          minus.textContent = "-";
+          minus.dataset.card = card;
+          minus.dataset.step = "-1";
+
+          const input = document.createElement("input");
+          input.id = `config-${card}`;
+          input.type = "number";
+          input.min = "0";
+          input.max = "10";
+          input.value = String(deckConfig[card] || 0);
+          input.dataset.card = card;
+
+          const plus = document.createElement("button");
+          plus.type = "button";
+          plus.textContent = "+";
+          plus.dataset.card = card;
+          plus.dataset.step = "1";
+
+          stepper.append(minus, input, plus);
+          item.append(label, stepper);
+          fragment.append(item);
+        });
+      });
+
+      deckConfigList.replaceChildren(fragment);
+    }
+
+    function syncInputs() {
+      document.querySelectorAll("[data-card]").forEach((control) => {
+        if (control.tagName !== "INPUT") return;
+        control.value = String(deckConfig[control.dataset.card] || 0);
+      });
+    }
+
+    function getActiveCardCount() {
+      return Object.values(deckConfig).reduce((total, value) => total + Number(value || 0), 0);
+    }
+
+    function getDeckLabel() {
+      const activeGroups = Object.entries(CARD_GROUPS)
+        .filter(([, cards]) => hasAny(cards))
+        .map(([group]) => group.toUpperCase());
+      return activeGroups.length ? activeGroups.join(" + ") : "Vazio";
+    }
+
+    function updateStatus() {
+      const copy = getCopy();
+      const count = getActiveCardCount();
+      const previewPage = getSelectedPreviewPage();
+      const previewPageIndex = guidePages.findIndex((page) => page.type === previewPage.type);
+
+      deckSummary.textContent = `${count} ${copy.activeCards}`;
+      dynamicSummary.textContent = copy.dynamicSummary;
+      previewDeckLabel.textContent = getDeckLabel();
+      previewPageLabel.textContent = previewPageIndex >= 0
+        ? `${copy.page} ${previewPageIndex + 1}`
+        : `${copy.page} - preview`;
+      carouselFooter.textContent = `${currentPage + 1} / ${guidePages.length}`;
+
+      pageChipList.replaceChildren(...guidePages.map((page, index) => {
+        const item = document.createElement("li");
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.pageType = page.type;
+        button.classList.toggle("is-active", page.type === selectedStylePage);
+        button.textContent = `${index + 1}. ${page.title}`;
+        item.append(button);
+        return item;
+      }));
+    }
+
+    function syncSelectedStylePageFromCurrentPage() {
+      const pageType = guidePages[currentPage]?.type;
+      if (!pageType || !PAGE_STYLES[pageType]) return;
+      selectedStylePage = pageType;
+      pageStyleSelect.value = pageType;
+      syncStyleControlsFromPage();
+    }
+
+    function focusSelectedStylePage() {
+      const pageIndex = guidePages.findIndex((page) => page.type === selectedStylePage);
+      if (pageIndex >= 0) currentPage = pageIndex;
+      renderStaticPreview();
+      renderCurrentFace();
+      updateStatus();
+    }
+
+    function clampPage(page) {
+      if (guidePages.length === 0) return 0;
+      return (page + guidePages.length) % guidePages.length;
+    }
+
+    function renderStaticPreview() {
+      inlinePreview.innerHTML = renderGuidePage(getSelectedPreviewPage());
+    }
+
+    function getVisibleFace() {
+      return visibleFace === "front" ? frontFace : backFace;
+    }
+
+    function getHiddenFace() {
+      return visibleFace === "front" ? backFace : frontFace;
+    }
+
+    function renderCurrentFace() {
+      getVisibleFace().innerHTML = renderGuidePage(guidePages[currentPage]);
+    }
+
+    function goToPage(page) {
+      if (isAnimating) return;
+
+      const nextPage = clampPage(page);
+      if (nextPage === currentPage) return;
+
+      isAnimating = true;
+      getHiddenFace().innerHTML = renderGuidePage(guidePages[nextPage]);
+      flipCard.classList.toggle("is-flipped");
+
+      window.setTimeout(() => {
+        currentPage = nextPage;
+        visibleFace = visibleFace === "front" ? "back" : "front";
+        syncSelectedStylePageFromCurrentPage();
+        renderStaticPreview();
+        updateStatus();
+        isAnimating = false;
+      }, 740);
+    }
+
+    function rebuildGuides() {
+      const currentPageType = guidePages[currentPage]?.type || selectedStylePage;
+      guidePages = buildGuidePages();
+      const nextPageIndex = guidePages.findIndex((page) => page.type === currentPageType);
+      currentPage = nextPageIndex >= 0 ? nextPageIndex : clampPage(currentPage);
+      syncStyleControlsFromPage();
+      renderStaticPreview();
+      renderCurrentFace();
+      updateStatus();
+    }
+
+    function openGuideModal() {
+      renderCurrentFace();
+      guideModal.classList.add("is-open");
+    }
+
+    function closeGuideModal() {
+      guideModal.classList.remove("is-open");
+    }
+
+    function updateDeckCard(card, value) {
+      const nextValue = Math.max(0, Math.min(10, Number(value) || 0));
+      deckConfig[card] = nextValue;
+      syncInputs();
+      rebuildGuides();
+    }
+
+    function bindEvents() {
+      languageSelect.addEventListener("change", () => {
+        currentLanguage = languageSelect.value;
+        renderDeckConfig();
+        rebuildGuides();
+      });
+
+      showRemovedCardsToggle.addEventListener("change", () => {
+        showRemovedCards = showRemovedCardsToggle.checked;
+        rebuildGuides();
+      });
+
+      centerRemainingCardsToggle.addEventListener("change", () => {
+        centerRemainingCards = centerRemainingCardsToggle.checked;
+        rebuildGuides();
+      });
+
+      pageStyleSelect.addEventListener("change", () => {
+        selectedStylePage = pageStyleSelect.value;
+        syncStyleControlsFromPage();
+        focusSelectedStylePage();
+      });
+
+      pageChipList.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-page-type]");
+        if (!button) return;
+
+        selectedStylePage = button.dataset.pageType;
+        pageStyleSelect.value = selectedStylePage;
+        syncStyleControlsFromPage();
+        focusSelectedStylePage();
+      });
+
+      Object.values(styleControls).forEach((control) => {
+        control.input.addEventListener("input", applyGuideStyleControls);
+      });
+
+      toggleDeckConfigBtn.addEventListener("click", () => {
+        const isOpen = !deckPanel.classList.contains("is-open");
+        deckPanel.classList.toggle("is-open", isOpen);
+        toggleDeckConfigBtn.setAttribute("aria-expanded", String(isOpen));
+      });
+
+      document.querySelectorAll("[data-preset]").forEach((button) => {
+        button.addEventListener("click", () => setPreset(button.dataset.preset));
+      });
+
+      deckConfigList.addEventListener("input", (event) => {
+        const input = event.target.closest("input[data-card]");
+        if (!input) return;
+        updateDeckCard(input.dataset.card, input.value);
+      });
+
+      deckConfigList.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-card][data-step]");
+        if (!button) return;
+        const card = button.dataset.card;
+        updateDeckCard(card, Number(deckConfig[card] || 0) + Number(button.dataset.step));
+      });
+
+      document.getElementById("openGuideModalBtn").addEventListener("click", openGuideModal);
+      document.getElementById("closeGuideModalBtn").addEventListener("click", closeGuideModal);
+      prevPageBtn.addEventListener("click", () => goToPage(currentPage - 1));
+      nextPageBtn.addEventListener("click", () => goToPage(currentPage + 1));
+      flipCard.addEventListener("click", () => goToPage(currentPage + 1));
+
+      guideModal.addEventListener("click", (event) => {
+        if (event.target === guideModal) closeGuideModal();
+      });
+
+      window.addEventListener("keydown", (event) => {
+        if (!guideModal.classList.contains("is-open")) return;
+        if (event.key === "Escape") closeGuideModal();
+        if (event.key === "ArrowLeft") goToPage(currentPage - 1);
+        if (event.key === "ArrowRight") goToPage(currentPage + 1);
+      });
+    }
+
+    setPreset("standard");
+    renderDeckConfig();
+    bindEvents();
+    rebuildGuides();
+    applyGuideStyleControls();
+  </script>
+</body>
+
+</html>
