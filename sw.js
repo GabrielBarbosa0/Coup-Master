@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coup-master-pwa-v130';
+const CACHE_NAME = 'coup-master-pwa-v131';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '::1', '[::1]'];
 const IS_LOCALHOST = LOCAL_HOSTNAMES.includes(new URL(self.location.href).hostname);
 
@@ -15,6 +15,8 @@ const APP_SHELL = [
   './personalized/personalized-waiting.html',
   './personalized/personalized.html',
   './manifest.webmanifest?v=custom-logo-v3',
+  './favicon.ico',
+  './favicon.png',
   './css/loading.css',
   './css/chat.css',
   './css/lobby.css',
@@ -43,7 +45,6 @@ const APP_SHELL = [
   './js/gamemode/personalized/personalized-engine.js',
   './js/gamemode/personalized/personalized-renderer.js',
   './js/gamemode/personalized/personalized-game.js',
-  './assets/img/logo/favicon-coup-master-circulo.png?v=custom-logo-v2',
   './assets/img/logo/coup-master-192x192.png?v=custom-logo-v3',
   './assets/img/logo/coup-master-512x512.png?v=custom-logo-v3',
   './assets/img/logo/logo-coup-master.png',
