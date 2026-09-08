@@ -14,6 +14,7 @@
       --text: #e6eef6;
       --muted: rgba(230, 238, 246, 0.64);
       --accent: #1e90ff;
+      --accent2: #ff8a00;
       --gold: #ffcc00;
       --danger: #ff4048;
       --coin-size: 34px;
@@ -33,15 +34,28 @@
       color: var(--text);
       font-family: Georgia, "Times New Roman", serif;
       background:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
         radial-gradient(circle at 12% 12%, rgba(30, 144, 255, 0.12), transparent 28%),
         radial-gradient(circle at 82% 10%, rgba(255, 204, 0, 0.09), transparent 24%),
         linear-gradient(135deg, #10141b 0%, #171c24 52%, #0e1117 100%);
+      background-size: 34px 34px, 34px 34px, auto, auto, auto;
       overflow-x: hidden;
     }
 
+    body.hide-religion .religion-badge,
+    body.hide-religion .asylum-card {
+      display: none !important;
+    }
+
     button,
-    input {
+    input,
+    textarea {
       font: inherit;
+    }
+
+    button {
+      cursor: pointer;
     }
 
     .lab-shell {
@@ -110,6 +124,26 @@
       white-space: nowrap;
     }
 
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(0, 0, 0, 0.16);
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+
+    .switch-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
     input[type="range"] {
       width: 100%;
       accent-color: var(--accent);
@@ -128,7 +162,6 @@
       border-radius: 7px;
       background: rgba(30, 144, 255, 0.12);
       color: var(--text);
-      cursor: pointer;
       font-weight: 800;
     }
 
@@ -215,139 +248,129 @@
     }
 
     .table {
-      position: relative;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 210px;
-      grid-template-rows: auto minmax(260px, 1fr) auto;
-      gap: 18px;
+      gap: 14px;
+      max-width: 1080px;
       min-height: calc(100vh - 188px);
-      max-width: 980px;
       margin: 0 auto;
     }
 
-    .player-panel,
-    .bank-panel,
-    .action-panel {
-      border: 1px solid rgba(30, 144, 255, 0.28);
+    .player-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .player-area {
+      position: relative;
+      display: grid;
+      grid-template-rows: auto auto minmax(76px, 1fr);
+      min-height: 178px;
+      padding: 12px 14px 10px;
+      border: 2px solid rgba(54, 84, 113, 0.95);
       border-radius: 8px;
-      background: rgba(17, 25, 35, 0.9);
+      background: rgba(17, 25, 35, 0.94);
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
     }
 
-    .player-panel {
-      position: relative;
-      grid-column: 1;
-      min-height: 174px;
-      padding: 18px;
+    .player-area.is-selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.26), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
     }
 
-    .bank-panel {
-      grid-column: 2;
-      grid-row: 1 / span 2;
+    .player-header {
       display: grid;
-      place-items: center;
-      min-height: 330px;
-      padding: 18px;
-      text-align: center;
-    }
-
-    .action-panel {
-      grid-column: 1 / -1;
-      display: grid;
-      gap: 12px;
-      padding: 18px;
-      text-align: center;
-    }
-
-    .player-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .player-name {
-      margin: 0;
-      font-size: 1.12rem;
-      text-transform: uppercase;
-    }
-
-    .player-state {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 0.76rem;
-      text-transform: uppercase;
-    }
-
-    .coin-counter {
-      position: relative;
-      display: inline-flex;
+      grid-template-columns: 28px minmax(0, 1fr) 28px;
       align-items: center;
       gap: 8px;
-      min-width: 102px;
-      justify-content: center;
-      padding: 8px 13px;
-      border: 1px solid rgba(255, 204, 0, 0.58);
-      border-radius: 999px;
-      background: rgba(255, 204, 0, 0.08);
-      box-shadow: 0 0 0 rgba(255, 204, 0, 0);
-      transform-origin: center;
+      min-width: 0;
     }
 
-    .coin-counter.is-pulsing {
-      animation: counterPulse 420ms ease-out;
-    }
-
-    .coin-counter.is-hot {
-      box-shadow: 0 0 26px rgba(255, 204, 0, 0.24);
-    }
-
-    .coin-symbol {
-      display: grid;
-      place-items: center;
+    .player-avatar,
+    .religion-badge {
       width: 28px;
       height: 28px;
-      border: 2px solid var(--gold);
-      border-radius: 999px;
-      color: var(--gold);
-      font-size: 1.25rem;
-      font-weight: 900;
-      line-height: 1;
-      text-shadow: 0 2px 8px rgba(255, 204, 0, 0.24);
-      box-shadow: 0 0 12px rgba(255, 204, 0, 0.14);
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      object-fit: cover;
+      background: rgba(230, 238, 246, 0.92);
     }
 
-    .coin-value {
-      min-width: 24px;
-      color: var(--gold);
-      font-size: 1.55rem;
+    .religion-badge {
+      padding: 2px;
+      object-fit: contain;
+      cursor: pointer;
+    }
+
+    .player-title {
+      margin: 0;
+      overflow: hidden;
+      color: var(--text);
+      font-size: clamp(12px, 0.9vw, 15px);
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: center;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .player-area.is-selected .player-title {
+      color: var(--accent);
+    }
+
+    .points,
+    .pile-points {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 7px 0;
+    }
+
+    .points button,
+    .pile-points button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: var(--gold);
+      color: #111;
+      font-size: 20px;
       font-weight: 800;
       line-height: 1;
+    }
+
+    .points button:hover,
+    .points button:focus-visible,
+    .pile-points button:hover,
+    .pile-points button:focus-visible {
+      box-shadow: 0 0 0 3px rgba(246, 194, 4, 0.2);
+      outline: 0;
+    }
+
+    .score {
+      min-width: 18px;
+      color: var(--text);
+      font-size: 17px;
+      line-height: 1;
+      text-align: center;
       font-variant-numeric: tabular-nums;
-      text-shadow: 0 2px 10px rgba(255, 204, 0, 0.22);
     }
 
-    .coin-delta {
-      position: absolute;
-      top: -24px;
-      right: 10px;
-      color: var(--gold);
-      font-size: 1rem;
-      font-weight: 900;
-      opacity: 0;
-      transform: translateY(8px);
-      pointer-events: none;
-    }
-
-    .coin-counter.is-pulsing .coin-delta {
-      animation: deltaFloat 520ms ease-out;
-    }
-
-    .cards-row {
+    .player-stack {
       display: flex;
-      gap: 8px;
-      align-items: flex-end;
-      margin-top: 26px;
+      flex-wrap: nowrap;
+      align-items: end;
+      justify-content: center;
+      gap: 0;
+      min-height: 78px;
+      padding: 4px 0 0;
+      perspective: 820px;
     }
 
     .fake-card {
@@ -361,18 +384,84 @@
       box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24);
     }
 
-    .fake-card:nth-child(2) {
-      transform: translateX(-18px);
+    .fake-card + .fake-card {
+      margin-left: -24px;
     }
 
-    .bank-stack {
+    .table-center {
+      display: grid;
+      gap: 12px;
+    }
+
+    .decks-wrapper {
+      display: grid;
+      grid-template-columns: minmax(150px, 0.7fr) minmax(150px, 0.7fr) minmax(360px, 2.1fr) minmax(150px, 0.7fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .pile-card,
+    .graveyard-area {
+      min-width: 0;
+      min-height: 188px;
+      border-radius: 8px;
+      background: rgba(28, 37, 48, 0.96);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+
+    .pile-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .treasure-card {
+      border: 2px solid rgba(246, 194, 4, 0.78);
+      background:
+        radial-gradient(circle at 55% 34%, rgba(255, 204, 0, 0.18), transparent 38%),
+        rgba(28, 37, 48, 0.96);
+    }
+
+    button.treasure-card {
+      color: inherit;
+    }
+
+    .treasure-card:hover,
+    .treasure-card:focus-visible {
+      outline: 0;
+      border-color: var(--gold);
+      box-shadow: 0 0 18px rgba(255, 204, 0, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .asylum-card {
+      border: 2px solid var(--accent2);
+    }
+
+    .deck-card {
+      border: 2px solid var(--accent);
+    }
+
+    .pile-title {
+      margin: 0;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .treasure-stack {
       position: relative;
       width: 96px;
-      height: 96px;
-      margin: 0 auto 16px;
+      height: 88px;
+      margin: 0 auto;
     }
 
-    .bank-stack img {
+    .treasure-stack img {
       position: absolute;
       width: 58px;
       height: 58px;
@@ -380,62 +469,94 @@
       filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.38));
     }
 
-    .bank-stack img:nth-child(1) {
+    .treasure-stack img:nth-child(1) {
       left: 4px;
-      top: 32px;
+      top: 26px;
       transform: rotate(-15deg);
     }
 
-    .bank-stack img:nth-child(2) {
+    .treasure-stack img:nth-child(2) {
       left: 28px;
-      top: 16px;
+      top: 10px;
       transform: rotate(10deg);
     }
 
-    .bank-stack img:nth-child(3) {
+    .treasure-stack img:nth-child(3) {
       left: 46px;
-      top: 38px;
+      top: 32px;
       transform: rotate(24deg);
     }
 
-    .bank-title {
-      margin: 0;
-      font-size: 1.18rem;
+    .asylum-image-wrapper,
+    .deck-image-wrapper {
+      width: 72px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+    }
+
+    .asylum-image-wrapper img,
+    .deck-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .deck-image-wrapper img {
+      width: 58px;
+      height: 78px;
+      border-radius: 5px;
+      box-shadow: 0 9px 18px rgba(0, 0, 0, 0.24);
+    }
+
+    .pile-count {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.2;
       text-transform: uppercase;
     }
 
-    .bank-copy {
-      margin: 8px 0 0;
-      color: var(--muted);
-      font-size: 0.92rem;
-      line-height: 1.38;
+    .graveyard-area {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 16px 10px;
+      overflow: hidden;
+      border: 2px solid rgba(133, 154, 177, 0.42);
     }
 
-    .action-buttons {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+    .graveyard-area::before {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 64px;
+      height: 64px;
+      background-image: url('../assets/img/icons/skull.svg');
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      content: "";
+      opacity: 0.045;
+      transform: translate(-50%, -50%);
     }
 
-    .action-buttons button {
-      min-height: 48px;
-      border: 1px solid rgba(230, 238, 246, 0.2);
-      border-radius: 7px;
-      background: rgba(230, 238, 246, 0.08);
-      color: var(--text);
-      cursor: pointer;
+    .graveyard-label {
+      position: relative;
+      z-index: 1;
+      color: rgba(230, 238, 246, 0.34);
+      font-size: 12px;
       font-weight: 800;
-    }
-
-    .action-buttons button:hover {
-      border-color: var(--accent);
-      background: rgba(30, 144, 255, 0.15);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
     .coin-layer {
-      position: absolute;
+      position: fixed;
       inset: 0;
-      z-index: 20;
+      z-index: 80;
       pointer-events: none;
       overflow: hidden;
     }
@@ -460,18 +581,111 @@
       will-change: transform, opacity, filter;
     }
 
-    .coin-spark {
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.58);
+      backdrop-filter: blur(3px);
+    }
+
+    .modal-overlay.is-open {
+      display: flex;
+    }
+
+    .treasure-modal {
+      position: relative;
+      width: min(760px, 100%);
+      max-height: calc(100vh - 48px);
+      overflow: visible;
+      padding: 20px;
+      border: 1px solid rgba(30, 144, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(18, 30, 42, 0.98);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.48);
+    }
+
+    .close-btn {
       position: absolute;
-      left: var(--spark-x);
-      top: var(--spark-y);
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
-      background: var(--gold);
-      box-shadow: 0 0 16px rgba(255, 204, 0, 0.86);
-      opacity: 0;
-      animation: sparkPop 460ms ease-out forwards;
-      animation-delay: var(--spark-delay);
+      top: -10px;
+      right: -10px;
+      z-index: 1001;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 35px;
+      height: 35px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: var(--danger);
+      color: #fff;
+      font-size: 24px;
+      font-weight: bold;
+      line-height: 30px;
+      padding: 0;
+      text-align: center;
+    }
+
+    .modal-heading {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-heading .treasure-stack {
+      width: 84px;
+      height: 76px;
+    }
+
+    .modal-heading .treasure-stack img {
+      width: 50px;
+      height: 50px;
+    }
+
+    .modal-heading h2 {
+      margin: 0;
+      font-size: clamp(1.35rem, 3vw, 2rem);
+      text-transform: uppercase;
+    }
+
+    .modal-heading p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      margin-bottom: 0;
+    }
+
+    .modal-actions button {
+      min-height: 46px;
+      border: 1px solid rgba(30, 144, 255, 0.44);
+      border-radius: 7px;
+      background: rgba(30, 144, 255, 0.14);
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .modal-actions button.is-danger {
+      border-color: rgba(255, 64, 72, 0.5);
+      background: rgba(255, 64, 72, 0.14);
+    }
+
+    .modal-actions button:hover,
+    .modal-actions button:focus-visible {
+      border-color: var(--accent);
+      background: rgba(30, 144, 255, 0.24);
+      outline: 0;
     }
 
     @keyframes coinFly {
@@ -510,53 +724,9 @@
       }
     }
 
-    @keyframes counterPulse {
-      0% {
-        transform: scale(1);
-      }
-
-      38% {
-        transform: scale(1.12);
-      }
-
-      70% {
-        transform: scale(0.96);
-      }
-
-      100% {
-        transform: scale(1);
-      }
-    }
-
-    @keyframes deltaFloat {
-      0% {
-        opacity: 0;
-        transform: translateY(8px) scale(0.88);
-      }
-
-      24% {
-        opacity: 1;
-      }
-
-      100% {
-        opacity: 0;
-        transform: translateY(-16px) scale(1.04);
-      }
-    }
-
-    @keyframes sparkPop {
-      0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.2);
-      }
-
-      35% {
-        opacity: 1;
-      }
-
-      100% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(2.3);
+    @media (max-width: 1100px) {
+      .decks-wrapper {
+        grid-template-columns: minmax(130px, 0.75fr) minmax(130px, 0.75fr) minmax(260px, 1.6fr) minmax(130px, 0.75fr);
       }
     }
 
@@ -570,28 +740,105 @@
         max-height: none;
       }
 
-      .stage-header,
-      .table {
+      .stage-header {
+        flex-direction: column;
+      }
+
+      .metrics {
+        justify-content: flex-start;
+      }
+
+      .stage {
+        padding: 14px;
+      }
+
+      .player-grid {
         grid-template-columns: 1fr;
       }
 
-      .bank-panel,
-      .player-panel,
-      .action-panel {
-        grid-column: 1;
-        grid-row: auto;
+      .decks-wrapper {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
-      .action-buttons {
+      body.hide-religion .decks-wrapper {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .pile-card {
+        min-height: 120px;
+      }
+
+      .graveyard-area {
+        grid-column: 1 / -1;
+        order: -1;
+        min-height: 92px;
+      }
+
+      .treasure-stack {
+        width: 72px;
+        height: 62px;
+      }
+
+      .treasure-stack img {
+        width: 42px;
+        height: 42px;
+      }
+
+      .asylum-image-wrapper,
+      .deck-image-wrapper {
+        width: 54px;
+        height: 54px;
+      }
+
+      .deck-image-wrapper img {
+        width: 42px;
+        height: 58px;
+      }
+
+      .modal-actions {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
+    @media (max-width: 480px) {
+      .lab-shell {
+        padding: 10px;
+      }
+
+      .stage {
+        padding: 10px;
+      }
+
+      .decks-wrapper {
+        gap: 6px;
+      }
+
+      .pile-card {
+        min-height: 104px;
+        padding: 8px;
+      }
+
+      .pile-title {
+        font-size: 9px;
+      }
+
+      .player-area {
+        min-height: 144px;
+        padding: 10px;
+      }
+
+      .fake-card {
+        width: 54px;
+        height: 76px;
+      }
+
+      .modal-overlay {
+        padding: 16px 10px;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      .flying-coin,
-      .coin-counter.is-pulsing,
-      .coin-counter.is-pulsing .coin-delta,
-      .coin-spark {
+      .flying-coin {
         animation-duration: 1ms;
       }
     }
@@ -602,24 +849,31 @@
   <main class="lab-shell">
     <aside class="controls">
       <h1>Coin Counter Lab</h1>
-      <p>Laboratorio para testar a animacao de moedas entrando no contador do modo casual usando a textura real da moeda de ouro.</p>
+      <p>Laboratório para testar a animação de moedas, o Tesouro Central e o futuro modal de ações do modo casual.</p>
 
-      <section class="control-group" aria-label="Acoes rapidas">
+      <section class="control-group" aria-label="Ações rápidas">
         <div class="button-grid">
           <button type="button" data-action="income">Renda +1</button>
           <button type="button" data-action="foreign-aid">Ajuda +2</button>
           <button type="button" data-action="tax">Taxar +3</button>
-          <button type="button" data-action="steal">Extorsao +2</button>
-          <button type="button" data-action="coup">Golpe +7</button>
-          <button type="button" data-action="custom">Personalizado</button>
+          <button type="button" data-action="steal">Extorsão +2</button>
+          <button type="button" data-action="coup">Golpe -7</button>
+          <button type="button" data-action="assassination">Assassinato -3</button>
         </div>
-        <button class="primary-button" type="button" id="playCustom">Comprar moedas de prata</button>
+        <button class="primary-button" type="button" id="openTreasureModal">Abrir modal do Tesouro</button>
       </section>
 
-      <section class="control-group" aria-label="Configuracao da animacao">
+      <section class="control-group" aria-label="Estado da mesa">
+        <label class="switch-row" for="religionToggle">
+          Mostrar religião e Asilo
+          <input id="religionToggle" type="checkbox" checked>
+        </label>
+      </section>
+
+      <section class="control-group" aria-label="Configuração da animação">
         <div class="control-row">
           <label class="control-label" for="amountRange">
-            Quantidade
+            Quantidade personalizada
             <span class="control-value" id="amountValue">3</span>
           </label>
           <input id="amountRange" type="range" min="1" max="10" value="3">
@@ -627,7 +881,7 @@
 
         <div class="control-row">
           <label class="control-label" for="durationRange">
-            Duracao
+            Duração
             <span class="control-value" id="durationValue">720ms</span>
           </label>
           <input id="durationRange" type="range" min="360" max="1300" step="20" value="720">
@@ -651,7 +905,7 @@
 
         <div class="control-row">
           <label class="control-label" for="spreadRange">
-            Dispersao
+            Dispersão
             <span class="control-value" id="spreadValue">120px</span>
           </label>
           <input id="spreadRange" type="range" min="0" max="220" step="2" value="120">
@@ -675,11 +929,12 @@
       <header class="stage-header">
         <div>
           <h2>Teste de coleta de moedas</h2>
-          <p>Use os botoes ou ajuste os parametros. A ideia e validar a sensacao antes de aplicar no contador real.</p>
+          <p>Clique no Tesouro Central para testar o modal. Os contadores manuais continuam nos slots, como no casual.</p>
         </div>
         <div class="metrics">
+          <div class="metric">Jogador ativo<strong id="metricPlayer">Gabriel</strong></div>
           <div class="metric">Moedas atuais<strong id="metricCoins">2</strong></div>
-          <div class="metric">Ultimo ganho<strong id="metricGain">+0</strong></div>
+          <div class="metric">Última ação<strong id="metricGain">+0</strong></div>
         </div>
       </header>
 
@@ -687,49 +942,103 @@
         <div class="coin-layer" id="coinLayer" aria-hidden="true"></div>
 
         <div class="table">
-          <section class="player-panel">
-            <div class="player-head">
-              <div>
-                <h3 class="player-name">Gabriel Barbosa</h3>
-                <div class="player-state">Em jogo</div>
+          <section class="player-grid" aria-label="Jogadores de teste">
+            <article class="player-area is-selected" data-player-id="gabriel">
+              <div class="player-header">
+                <img class="player-avatar" src="../assets/img/icons/ghost.svg" alt="">
+                <h3 class="player-title">Gabriel Barbosa</h3>
+                <img class="religion-badge" src="../assets/img/cards/religion/catolico-quadrado.png" alt="">
               </div>
-              <div class="coin-counter" id="coinCounter">
-                <span class="coin-symbol" aria-hidden="true">$</span>
-                <span class="coin-value" id="coinValue">2</span>
-                <span class="coin-delta" id="coinDelta">+0</span>
+              <div class="points" data-counter="gabriel">
+                <button type="button" data-coin-adjust="-1" data-player-id="gabriel" aria-label="Remover moeda">-</button>
+                <span class="score" data-score>2</span>
+                <button type="button" data-coin-adjust="1" data-player-id="gabriel" aria-label="Adicionar moeda">+</button>
               </div>
-            </div>
-            <div class="cards-row" aria-hidden="true">
-              <div class="fake-card"></div>
-              <div class="fake-card"></div>
-            </div>
+              <div class="player-stack" aria-hidden="true">
+                <div class="fake-card"></div>
+                <div class="fake-card"></div>
+              </div>
+            </article>
+
+            <article class="player-area" data-player-id="bot">
+              <div class="player-header">
+                <img class="player-avatar" src="../assets/img/icons/ghost.svg" alt="">
+                <h3 class="player-title">Bot 1</h3>
+                <img class="religion-badge" src="../assets/img/cards/religion/protestante-quadrado.png" alt="">
+              </div>
+              <div class="points" data-counter="bot">
+                <button type="button" data-coin-adjust="-1" data-player-id="bot" aria-label="Remover moeda">-</button>
+                <span class="score" data-score>2</span>
+                <button type="button" data-coin-adjust="1" data-player-id="bot" aria-label="Adicionar moeda">+</button>
+              </div>
+              <div class="player-stack" aria-hidden="true">
+                <div class="fake-card"></div>
+                <div class="fake-card"></div>
+              </div>
+            </article>
           </section>
 
-          <aside class="bank-panel" id="bankPanel">
-            <div>
-              <div class="bank-stack" id="bankStack">
-                <img src="../assets/img/coins/moeda-prata.png" alt="">
-                <img src="../assets/img/coins/moeda-prata.png" alt="">
-                <img src="../assets/img/coins/moeda-ouro.png" alt="">
-              </div>
-              <h3 class="bank-title">Tesouro</h3>
-              <p class="bank-copy">As moedas saem daqui e entram no contador com atraso individual.</p>
-            </div>
-          </aside>
+          <section class="table-center" aria-label="Áreas centrais">
+            <div class="decks-wrapper">
+              <button class="pile-card treasure-card" id="treasurePanel" type="button">
+                <div class="treasure-stack" id="treasureStack" aria-hidden="true">
+                  <img src="../assets/img/coins/moeda-prata.png" alt="">
+                  <img src="../assets/img/coins/moeda-prata.png" alt="">
+                  <img src="../assets/img/coins/moeda-ouro.png" alt="">
+                </div>
+                <h3 class="pile-title">Tesouro Central</h3>
+              </button>
 
-          <section class="action-panel">
-            <div class="action-buttons">
-              <button type="button" data-action="income">Renda</button>
-              <button type="button" data-action="foreign-aid">Ajuda externa</button>
-              <button type="button" data-action="tax">Taxar</button>
-              <button type="button" data-action="steal">Extorsao</button>
-              <button type="button" data-action="coup">Golpe de Estado</button>
+              <article class="pile-card asylum-card">
+                <h3 class="pile-title">Asilo</h3>
+                <div class="asylum-image-wrapper">
+                  <img src="../assets/img/cards/religion/asilo.png" alt="">
+                </div>
+                <div class="pile-points">
+                  <button type="button" data-asylum-adjust="-1" aria-label="Remover moeda do Asilo">-</button>
+                  <span class="score" id="asylumScore">0</span>
+                  <button type="button" data-asylum-adjust="1" aria-label="Adicionar moeda ao Asilo">+</button>
+                </div>
+              </article>
+
+              <article class="graveyard-area">
+                <span class="graveyard-label">Cemitério</span>
+              </article>
+
+              <article class="pile-card deck-card">
+                <h3 class="pile-title">Baralho</h3>
+                <div class="deck-image-wrapper">
+                  <img src="../assets/img/cards/base/back.png" alt="">
+                </div>
+                <div class="pile-count">30 cartas</div>
+              </article>
             </div>
           </section>
         </div>
       </div>
     </section>
   </main>
+
+  <div class="modal-overlay" id="treasureModal" aria-hidden="true">
+    <section class="treasure-modal" role="dialog" aria-modal="true" aria-labelledby="treasureModalTitle">
+      <button class="close-btn" type="button" id="closeTreasureModal" aria-label="Fechar">&times;</button>
+
+      <header class="modal-heading">
+        <div>
+          <h2 id="treasureModalTitle">Tesouro Central</h2>
+        </div>
+      </header>
+
+      <div class="modal-actions">
+        <button type="button" data-action="income">Renda</button>
+        <button type="button" data-action="foreign-aid">Ajuda externa</button>
+        <button type="button" data-action="tax">Taxar</button>
+        <button type="button" data-action="steal">Extorsão</button>
+        <button class="is-danger" type="button" data-action="coup">Golpe de Estado</button>
+        <button class="is-danger" type="button" data-action="assassination">Assassinato</button>
+      </div>
+    </section>
+  </div>
 
   <script>
     const COIN_TEXTURES = {
@@ -738,7 +1047,12 @@
     };
 
     const state = {
-      coins: 2,
+      activePlayerId: 'gabriel',
+      players: {
+        gabriel: { name: 'Gabriel', coins: 2 },
+        bot: { name: 'Bot 1', coins: 2 }
+      },
+      asylumCoins: 0,
       lastGain: 0,
       amount: 3,
       duration: 720,
@@ -753,18 +1067,23 @@
       'foreign-aid': { value: 2, coins: ['silver', 'silver'] },
       tax: { value: 3, coins: ['silver', 'silver', 'silver'] },
       steal: { value: 2, coins: ['silver', 'silver'] },
-      coup: { value: 7, coins: ['silver', 'silver', 'gold'] }
+      coup: { value: -7, coins: ['silver', 'silver', 'gold'] },
+      assassination: { value: -3, coins: ['silver', 'silver', 'silver'] }
     };
 
     const els = {
       stage: document.getElementById('stage'),
       coinLayer: document.getElementById('coinLayer'),
-      coinCounter: document.getElementById('coinCounter'),
-      coinValue: document.getElementById('coinValue'),
-      coinDelta: document.getElementById('coinDelta'),
-      bankStack: document.getElementById('bankStack'),
+      treasureStack: document.getElementById('treasureStack'),
+      treasurePanel: document.getElementById('treasurePanel'),
+      treasureModal: document.getElementById('treasureModal'),
+      closeTreasureModal: document.getElementById('closeTreasureModal'),
+      openTreasureModal: document.getElementById('openTreasureModal'),
+      metricPlayer: document.getElementById('metricPlayer'),
       metricCoins: document.getElementById('metricCoins'),
       metricGain: document.getElementById('metricGain'),
+      asylumScore: document.getElementById('asylumScore'),
+      religionToggle: document.getElementById('religionToggle'),
       configOutput: document.getElementById('configOutput'),
       amountRange: document.getElementById('amountRange'),
       durationRange: document.getElementById('durationRange'),
@@ -804,24 +1123,55 @@
   spread: ${state.spread},
   silverSize: ${state.size},
   goldSize: ${state.size + 8},
+  source: 'central-treasury',
+  manualCounters: true,
+  modalActions: ['income', 'foreignAid', 'tax', 'steal', 'coup', 'assassination'],
   textures: {
     silver: 'assets/img/coins/moeda-prata.png',
     gold: 'assets/img/coins/moeda-ouro.png'
-  },
-  actions: {
-    income: { value: 1, coins: ['silver'] },
-    foreignAid: { value: 2, coins: ['silver', 'silver'] },
-    tax: { value: 3, coins: ['silver', 'silver', 'silver'] },
-    steal: { value: 2, coins: ['silver', 'silver'] },
-    coup: { value: 7, coins: ['silver', 'silver', 'gold'] }
   }
 };`;
     }
 
-    function updateCounter(value) {
-      state.coins = value;
-      els.coinValue.textContent = value;
-      els.metricCoins.textContent = value;
+    function getPlayerCounter(playerId) {
+      const boardCounter = document.querySelector(`[data-counter="${playerId}"]`);
+      return boardCounter;
+    }
+
+    function setActivePlayer(playerId) {
+      state.activePlayerId = playerId;
+      document.querySelectorAll('.player-area[data-player-id]').forEach((slot) => {
+        slot.classList.toggle('is-selected', slot.dataset.playerId === playerId);
+      });
+      updateMetrics();
+    }
+
+    function updateMetrics() {
+      const player = state.players[state.activePlayerId];
+      els.metricPlayer.textContent = player?.name || 'Jogador';
+      els.metricCoins.textContent = player?.coins ?? 0;
+    }
+
+    function renderScores(playerId) {
+      const player = state.players[playerId];
+      if (!player) return;
+
+      document.querySelectorAll(`[data-counter="${playerId}"] [data-score]`).forEach((score) => {
+        score.textContent = player.coins;
+      });
+
+      if (playerId === state.activePlayerId) updateMetrics();
+    }
+
+    function updatePlayerCoins(playerId, value) {
+      if (!state.players[playerId]) return;
+      state.players[playerId].coins = Math.max(0, value);
+      renderScores(playerId);
+    }
+
+    function adjustPlayerCoins(playerId, amount) {
+      if (!state.players[playerId]) return;
+      updatePlayerCoins(playerId, state.players[playerId].coins + amount);
     }
 
     function rectCenter(rect, containerRect) {
@@ -835,42 +1185,24 @@
       return min + Math.random() * (max - min);
     }
 
-    function animateCounterNumber(fromValue, toValue, totalDuration) {
+    function animateCounterNumber(playerId, fromValue, toValue, totalDuration) {
       const start = performance.now();
       const diff = toValue - fromValue;
 
       function tick(now) {
         const progress = Math.min((now - start) / totalDuration, 1);
         const eased = 1 - Math.pow(1 - progress, 3);
-        updateCounter(Math.round(fromValue + diff * eased));
+        updatePlayerCoins(playerId, Math.round(fromValue + diff * eased));
 
         if (progress < 1) {
           requestAnimationFrame(tick);
           return;
         }
 
-        updateCounter(toValue);
+        updatePlayerCoins(playerId, toValue);
       }
 
       requestAnimationFrame(tick);
-    }
-
-    function pulseCounter(amount) {
-      els.coinDelta.textContent = `+${amount}`;
-      els.coinCounter.classList.remove('is-pulsing', 'is-hot');
-      void els.coinCounter.offsetWidth;
-      els.coinCounter.classList.add('is-pulsing', 'is-hot');
-      window.setTimeout(() => els.coinCounter.classList.remove('is-hot'), 520);
-    }
-
-    function spawnSpark(x, y, delay) {
-      const spark = document.createElement('span');
-      spark.className = 'coin-spark';
-      spark.style.setProperty('--spark-x', `${x}px`);
-      spark.style.setProperty('--spark-y', `${y}px`);
-      spark.style.setProperty('--spark-delay', `${delay}ms`);
-      els.coinLayer.appendChild(spark);
-      spark.addEventListener('animationend', () => spark.remove(), { once: true });
     }
 
     function spawnCoin(start, end, index, coinType) {
@@ -913,7 +1245,11 @@
       return Array.from({ length: amount }, () => 'silver');
     }
 
-    function playCoinGain(payload) {
+    function playCoinGain(payload, options = {}) {
+      const playerId = options.playerId || state.activePlayerId;
+      const player = state.players[playerId];
+      if (!player) return;
+
       const coinSequence = Array.isArray(payload)
         ? payload
         : payload?.coins;
@@ -921,25 +1257,38 @@
         ? coinSequence
         : createSilverSequence(state.amount);
       const amount = Number.isFinite(payload?.value) ? payload.value : normalizedCoins.length;
-      const stageRect = els.stage.getBoundingClientRect();
-      const bankRect = els.bankStack.getBoundingClientRect();
-      const counterRect = els.coinCounter.getBoundingClientRect();
-      const start = rectCenter(bankRect, stageRect);
-      const end = rectCenter(counterRect, stageRect);
-      const oldValue = state.coins;
-      const newValue = oldValue + amount;
+      const sourceElement = els.treasureStack;
+      const targetCounter = getPlayerCounter(playerId);
+      if (!targetCounter) return;
+      const stageRect = els.coinLayer.getBoundingClientRect();
+      const sourceRect = sourceElement.getBoundingClientRect();
+      const counterRect = targetCounter.getBoundingClientRect();
+      const sourceCenter = rectCenter(sourceRect, stageRect);
+      const counterCenter = rectCenter(counterRect, stageRect);
+      const start = amount < 0 ? counterCenter : sourceCenter;
+      const end = amount < 0 ? sourceCenter : counterCenter;
+      const oldValue = player.coins;
+      const newValue = Math.max(0, oldValue + amount);
       let lastDelay = 0;
 
       state.lastGain = amount;
-      els.metricGain.textContent = `+${amount}`;
+      els.metricGain.textContent = amount >= 0 ? `+${amount}` : `${amount}`;
 
       normalizedCoins.forEach((coinType, index) => {
         lastDelay = spawnCoin(start, end, index, coinType);
       });
 
-      spawnSpark(end.x, end.y, lastDelay + state.duration - 120);
-      window.setTimeout(() => pulseCounter(amount), Math.max(0, lastDelay + state.duration - 170));
-      animateCounterNumber(oldValue, newValue, Math.max(320, lastDelay + state.duration));
+      animateCounterNumber(playerId, oldValue, newValue, Math.max(320, lastDelay + state.duration));
+    }
+
+    function openTreasureModal() {
+      els.treasureModal.classList.add('is-open');
+      els.treasureModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeTreasureModal() {
+      els.treasureModal.classList.remove('is-open');
+      els.treasureModal.setAttribute('aria-hidden', 'true');
     }
 
     function bindRange(input, key) {
@@ -963,11 +1312,48 @@
       });
     });
 
-    document.getElementById('playCustom').addEventListener('click', () => {
-      playCoinGain(createSilverSequence(state.amount));
+    document.querySelectorAll('.player-area[data-player-id]').forEach((slot) => {
+      slot.addEventListener('click', (event) => {
+        if (event.target.closest('[data-coin-adjust]')) return;
+        setActivePlayer(slot.dataset.playerId);
+      });
+    });
+
+    document.querySelectorAll('[data-coin-adjust]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const amount = Number(button.dataset.coinAdjust);
+        const playerId = button.dataset.playerId;
+        setActivePlayer(playerId);
+        adjustPlayerCoins(playerId, amount);
+      });
+    });
+
+    document.querySelectorAll('[data-asylum-adjust]').forEach((button) => {
+      button.addEventListener('click', () => {
+        state.asylumCoins = Math.max(0, state.asylumCoins + Number(button.dataset.asylumAdjust));
+        els.asylumScore.textContent = state.asylumCoins;
+      });
+    });
+
+    els.religionToggle.addEventListener('change', () => {
+      document.body.classList.toggle('hide-religion', !els.religionToggle.checked);
+    });
+
+    els.treasurePanel.addEventListener('click', openTreasureModal);
+    els.openTreasureModal.addEventListener('click', openTreasureModal);
+    els.closeTreasureModal.addEventListener('click', closeTreasureModal);
+    els.treasureModal.addEventListener('click', (event) => {
+      if (event.target === els.treasureModal) closeTreasureModal();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeTreasureModal();
     });
 
     syncControls();
+    renderScores('gabriel');
+    renderScores('bot');
+    updateMetrics();
   </script>
 </body>
 
