@@ -1,9 +1,10 @@
-const CACHE_NAME = 'coup-master-pwa-v126';
+const CACHE_NAME = 'coup-master-pwa-v129';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '::1', '[::1]'];
 const IS_LOCALHOST = LOCAL_HOSTNAMES.includes(new URL(self.location.href).hostname);
 
 const APP_SHELL = [
   './',
+  './landing.html',
   './login.html',
   './lobby.html',
   './legal/privacy.html',
@@ -49,6 +50,10 @@ const APP_SHELL = [
   './assets/img/logo/logo-coup-master-transparente.png',
   './assets/img/icons/google.svg',
   './assets/img/icons/logout.svg',
+  './assets/img/icons/home.svg',
+  './assets/img/icons/discord.svg',
+  './assets/img/icons/trophy.svg',
+  './assets/img/icons/translate.svg',
   './assets/img/icons/cached.svg',
   './assets/img/icons/chat.svg',
   './assets/img/icons/music_note.svg',

@@ -657,17 +657,24 @@ h2 {
         left: 10px;
     }
 
+    .landing-return-floating-btn {
+        top: 10px;
+        left: 58px;
+    }
+
     .login-page .language-floating {
         top: 10px;
         right: 10px;
     }
 
+    .landing-return-floating-btn,
     .logout-floating-btn,
     .language-floating-toggle {
         width: 40px;
         height: 40px;
     }
 
+    .landing-return-floating-btn img,
     .logout-floating-btn img,
     .language-floating-toggle img {
         width: 21px;
@@ -1249,6 +1256,7 @@ button {
     line-height: 1.35;
 }
 
+.landing-return-floating-btn,
 .discord-floating-btn,
 .leaderboard-floating-btn {
     display: inline-flex;
@@ -1269,11 +1277,28 @@ button {
     text-decoration: none;
 }
 
+.landing-return-floating-btn {
+    position: fixed;
+    top: 18px;
+    left: 70px;
+    z-index: 30;
+    text-decoration: none;
+}
+
+.landing-return-floating-btn img,
 .discord-floating-btn img,
 .leaderboard-floating-btn img {
     width: 23px;
     height: 23px;
     opacity: 0.92;
+}
+
+.landing-return-floating-btn:hover,
+.landing-return-floating-btn:focus-visible {
+    border-color: rgba(30, 144, 255, 0.78);
+    background: rgba(35, 42, 51, 1);
+    outline: 0;
+    transform: translateY(-1px);
 }
 
 .discord-floating-btn:hover,
@@ -1493,6 +1518,12 @@ button {
         flex-direction: column;
     }
 
+    .landing-return-floating-btn {
+        top: 10px;
+        left: 58px;
+    }
+
+    .landing-return-floating-btn,
     .discord-floating-btn,
     .leaderboard-floating-btn,
     .language-floating-toggle {
@@ -1500,6 +1531,7 @@ button {
         height: 40px;
     }
 
+    .landing-return-floating-btn img,
     .discord-floating-btn img,
     .leaderboard-floating-btn img,
     .language-floating-toggle img {
@@ -1531,6 +1563,7 @@ button {
 }
 
 @media (max-width: 360px) {
+    .landing-return-floating-btn,
     .discord-floating-btn,
     .leaderboard-floating-btn,
     .language-floating-toggle {
