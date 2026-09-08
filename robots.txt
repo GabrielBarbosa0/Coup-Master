@@ -13,7 +13,7 @@ Allow: /login.html
 Allow: /lobby.html
 Allow: /legal/privacy.html
 Allow: /legal/terms.html
-Allow: /img/
+Allow: /assets/img/
 
 # Indica o caminho do mapa do site para o Google
-Sitemap: https://gabrielbarbosa0.github.io/Coup-Master/sitemap.xml
+Sitemap: https://coupmaster.com.br/sitemap.xml

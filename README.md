@@ -16,7 +16,7 @@ O sistema é sincronizado em tempo real via Firebase Realtime Database, utilizan
 com foco em escalabilidade e consistência de estado.
 
 
-🔗 **Jogue agora:** [https://gabrielbarbosa0.github.io/Coup-Master](https://gabrielbarbosa0.github.io/Coup-Master)
+🔗 **Jogue agora:** [https://coupmaster.com.br](https://coupmaster.com.br)
 
 ---
 

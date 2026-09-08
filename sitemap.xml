@@ -3,50 +3,42 @@
     xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
     <url>
-        <loc>https://gabrielbarbosa0.github.io/Coup-Master/</loc>
-        <lastmod>2026-03-25</lastmod>
+        <loc>https://coupmaster.com.br/</loc>
+        <lastmod>2026-09-08</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
         <image:image>
-            <image:loc>https://gabrielbarbosa0.github.io/Coup-Master/img/asilo.png</image:loc>
-            <image:title>Coup Master - Tabuleiro de Jogo</image:title>
+            <image:loc>https://coupmaster.com.br/assets/img/logo/logo-coup-master.png</image:loc>
+            <image:title>Coup Master - Jogue Coup Online</image:title>
         </image:image>
     </url>
 
     <url>
-        <loc>https://gabrielbarbosa0.github.io/Coup-Master/lobby.html</loc>
-        <lastmod>2026-03-25</lastmod>
+        <loc>https://coupmaster.com.br/lobby.html</loc>
+        <lastmod>2026-09-08</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
 
     <url>
-        <loc>https://gabrielbarbosa0.github.io/Coup-Master/login.html</loc>
-        <lastmod>2026-06-25</lastmod>
+        <loc>https://coupmaster.com.br/login.html</loc>
+        <lastmod>2026-09-08</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
 
     <url>
-        <loc>https://gabrielbarbosa0.github.io/Coup-Master/legal/privacy.html</loc>
-        <lastmod>2026-07-03</lastmod>
+        <loc>https://coupmaster.com.br/legal/privacy.html</loc>
+        <lastmod>2026-09-08</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.4</priority>
     </url>
 
     <url>
-        <loc>https://gabrielbarbosa0.github.io/Coup-Master/legal/terms.html</loc>
-        <lastmod>2026-07-03</lastmod>
+        <loc>https://coupmaster.com.br/legal/terms.html</loc>
+        <lastmod>2026-09-08</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.4</priority>
-    </url>
-
-    <url>
-        <loc>https://gabrielbarbosa0.github.io/Coup-Master/img/dlc3-actions.jpg</loc>
-        <image:image>
-            <image:loc>https://gabrielbarbosa0.github.io/Coup-Master/img/dlc3-actions.jpg</image:loc>
-            <image:title>Regras DLC Lei e Desordem - Coup Master</image:title>
-        </image:image>
     </url>
 
 </urlset>
