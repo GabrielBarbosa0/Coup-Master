@@ -76,11 +76,25 @@
         return value;
     }
 
+    function resolveTranslationKey(path) {
+        const text = String(path || '');
+        if (!text.startsWith('cm:')) return text;
+
+        try {
+            const payload = text.slice(3).replace(/-/g, '+').replace(/_/g, '/');
+            const paddedPayload = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+            return root.atob(paddedPayload);
+        } catch (error) {
+            return text;
+        }
+    }
+
     function getValue(path, language = currentLanguage) {
-        const currentValue = getNestedValue(dictionaries[language], path);
+        const resolvedPath = resolveTranslationKey(path);
+        const currentValue = getNestedValue(dictionaries[language], resolvedPath);
         if (currentValue !== undefined) return currentValue;
 
-        const fallbackValue = getNestedValue(dictionaries[DEFAULT_LANGUAGE], path);
+        const fallbackValue = getNestedValue(dictionaries[DEFAULT_LANGUAGE], resolvedPath);
         if (fallbackValue !== undefined) return fallbackValue;
 
         return undefined;

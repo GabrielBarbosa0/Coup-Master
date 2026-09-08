@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-i18n-title="login.title">
+<html lang="pt-BR">
 
 <head>
     <meta charset="utf-8" />
@@ -17,10 +17,10 @@
 
     <meta name="description"
         content="Faça login no Coup Master com Google ou entre como visitante para jogar Coup online com amigos."
-        data-i18n-content="login.metaDescription">
+       >
     <meta name="keywords"
         content="coup online, login coup master, jogar coup com amigos, coup multiplayer, coup visitante"
-        data-i18n-content="login.metaKeywords">
+       >
     <meta name="author" content="Gabriel Barbosa">
     <meta name="theme-color" content="#14171e">
     <meta name="mobile-web-app-capable" content="yes">
@@ -30,9 +30,9 @@
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://coupmaster.com.br/login.html">
-    <meta property="og:title" content="Entrar no Coup Master" data-i18n-content="login.ogTitle">
+    <meta property="og:title" content="Entrar no Coup Master">
     <meta property="og:description" content="Entre com Google ou como visitante para jogar Coup online."
-        data-i18n-content="login.ogDescription">
+       >
     <meta property="og:image" content="https://coupmaster.com.br/assets/img/logo/logo-coup-master.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,15 +55,15 @@
 
     <details class="language-floating">
         <summary class="language-floating-toggle" aria-label="Idioma" title="Idioma"
-            data-i18n-aria-label="language.label" data-i18n-title="language.label">
+            data-i18n-aria-label="cm:bGFuZ3VhZ2UubGFiZWw">
             <img src="assets/img/icons/translate.svg" alt="" aria-hidden="true">
         </summary>
         <div class="language-floating-panel">
             <div class="language-switcher">
-                <label for="languageSelectLogin" data-i18n="language.label">Idioma</label>
+                <label for="languageSelectLogin" data-i18n="cm:bGFuZ3VhZ2UubGFiZWw">Idioma</label>
                 <select id="languageSelectLogin" data-language-select>
-                    <option value="pt-BR" data-i18n="language.portuguese">Português</option>
-                    <option value="en-US" data-i18n="language.english">English</option>
+                    <option value="pt-BR" data-i18n="cm:bGFuZ3VhZ2UucG9ydHVndWVzZQ">Português</option>
+                    <option value="en-US" data-i18n="cm:bGFuZ3VhZ2UuZW5nbGlzaA">English</option>
                 </select>
             </div>
         </div>
@@ -71,20 +71,20 @@
 
     <main class="lobby-box auth-box">
         <h1>Coup Master</h1>
-        <p class="auth-subtitle" data-i18n="login.subtitle">Entre para criar ou acessar uma sala.</p>
+        <p class="auth-subtitle" data-i18n="cm:bG9naW4uc3VidGl0bGU">Entre para criar ou acessar uma sala.</p>
 
         <div class="auth-actions">
             <button id="google-login-btn" class="auth-btn google-auth-btn" disabled>
                 <img src="assets/img/icons/google.svg" alt="G" class="google-icon">
-                <span data-i18n="login.google">Entrar com Google</span>
+                <span data-i18n="cm:bG9naW4uZ29vZ2xl">Entrar com Google</span>
             </button>
 
             <button id="anonymous-login-btn" class="auth-btn anonymous-auth-btn" disabled>
-                <span data-i18n="login.guest">Entrar como visitante</span>
+                <span data-i18n="cm:bG9naW4uZ3Vlc3Q">Entrar como visitante</span>
             </button>
 
             <button id="installPwaBtn" class="auth-btn install-auth-btn" hidden>
-                <span data-i18n="login.install">Instalar Coup Master</span>
+                <span data-i18n="cm:bG9naW4uaW5zdGFsbA">Instalar Coup Master</span>
             </button>
         </div>
     </main>
@@ -92,21 +92,21 @@
     <div id="errorModal" class="modal-overlay" style="display: none;">
         <div class="modal-content"
             style="max-width: 300px; text-align: center; background: var(--panel); border: 1px solid #ffffff1a;">
-            <h2 style="margin-top: 0; color: #ffffff;" data-i18n="common.attention">Atenção</h2>
-            <p id="errorModalText" style="margin-bottom: 25px; font-size: 14px; color: #e6eef6cc;" data-i18n="login.defaultError">Erro ao fazer login.</p>
+            <h2 style="margin-top: 0; color: #ffffff;" data-i18n="cm:Y29tbW9uLmF0dGVudGlvbg">Atenção</h2>
+            <p id="errorModalText" style="margin-bottom: 25px; font-size: 14px; color: #e6eef6cc;" data-i18n="cm:bG9naW4uZGVmYXVsdEVycm9y">Erro ao fazer login.</p>
             <button id="closeErrorModalBtn"
-                style="background: #1e90ff; color: white; border: 0; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; font-family: 'Cinzel', serif;" data-i18n="common.ok">OK</button>
+                style="background: #1e90ff; color: white; border: 0; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; font-family: 'Cinzel', serif;" data-i18n="cm:Y29tbW9uLm9r">OK</button>
         </div>
     </div>
 
-    <footer class="legal-footer" aria-label="Documentos legais" data-i18n-aria-label="common.legalDocuments">
+    <footer class="legal-footer" aria-label="Documentos legais" data-i18n-aria-label="cm:Y29tbW9uLmxlZ2FsRG9jdW1lbnRz">
         <a class="legal-footer-link" href="legal/privacy.html">
             <img src="assets/img/icons/parchment.svg" alt="" aria-hidden="true">
-            <span data-i18n="common.privacy">Privacidade</span>
+            <span data-i18n="cm:Y29tbW9uLnByaXZhY3k">Privacidade</span>
         </a>
         <a class="legal-footer-link" href="legal/terms.html">
             <img src="assets/img/icons/gavel.svg" alt="" aria-hidden="true">
-            <span data-i18n="common.terms">Termos</span>
+            <span data-i18n="cm:Y29tbW9uLnRlcm1z">Termos</span>
         </a>
     </footer>
 
@@ -114,7 +114,7 @@
 
     <div id="font-loader" class="loader-overlay">
         <div class="loader-content">
-            <p id="loader-message" data-i18n="login.sessionLoading"><span data-loading-lang="pt-BR">Verificando sessão...</span><span data-loading-lang="en-US">Checking session...</span></p>
+            <p id="loader-message" data-i18n="cm:bG9naW4uc2Vzc2lvbkxvYWRpbmc"><span data-loading-lang="pt-BR">Verificando sessão...</span><span data-loading-lang="en-US">Checking session...</span></p>
         </div>
     </div>
 
