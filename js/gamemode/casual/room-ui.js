@@ -18,14 +18,89 @@
     root.CoupModal?.close(target);
   }
 
+  function getPlayerName() {
+    return root.currentUser?.displayName
+      || root.currentUser?.email
+      || document.getElementById('user-name')?.textContent?.trim()
+      || 'Visitante';
+  }
+
+  function getRoomCode() {
+    const searchRoom = new URLSearchParams(root.location.search).get('room');
+    return root.roomCode || searchRoom || sessionStorage.getItem('currentRoomCode') || '';
+  }
+
+  function setFeedbackStatus(message, type = '') {
+    const status = getElement('feedbackStatus');
+    if (!status) return;
+
+    status.textContent = message || '';
+    status.classList.toggle('is-success', type === 'success');
+    status.classList.toggle('is-error', type === 'error');
+  }
+
+  function fillFeedbackMetadata() {
+    const fields = {
+      feedbackPage: root.location.href,
+      feedbackRoom: getRoomCode(),
+      feedbackPlayer: getPlayerName(),
+      feedbackDate: new Date().toISOString()
+    };
+
+    Object.entries(fields).forEach(([id, value]) => {
+      const input = getElement(id);
+      if (input) input.value = value;
+    });
+  }
+
+  async function submitFeedbackForm(form) {
+    const submitButton = form.querySelector('[type="submit"]');
+    const originalLabel = submitButton?.textContent || 'Enviar';
+
+    fillFeedbackMetadata();
+    setFeedbackStatus('Enviando feedback...');
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Enviando...';
+    }
+
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json'
+        },
+        body: new FormData(form)
+      });
+
+      if (!response.ok) throw new Error(`Formspark returned ${response.status}`);
+
+      form.reset();
+      setFeedbackStatus('Feedback enviado. Obrigado por ajudar o Coup Master!', 'success');
+      playSound('success');
+    } catch (error) {
+      console.error('Erro ao enviar feedback:', error);
+      setFeedbackStatus('Nao foi possivel enviar agora. Tente novamente em instantes.', 'error');
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  }
+
   function setupFeedbackModal() {
     const feedbackModal = getElement('feedbackModal');
     const openFeedbackBtn = getElement('openFeedbackBtn');
     const closeFeedbackBtn = getElement('closeFeedbackBtn');
+    const cancelFeedbackBtn = getElement('cancelFeedbackBtn');
+    const feedbackForm = getElement('feedbackForm');
 
     if (openFeedbackBtn && feedbackModal) {
       openFeedbackBtn.onclick = () => {
         playSound('click');
+        fillFeedbackMetadata();
+        setFeedbackStatus('');
         openModal(feedbackModal);
         closeModal('settingsModal');
       };
@@ -36,6 +111,20 @@
         playSound('click');
         closeModal(feedbackModal);
       };
+    }
+
+    if (cancelFeedbackBtn) {
+      cancelFeedbackBtn.onclick = () => {
+        playSound('click');
+        closeModal(feedbackModal);
+      };
+    }
+
+    if (feedbackForm) {
+      feedbackForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        submitFeedbackForm(feedbackForm);
+      });
     }
   }
 

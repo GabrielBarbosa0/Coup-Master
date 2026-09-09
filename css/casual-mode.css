@@ -448,65 +448,181 @@ h2 {
        ======================================================= */
 
 
-/* Container do Modal de Feedback */
-#feedbackModal .modal-actions-and-rules {
-    background: #171d26 !important; /* Fundo para combinar com o Tally Dark */
-    border: 2px solid var(--accent);
-    border-radius: 15px;
-    padding: 0;
+.feedback-form-modal {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    /* REMOVEMOS o overflow: hidden para o botão aparecer fora */
+    width: min(380px, calc(100vw - 28px));
+    max-width: 380px;
+    max-height: calc(100dvh - 28px);
     overflow: visible;
+    border: 1px solid rgba(30, 144, 255, 0.72);
+    background: linear-gradient(180deg, rgba(34, 44, 57, 0.98), rgba(25, 34, 45, 0.98));
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55), 0 0 32px rgba(30, 144, 255, 0.14);
+    box-sizing: border-box;
 }
 
-/* Garante que o iframe respeite o arredondamento das bordas */
-#feedbackModal iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    border-radius: 13px;
-    /* Um pouco menor que o container para encaixar */
-    display: block;
-    background-color: #14171e !important; /* Blindagem contra o fundo branco */
+.feedback-form-modal .close-btn {
+    top: -10px;
+    right: -10px;
+    z-index: 1020;
+    width: 35px;
+    height: 35px;
+    font-size: 24px;
+    line-height: 1;
 }
 
-/* Botão de Fechar flutuando fora (Igual às cartas de regra) */
-#feedbackModal .close-btn {
-    position: absolute;
-    /* Valores negativos jogam o botão para fora da div azul */
-    top: -15px;
-    right: -15px;
-    z-index: 1010;
-    /* Estilos extras para garantir visibilidade */
-    background: var(--bg);
-    border: 2px solid var(--accent);
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: white;
+.feedback-form-header {
+    margin-bottom: 18px;
 }
 
-/* Estilização da Scrollbar para o Iframe (WebKit) */
-/* Nota: Como o iframe é um documento externo, a barra de rolagem principal 
-   deve ser tratada no container se o iframe for maior que o modal */
-#feedbackModal .modal-actions-and-rules::-webkit-scrollbar {
+.feedback-form-header .config-title {
+    margin: 4px 0 8px;
+    text-align: left;
+}
+
+.feedback-form-header .config-p-title {
+    margin: 0;
+    color: rgba(230, 238, 246, 0.72);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.modal-eyebrow {
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.feedback-form {
+    display: grid;
+    gap: 14px;
+    max-height: calc(100dvh - 218px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+    scrollbar-width: thin;
+}
+
+.feedback-form::-webkit-scrollbar {
     width: 6px;
 }
 
-#feedbackModal .modal-actions-and-rules::-webkit-scrollbar-track {
+.feedback-form::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
 }
 
-#feedbackModal .modal-actions-and-rules::-webkit-scrollbar-thumb {
+.feedback-form::-webkit-scrollbar-thumb {
     background: var(--accent);
     border-radius: 10px;
+}
+
+.feedback-field {
+    display: grid;
+    gap: 7px;
+    color: var(--text);
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.feedback-field input,
+.feedback-field select,
+.feedback-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid rgba(133, 154, 177, 0.36);
+    border-radius: 8px;
+    background: rgba(17, 27, 38, 0.96);
+    color: var(--text);
+    font: 600 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    outline: 0;
+}
+
+.feedback-field input,
+.feedback-field select {
+    min-height: 42px;
+    padding: 0 12px;
+}
+
+.feedback-field textarea {
+    min-height: 128px;
+    resize: vertical;
+    padding: 12px;
+    line-height: 1.45;
+}
+
+.feedback-field input::placeholder,
+.feedback-field textarea::placeholder {
+    color: rgba(230, 238, 246, 0.42);
+}
+
+.feedback-field input:focus,
+.feedback-field select:focus,
+.feedback-field textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.18);
+}
+
+.feedback-status {
+    min-height: 18px;
+    margin: 0;
+    color: rgba(230, 238, 246, 0.72);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.feedback-status.is-success {
+    color: #6ee7a8;
+}
+
+.feedback-status.is-error {
+    color: #ff8a8a;
+}
+
+.feedback-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.feedback-actions .icon-btn {
+    width: min(156px, calc((100% - 10px) / 2));
+    min-width: 0;
+    min-height: 42px;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: 700;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+}
+
+.feedback-submit-btn {
+    background: #232a33;
+    border-color: rgba(30, 144, 255, 0.62);
+    color: #fff;
+}
+
+.feedback-secondary-btn {
+    background: #232a33;
+}
+
+.feedback-actions .icon-btn:hover {
+    background: #2c3540;
+}
+
+.feedback-submit-btn:focus,
+.feedback-submit-btn:active {
+    border-color: rgba(30, 144, 255, 0.95);
+    box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.25), 0 0 12px rgba(30, 144, 255, 0.2);
+    outline: 0;
+}
+
+.feedback-submit-btn:hover {
+    background: #2c3540;
+    border-color: rgba(30, 144, 255, 0.9);
 }
 
 
@@ -1371,17 +1487,22 @@ h2 {
     top: -10px;
     right: -10px;
     z-index: 1001;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: #fff;
     background: #ff3b3b;
     border: 2px solid white;
     border-radius: 50%;
     width: 35px;
     height: 35px;
+    padding: 0;
     font-size: 24px;
     font-weight: bold;
     cursor: pointer;
-    line-height: 30px;
+    line-height: 1;
     text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .close-btn:hover {

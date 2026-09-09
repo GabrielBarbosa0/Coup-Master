@@ -63,6 +63,21 @@
     refreshSamsungDragMode();
   }
 
+  function refreshTableLayoutAfterVisibilityChange() {
+    const scheduleLayout = root.CoupVisualEffects?.scheduleCardFanLayout || root.scheduleCardFanLayout;
+    const updateLayout = root.CoupVisualEffects?.updateAllCardFans;
+
+    if (typeof scheduleLayout === 'function') {
+      scheduleLayout();
+      requestAnimationFrame(scheduleLayout);
+      return;
+    }
+
+    if (typeof updateLayout === 'function') {
+      requestAnimationFrame(updateLayout);
+    }
+  }
+
   function applyReligionVisibility(shouldHide) {
     const body = document.body;
     const toggleReligionButton = document.getElementById('toggleReligionBtn');
@@ -73,6 +88,7 @@
     if (label) label.textContent = shouldHide ? t('casual.invisible', {}, 'Invisível') : t('casual.visible', {}, 'Visível');
 
     writeLocalBoolean(HIDE_RELIGION_STORAGE_KEY, shouldHide);
+    refreshTableLayoutAfterVisibilityChange();
   }
 
   function setupReligionVisibilityPreference(options = {}) {

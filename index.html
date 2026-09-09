@@ -54,7 +54,7 @@
 
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
-  <link rel="stylesheet" href="css/casual-mode.css?v=dynamic-guides-v3">
+  <link rel="stylesheet" href="css/casual-mode.css?v=formspark-feedback-v7">
   <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
   <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
   <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
@@ -601,10 +601,49 @@
   </div>
 
   <div id="feedbackModal" class="modal-overlay" style="display: none;">
-    <div class="modal-actions-and-rules" style="width: 90%; max-width: 600px; height: 80vh;">
+    <div class="modal-content feedback-form-modal">
       <button id="closeFeedbackBtn" class="close-btn" aria-label="Fechar">&times;</button>
-      <iframe src="https://tally.so/r/obV4Gb?transparentBackground=1" width="100%" height="100%" frameborder="0"
-        marginheight="0" marginwidth="0" allowtransparency="true" title="Coup Master Feedback"></iframe>
+      <div class="feedback-form-header">
+        <span class="modal-eyebrow">Coup Master</span>
+        <h2 class="config-title">Feedback & Sugestões</h2>
+        <p class="config-p-title">Conte o que aconteceu ou mande uma ideia para melhorar o jogo.</p>
+      </div>
+      <form id="feedbackForm" class="feedback-form" action="https://submit-form.com/YEc6RM4hj" method="POST">
+        <input type="hidden" name="_redirect" value="https://coupmaster.com.br/">
+        <input type="hidden" name="origem" value="Coup Master">
+        <input type="hidden" name="pagina" id="feedbackPage">
+        <input type="hidden" name="sala" id="feedbackRoom">
+        <input type="hidden" name="jogador" id="feedbackPlayer">
+        <input type="hidden" name="data" id="feedbackDate">
+
+        <label class="feedback-field">
+          <span>Tipo de feedback</span>
+          <select name="tipo" required>
+            <option value="Bug">Bug</option>
+            <option value="Sugestão de carta">Sugestão de carta</option>
+            <option value="Sugestão geral">Sugestão geral</option>
+            <option value="Problema visual">Problema visual</option>
+            <option value="Problema de conexão">Problema de conexão</option>
+          </select>
+        </label>
+
+        <label class="feedback-field">
+          <span>O que aconteceu ou qual sua ideia?</span>
+          <textarea name="mensagem" rows="6" maxlength="1200" placeholder="Descreva aqui..." required></textarea>
+        </label>
+
+        <label class="feedback-field">
+          <span>Seu e-mail, se quiser retorno</span>
+          <input type="email" name="email" placeholder="voce@email.com">
+        </label>
+
+        <p id="feedbackStatus" class="feedback-status" aria-live="polite"></p>
+
+        <div class="feedback-actions">
+          <button type="button" class="icon-btn feedback-secondary-btn" id="cancelFeedbackBtn">Cancelar</button>
+          <button type="submit" class="icon-btn feedback-submit-btn">Enviar</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -862,8 +901,8 @@
   <script src="js/gamemode/casual/rules-guides.js?v=dynamic-guides-v7" defer></script>
   <script src="js/gamemode/casual/spectator-service.js?v=casual-spectator-service-v1" defer></script>
   <script src="js/gamemode/casual/quick-actions.js?v=casual-quick-actions-v1" defer></script>
-  <script src="js/gamemode/casual/settings-service.js?v=casual-settings-service-v1" defer></script>
-  <script src="js/gamemode/casual/room-ui.js?v=casual-room-ui-v1" defer></script>
+  <script src="js/gamemode/casual/settings-service.js?v=casual-settings-service-v2" defer></script>
+  <script src="js/gamemode/casual/room-ui.js?v=formspark-feedback-v1" defer></script>
   <script src="js/gamemode/casual/asylum-controls.js?v=casual-asylum-controls-v1" defer></script>
   <script src="js/gamemode/casual/tutorial-service.js?v=casual-tutorial-service-v1" defer></script>
   <script src="js/gamemode/casual/deck-presets.js?v=casual-deck-presets-v1" defer></script>
