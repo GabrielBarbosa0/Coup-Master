@@ -1,7 +1,15 @@
 (function setInitialCoupLanguage(root) {
+    const OFFICIAL_ORIGIN = 'https://coupmaster.com.br';
+    const LEGACY_HOSTNAME = 'gabrielbarbosa0.github.io';
     const STORAGE_KEY = 'coupMasterLanguage';
     const DEFAULT_LANGUAGE = 'pt-BR';
     const SUPPORTED_LANGUAGES = ['pt-BR', 'en-US'];
+
+    if (root.location?.hostname === LEGACY_HOSTNAME) {
+        const officialPath = root.location.pathname.replace(/^\/Coup-Master\/?/i, '/') || '/';
+        root.location.replace(`${OFFICIAL_ORIGIN}${officialPath}${root.location.search}${root.location.hash}`);
+        return;
+    }
 
     function normalizeLanguage(language) {
         if (SUPPORTED_LANGUAGES.includes(language)) return language;
