@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alternative Rules Translation Lab - Coup Master</title>
+  <link rel="icon" href="../assets/img/logo/favicon-coup-master-circulo.png?v=custom-logo-v2" type="image/png">
+  <style>
+    @font-face {
+      font-family: "Harlean";
+      src: url("../assets/fonts/Harlean-Exfont908e.otf") format("opentype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "AGaramond";
+      src: url("../assets/fonts/AGaramond-Regular-Exfontab8d.otf") format("opentype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "AGaramond";
+      src: url("../assets/fonts/AGaramond-Semibold-Exfonta037.otf") format("opentype");
+      font-weight: 700;
+      font-display: swap;
+    }
+
+    :root {
+      --bg: #060d14;
+      --panel: #101d29;
+      --panel-2: #152536;
+      --line: rgba(227, 238, 250, 0.16);
+      --line-strong: rgba(46, 167, 255, 0.44);
+      --text: #f4ead8;
+      --muted: #aab9c8;
+      --accent: #2ea7ff;
+      --gold: #f2bd52;
+      --danger: #ff4048;
+      --guide-ink: #111111;
+      --rule-title: #0b9caf;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: AGaramond, Georgia, "Times New Roman", serif;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.026) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+        linear-gradient(145deg, #06101a 0%, #10283a 48%, #111217 100%);
+      background-size: 42px 42px, 42px 42px, auto;
+      overflow-x: hidden;
+    }
+
+    button,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .lab-shell {
+      display: grid;
+      grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+      gap: 18px;
+      width: min(1280px, calc(100% - 28px));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 18px 0;
+    }
+
+    .control-panel,
+    .preview-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(7, 16, 26, 0.78);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(10px);
+    }
+
+    .control-panel {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      max-height: calc(100dvh - 36px);
+      overflow: auto;
+      padding: 16px;
+      scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+      scrollbar-width: thin;
+    }
+
+    .control-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .control-panel::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+
+    .control-panel::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 10px;
+    }
+
+    .lab-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .lab-title {
+      margin: 0;
+      color: #ffffff;
+      font-family: "Harlean", AGaramond, serif;
+      font-size: clamp(1.95rem, 5vw, 2.7rem);
+      font-weight: 400;
+      line-height: 0.92;
+    }
+
+    .lab-subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.4;
+    }
+
+    .lab-back {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--text);
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.06);
+      font-weight: 700;
+    }
+
+    .control-row,
+    .main-actions {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .control-row label,
+    .section-label {
+      color: rgba(244, 234, 216, 0.72);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .control-row select {
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 10px;
+      border: 1px solid rgba(227, 238, 250, 0.16);
+      border-radius: var(--radius);
+      background: rgba(12, 22, 32, 0.96);
+      color: var(--text);
+      outline: none;
+    }
+
+    .control-row select:focus-visible {
+      border-color: var(--accent);
+      outline: 0;
+      box-shadow: 0 0 0 2px rgba(46, 167, 255, 0.16);
+    }
+
+    .spacing-controls {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px solid rgba(46, 167, 255, 0.2);
+      border-radius: var(--radius);
+      background: rgba(12, 22, 32, 0.74);
+    }
+
+    .range-control {
+      display: grid;
+      gap: 8px;
+    }
+
+    .range-control-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .range-control label {
+      color: rgba(244, 234, 216, 0.72);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .range-control output {
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .range-control input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .language-buttons,
+    .main-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .action-btn,
+    .language-btn,
+    .page-chip-list button {
+      min-height: 40px;
+      border: 1px solid rgba(227, 238, 250, 0.16);
+      border-radius: var(--radius);
+      background: rgba(21, 37, 54, 0.9);
+      color: var(--text);
+      font-weight: 700;
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .action-btn:hover,
+    .action-btn:focus-visible,
+    .language-btn:hover,
+    .language-btn:focus-visible,
+    .page-chip-list button:hover,
+    .page-chip-list button:focus-visible {
+      border-color: var(--accent);
+      background: rgba(46, 167, 255, 0.14);
+      outline: 0;
+      transform: translateY(-1px);
+    }
+
+    .action-btn.primary,
+    .language-btn.is-active {
+      border-color: rgba(242, 189, 82, 0.68);
+      background: var(--gold);
+      color: #17130a;
+    }
+
+    .status-card {
+      display: grid;
+      gap: 9px;
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px solid rgba(46, 167, 255, 0.2);
+      border-radius: var(--radius);
+      background: rgba(46, 167, 255, 0.065);
+    }
+
+    .status-card strong {
+      color: #ffffff;
+      font-size: 1.02rem;
+    }
+
+    .status-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.38;
+    }
+
+    .page-chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .page-chip-list button {
+      display: block;
+      min-height: 32px;
+      padding: 5px 9px;
+      color: rgba(244, 234, 216, 0.82);
+      font-size: 0.86rem;
+    }
+
+    .page-chip-list button.is-active {
+      border-color: rgba(46, 167, 255, 0.58);
+      background: rgba(46, 167, 255, 0.16);
+      color: #ffffff;
+    }
+
+    .preview-panel {
+      min-height: calc(100dvh - 36px);
+      overflow: hidden;
+    }
+
+    .preview-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 48px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(7, 16, 26, 0.72);
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .stage {
+      position: relative;
+      display: grid;
+      min-height: calc(100dvh - 84px);
+      place-items: center;
+      padding: 28px;
+      overflow: hidden;
+    }
+
+    .stage::before {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 48%, rgba(46, 167, 255, 0.12), transparent 34%),
+        radial-gradient(circle at 50% 80%, rgba(0, 0, 0, 0.3), transparent 34%);
+      content: "";
+      pointer-events: none;
+    }
+
+    .guide-preview-frame {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: min(520px, 88vw, calc((100dvh - 126px) * 0.6886));
+      aspect-ratio: 1886 / 2739;
+      filter: drop-shadow(0 26px 38px rgba(0, 0, 0, 0.42));
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.72);
+      padding: 14px;
+    }
+
+    .modal-overlay.is-open {
+      display: flex;
+    }
+
+    .modal-actions-and-rules {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      max-width: calc(100vw - 28px);
+      max-height: calc(100dvh - 28px);
+      padding: 20px;
+      border-radius: 10px;
+      perspective: 1000px;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      z-index: 1010;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      background: var(--danger);
+      color: #ffffff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1;
+      text-align: center;
+      transform: translateZ(60px);
+    }
+
+    .close-btn:hover {
+      background: #ff5555;
+    }
+
+    .flip-card {
+      position: relative;
+      width: min(430px, 86vw, calc((100dvh - 86px) * 0.6886));
+      aspect-ratio: 1886 / 2739;
+      background-color: transparent;
+      perspective: 1000px;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 720ms cubic-bezier(0.2, 0.76, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+
+    .flip-card.is-flipped .flip-card-inner {
+      transform: rotateY(-180deg);
+    }
+
+    .flip-card-front,
+    .flip-card-back {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      border-radius: 20px;
+      backface-visibility: hidden;
+    }
+
+    .flip-card-back {
+      transform: rotateY(-180deg);
+    }
+
+    .carousel-button {
+      position: absolute;
+      top: 50%;
+      z-index: 1010;
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 1px solid rgba(227, 238, 250, 0.24);
+      border-radius: 50%;
+      background: rgba(16, 29, 41, 0.92);
+      color: #ffffff;
+      font-size: 28px;
+      line-height: 1;
+      transform: translateY(-50%) translateZ(60px);
+    }
+
+    .carousel-button:hover,
+    .carousel-button:focus-visible {
+      border-color: var(--accent);
+      outline: 0;
+    }
+
+    .carousel-button.prev {
+      left: -56px;
+    }
+
+    .carousel-button.next {
+      right: -56px;
+    }
+
+    .carousel-footer {
+      position: absolute;
+      left: 50%;
+      bottom: -42px;
+      z-index: 1010;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: rgba(244, 234, 216, 0.84);
+      font-size: 0.9rem;
+      font-weight: 700;
+      transform: translateX(-50%) translateZ(60px);
+      white-space: nowrap;
+    }
+
+    .guide-page {
+      position: relative;
+      container-type: inline-size;
+      --guide-title-size: 9cqw;
+      --guide-intro-size: 4cqw;
+      --guide-title-intro-gap: 3.3cqw;
+      --guide-header-list-gap: 2.1cqw;
+      --guide-rule-size: 4.52cqw;
+      --guide-rule-gap: 3.2%;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: inherit;
+      color: var(--guide-ink);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),
+        url("../assets/img/guides/clean.png") center / cover no-repeat,
+        #ffffff;
+    }
+
+    .guide-inner {
+      position: absolute;
+      inset: 4.5% 6% 4.9%;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: var(--guide-header-list-gap);
+    }
+
+    .guide-header {
+      display: grid;
+      gap: var(--guide-title-intro-gap);
+      align-content: start;
+    }
+
+    .guide-title {
+      margin: 0;
+      color: #050505;
+      font-family: "Harlean", AGaramond, serif;
+      font-size: var(--guide-title-size);
+      font-weight: 400;
+      line-height: 0.94;
+      text-align: center;
+    }
+
+    .guide-intro {
+      width: 72%;
+      margin: 0 auto;
+      color: #111111;
+      font-size: var(--guide-intro-size);
+      font-weight: 400;
+      line-height: 1.28;
+      text-align: center;
+    }
+
+    .rule-list {
+      display: grid;
+      gap: var(--guide-rule-gap);
+      align-content: start;
+      min-height: 0;
+      padding: 2.2% 4.8% 0;
+    }
+
+    .rule-entry {
+      margin: 0;
+      color: #111111;
+      font-size: var(--guide-rule-size);
+      font-weight: 400;
+      line-height: 1.18;
+      text-align: justify;
+      text-align-last: left;
+    }
+
+    .rule-entry strong {
+      color: var(--rule-title);
+      font-size: 1.04em;
+      font-weight: 700;
+    }
+
+    .guide-page[data-page="1"] {
+      --guide-rule-gap: 3.7%;
+    }
+
+    .guide-page[data-page="2"],
+    .guide-page[data-page="5"] {
+      --guide-rule-size: 4.25cqw;
+      --guide-rule-gap: 2.6%;
+    }
+
+    .guide-page[data-page="3"],
+    .guide-page[data-page="4"] {
+      --guide-rule-size: 4.42cqw;
+      --guide-rule-gap: 3.1%;
+    }
+
+    @media (max-width: 980px) {
+      .lab-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .control-panel {
+        position: relative;
+        top: auto;
+        max-height: none;
+      }
+
+      .preview-panel,
+      .stage {
+        min-height: 620px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .stage {
+        padding: 20px 12px 32px;
+      }
+
+      .guide-preview-frame {
+        width: min(360px, 86vw, calc((100dvh - 134px) * 0.6886));
+      }
+
+      .modal-actions-and-rules {
+        padding: 12px;
+      }
+
+      .carousel-button {
+        top: auto;
+        bottom: -54px;
+        transform: translateZ(60px);
+      }
+
+      .carousel-button.prev {
+        left: 22%;
+      }
+
+      .carousel-button.next {
+        right: 22%;
+      }
+
+      .carousel-footer {
+        bottom: -94px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="lab-shell">
+    <aside class="control-panel" aria-label="Controles do laboratório">
+      <header class="lab-header">
+        <div>
+          <h1 class="lab-title">Tradução das Regras</h1>
+          <p class="lab-subtitle">Lab simples para revisar as regras alternativas no template limpo.</p>
+        </div>
+        <a class="lab-back" href="guide-generator-lab.html">Guia</a>
+      </header>
+
+      <div class="control-row">
+        <label for="languageSelect">Idioma</label>
+        <select id="languageSelect">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+
+      <div class="control-row">
+        <span class="section-label">Troca rápida</span>
+        <div class="language-buttons">
+          <button class="language-btn is-active" type="button" data-language="pt">Português</button>
+          <button class="language-btn" type="button" data-language="en">English</button>
+        </div>
+      </div>
+
+      <div class="control-row">
+        <label for="pageSelect">Página</label>
+        <select id="pageSelect"></select>
+      </div>
+
+      <section class="spacing-controls" aria-label="Espaçamento do cabeçalho">
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="titleIntroGapRange">Título / subtítulo</label>
+            <output id="titleIntroGapValue" for="titleIntroGapRange">3.3 cqw</output>
+          </div>
+          <input id="titleIntroGapRange" type="range" min="0" max="8" step="0.1" value="3.3">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="headerListGapRange">Cabeçalho / regras</label>
+            <output id="headerListGapValue" for="headerListGapRange">2.1 cqw</output>
+          </div>
+          <input id="headerListGapRange" type="range" min="0" max="8" step="0.1" value="2.1">
+        </div>
+      </section>
+
+      <div class="main-actions">
+        <button id="openGuideModalBtn" class="action-btn primary" type="button">Abrir modal</button>
+        <button id="nextInlinePageBtn" class="action-btn" type="button">Próxima página</button>
+      </div>
+
+      <section class="status-card" aria-live="polite">
+        <strong id="ruleSummary">27 regras alternativas</strong>
+        <p id="sourceSummary">Fonte textual: docs/regras/regras-alternativas.md</p>
+        <ul id="pageChipList" class="page-chip-list"></ul>
+      </section>
+    </aside>
+
+    <section class="preview-panel" aria-label="Preview das regras alternativas">
+      <div class="preview-topbar">
+        <span id="previewPageLabel">Página 1</span>
+        <span id="previewLanguageLabel">Português</span>
+      </div>
+      <div class="stage">
+        <div id="inlinePreview" class="guide-preview-frame"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="guideModal" class="modal-overlay" aria-modal="true" role="dialog" aria-label="Regras alternativas traduzidas">
+    <div class="modal-actions-and-rules">
+      <button id="closeGuideModalBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+      <button id="prevPageBtn" class="carousel-button prev" type="button" aria-label="Página anterior">&lsaquo;</button>
+      <div id="flipCard" class="flip-card">
+        <div class="flip-card-inner">
+          <div id="frontFace" class="flip-card-front"></div>
+          <div id="backFace" class="flip-card-back"></div>
+        </div>
+      </div>
+      <button id="nextPageBtn" class="carousel-button next" type="button" aria-label="Próxima página">&rsaquo;</button>
+      <div id="carouselFooter" class="carousel-footer">1 / 5</div>
+    </div>
+  </div>
+
+  <script>
+    const COPY = {
+      pt: {
+        languageLabel: "Português",
+        pageLabel: "Página",
+        openModal: "Abrir modal",
+        nextPage: "Próxima página",
+        previousPage: "Página anterior",
+        close: "Fechar",
+        modalLabel: "Regras alternativas traduzidas",
+        title: "Regras Alternativas",
+        intro: "Selecione até 5 regras alternativas para uma partida mais imprevisível",
+        summary: "27 regras alternativas",
+        source: "Fonte textual: docs/regras/regras-alternativas.md",
+        rules: {
+          "justica-lenta": {
+            title: "Justiça Lenta",
+            description: "Os golpes só podem ser dados com 10 moedas, ao invés de 7, sendo obrigatório com 15 moedas."
+          },
+          "falso-duque": {
+            title: "Falso Duque",
+            description: "Haverá apenas 1 Duque no baralho."
+          },
+          "assassino-declarado": {
+            title: "Assassino Declarado",
+            description: "Para o assassinato ter sucesso, o assassino deve adivinhar a última influência do alvo. Se errar, perde as moedas e o alvo compra uma nova carta."
+          },
+          "sangue-frio": {
+            title: "Sangue Frio",
+            description: "Após um assassinato bem-sucedido, o assassino ganha 2 moedas de recompensa."
+          },
+          "ladrao-de-tumulos": {
+            title: "Ladrão de Túmulos",
+            description: "Poderá pagar 4 moedas para trocar uma carta da mão com uma revelada na mesa."
+          },
+          "ultima-palavra": {
+            title: "Última Palavra",
+            description: "Quando for eliminado, você pode escolher um jogador para perder 2 moedas imediatamente."
+          },
+          "recompensa": {
+            title: "Recompensa",
+            description: "Elimine um jogador com mais de 7 moedas e ganhe 2 moedas de recompensa por golpe, contestação, assassinato ou execução bruta."
+          },
+          "espolio": {
+            title: "Espólio",
+            description: "Quando alguém é eliminado, suas moedas são divididas entre os jogadores restantes em partes iguais. Caso sobre, devolva para o banco."
+          },
+          "votos-do-senado": {
+            title: "Votos do Senado",
+            description: "Golpes de Estado precisam de aprovação da maioria dos jogadores vivos."
+          },
+          "mercado-negro": {
+            title: "Mercado Negro",
+            description: "Poderá pagar 2 moedas para trocar uma carta da mão com uma do baralho."
+          },
+          "golpe-magno": {
+            title: "Golpe Magno",
+            description: "Quando um jogador atingir 15 moedas, todos perdem 1 influência."
+          },
+          "soberania-absoluta": {
+            title: "Soberania Absoluta",
+            description: "Se possuir 2 Condessas, você pode bloquear qualquer ação contra si. Pode blefar, mas se for contestado e mentir, será eliminado. Se conseguir, deve trocar ambas as cartas."
+          },
+          "contrabando": {
+            title: "Contrabando",
+            description: "Você pode sacrificar uma influência sua para ganhar 10 moedas automaticamente."
+          },
+          "panico-economico": {
+            title: "Pânico Econômico",
+            description: "Quando alguém acumular mais de 8 moedas, todos os jogadores recebem 1 moeda automaticamente."
+          },
+          "camara": {
+            title: "Câmara",
+            description: "Todos vão receber 4 influências, e escolhem duas para ficar e duas para colocar no baralho."
+          },
+          "corrupcao": {
+            title: "Corrupção",
+            description: "No início do jogo, receba duas cartas e selecione uma para manter e outra para descartar. Em seguida, sua segunda carta será sorteada aleatoriamente."
+          },
+          "o-trio-falso": {
+            title: "O Trio Falso",
+            description: "Em vez de 2 cartas, começa com 3, porém com 2 vidas apenas."
+          },
+          "figura-publica": {
+            title: "Figura Pública",
+            description: "Um personagem é revelado na mesa, só existirá ele no jogo e o uso dele é público, todos podem usar."
+          },
+          "chantagem": {
+            title: "Chantagem",
+            description: "Ao gastar 7 moedas você poderá roubar uma influência de um jogador e pegar para você, porém você deverá dar uma de suas cartas para ele. Pode ser bloqueado pelo Embaixador, Inquisidor e Bufão."
+          },
+          "imprensa": {
+            title: "Imprensa",
+            description: "Gaste 4 moedas para revelar uma carta de outro jogador para todos à sua escolha, porém o jogador afetado ganha 2 moedas."
+          },
+          "favor-da-coroa": {
+            title: "Favor da Coroa",
+            description: "Quando for alvo de uma ação, você pode pagar 3 moedas para bloqueá-la. Exceto Golpe de Estado."
+          },
+          "inversao-de-poder": {
+            title: "Inversão de Poder",
+            description: "Pague 3 moedas e mude a direção dos turnos."
+          },
+          "espionagem": {
+            title: "Espionagem",
+            description: "Uma vez por turno, você pode pagar 2 moedas para olhar secretamente uma influência de qualquer jogador."
+          },
+          "sorte-do-destino": {
+            title: "Sorte do Destino",
+            description: "Sempre que um jogador perder uma influência, ele compra uma carta do topo do baralho. Pode ficar com ela ou devolvê-la ao fundo do baralho."
+          },
+          "conselho-de-emergencia": {
+            title: "Conselho de Emergência",
+            description: "Quando um jogador atingir 10 moedas, todos os jogadores vivos recebem 2 moedas."
+          },
+          "herdeiro-do-trono": {
+            title: "Herdeiro do Trono",
+            description: "Quando um jogador for eliminado, o responsável pela eliminação recebe imediatamente 3 moedas."
+          },
+          "golpe-declarado": {
+            title: "Golpe Declarado",
+            description: "Para o Golpe de Estado ter sucesso, o jogador deve adivinhar a última influência do alvo. Se errar, perde as moedas e o alvo compra uma nova carta."
+          }
+        }
+      },
+      en: {
+        languageLabel: "English",
+        pageLabel: "Page",
+        openModal: "Open modal",
+        nextPage: "Next page",
+        previousPage: "Previous page",
+        close: "Close",
+        modalLabel: "Translated alternative rules",
+        title: "Alternative Rules",
+        intro: "Select up to 5 alternative rules for a more unpredictable match",
+        summary: "27 alternative rules",
+        source: "Text source: docs/regras/regras-alternativas.md",
+        rules: {
+          "justica-lenta": {
+            title: "Slow Justice",
+            description: "Coups can only be made with 10 coins instead of 7, and become mandatory with 15 coins."
+          },
+          "falso-duque": {
+            title: "False Duke",
+            description: "There will be only 1 Duke in the deck."
+          },
+          "assassino-declarado": {
+            title: "Declared Assassin",
+            description: "For an assassination to succeed, the Assassin must guess the target's last influence. If they are wrong, they lose the coins and the target draws a new card."
+          },
+          "sangue-frio": {
+            title: "Cold Blood",
+            description: "After a successful assassination, the Assassin gains a 2-coin reward."
+          },
+          "ladrao-de-tumulos": {
+            title: "Grave Robber",
+            description: "You may pay 4 coins to exchange a card from your hand with a revealed card on the table."
+          },
+          "ultima-palavra": {
+            title: "Last Word",
+            description: "When eliminated, you may choose a player to lose 2 coins immediately."
+          },
+          "recompensa": {
+            title: "Reward",
+            description: "Eliminate a player with more than 7 coins and gain a 2-coin reward through coup, challenge, assassination, or brutal execution."
+          },
+          "espolio": {
+            title: "Spoils",
+            description: "When someone is eliminated, their coins are divided equally among the remaining players. If any coins remain, return them to the bank."
+          },
+          "votos-do-senado": {
+            title: "Senate Votes",
+            description: "Coups require approval from the majority of living players."
+          },
+          "mercado-negro": {
+            title: "Black Market",
+            description: "You may pay 2 coins to exchange a card from your hand with one from the deck."
+          },
+          "golpe-magno": {
+            title: "Grand Coup",
+            description: "When a player reaches 15 coins, everyone loses 1 influence."
+          },
+          "soberania-absoluta": {
+            title: "Absolute Sovereignty",
+            description: "If you have 2 Contessas, you may block any action against yourself. You may bluff, but if challenged while lying, you are eliminated. If you prove it, you must exchange both cards."
+          },
+          "contrabando": {
+            title: "Smuggling",
+            description: "You may sacrifice one of your own influences to gain 10 coins automatically."
+          },
+          "panico-economico": {
+            title: "Economic Panic",
+            description: "When someone accumulates more than 8 coins, all players automatically receive 1 coin."
+          },
+          "camara": {
+            title: "Chamber",
+            description: "Everyone receives 4 influences and chooses two to keep and two to return to the deck."
+          },
+          "corrupcao": {
+            title: "Corruption",
+            description: "At the start of the game, receive two cards and choose one to keep and one to discard. Then your second card is drawn randomly."
+          },
+          "o-trio-falso": {
+            title: "The False Trio",
+            description: "Instead of starting with 2 cards, each player starts with 3, but still has only 2 lives."
+          },
+          "figura-publica": {
+            title: "Public Figure",
+            description: "A character is revealed on the table. Only that character exists in the game and its use is public, so everyone may use it."
+          },
+          "chantagem": {
+            title: "Blackmail",
+            description: "By spending 7 coins, you may steal an influence from another player and take it for yourself, but you must give that player one of your cards. It can be blocked by the Ambassador, Inquisitor, and Jester."
+          },
+          "imprensa": {
+            title: "Press",
+            description: "Spend 4 coins to reveal a card from another player of your choice to everyone, but the affected player gains 2 coins."
+          },
+          "favor-da-coroa": {
+            title: "Crown's Favor",
+            description: "When targeted by an action, you may pay 3 coins to block it. This does not block a Coup."
+          },
+          "inversao-de-poder": {
+            title: "Power Shift",
+            description: "Pay 3 coins and change the direction of turns."
+          },
+          "espionagem": {
+            title: "Espionage",
+            description: "Once per turn, you may pay 2 coins to secretly look at any player's influence."
+          },
+          "sorte-do-destino": {
+            title: "Luck of Fate",
+            description: "Whenever a player loses an influence, they draw a card from the top of the deck. They may keep it or return it to the bottom of the deck."
+          },
+          "conselho-de-emergencia": {
+            title: "Emergency Council",
+            description: "When a player reaches 10 coins, all living players receive 2 coins."
+          },
+          "herdeiro-do-trono": {
+            title: "Heir to the Throne",
+            description: "When a player is eliminated, the player responsible for the elimination immediately receives 3 coins."
+          },
+          "golpe-declarado": {
+            title: "Declared Coup",
+            description: "For a Coup to succeed, the player must guess the target's last influence. If they are wrong, they lose the coins and the target draws a new card."
+          }
+        }
+      }
+    };
+
+    const PAGE_RULES = [
+      ["justica-lenta", "falso-duque", "assassino-declarado", "sangue-frio", "ladrao-de-tumulos"],
+      ["ultima-palavra", "recompensa", "espolio", "votos-do-senado", "mercado-negro", "golpe-magno"],
+      ["soberania-absoluta", "contrabando", "panico-economico", "camara", "corrupcao"],
+      ["o-trio-falso", "figura-publica", "chantagem", "imprensa", "favor-da-coroa"],
+      ["inversao-de-poder", "espionagem", "sorte-do-destino", "conselho-de-emergencia", "herdeiro-do-trono", "golpe-declarado"]
+    ];
+
+    let currentLanguage = "pt";
+    let currentPage = 0;
+    let visibleFace = "front";
+    let isAnimating = false;
+    let guideSpacing = {
+      titleIntroGap: 3.3,
+      headerListGap: 2.1
+    };
+
+    const languageSelect = document.getElementById("languageSelect");
+    const pageSelect = document.getElementById("pageSelect");
+    const spacingControls = {
+      titleIntroGap: {
+        input: document.getElementById("titleIntroGapRange"),
+        output: document.getElementById("titleIntroGapValue")
+      },
+      headerListGap: {
+        input: document.getElementById("headerListGapRange"),
+        output: document.getElementById("headerListGapValue")
+      }
+    };
+    const inlinePreview = document.getElementById("inlinePreview");
+    const previewPageLabel = document.getElementById("previewPageLabel");
+    const previewLanguageLabel = document.getElementById("previewLanguageLabel");
+    const ruleSummary = document.getElementById("ruleSummary");
+    const sourceSummary = document.getElementById("sourceSummary");
+    const pageChipList = document.getElementById("pageChipList");
+    const guideModal = document.getElementById("guideModal");
+    const flipCard = document.getElementById("flipCard");
+    const frontFace = document.getElementById("frontFace");
+    const backFace = document.getElementById("backFace");
+    const carouselFooter = document.getElementById("carouselFooter");
+
+    function getCopy() {
+      return COPY[currentLanguage];
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function getPageLabel(index) {
+      return `${getCopy().pageLabel} ${index + 1}`;
+    }
+
+    function formatGapCss(value) {
+      return `${Number(value).toFixed(1)}cqw`;
+    }
+
+    function formatGapLabel(value) {
+      return `${Number(value).toFixed(1)} cqw`;
+    }
+
+    function getGuideSpacingStyle() {
+      return [
+        `--guide-title-intro-gap: ${formatGapCss(guideSpacing.titleIntroGap)}`,
+        `--guide-header-list-gap: ${formatGapCss(guideSpacing.headerListGap)}`
+      ].join("; ");
+    }
+
+    function updateSpacingOutputs() {
+      Object.entries(spacingControls).forEach(([key, control]) => {
+        control.output.textContent = formatGapLabel(guideSpacing[key]);
+      });
+    }
+
+    function updateGuideSpacing(key, value) {
+      guideSpacing[key] = Number(value);
+      renderInlinePreview();
+      renderCurrentFace();
+      updateSpacingOutputs();
+    }
+
+    function renderRule(ruleId) {
+      const rule = getCopy().rules[ruleId];
+      return `
+        <p class="rule-entry">
+          <strong>${escapeHtml(rule.title)}:</strong>
+          ${escapeHtml(rule.description)}
+        </p>`;
+    }
+
+    function renderGuidePage(pageIndex) {
+      const copy = getCopy();
+      const intro = pageIndex === 0
+        ? `<p class="guide-intro">${escapeHtml(copy.intro)}</p>`
+        : "";
+
+      return `
+        <article class="guide-page" data-page="${pageIndex + 1}" style="${getGuideSpacingStyle()}">
+          <div class="guide-inner">
+            <header class="guide-header">
+              <h2 class="guide-title">${escapeHtml(copy.title)}</h2>
+              ${intro}
+            </header>
+            <div class="rule-list">
+              ${PAGE_RULES[pageIndex].map(renderRule).join("")}
+            </div>
+          </div>
+        </article>`;
+    }
+
+    function renderInlinePreview() {
+      inlinePreview.innerHTML = renderGuidePage(currentPage);
+    }
+
+    function renderCurrentFace() {
+      getVisibleFace().innerHTML = renderGuidePage(currentPage);
+    }
+
+    function getVisibleFace() {
+      return visibleFace === "front" ? frontFace : backFace;
+    }
+
+    function getHiddenFace() {
+      return visibleFace === "front" ? backFace : frontFace;
+    }
+
+    function clampPage(page) {
+      return (page + PAGE_RULES.length) % PAGE_RULES.length;
+    }
+
+    function updateUi() {
+      pageSelect.value = String(currentPage);
+      previewPageLabel.textContent = getPageLabel(currentPage);
+      previewLanguageLabel.textContent = getCopy().languageLabel;
+      ruleSummary.textContent = getCopy().summary;
+      sourceSummary.textContent = getCopy().source;
+      carouselFooter.textContent = `${currentPage + 1} / ${PAGE_RULES.length}`;
+      document.getElementById("openGuideModalBtn").textContent = getCopy().openModal;
+      document.getElementById("nextInlinePageBtn").textContent = getCopy().nextPage;
+      document.getElementById("closeGuideModalBtn").setAttribute("aria-label", getCopy().close);
+      document.getElementById("prevPageBtn").setAttribute("aria-label", getCopy().previousPage);
+      document.getElementById("nextPageBtn").setAttribute("aria-label", getCopy().nextPage);
+      guideModal.setAttribute("aria-label", getCopy().modalLabel);
+
+      document.querySelectorAll(".language-btn").forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.language === currentLanguage);
+      });
+
+      pageChipList.replaceChildren(...PAGE_RULES.map((rules, index) => {
+        const item = document.createElement("li");
+        const button = document.createElement("button");
+        const firstRule = getCopy().rules[rules[0]];
+
+        button.type = "button";
+        button.dataset.page = String(index);
+        button.classList.toggle("is-active", index === currentPage);
+        button.textContent = `${index + 1}. ${firstRule.title}`;
+
+        item.append(button);
+        return item;
+      }));
+    }
+
+    function goToPage(page) {
+      const nextPage = clampPage(page);
+      if (isAnimating || nextPage === currentPage) {
+        currentPage = nextPage;
+        renderInlinePreview();
+        renderCurrentFace();
+        updateUi();
+        return;
+      }
+
+      currentPage = nextPage;
+      renderInlinePreview();
+      updateUi();
+
+      if (!guideModal.classList.contains("is-open")) {
+        renderCurrentFace();
+        return;
+      }
+
+      isAnimating = true;
+      getHiddenFace().innerHTML = renderGuidePage(currentPage);
+      flipCard.classList.toggle("is-flipped");
+
+      window.setTimeout(() => {
+        visibleFace = visibleFace === "front" ? "back" : "front";
+        updateUi();
+        isAnimating = false;
+      }, 740);
+    }
+
+    function setLanguage(language) {
+      currentLanguage = language;
+      languageSelect.value = language;
+      populatePageSelect();
+      renderInlinePreview();
+      renderCurrentFace();
+      updateUi();
+    }
+
+    function populatePageSelect() {
+      pageSelect.replaceChildren(...PAGE_RULES.map((rules, index) => {
+        const option = document.createElement("option");
+        option.value = String(index);
+        option.textContent = `${getPageLabel(index)} - ${getCopy().rules[rules[0]].title}`;
+        return option;
+      }));
+    }
+
+    function openGuideModal() {
+      renderCurrentFace();
+      guideModal.classList.add("is-open");
+    }
+
+    function closeGuideModal() {
+      guideModal.classList.remove("is-open");
+    }
+
+    function bindEvents() {
+      languageSelect.addEventListener("change", () => setLanguage(languageSelect.value));
+
+      document.querySelectorAll(".language-btn").forEach((button) => {
+        button.addEventListener("click", () => setLanguage(button.dataset.language));
+      });
+
+      pageSelect.addEventListener("change", () => goToPage(Number(pageSelect.value)));
+      pageChipList.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-page]");
+        if (button) goToPage(Number(button.dataset.page));
+      });
+
+      Object.entries(spacingControls).forEach(([key, control]) => {
+        control.input.addEventListener("input", () => updateGuideSpacing(key, control.input.value));
+      });
+
+      document.getElementById("openGuideModalBtn").addEventListener("click", openGuideModal);
+      document.getElementById("nextInlinePageBtn").addEventListener("click", () => goToPage(currentPage + 1));
+      document.getElementById("closeGuideModalBtn").addEventListener("click", closeGuideModal);
+      document.getElementById("prevPageBtn").addEventListener("click", () => goToPage(currentPage - 1));
+      document.getElementById("nextPageBtn").addEventListener("click", () => goToPage(currentPage + 1));
+      flipCard.addEventListener("click", () => goToPage(currentPage + 1));
+
+      guideModal.addEventListener("click", (event) => {
+        if (event.target === guideModal) closeGuideModal();
+      });
+
+      window.addEventListener("keydown", (event) => {
+        if (!guideModal.classList.contains("is-open")) return;
+        if (event.key === "Escape") closeGuideModal();
+        if (event.key === "ArrowLeft") goToPage(currentPage - 1);
+        if (event.key === "ArrowRight") goToPage(currentPage + 1);
+      });
+    }
+
+    populatePageSelect();
+    bindEvents();
+    renderInlinePreview();
+    renderCurrentFace();
+    updateSpacingOutputs();
+    updateUi();
+  </script>
+</body>
+
+</html>
