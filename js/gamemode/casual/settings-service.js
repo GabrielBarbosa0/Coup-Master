@@ -112,6 +112,16 @@
 
   function setupSamsungDragPreference(options = {}) {
     const toggleSamsungDragButton = document.getElementById(options.buttonId || 'toggleSamsungDragBtn');
+    const canToggleCompatibility = root.CoupAccessControl?.hasPermission(
+      root.CoupAccessControl.PERMISSIONS.CASUAL_TOGGLE_COMPATIBILITY
+    ) === true;
+
+    if (!canToggleCompatibility) {
+      setSamsungDragMode(true);
+      if (toggleSamsungDragButton) toggleSamsungDragButton.onclick = null;
+      return;
+    }
+
     updateSamsungDragButton();
     root.addEventListener?.('coup:languagechange', updateSamsungDragButton);
 

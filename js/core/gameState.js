@@ -482,6 +482,15 @@ function toggleReligion(pid) {
  * Caso a sala esteja cheia, exibe um modal de aviso.
  */
 function addBot() {
+  const canAddTestBot = window.CoupAccessControl?.hasPermission(
+    window.CoupAccessControl.PERMISSIONS.CASUAL_ADD_TEST_BOT
+  ) === true;
+
+  if (!isAdmin || !canAddTestBot) {
+    console.warn('A conta atual não tem permissão para adicionar bots de teste.');
+    return;
+  }
+
   if (CoupGameModes.isRanked(currentGameMode)) {
     console.warn('Bots não são permitidos no modo ranqueado.');
     return;
@@ -889,6 +898,7 @@ function initializeGame() {
  */
 auth.onAuthStateChanged((user) => {
   if (user) {
+    window.CoupAccessControl?.applyVisibility(document, user.uid);
     initializeGame();
   } else {
     window.location.href = 'lobby.html';

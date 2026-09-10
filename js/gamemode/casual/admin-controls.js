@@ -71,6 +71,9 @@
   function renderAdminControls(options = {}) {
     const admin = typeof options.isAdmin === 'boolean' ? options.isAdmin : getIsAdmin();
     const rankedMode = typeof options.isRankedMode === 'boolean' ? options.isRankedMode : isRankedMode();
+    const canAddTestBot = root.CoupAccessControl?.hasPermission(
+      root.CoupAccessControl.PERMISSIONS.CASUAL_ADD_TEST_BOT
+    ) === true;
     const resetBtn = getElement('resetBtn');
     const addBotBtn = getElement('addBotBtn');
     const openDeckConfigBtn = getElement('openDeckConfigBtn');
@@ -83,7 +86,7 @@
 
     if (addBotBtn) {
       const botRow = addBotBtn.closest('.setting-row');
-      if (botRow) botRow.style.display = admin && !rankedMode ? 'flex' : 'none';
+      if (botRow) botRow.style.display = canAddTestBot && admin && !rankedMode ? 'flex' : 'none';
     }
 
     if (openDeckConfigBtn) {

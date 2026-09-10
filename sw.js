@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coup-master-pwa-v151';
+const CACHE_NAME = 'coup-master-pwa-v154';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '::1', '[::1]'];
 const IS_LOCALHOST = LOCAL_HOSTNAMES.includes(new URL(self.location.href).hostname);
 
@@ -25,11 +25,13 @@ const APP_SHELL = [
   './css/casual-mode.css',
   './js/pwa/pwa.js',
   './js/ui/asset-preloader.js',
+  './js/ui/feedback-form.js',
   './js/i18n/initial-language.js',
   './js/i18n/language-service.js',
   './lang/pt-BR.json',
   './lang/en-US.json',
   './js/firebase/firebase.js',
+  './js/core/access-control.js',
   './js/login/login-manager.js',
   './js/core/rules.js',
   './js/core/gameState.js',

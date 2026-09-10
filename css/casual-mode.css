@@ -1383,12 +1383,11 @@ h2 {
     /* Removemos o height: 100vh daqui para não esticar o botão */
 }
 
-/* Define o tamanho fixo do preview */
+/* Mantem o preview no mesmo formato dos guias de regras. */
 #previewFlipCard {
-    width: 300px;
-    /* Mesmo tamanho da flip-card de regras */
-    height: 450px;
-    /* Mesmo tamanho da flip-card de regras */
+    width: min(430px, 86vw, calc((100dvh - 86px) * 0.6886));
+    aspect-ratio: 1886 / 2739;
+    height: auto;
     cursor: pointer;
     perspective: 1000px;
 }
@@ -1447,6 +1446,10 @@ h2 {
     gap: 10px;
     color: var(--text);
     font-size: 16px;
+}
+
+[data-app-permission][hidden] {
+    display: none !important;
 }
 
 .config-title {
@@ -2054,7 +2057,8 @@ h2 {
     }
 
     #infoModal .flip-card,
-    #altRulesModal .flip-card {
+    #altRulesModal .flip-card,
+    #previewFlipCard {
         width: min(330px, 86vw, calc((100dvh - 82px) * 0.6886));
     }
 }
@@ -2068,7 +2072,8 @@ h2 {
         width: min(300px, 78vw, calc((100dvh - 64px) * 0.6667));
     }
 
-    #infoModal .flip-card {
+    #infoModal .flip-card,
+    #previewFlipCard {
         width: min(330px, 78vw, calc((100dvh - 64px) * 0.6886));
     }
 }
