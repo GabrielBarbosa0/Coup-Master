@@ -3482,17 +3482,3 @@ body.hide-religion .game-table .center-area {
         transition-duration: 0.01ms !important;
     }
 }
-
-/* Teste tipográfico mantido apenas no modal de comandos do mestre. */
-#tutorialModal .standard-modal-content {
-    container-type: inline-size;
-}
-
-#tutorialModal .standard-modal-content > .config-title {
-    font-family: 'Harlean', 'AGaramond', Georgia, serif !important;
-    font-size: 12cqw !important;
-    font-weight: 400;
-    line-height: 0.94;
-    letter-spacing: 0;
-    text-align: center;
-}
