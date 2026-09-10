@@ -1751,6 +1751,11 @@ h2 {
     aspect-ratio: 1886 / 2739;
 }
 
+#altRulesModal .flip-card {
+    width: min(430px, 86vw, calc((100dvh - 86px) * 0.6886));
+    aspect-ratio: 1886 / 2739;
+}
+
 #infoModal .guide-page {
     position: relative;
     container-type: inline-size;
@@ -1945,12 +1950,111 @@ h2 {
     white-space: pre-line;
 }
 
+#altRulesModal .alternative-rules-page {
+    position: relative;
+    container-type: inline-size;
+    --alt-guide-title-size: 9cqw;
+    --alt-guide-intro-size: 4cqw;
+    --alt-guide-title-intro-gap: 4cqw;
+    --alt-guide-header-list-gap: 2.1cqw;
+    --alt-guide-rule-size: 4.52cqw;
+    --alt-guide-rule-gap: 3.2%;
+    --alt-guide-rule-block-width: 100%;
+    --alt-guide-rule-block-offset: 0%;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: inherit;
+    color: #111;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),
+        url('../assets/img/guides/clean.png') center / cover no-repeat,
+        #fff;
+}
+
+#altRulesModal .alternative-rules-inner {
+    position: absolute;
+    inset: 4.5% 6% 4.9%;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: var(--alt-guide-header-list-gap);
+}
+
+#altRulesModal .alternative-rules-header {
+    display: grid;
+    gap: var(--alt-guide-title-intro-gap);
+    align-content: start;
+}
+
+#altRulesModal .alternative-rules-title {
+    margin: 0;
+    color: #050505;
+    font-family: 'Harlean', 'AGaramond', Georgia, serif !important;
+    font-size: var(--alt-guide-title-size);
+    font-weight: 400;
+    line-height: 0.94;
+    letter-spacing: 0;
+    text-align: center;
+}
+
+#altRulesModal .alternative-rules-intro {
+    width: 72%;
+    margin: 0 auto;
+    color: #111;
+    font-family: 'AGaramond', Georgia, 'Times New Roman', serif !important;
+    font-size: var(--alt-guide-intro-size);
+    font-weight: 400;
+    line-height: 1.28;
+    letter-spacing: 0;
+    text-align: center;
+}
+
+#altRulesModal .alternative-rule-list {
+    display: grid;
+    box-sizing: border-box;
+    gap: var(--alt-guide-rule-gap);
+    align-content: start;
+    justify-self: center;
+    width: var(--alt-guide-rule-block-width);
+    min-height: 0;
+    padding: 2.2% 4.8% 0;
+    transform: translateX(var(--alt-guide-rule-block-offset));
+}
+
+#altRulesModal .alternative-rule-entry {
+    margin: 0;
+    color: #111;
+    font-family: 'AGaramond', Georgia, 'Times New Roman', serif !important;
+    font-size: var(--alt-guide-rule-size);
+    font-weight: 400;
+    line-height: 1.18;
+    letter-spacing: 0;
+    text-align: justify;
+    text-align-last: left;
+    text-transform: none;
+}
+
+#altRulesModal .alternative-rule-entry strong {
+    color: #0b9caf;
+    font-family: 'AGaramondGuideRegular', Georgia, 'Times New Roman', serif !important;
+    font-size: 1.04em;
+    font-weight: 400;
+    font-synthesis: none;
+    font-variant: normal;
+    font-variant-caps: normal;
+    font-feature-settings: "smcp" 0, "c2sc" 0;
+    letter-spacing: 0;
+    text-shadow: 0.018em 0 0 currentColor;
+    text-transform: none !important;
+}
+
 @media (max-width: 560px) {
     .flip-card {
         width: min(300px, 84vw, calc((100dvh - 72px) * 0.6667));
     }
 
-    #infoModal .flip-card {
+    #infoModal .flip-card,
+    #altRulesModal .flip-card {
         width: min(330px, 86vw, calc((100dvh - 82px) * 0.6886));
     }
 }

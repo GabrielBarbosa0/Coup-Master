@@ -5,13 +5,252 @@
   const RULE_DRAW_ANIMATION_MS = 1700;
   const RULE_DRAW_TICK_MS = 95;
 
-  const ALT_RULE_IMAGES = [
-    'assets/img/guides/alternative-rules1.png',
-    'assets/img/guides/alternative-rules2.png',
-    'assets/img/guides/alternative-rules3.png',
-    'assets/img/guides/alternative-rules4.png',
-    'assets/img/guides/alternative-rules5.png'
+  const ALT_RULE_PAGE_IDS = [
+    ['justica-lenta', 'falso-duque', 'assassino-declarado', 'sangue-frio', 'ladrao-de-tumulos'],
+    ['ultima-palavra', 'recompensa', 'espolio', 'votos-do-senado', 'mercado-negro', 'golpe-magno'],
+    ['soberania-absoluta', 'contrabando', 'panico-economico', 'camara', 'corrupcao'],
+    ['o-trio-falso', 'figura-publica', 'chantagem', 'imprensa', 'favor-da-coroa'],
+    ['inversao-de-poder', 'espionagem', 'sorte-do-destino', 'conselho-de-emergencia', 'herdeiro-do-trono', 'golpe-declarado']
   ];
+
+  const ALT_RULE_PAGE_STYLES = [
+    { titleSize: 9, ruleSize: 4.52, ruleGap: 3.7, blockWidth: 100, blockOffset: 0 },
+    { titleSize: 9, ruleSize: 4.25, ruleGap: 4, blockWidth: 100, blockOffset: 0 },
+    { titleSize: 9, ruleSize: 4.42, ruleGap: 3.3, blockWidth: 100, blockOffset: 0 },
+    { titleSize: 9, ruleSize: 4.42, ruleGap: 4.4, blockWidth: 100, blockOffset: 0 },
+    { titleSize: 9, ruleSize: 4.25, ruleGap: 2.6, blockWidth: 100, blockOffset: 0 }
+  ];
+
+  const ALT_RULE_COPY = {
+    pt: {
+      title: 'Regras Alternativas',
+      intro: 'Selecione até 5 regras alternativas para uma partida mais imprevisível',
+      rules: {
+        'justica-lenta': {
+          title: 'Justiça Lenta',
+          description: 'Os golpes só podem ser dados com 10 moedas, ao invés de 7, sendo obrigatório com 15 moedas.'
+        },
+        'falso-duque': {
+          title: 'Falso Duque',
+          description: 'Haverá apenas 1 Duque no baralho.'
+        },
+        'assassino-declarado': {
+          title: 'Assassino Declarado',
+          description: 'Para o assassinato ter sucesso, o assassino deve adivinhar a última influência do alvo. Se errar, perde as moedas e o alvo compra uma nova carta.'
+        },
+        'sangue-frio': {
+          title: 'Sangue Frio',
+          description: 'Após um assassinato bem-sucedido, o assassino ganha 2 moedas de recompensa.'
+        },
+        'ladrao-de-tumulos': {
+          title: 'Ladrão de Túmulos',
+          description: 'Poderá pagar 4 moedas para trocar uma carta da mão com uma revelada na mesa.'
+        },
+        'ultima-palavra': {
+          title: 'Última Palavra',
+          description: 'Quando for eliminado, você pode escolher um jogador para perder 2 moedas imediatamente.'
+        },
+        recompensa: {
+          title: 'Recompensa',
+          description: 'Elimine um jogador com mais de 7 moedas e ganhe 2 moedas de recompensa por golpe, contestação, assassinato ou execução bruta.'
+        },
+        espolio: {
+          title: 'Espólio',
+          description: 'Quando alguém é eliminado, suas moedas são divididas entre os jogadores restantes em partes iguais. Caso sobre, devolva para o banco.'
+        },
+        'votos-do-senado': {
+          title: 'Votos do Senado',
+          description: 'Golpes de Estado precisam de aprovação da maioria dos jogadores vivos.'
+        },
+        'mercado-negro': {
+          title: 'Mercado Negro',
+          description: 'Poderá pagar 2 moedas para trocar uma carta da mão com uma do baralho.'
+        },
+        'golpe-magno': {
+          title: 'Golpe Magno',
+          description: 'Quando um jogador atingir 15 moedas, todos perdem 1 influência.'
+        },
+        'soberania-absoluta': {
+          title: 'Soberania Absoluta',
+          description: 'Se possuir 2 Condessas, você pode bloquear qualquer ação contra si. Pode blefar, mas se for contestado e mentir, será eliminado. Se conseguir, deve trocar ambas as cartas.'
+        },
+        contrabando: {
+          title: 'Contrabando',
+          description: 'Você pode sacrificar uma influência sua para ganhar 10 moedas automaticamente.'
+        },
+        'panico-economico': {
+          title: 'Pânico Econômico',
+          description: 'Quando alguém acumular mais de 8 moedas, todos os jogadores recebem 1 moeda automaticamente.'
+        },
+        camara: {
+          title: 'Câmara',
+          description: 'Todos vão receber 4 influências, e escolhem duas para ficar e duas para colocar no baralho.'
+        },
+        corrupcao: {
+          title: 'Corrupção',
+          description: 'No início do jogo, receba duas cartas e selecione uma para manter e outra para descartar. Em seguida, sua segunda carta será sorteada aleatoriamente.'
+        },
+        'o-trio-falso': {
+          title: 'O Trio Falso',
+          description: 'Em vez de 2 cartas, começa com 3, porém com 2 vidas apenas.'
+        },
+        'figura-publica': {
+          title: 'Figura Pública',
+          description: 'Um personagem é revelado na mesa, só existirá ele no jogo e o uso dele é público, todos podem usar.'
+        },
+        chantagem: {
+          title: 'Chantagem',
+          description: 'Ao gastar 7 moedas você poderá roubar uma influência de um jogador e pegar para você, porém você deverá dar uma de suas cartas para ele. Pode ser bloqueado pelo Embaixador, Inquisidor e Bufão.'
+        },
+        imprensa: {
+          title: 'Imprensa',
+          description: 'Gaste 4 moedas para revelar uma carta de outro jogador para todos à sua escolha, porém o jogador afetado ganha 2 moedas.'
+        },
+        'favor-da-coroa': {
+          title: 'Favor da Coroa',
+          description: 'Quando for alvo de uma ação, você pode pagar 3 moedas para bloqueá-la. Exceto Golpe de Estado.'
+        },
+        'inversao-de-poder': {
+          title: 'Inversão de Poder',
+          description: 'Pague 3 moedas e mude a direção dos turnos.'
+        },
+        espionagem: {
+          title: 'Espionagem',
+          description: 'Uma vez por turno, você pode pagar 2 moedas para olhar secretamente uma influência de qualquer jogador.'
+        },
+        'sorte-do-destino': {
+          title: 'Sorte do Destino',
+          description: 'Sempre que um jogador perder uma influência, ele compra uma carta do topo do baralho. Pode ficar com ela ou devolvê-la ao fundo do baralho.'
+        },
+        'conselho-de-emergencia': {
+          title: 'Conselho de Emergência',
+          description: 'Quando um jogador atingir 10 moedas, todos os jogadores vivos recebem 2 moedas.'
+        },
+        'herdeiro-do-trono': {
+          title: 'Herdeiro do Trono',
+          description: 'Quando um jogador for eliminado, o responsável pela eliminação recebe imediatamente 3 moedas.'
+        },
+        'golpe-declarado': {
+          title: 'Golpe Declarado',
+          description: 'Para o Golpe de Estado ter sucesso, o jogador deve adivinhar a última influência do alvo. Se errar, perde as moedas e o alvo compra uma nova carta.'
+        }
+      }
+    },
+    en: {
+      title: 'Alternative Rules',
+      intro: 'Select up to 5 alternative rules for a more unpredictable match',
+      rules: {
+        'justica-lenta': {
+          title: 'Slow Justice',
+          description: 'Coups can only be made with 10 coins instead of 7, and become mandatory with 15 coins.'
+        },
+        'falso-duque': {
+          title: 'False Duke',
+          description: 'There will be only 1 Duke in the deck.'
+        },
+        'assassino-declarado': {
+          title: 'Declared Assassin',
+          description: "For an assassination to succeed, the Assassin must guess the target's last influence. If they are wrong, they lose the coins and the target draws a new card."
+        },
+        'sangue-frio': {
+          title: 'Cold Blood',
+          description: 'After a successful assassination, the Assassin gains a 2-coin reward.'
+        },
+        'ladrao-de-tumulos': {
+          title: 'Grave Robber',
+          description: 'You may pay 4 coins to exchange a card from your hand with a revealed card on the table.'
+        },
+        'ultima-palavra': {
+          title: 'Last Word',
+          description: 'When eliminated, you may choose a player to lose 2 coins immediately.'
+        },
+        recompensa: {
+          title: 'Reward',
+          description: 'Eliminate a player with more than 7 coins and gain a 2-coin reward through coup, challenge, assassination, or brutal execution.'
+        },
+        espolio: {
+          title: 'Spoils',
+          description: 'When someone is eliminated, their coins are divided equally among the remaining players. If any coins remain, return them to the bank.'
+        },
+        'votos-do-senado': {
+          title: 'Senate Votes',
+          description: 'Coups require approval from the majority of living players.'
+        },
+        'mercado-negro': {
+          title: 'Black Market',
+          description: 'You may pay 2 coins to exchange a card from your hand with one from the deck.'
+        },
+        'golpe-magno': {
+          title: 'Grand Coup',
+          description: 'When a player reaches 15 coins, everyone loses 1 influence.'
+        },
+        'soberania-absoluta': {
+          title: 'Absolute Sovereignty',
+          description: 'If you have 2 Contessas, you may block any action against yourself. You may bluff, but if challenged while lying, you are eliminated. If you prove it, you must exchange both cards.'
+        },
+        contrabando: {
+          title: 'Smuggling',
+          description: 'You may sacrifice one of your own influences to gain 10 coins automatically.'
+        },
+        'panico-economico': {
+          title: 'Economic Panic',
+          description: 'When someone accumulates more than 8 coins, all players automatically receive 1 coin.'
+        },
+        camara: {
+          title: 'Chamber',
+          description: 'Everyone receives 4 influences and chooses two to keep and two to return to the deck.'
+        },
+        corrupcao: {
+          title: 'Corruption',
+          description: 'At the start of the game, receive two cards and choose one to keep and one to discard. Then your second card is drawn randomly.'
+        },
+        'o-trio-falso': {
+          title: 'The False Trio',
+          description: 'Instead of starting with 2 cards, each player starts with 3, but still has only 2 lives.'
+        },
+        'figura-publica': {
+          title: 'Public Figure',
+          description: 'A character is revealed on the table. Only that character exists in the game and its use is public, so everyone may use it.'
+        },
+        chantagem: {
+          title: 'Blackmail',
+          description: 'By spending 7 coins, you may steal an influence from another player and take it for yourself, but you must give that player one of your cards. It can be blocked by the Ambassador, Inquisitor, and Jester.'
+        },
+        imprensa: {
+          title: 'Press',
+          description: 'Spend 4 coins to reveal a card from another player of your choice to everyone, but the affected player gains 2 coins.'
+        },
+        'favor-da-coroa': {
+          title: "Crown's Favor",
+          description: 'When targeted by an action, you may pay 3 coins to block it. This does not block a Coup.'
+        },
+        'inversao-de-poder': {
+          title: 'Power Shift',
+          description: 'Pay 3 coins and change the direction of turns.'
+        },
+        espionagem: {
+          title: 'Espionage',
+          description: "Once per turn, you may pay 2 coins to secretly look at any player's influence."
+        },
+        'sorte-do-destino': {
+          title: 'Luck of Fate',
+          description: 'Whenever a player loses an influence, they draw a card from the top of the deck. They may keep it or return it to the bottom of the deck.'
+        },
+        'conselho-de-emergencia': {
+          title: 'Emergency Council',
+          description: 'When a player reaches 10 coins, all living players receive 2 coins.'
+        },
+        'herdeiro-do-trono': {
+          title: 'Heir to the Throne',
+          description: 'When a player is eliminated, the player responsible for the elimination immediately receives 3 coins.'
+        },
+        'golpe-declarado': {
+          title: 'Declared Coup',
+          description: "For a Coup to succeed, the player must guess the target's last influence. If they are wrong, they lose the coins and the target draws a new card."
+        }
+      }
+    }
+  };
 
   const CARD_GROUPS = {
     base: ['duque', 'capitao', 'assassino', 'condessa', 'embaixador', 'inquisidor'],
@@ -311,6 +550,7 @@
 
   let config = {};
   let currentGuidePages = [];
+  let currentAltRulePages = [];
   let currentRuleIndex = 0;
   let currentAltIndex = 0;
   let selectedRuleDrawCount = 1;
@@ -399,6 +639,22 @@
     return GUIDE_COPY[getGuideLanguage()] || GUIDE_COPY.pt;
   }
 
+  function getAlternativeRuleCopy() {
+    return ALT_RULE_COPY[getGuideLanguage()] || ALT_RULE_COPY.pt;
+  }
+
+  function getAlternativeRuleText(ruleOrId) {
+    const ruleId = typeof ruleOrId === 'string' ? ruleOrId : ruleOrId?.id;
+    const fallbackRule = typeof ruleOrId === 'string' ? getRuleById(ruleOrId) : ruleOrId;
+    const localizedRule = getAlternativeRuleCopy().rules[ruleId] || ALT_RULE_COPY.pt.rules[ruleId] || fallbackRule || {};
+
+    return {
+      id: ruleId,
+      title: localizedRule.title || fallbackRule?.title || ruleId,
+      description: localizedRule.description || fallbackRule?.description || ''
+    };
+  }
+
   function hasCard(deckConfig, cardType) {
     return (getResolvedDeckConfig(deckConfig)[cardType] || 0) > 0;
   }
@@ -428,6 +684,30 @@
 
   function escapeRegExp(value) {
     return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function formatStyleNumber(value, digits = 2) {
+    return Number(value)
+      .toFixed(digits)
+      .replace(/\.?0+$/, '');
+  }
+
+  function getAlternativeRulePageStyle(pageIndex) {
+    return ALT_RULE_PAGE_STYLES[pageIndex] || ALT_RULE_PAGE_STYLES[0];
+  }
+
+  function getAlternativeRuleStyleAttr(pageIndex) {
+    const style = getAlternativeRulePageStyle(pageIndex);
+
+    return [
+      `--alt-guide-title-size: ${formatStyleNumber(style.titleSize)}cqw`,
+      `--alt-guide-rule-size: ${formatStyleNumber(style.ruleSize)}cqw`,
+      '--alt-guide-title-intro-gap: 4cqw',
+      '--alt-guide-header-list-gap: 2.1cqw',
+      `--alt-guide-rule-gap: ${formatStyleNumber(style.ruleGap, 1)}%`,
+      `--alt-guide-rule-block-width: ${formatStyleNumber(style.blockWidth, 1)}%`,
+      `--alt-guide-rule-block-offset: ${formatStyleNumber(style.blockOffset, 1)}%`
+    ].join('; ');
   }
 
   function renderFormattedGuideText(value, color) {
@@ -707,40 +987,72 @@
     }, 500);
   }
 
-  function getFlipImages(flipCard) {
-    return {
-      frontImg: flipCard?.querySelector('.flip-card-front img') || null,
-      backImg: flipCard?.querySelector('.flip-card-back img') || null
-    };
+  function buildAlternativeRuleGuidePages() {
+    return ALT_RULE_PAGE_IDS.map((ruleIds, pageIndex) => ({
+      pageIndex,
+      rules: ruleIds.map(getAlternativeRuleText)
+    }));
   }
 
-  function resetFlipCard(flipCard, images) {
-    if (!flipCard || images.length === 0) return;
+  function renderAlternativeRule(rule) {
+    return `
+      <p class="alternative-rule-entry">
+        <strong>${escapeHtml(rule.title)}:</strong>
+        ${escapeHtml(rule.description)}
+      </p>
+    `;
+  }
 
-    const { frontImg, backImg } = getFlipImages(flipCard);
+  function renderAlternativeRuleGuidePage(page) {
+    const copy = getAlternativeRuleCopy();
+    const pageIndex = page?.pageIndex || 0;
+    const intro = pageIndex === 0
+      ? `<p class="alternative-rules-intro">${escapeHtml(copy.intro)}</p>`
+      : '';
+
+    return `
+      <article class="alternative-rules-page" data-page="${pageIndex + 1}" style="${getAlternativeRuleStyleAttr(pageIndex)}">
+        <div class="alternative-rules-inner">
+          <header class="alternative-rules-header">
+            <h2 class="alternative-rules-title">${escapeHtml(copy.title)}</h2>
+            ${intro}
+          </header>
+          <div class="alternative-rule-list">
+            ${(page?.rules || []).map(renderAlternativeRule).join('')}
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  function resetAlternativeRuleFlipCard(flipCard, pages) {
+    if (!flipCard || pages.length === 0) return;
+
+    const { frontFace, backFace } = getFlipFaces(flipCard);
 
     flipCard.classList.remove('is-flipped');
-    if (frontImg) frontImg.src = images[0];
-    if (backImg) backImg.src = images.length > 1 ? images[1] : images[0];
+    if (frontFace) frontFace.innerHTML = renderAlternativeRuleGuidePage(pages[0]);
+    if (backFace) backFace.innerHTML = renderAlternativeRuleGuidePage(pages.length > 1 ? pages[1] : pages[0]);
   }
 
-  function advanceFlipCard(flipCard, images, currentIndex, onIndexChange) {
-    if (!flipCard || images.length === 0) return;
+  function advanceAlternativeRuleFlipCard(flipCard, pages, currentIndex, onIndexChange) {
+    if (!flipCard || pages.length === 0) return;
 
     playSound('card-slide');
     flipCard.classList.toggle('is-flipped');
 
-    const nextCurrentIndex = (currentIndex + 1) % images.length;
+    const nextCurrentIndex = (currentIndex + 1) % pages.length;
     onIndexChange(nextCurrentIndex);
 
     setTimeout(() => {
-      const { frontImg, backImg } = getFlipImages(flipCard);
-      const nextImageIndex = (nextCurrentIndex + 1) % images.length;
+      const { frontFace, backFace } = getFlipFaces(flipCard);
+      const nextPageIndex = (nextCurrentIndex + 1) % pages.length;
+      const nextMarkup = renderAlternativeRuleGuidePage(pages[nextPageIndex]);
 
       if (flipCard.classList.contains('is-flipped')) {
-        if (frontImg) frontImg.src = images[nextImageIndex];
-      } else if (backImg) {
-        backImg.src = images[nextImageIndex];
+        if (frontFace) frontFace.innerHTML = nextMarkup;
+      } else if (backFace) {
+        backFace.innerHTML = nextMarkup;
       }
     }, 500);
   }
@@ -824,6 +1136,7 @@
   }
 
   function createRuleResultCard(rule, index) {
+    const localizedRule = getAlternativeRuleText(rule);
     const card = document.createElement('article');
     card.className = 'rule-draw-result-card';
 
@@ -832,10 +1145,10 @@
     number.textContent = String(index + 1).padStart(2, '0');
 
     const title = document.createElement('h3');
-    title.textContent = rule.title;
+    title.textContent = localizedRule.title;
 
     const description = document.createElement('p');
-    description.textContent = rule.description;
+    description.textContent = localizedRule.description;
 
     card.append(number, title, description);
     return card;
@@ -893,7 +1206,7 @@
     let tick = 0;
     ruleDrawTickTimer = setInterval(() => {
       const rollingRule = ALTERNATIVE_RULES[tick % ALTERNATIVE_RULES.length];
-      rollingTitle.textContent = rollingRule.title;
+      rollingTitle.textContent = getAlternativeRuleText(rollingRule).title;
       tick += 1;
     }, RULE_DRAW_TICK_MS);
 
@@ -1031,9 +1344,10 @@
 
     altRulesBtn.onclick = () => {
       playSound('click');
+      currentAltRulePages = buildAlternativeRuleGuidePages();
       currentAltIndex = 0;
       root.CoupModal?.open(altRulesModal);
-      resetFlipCard(altFlipCard, ALT_RULE_IMAGES);
+      resetAlternativeRuleFlipCard(altFlipCard, currentAltRulePages);
     };
 
     if (closeAltRulesBtn) {
@@ -1045,7 +1359,11 @@
 
     if (altFlipCard) {
       altFlipCard.onclick = () => {
-        advanceFlipCard(altFlipCard, ALT_RULE_IMAGES, currentAltIndex, (nextIndex) => {
+        if (currentAltRulePages.length === 0) {
+          currentAltRulePages = buildAlternativeRuleGuidePages();
+        }
+
+        advanceAlternativeRuleFlipCard(altFlipCard, currentAltRulePages, currentAltIndex, (nextIndex) => {
           currentAltIndex = nextIndex;
         });
       };

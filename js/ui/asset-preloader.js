@@ -2,11 +2,6 @@
   const ASSET_GROUPS = Object.freeze({
     casual: [
       'assets/img/guides/clean.png',
-      'assets/img/guides/alternative-rules1.png',
-      'assets/img/guides/alternative-rules2.png',
-      'assets/img/guides/alternative-rules3.png',
-      'assets/img/guides/alternative-rules4.png',
-      'assets/img/guides/alternative-rules5.png',
       'assets/img/cards/base/assassino.png',
       'assets/img/cards/base/back.png',
       'assets/img/cards/base/capitao.png',

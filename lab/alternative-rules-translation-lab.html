@@ -492,10 +492,12 @@
       container-type: inline-size;
       --guide-title-size: 9cqw;
       --guide-intro-size: 4cqw;
-      --guide-title-intro-gap: 3.3cqw;
+      --guide-title-intro-gap: 4cqw;
       --guide-header-list-gap: 2.1cqw;
       --guide-rule-size: 4.52cqw;
       --guide-rule-gap: 3.2%;
+      --guide-rule-block-width: 100%;
+      --guide-rule-block-offset: 0%;
       width: 100%;
       height: 100%;
       overflow: hidden;
@@ -545,8 +547,11 @@
       display: grid;
       gap: var(--guide-rule-gap);
       align-content: start;
+      justify-self: center;
+      width: var(--guide-rule-block-width);
       min-height: 0;
       padding: 2.2% 4.8% 0;
+      transform: translateX(var(--guide-rule-block-offset));
     }
 
     .rule-entry {
@@ -664,13 +669,33 @@
         <select id="pageSelect"></select>
       </div>
 
+      <section class="spacing-controls" aria-label="Tamanho dos textos">
+        <span class="section-label">Ajuste da página</span>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="pageTitleSizeRange">Título da página</label>
+            <output id="pageTitleSizeValue" for="pageTitleSizeRange">9 cqw</output>
+          </div>
+          <input id="pageTitleSizeRange" type="range" min="6" max="14" step="0.1" value="9">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="ruleTextSizeRange">Texto das regras</label>
+            <output id="ruleTextSizeValue" for="ruleTextSizeRange">4.52 cqw</output>
+          </div>
+          <input id="ruleTextSizeRange" type="range" min="3" max="5.6" step="0.05" value="4.52">
+        </div>
+      </section>
+
       <section class="spacing-controls" aria-label="Espaçamento do cabeçalho">
         <div class="range-control">
           <div class="range-control-header">
             <label for="titleIntroGapRange">Título / subtítulo</label>
-            <output id="titleIntroGapValue" for="titleIntroGapRange">3.3 cqw</output>
+            <output id="titleIntroGapValue" for="titleIntroGapRange">4.0 cqw</output>
           </div>
-          <input id="titleIntroGapRange" type="range" min="0" max="8" step="0.1" value="3.3">
+          <input id="titleIntroGapRange" type="range" min="0" max="8" step="0.1" value="4.0">
         </div>
 
         <div class="range-control">
@@ -679,6 +704,34 @@
             <output id="headerListGapValue" for="headerListGapRange">2.1 cqw</output>
           </div>
           <input id="headerListGapRange" type="range" min="0" max="8" step="0.1" value="2.1">
+        </div>
+      </section>
+
+      <section class="spacing-controls" aria-label="Layout da página">
+        <span class="section-label">Layout da Página</span>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="ruleLineGapRange">Espaço entre regras</label>
+            <output id="ruleLineGapValue" for="ruleLineGapRange">3.7%</output>
+          </div>
+          <input id="ruleLineGapRange" type="range" min="0" max="12" step="0.1" value="3.7">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="ruleBlockWidthRange">Largura do bloco</label>
+            <output id="ruleBlockWidthValue" for="ruleBlockWidthRange">100%</output>
+          </div>
+          <input id="ruleBlockWidthRange" type="range" min="60" max="100" step="1" value="100">
+        </div>
+
+        <div class="range-control">
+          <div class="range-control-header">
+            <label for="ruleBlockOffsetRange">Posição do bloco</label>
+            <output id="ruleBlockOffsetValue" for="ruleBlockOffsetRange">0%</output>
+          </div>
+          <input id="ruleBlockOffsetRange" type="range" min="-14" max="14" step="0.5" value="0">
         </div>
       </section>
 
@@ -983,12 +1036,46 @@
     let visibleFace = "front";
     let isAnimating = false;
     let guideSpacing = {
-      titleIntroGap: 3.3,
+      titleIntroGap: 4.0,
       headerListGap: 2.1
     };
+    const guidePageStyles = [
+      { titleSize: 9, ruleSize: 4.52, ruleGap: 3.7, blockWidth: 100, blockOffset: 0 },
+      { titleSize: 9, ruleSize: 4.25, ruleGap: 4, blockWidth: 100, blockOffset: 0 },
+      { titleSize: 9, ruleSize: 4.42, ruleGap: 3.3, blockWidth: 100, blockOffset: 0 },
+      { titleSize: 9, ruleSize: 4.42, ruleGap: 4.4, blockWidth: 100, blockOffset: 0 },
+      { titleSize: 9, ruleSize: 4.25, ruleGap: 2.6, blockWidth: 100, blockOffset: 0 }
+    ];
 
     const languageSelect = document.getElementById("languageSelect");
     const pageSelect = document.getElementById("pageSelect");
+    const pageStyleControls = {
+      titleSize: {
+        input: document.getElementById("pageTitleSizeRange"),
+        output: document.getElementById("pageTitleSizeValue"),
+        formatter: formatCqwLabel
+      },
+      ruleSize: {
+        input: document.getElementById("ruleTextSizeRange"),
+        output: document.getElementById("ruleTextSizeValue"),
+        formatter: formatCqwLabel
+      },
+      ruleGap: {
+        input: document.getElementById("ruleLineGapRange"),
+        output: document.getElementById("ruleLineGapValue"),
+        formatter: formatPercentLabel
+      },
+      blockWidth: {
+        input: document.getElementById("ruleBlockWidthRange"),
+        output: document.getElementById("ruleBlockWidthValue"),
+        formatter: formatPercentLabel
+      },
+      blockOffset: {
+        input: document.getElementById("ruleBlockOffsetRange"),
+        output: document.getElementById("ruleBlockOffsetValue"),
+        formatter: formatPercentLabel
+      }
+    };
     const spacingControls = {
       titleIntroGap: {
         input: document.getElementById("titleIntroGapRange"),
@@ -1028,6 +1115,28 @@
       return `${getCopy().pageLabel} ${index + 1}`;
     }
 
+    function formatNumber(value, digits = 2) {
+      return Number(value)
+        .toFixed(digits)
+        .replace(/\.?0+$/, "");
+    }
+
+    function formatCqwCss(value) {
+      return `${formatNumber(value)}cqw`;
+    }
+
+    function formatCqwLabel(value) {
+      return `${formatNumber(value)} cqw`;
+    }
+
+    function formatPercentCss(value) {
+      return `${formatNumber(value, 1)}%`;
+    }
+
+    function formatPercentLabel(value) {
+      return `${formatNumber(value, 1)}%`;
+    }
+
     function formatGapCss(value) {
       return `${Number(value).toFixed(1)}cqw`;
     }
@@ -1036,17 +1145,42 @@
       return `${Number(value).toFixed(1)} cqw`;
     }
 
-    function getGuideSpacingStyle() {
+    function getPageStyle(pageIndex) {
+      return guidePageStyles[pageIndex] || guidePageStyles[0];
+    }
+
+    function getGuideSpacingStyle(pageIndex) {
+      const pageStyle = getPageStyle(pageIndex);
       return [
+        `--guide-title-size: ${formatCqwCss(pageStyle.titleSize)}`,
+        `--guide-rule-size: ${formatCqwCss(pageStyle.ruleSize)}`,
         `--guide-title-intro-gap: ${formatGapCss(guideSpacing.titleIntroGap)}`,
-        `--guide-header-list-gap: ${formatGapCss(guideSpacing.headerListGap)}`
+        `--guide-header-list-gap: ${formatGapCss(guideSpacing.headerListGap)}`,
+        `--guide-rule-gap: ${formatPercentCss(pageStyle.ruleGap)}`,
+        `--guide-rule-block-width: ${formatPercentCss(pageStyle.blockWidth)}`,
+        `--guide-rule-block-offset: ${formatPercentCss(pageStyle.blockOffset)}`
       ].join("; ");
+    }
+
+    function updatePageStyleOutputs() {
+      const pageStyle = getPageStyle(currentPage);
+      Object.entries(pageStyleControls).forEach(([key, control]) => {
+        control.input.value = String(pageStyle[key]);
+        control.output.textContent = control.formatter(pageStyle[key]);
+      });
     }
 
     function updateSpacingOutputs() {
       Object.entries(spacingControls).forEach(([key, control]) => {
         control.output.textContent = formatGapLabel(guideSpacing[key]);
       });
+    }
+
+    function updatePageStyle(key, value) {
+      getPageStyle(currentPage)[key] = Number(value);
+      renderInlinePreview();
+      renderCurrentFace();
+      updatePageStyleOutputs();
     }
 
     function updateGuideSpacing(key, value) {
@@ -1072,7 +1206,7 @@
         : "";
 
       return `
-        <article class="guide-page" data-page="${pageIndex + 1}" style="${getGuideSpacingStyle()}">
+        <article class="guide-page" data-page="${pageIndex + 1}" style="${getGuideSpacingStyle(pageIndex)}">
           <div class="guide-inner">
             <header class="guide-header">
               <h2 class="guide-title">${escapeHtml(copy.title)}</h2>
@@ -1118,6 +1252,7 @@
       document.getElementById("prevPageBtn").setAttribute("aria-label", getCopy().previousPage);
       document.getElementById("nextPageBtn").setAttribute("aria-label", getCopy().nextPage);
       guideModal.setAttribute("aria-label", getCopy().modalLabel);
+      updatePageStyleOutputs();
 
       document.querySelectorAll(".language-btn").forEach((button) => {
         button.classList.toggle("is-active", button.dataset.language === currentLanguage);
@@ -1208,6 +1343,10 @@
         if (button) goToPage(Number(button.dataset.page));
       });
 
+      Object.entries(pageStyleControls).forEach(([key, control]) => {
+        control.input.addEventListener("input", () => updatePageStyle(key, control.input.value));
+      });
+
       Object.entries(spacingControls).forEach(([key, control]) => {
         control.input.addEventListener("input", () => updateGuideSpacing(key, control.input.value));
       });
@@ -1235,6 +1374,7 @@
     bindEvents();
     renderInlinePreview();
     renderCurrentFace();
+    updatePageStyleOutputs();
     updateSpacingOutputs();
     updateUi();
   </script>

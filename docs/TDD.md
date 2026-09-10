@@ -924,6 +924,7 @@ Responsabilidades:
 - Centralizar os guias de acoes/personagens do modo casual.
 - Gerar dinamicamente a fila de paginas do guia principal com base em `deckConfig`.
 - Renderizar o guia principal por HTML/CSS sobre `assets/img/guides/clean.png`, usando retratos circulares de `assets/img/perfil-cards`.
+- Renderizar o guia de regras alternativas por HTML/CSS sobre `assets/img/guides/clean.png`, usando os textos validados em `lab/alternative-rules-translation-lab.html`.
 - Adicionar paginas condicionais para cartas promocionais, A Revolucao e Lei e Desordem apenas quando houver cartas desses grupos no baralho.
 - Manter `Resumo de Turno` sempre como a ultima pagina do carrossel.
 - Mostrar cartas removidas do guia principal esmaecidas no runtime casual e centralizar o conjunto quando houver remocao.
@@ -2120,13 +2121,8 @@ Pasta: `assets/img/guides`
 Arquivos usados:
 
 - `clean.png`
-- `alternative-rules1.png`
-- `alternative-rules2.png`
-- `alternative-rules3.png`
-- `alternative-rules4.png`
-- `alternative-rules5.png`
 
-O guia principal do modo casual, ranqueado e Sala Personalizada e renderizado dinamicamente por HTML/CSS sobre `clean.png`. No ranqueado e na Sala Personalizada, o gerador recebe uma configuracao fixa de baralho base. Os PNGs antigos `front-actions`, `back-actions`, `dlc-actions`, `dlc2-actions`, `dlc3-actions` e `front-actions-alternative` nao sao mais usados pelo runtime.
+O guia principal do modo casual, ranqueado e Sala Personalizada e renderizado dinamicamente por HTML/CSS sobre `clean.png`. O guia de regras alternativas do casual tambem e renderizado por HTML/CSS sobre o mesmo template. No ranqueado e na Sala Personalizada, o gerador recebe uma configuracao fixa de baralho base. Os PNGs antigos `front-actions`, `back-actions`, `dlc-actions`, `dlc2-actions`, `dlc3-actions`, `front-actions-alternative` e `alternative-rules1` a `alternative-rules5` nao sao mais usados pelo runtime.
 
 ### 16.3 Icones
 
