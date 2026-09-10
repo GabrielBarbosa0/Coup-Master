@@ -1020,7 +1020,7 @@ button {
     gap: 3px;
     min-height: 58px;
     padding: 10px 8px;
-    border: 1px solid rgba(230, 238, 246, 0.16);
+    border: 3px solid rgba(230, 238, 246, 0.16);
     border-radius: 7px;
     background: #171d26;
     place-content: center;
@@ -1095,6 +1095,7 @@ button {
     font-size: 10px;
     line-height: 1.45;
     text-transform: uppercase;
+    white-space: pre-line;
 }
 
 .ranked-mode-note[hidden] {

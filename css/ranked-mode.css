@@ -1924,6 +1924,7 @@ button.rank-card {
 
 .feedback-form-modal {
     position: relative;
+    container-type: inline-size;
     width: min(380px, calc(100vw - 28px));
     max-width: 380px;
     max-height: calc(100dvh - 28px);
@@ -1949,8 +1950,13 @@ button.rank-card {
 }
 
 .feedback-form-header .config-title {
-    margin: 4px 0 8px;
-    text-align: left;
+    margin: 0 0 8px;
+    font-family: 'Harlean', 'AGaramond', Georgia, serif !important;
+    font-size: 9cqw;
+    font-weight: 400;
+    line-height: 0.94;
+    letter-spacing: 0;
+    text-align: center;
 }
 
 .feedback-form-header .config-p-title {
