@@ -58,7 +58,9 @@
           break;
 
         case 'base_dlc1':
-          setInputValue(input, isInGroups(card, ['base', 'dlc1']) ? 5 : 0);
+          setInputValue(input, card === 'marionetista'
+            ? 3
+            : isInGroups(card, ['base', 'dlc1']) ? 5 : 0);
           break;
 
         case 'base_dlc2':
