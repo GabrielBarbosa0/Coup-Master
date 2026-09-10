@@ -47,7 +47,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <link rel="stylesheet" href="css/lobby.css?v=landing-return-v3">
+    <link rel="stylesheet" href="css/lobby.css?v=experimental-mode-border-v1">
     <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
 </head>
@@ -182,6 +182,32 @@
         </div>
     </div>
 
+    <div id="developmentWarningModal" class="modal-overlay development-warning-overlay" style="display: none;">
+        <section class="modal-content development-warning-modal" role="dialog" aria-modal="true"
+            aria-labelledby="developmentWarningTitle"
+            aria-describedby="developmentWarningText developmentWarningProgress">
+            <button id="closeDevelopmentWarningBtn" class="close-btn development-warning-close" type="button"
+                aria-label="Fechar aviso" data-i18n-aria-label="cm:bG9iYnkuZXhwZXJpbWVudGFsV2FybmluZ0Nsb3Nl">&times;</button>
+            <div class="development-warning-stripe" aria-hidden="true"></div>
+            <div class="development-warning-body">
+                <span class="development-warning-eyebrow"
+                    data-i18n="cm:bG9iYnkuZXhwZXJpbWVudGFsV2FybmluZ0V5ZWJyb3c=">Em desenvolvimento</span>
+                <h2 id="developmentWarningTitle">Este modo ainda é experimental</h2>
+                <p id="developmentWarningText"
+                    data-i18n="cm:bG9iYnkuZXhwZXJpbWVudGFsV2FybmluZ1RleHQ=">Este modo está em uma fase inicial e pode apresentar falhas, desconexões ou comportamentos inesperados.</p>
+                <p id="developmentWarningProgress" class="development-warning-risk"
+                    data-i18n="cm:bG9iYnkuZXhwZXJpbWVudGFsV2FybmluZ1Byb2dyZXNz">Partidas, estatísticas e conquistas podem não ser registradas corretamente ou podem ser perdidas durante o desenvolvimento.</p>
+                <div class="development-warning-actions">
+                    <button id="cancelDevelopmentWarningBtn" class="development-warning-cancel" type="button"
+                        data-i18n="cm:bG9iYnkuZXhwZXJpbWVudGFsV2FybmluZ0NhbmNlbA==">Voltar</button>
+                    <button id="confirmDevelopmentWarningBtn" class="development-warning-confirm" type="button"
+                        data-i18n="cm:bG9iYnkuZXhwZXJpbWVudGFsV2FybmluZ0NvbmZpcm0=">Continuar mesmo assim</button>
+                </div>
+            </div>
+            <div class="development-warning-stripe" aria-hidden="true"></div>
+        </section>
+    </div>
+
     <div id="playerStatsModal" class="modal-overlay player-stats-modal" style="display: none;">
         <div class="player-stats-frame">
             <button id="closePlayerStatsModalBtn" class="close-btn player-stats-close" type="button"
@@ -307,7 +333,7 @@
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=game-modes-i18n-v1" defer></script>
-    <script src="js/lobby/lobby-manager.js?v=mode-help-v1" defer></script>
+    <script src="js/lobby/lobby-manager.js?v=development-warning-v1" defer></script>
 
 </body>
 

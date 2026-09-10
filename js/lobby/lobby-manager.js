@@ -25,10 +25,16 @@ const logoutConfirmModal = document.getElementById('logoutConfirmModal');
 const closeLogoutConfirmModalBtn = document.getElementById('closeLogoutConfirmModalBtn');
 const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
 const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+const developmentWarningModal = document.getElementById('developmentWarningModal');
+const developmentWarningTitle = document.getElementById('developmentWarningTitle');
+const closeDevelopmentWarningBtn = document.getElementById('closeDevelopmentWarningBtn');
+const cancelDevelopmentWarningBtn = document.getElementById('cancelDevelopmentWarningBtn');
+const confirmDevelopmentWarningBtn = document.getElementById('confirmDevelopmentWarningBtn');
 
 let currentLobbyUser = null;
 let lastRenderedStats = null;
 let lastLeaderboardEntries = null;
+let pendingExperimentalMode = null;
 
 function t(key, params) {
     return window.CoupLanguage?.t(key, params) || key;
@@ -181,6 +187,29 @@ function openLogoutConfirmModal() {
 
 function closeLogoutConfirmModal() {
     if (logoutConfirmModal) logoutConfirmModal.style.display = 'none';
+}
+
+function isExperimentalMode(mode) {
+    return CoupGameModes.isRanked(mode) || CoupGameModes.isPersonalized(mode);
+}
+
+function updateDevelopmentWarningTitle() {
+    if (!developmentWarningTitle || !pendingExperimentalMode) return;
+    developmentWarningTitle.textContent = t('lobby.experimentalWarningTitle', {
+        mode: getModeLabel(pendingExperimentalMode)
+    });
+}
+
+function openDevelopmentWarningModal(mode) {
+    pendingExperimentalMode = CoupGameModes.normalize(mode);
+    updateDevelopmentWarningTitle();
+    if (developmentWarningModal) developmentWarningModal.style.display = 'flex';
+    confirmDevelopmentWarningBtn?.focus();
+}
+
+function closeDevelopmentWarningModal() {
+    pendingExperimentalMode = null;
+    if (developmentWarningModal) developmentWarningModal.style.display = 'none';
 }
 
 function signOutCurrentUser() {
@@ -654,11 +683,17 @@ closeLogoutConfirmModalBtn?.addEventListener('click', closeLogoutConfirmModal);
 logoutConfirmModal?.addEventListener('click', (event) => {
     if (event.target === logoutConfirmModal) closeLogoutConfirmModal();
 });
+closeDevelopmentWarningBtn?.addEventListener('click', closeDevelopmentWarningModal);
+cancelDevelopmentWarningBtn?.addEventListener('click', closeDevelopmentWarningModal);
+developmentWarningModal?.addEventListener('click', (event) => {
+    if (event.target === developmentWarningModal) closeDevelopmentWarningModal();
+});
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
         closeLeaderboardModal();
         closeLogoutConfirmModal();
+        closeDevelopmentWarningModal();
     }
 });
 
@@ -761,6 +796,43 @@ if (joinRoomBtn) {
  * Lógica para criar uma nova sala no banco de dados.
  */
 // [lobby.js]
+function createRoom(selectedMode) {
+    showLoader(CoupGameModes.isAutomated(selectedMode)
+        ? t('lobby.creatingAutomatedRoom', { mode: getModeLabel(selectedMode).toLowerCase() })
+        : t('lobby.creatingRoom'));
+    const newCode = generateRoomCode();
+    const currentUID = sessionStorage.getItem('currentUID'); //
+
+    db.ref(`salas/${newCode}`).once('value').then((snapshot) => {
+        if (snapshot.exists()) {
+            createRoom(selectedMode);
+            return;
+        }
+
+        const initialData = {
+            mode: selectedMode,
+            gameState: {
+                status: 'waiting',
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            },
+            lastActivity: Date.now()
+        };
+
+        if (!CoupGameModes.isRanked(selectedMode)) {
+            initialData.hostUID = currentUID;
+        }
+
+        db.ref(`salas/${newCode}`).set(initialData).then(() => {
+            openRoom(newCode, selectedMode);
+        }).catch(error => {
+            showError(t('lobby.createRoomError', { message: error.message }));
+        });
+    }).catch((error) => {
+        console.error('Erro ao verificar código da nova sala:', error);
+        showError(t('lobby.newCodeError'));
+    });
+}
+
 if (createRoomBtn) {
     createRoomBtn.onclick = () => {
         const selectedMode = getSelectedGameMode();
@@ -770,42 +842,20 @@ if (createRoomBtn) {
             return;
         }
 
-        showLoader(CoupGameModes.isAutomated(selectedMode)
-            ? t('lobby.creatingAutomatedRoom', { mode: getModeLabel(selectedMode).toLowerCase() })
-            : t('lobby.creatingRoom'));
-        const newCode = generateRoomCode();
-        const currentUID = sessionStorage.getItem('currentUID'); //
+        if (isExperimentalMode(selectedMode)) {
+            openDevelopmentWarningModal(selectedMode);
+            return;
+        }
 
-        db.ref(`salas/${newCode}`).once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                createRoomBtn.onclick();
-                return;
-            }
-
-            const initialData = {
-                mode: selectedMode,
-                gameState: {
-                    status: 'waiting',
-                    createdAt: firebase.database.ServerValue.TIMESTAMP
-                },
-                lastActivity: Date.now()
-            };
-
-            if (!CoupGameModes.isRanked(selectedMode)) {
-                initialData.hostUID = currentUID;
-            }
-
-            db.ref(`salas/${newCode}`).set(initialData).then(() => {
-                openRoom(newCode, selectedMode);
-            }).catch(error => {
-                showError(t('lobby.createRoomError', { message: error.message }));
-            });
-        }).catch((error) => {
-            console.error('Erro ao verificar código da nova sala:', error);
-            showError(t('lobby.newCodeError'));
-        });
+        createRoom(selectedMode);
     };
 }
+
+confirmDevelopmentWarningBtn?.addEventListener('click', () => {
+    const selectedMode = pendingExperimentalMode;
+    closeDevelopmentWarningModal();
+    if (selectedMode) createRoom(selectedMode);
+});
 
 // =======================================================
 // === COMPONENTES VISUAIS E UX (LOADER & FONTES) ===
@@ -841,6 +891,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 window.addEventListener('coup:languagechange', () => {
     if (currentLobbyUser) setRankedModeAvailability(currentLobbyUser);
+    updateDevelopmentWarningTitle();
     if (playerStatsModal?.style.display === 'flex' && lastRenderedStats) {
         renderPlayerStats(lastRenderedStats);
     }

@@ -370,6 +370,126 @@ h2 {
     outline: 0;
 }
 
+.development-warning-overlay {
+    padding: 18px;
+}
+
+.development-warning-modal {
+    width: min(430px, calc(100vw - 36px));
+    padding: 0;
+    border: 1px solid rgba(250, 204, 21, 0.62);
+    background: #202832;
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.65), 0 0 24px rgba(250, 204, 21, 0.1);
+}
+
+.development-warning-stripe {
+    height: 14px;
+    background: repeating-linear-gradient(135deg, #facc15 0 18px, #151515 18px 36px);
+}
+
+.development-warning-stripe:first-of-type {
+    border-radius: 9px 9px 0 0;
+}
+
+.development-warning-stripe:last-child {
+    border-radius: 0 0 9px 9px;
+}
+
+.development-warning-body {
+    padding: 24px;
+    text-align: left;
+}
+
+.development-warning-eyebrow {
+    display: block;
+    margin-bottom: 7px;
+    color: #facc15;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.modal-content.development-warning-modal h2 {
+    margin-bottom: 12px;
+    color: #fff;
+    font-size: 22px;
+    line-height: 1.25;
+    text-align: left;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.development-warning-body > p {
+    margin: 0 0 14px;
+    color: rgba(230, 238, 246, 0.82);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.development-warning-body .development-warning-risk {
+    margin-bottom: 22px;
+    padding: 12px 14px;
+    border-left: 4px solid #facc15;
+    background: rgba(250, 204, 21, 0.08);
+    color: #f5f0cf;
+}
+
+.development-warning-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 10px;
+}
+
+.development-warning-actions button {
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid rgba(230, 238, 246, 0.14);
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.development-warning-cancel {
+    background: #2b3440;
+}
+
+.development-warning-confirm {
+    border-color: #facc15 !important;
+    background: #facc15;
+    color: #171717 !important;
+}
+
+.development-warning-cancel:hover,
+.development-warning-cancel:focus-visible {
+    background: #36414e;
+    outline: 0;
+}
+
+.development-warning-confirm:hover,
+.development-warning-confirm:focus-visible {
+    background: #ffe066;
+    outline: 2px solid rgba(250, 204, 21, 0.32);
+    outline-offset: 2px;
+}
+
+.development-warning-close {
+    top: -12px;
+    right: -12px;
+}
+
+@media (max-width: 420px) {
+    .development-warning-body {
+        padding: 22px 18px;
+    }
+
+    .development-warning-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
 
 
 /* --- Estilo do botão de Fechar (X) Padronizado --- */
@@ -932,6 +1052,27 @@ button {
 .game-mode-option input:disabled + .game-mode-option-content {
     cursor: not-allowed;
     opacity: 0.45;
+}
+
+.game-mode-option input:is([value="ranked"], [value="personalized"]) + .game-mode-option-content {
+    --experimental-mode-fill: #25271f;
+    border: 3px solid transparent;
+    background:
+        linear-gradient(var(--experimental-mode-fill), var(--experimental-mode-fill)) padding-box,
+        repeating-linear-gradient(135deg, #facc15 0 8px, #151515 8px 16px) border-box;
+}
+
+.game-mode-option input:is([value="ranked"], [value="personalized"]) + .game-mode-option-content strong {
+    color: #facc15;
+}
+
+.game-mode-option input:is([value="ranked"], [value="personalized"]):checked + .game-mode-option-content {
+    --experimental-mode-fill: #494321;
+    box-shadow: inset 0 0 0 1px rgba(250, 204, 21, 0.45);
+}
+
+.game-mode-option input:is([value="ranked"], [value="personalized"]):focus-visible + .game-mode-option-content {
+    outline-color: #facc15;
 }
 
 .game-mode-options-scroll::-webkit-scrollbar {
