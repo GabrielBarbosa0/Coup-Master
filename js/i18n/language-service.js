@@ -2,7 +2,7 @@
     const STORAGE_KEY = 'coupMasterLanguage';
     const DEFAULT_LANGUAGE = 'pt-BR';
     const SUPPORTED_LANGUAGES = ['pt-BR', 'en-US'];
-    const LANGUAGE_VERSION = 'i18n-v5';
+    const LANGUAGE_VERSION = 'i18n-v7';
     const scriptUrl = document.currentScript?.src || '';
     const languageBaseUrl = scriptUrl ? new URL('../../lang/', scriptUrl).href : 'lang/';
 

@@ -152,7 +152,7 @@
     element.dataset.tooltipBound = 'true';
 
     element.addEventListener('mouseenter', (event) => {
-      showCardTooltip(event, label);
+      showCardTooltip(event, element.dataset.cardLabel || label);
     });
 
     element.addEventListener('mousemove', (event) => {

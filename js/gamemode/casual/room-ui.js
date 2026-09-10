@@ -18,6 +18,11 @@
     root.CoupModal?.close(target);
   }
 
+  function t(key, params = {}, fallback = '') {
+    const translated = root.CoupLanguage?.t?.(key, params);
+    return translated && translated !== key ? translated : fallback || key;
+  }
+
   function getPlayerName() {
     return root.currentUser?.displayName
       || root.currentUser?.email
@@ -55,13 +60,13 @@
 
   async function submitFeedbackForm(form) {
     const submitButton = form.querySelector('[type="submit"]');
-    const originalLabel = submitButton?.textContent || 'Enviar';
+    const originalLabel = submitButton?.textContent || t('ranked.send', {}, 'Enviar');
 
     fillFeedbackMetadata();
-    setFeedbackStatus('Enviando feedback...');
+    setFeedbackStatus(t('casual.feedbackSubmitting', {}, 'Enviando feedback...'));
     if (submitButton) {
       submitButton.disabled = true;
-      submitButton.textContent = 'Enviando...';
+      submitButton.textContent = t('casual.feedbackSending', {}, 'Enviando...');
     }
 
     try {
@@ -76,11 +81,11 @@
       if (!response.ok) throw new Error(`Formspark returned ${response.status}`);
 
       form.reset();
-      setFeedbackStatus('Feedback enviado. Obrigado por ajudar o Coup Master!', 'success');
+      setFeedbackStatus(t('casual.feedbackSuccess', {}, 'Feedback enviado. Obrigado por ajudar o Coup Master!'), 'success');
       playSound('success');
     } catch (error) {
       console.error('Erro ao enviar feedback:', error);
-      setFeedbackStatus('Nao foi possivel enviar agora. Tente novamente em instantes.', 'error');
+      setFeedbackStatus(t('casual.feedbackError', {}, 'Nao foi possivel enviar agora. Tente novamente em instantes.'), 'error');
     } finally {
       if (submitButton) {
         submitButton.disabled = false;

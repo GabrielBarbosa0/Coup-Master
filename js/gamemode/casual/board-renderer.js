@@ -236,6 +236,13 @@ function setupDeckSurface() {
   attachElementTooltip(deckEl, deckLabel);
 }
 
+function refreshCasualTranslations() {
+  renderAll();
+  const deckLabel = window.CoupLanguage?.t?.('casual.deck') || 'Baralho';
+  attachElementTooltip(deckEl, deckLabel);
+  window.CoupAsylumControls?.refreshLabels?.();
+}
+
 function setupRulesAndTutorial() {
   window.CoupRulesGuides?.setup({
     getState: () => localGameState,
@@ -277,3 +284,5 @@ function setupUI() {
 setupRenderServices();
 setupInteractionServices();
 setupHeaderServices();
+
+window.addEventListener?.('coup:languagechange', refreshCasualTranslations);

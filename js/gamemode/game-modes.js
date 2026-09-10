@@ -32,9 +32,10 @@
 
     function getLabel(mode) {
         const normalized = normalize(mode);
-        if (normalized === RANKED) return 'Ranqueado';
-        if (normalized === PERSONALIZED) return 'Sala Personalizada';
-        return 'Casual';
+        const t = globalScope.CoupLanguage?.t;
+        if (normalized === RANKED) return t?.('lobby.ranked') || 'Ranqueado';
+        if (normalized === PERSONALIZED) return t?.('lobby.personalized') || 'Sala Personalizada';
+        return t?.('lobby.casual') || 'Casual';
     }
 
     globalScope.CoupGameModes = Object.freeze({

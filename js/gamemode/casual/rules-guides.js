@@ -1170,14 +1170,14 @@
     if (rules.length === 0) {
       const empty = document.createElement('p');
       empty.className = 'rule-draw-empty';
-      empty.textContent = 'Nenhum sorteio realizado nesta sala.';
+      empty.textContent = t('casual.noRuleDraw', {}, 'Nenhum sorteio realizado nesta sala.');
       results.appendChild(empty);
       return;
     }
 
     const heading = document.createElement('p');
     heading.className = 'rule-draw-result-heading';
-    heading.textContent = 'Regras sorteadas para esta partida';
+    heading.textContent = t('casual.drawnRulesForMatch', {}, 'Regras sorteadas para esta partida');
     results.appendChild(heading);
 
     rules.forEach((rule, index) => {
@@ -1219,19 +1219,19 @@
 
   function publishRuleDraw() {
     if (!getIsAdmin()) {
-      showError('Apenas o Host pode sortear regras alternativas.');
+      showError(t('casual.ruleDrawHostOnly', {}, 'Apenas o Host pode sortear regras alternativas.'));
       return;
     }
 
     if (isRankedMode()) {
-      showError('O sorteador de regras alternativas fica disponivel apenas no modo casual.');
+      showError(t('casual.ruleDrawCasualOnly', {}, 'O sorteador de regras alternativas fica disponivel apenas no modo casual.'));
       return;
     }
 
     const db = getDatabase();
     const roomCode = getRoomCode();
     if (!db || !roomCode) {
-      showError('Nao foi possivel sincronizar o sorteio da sala.');
+      showError(t('casual.ruleDrawSyncError', {}, 'Nao foi possivel sincronizar o sorteio da sala.'));
       return;
     }
 
@@ -1250,7 +1250,7 @@
     db.ref(`salas/${roomCode}/gameState/alternativeRuleDraw`).set(drawData)
       .catch((error) => {
         console.error('Erro ao sortear regras alternativas:', error);
-        showError('Nao foi possivel sortear regras alternativas.');
+        showError(t('casual.ruleDrawError', {}, 'Nao foi possivel sortear regras alternativas.'));
       });
   }
 

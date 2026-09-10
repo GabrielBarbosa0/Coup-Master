@@ -148,7 +148,9 @@ function setupNotificationListener() {
       const text = document.getElementById('spectateRequestText');
 
       if (modal && text) {
-        text.innerText = `${data.fromName} deseja te assistir. Aceitar?`;
+        const message = window.CoupLanguage?.t?.('casual.spectatorRequestQuestion', { name: data.fromName })
+          || `${data.fromName} deseja te assistir. Aceitar?`;
+        text.innerText = message;
         window.CoupModal?.open(modal);
         playSound('pop'); // Alerta sonoro de solicitação
 
