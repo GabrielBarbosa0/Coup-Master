@@ -240,7 +240,7 @@ Estas dividas bloqueiam qualquer tentativa de tratar ranking como competitivo se
 
    Exemplos conhecidos:
 
-   - `og:image` foi padronizado para a nova logo em `assets/img/logo/logo-coup-master.png`;
+   - `og:image` foi padronizado para o icone quadrado em `assets/img/logo/favicon-coup-master.png`;
    - `sitemap.xml` referencia `/img/...`, mas assets reais estao em `assets/img/...`.
 
 2. **HTML invalido no lobby**

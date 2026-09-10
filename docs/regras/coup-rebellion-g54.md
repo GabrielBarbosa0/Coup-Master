@@ -1,78 +1,128 @@
-**📡 Communications** 
+# Coup Rebellion G54 + Anarchy
 
-| Personagem | Habilidade |
-| ----- | ----- |
-| **Diretor**  | Compra **2 cartas** do Court, olha as duas e pode trocar qualquer uma delas pelas suas próprias cartas. Depois devolve 2 ao Court. |
-| **Apresentador**  | Paga **1 moeda**, compra **3 cartas** do Court, olha todas e pode trocar cartas pelas suas. Depois devolve 3 ao Court. |
-| **Produtor**  | Pega **1 carta do Court** e **1 carta de outro jogador** — o jogador escolhido decide qual carta entregar. Você pode trocar secretamente as cartas e depois devolve uma ao Court e uma ao jogador. |
-| **Repórter**  | Pega **1 carta do Court \+ 1 moeda do Tesouro**. Pode trocar secretamente a carta que comprou por uma das suas e depois devolve uma carta ao Court. |
-| **Escritor**  | Compra **1 carta** do Court. Depois pode pagar 1 moeda para comprar outra, podendo repetir isso quantas vezes quiser. No final, devolve ao Court o mesmo número de cartas que comprou. |
+Documento de referência para reorganizar as ações e habilidades de Coup Rebellion G54 + Anarchy antes de adaptar personagens, nomes e artes para o estilo do Coup Master.
 
-**💰 Finance** 
+Este arquivo não define personagens finais do Coup Master. Ele serve como base de estudo das habilidades.
 
-| Personagem | Habilidade |
-| ----- | ----- |
-| **Banqueiro**  | Pega **3 moedas do Tesouro**. |
-| **Capitalista**  | Pega **4 moedas do Tesouro**. Depois que todas as pessoas que declararam ser Capitalist resolverem seus desafios, **cada Capitalist sobrevivente paga 1 moeda a cada outro Capitalist sobrevivente**. |
-| **Fazendeiro**  | Pega **3 moedas do Tesouro** e é obrigado a **dar 1 moeda a outro jogador**. |
-| **Especulador**  | Pega do Tesouro uma quantidade de moedas **igual à quantidade que já possui**, até o máximo de 5 moedas recebidas. Se for desafiado com sucesso, devolve as moedas extras ao Tesouro e paga ao desafiante as moedas que tinha inicialmente. |
-| **Espião**  | Pega **1 moeda** do Tesouro e pode realizar **uma segunda ação imediatamente**. Não pode usar novamente a ação do Spy no mesmo turno. |
+## Coup Rebellion G54
 
-### **⚔️ Force**
+### Communications
 
-| Personagem | Habilidade |
-| ----- | ----- |
-| **Chefe do Crime**  | Escolhe um jogador. O alvo pode **pagar 2 moedas** para encerrar o turno do Crime Boss. Se não pagar, o Crime Boss paga **5 moedas** ao Tesouro e o alvo perde 1 influência. |
-| **General**  | Paga **5 moedas** ao Tesouro. **Todos os outros jogadores** perdem 1 influência. O General pode ser usado como contra-ação para evitar esse ataque. |
-| **Guerrilheiro**  | Paga **4 moedas** ao Tesouro e escolhe um alvo. O alvo perde 1 influência. O alvo pode declarar Guerrilla como contra-ação para evitar o ataque. |
-| **Juiz**  | Dá **3 moedas ao alvo** e, ao mesmo tempo, faz o alvo perder 1 influência. Se o alvo conseguir contra-atacar, **fica com as 3 moedas**. |
-| **Mercenário**  | Paga **3 moedas** e coloca a ficha **Disappear** no alvo. Se a ficha ainda estiver lá no final do próximo turno do alvo, ele perde 1 influência. O alvo pode declarar Mercenary para escapar. |
+**Diretor**
+**Dirigir:** Compre 2 cartas do Baralho da Corte, olhe as duas e pode trocar qualquer uma delas pelas suas próprias cartas. Depois devolva 2 cartas ao Baralho da Corte.
 
-### 
+**Apresentador**
+**Apresentar:** Pague 1 moeda, compre 3 cartas do Baralho da Corte, olhe todas e pode trocar cartas pelas suas. Depois devolva 3 cartas ao Baralho da Corte.
 
+**Produtor**
+**Produzir:** Pegue 1 carta do Baralho da Corte e 1 carta de outro jogador. O jogador escolhido decide qual carta entregar. Você pode trocar secretamente as cartas e depois devolve uma carta ao Baralho da Corte e uma carta ao jogador.
 
-**🏛️ Special Interests**
+**Repórter**
+**Reportar:** Pegue 1 carta do Baralho da Corte e 1 moeda do Tesouro Central. Você pode trocar secretamente a carta comprada por uma das suas e depois devolve uma carta ao Baralho da Corte.
 
-| Personagem | Habilidade |
-| ----- | ----- |
-| **Comunista** | Rouba até **3 moedas do jogador mais rico** e entrega essas moedas ao **jogador mais pobre**. |
-| **Oficial da Alfândega** | Pega os **2 marcadores de Tax**. Fica com 1 e coloca o outro sobre uma carta de personagem. Antes que outro jogador possa reivindicar esse personagem, ele deve pagar **1 moeda** ao Customs Officer. |
-| **Cônsul Estrangeiro** | Pega os **2 marcadores de Treaty**. Fica com 1 e dá o outro a outro jogador. Os dois jogadores tornam-se **aliados** e não podem ter um ao outro como alvo, nem mesmo através de Coup. |
-| **Intelectual** | Quando perde uma influência, pode declarar ser Intellectual e pegar **5 moedas** do Tesouro. Se for desafiado e estiver mentindo, perde outra influência. Se o desafio for falso, o desafiante perde 1 influência. |
-| **Advogado** | Quando outro jogador é eliminado, pode pegar **todas as moedas** que ele possuía. |
-| **Missionário** | Se perder uma influência (**exceto por Coup**), pode declarar Missionary e comprar **1 carta do Court**. Se for desafiado com sucesso, perde outra influência; se o desafio for falso, o desafiante perde 1 influência. |
-| **Pacificador** | Pega **1 moeda** e coloca o marcador de Peacekeeping à sua frente. Enquanto estiver com o marcador, **não pode ser alvo** de ações — mas ainda pode sofrer Coup. |
-| **Político** | Escolhe um alvo e pega **até 2 moedas** dele. |
-| **Padre/** | **Todos os outros jogadores** são alvos e devem entregar **1 moeda** ao Priest. |
-| **Manifestante** | Paga **2 moedas** e escolhe um alvo. Outro jogador pode pagar **3 moedas** para fazer o alvo perder 1 influência. |
+**Escritor**
+**Escrever:** Compre 1 carta do Baralho da Corte. Depois pode pagar 1 moeda para comprar outra carta, repetindo isso quantas vezes quiser. No final, devolva ao Baralho da Corte o mesmo número de cartas que comprou.
 
-**💰 Finance — Anarchy**
+### Finance
 
-| Personagem | Habilidade |
-| ----- | ----- |
-|  **Proprietário de plantação**  | Recebe moedas do Tesouro. O valor depende do número de Plantation Owners que sobreviverem à resolução dos desafios. |
-| **Financier** | Pode retirar as moedas acumuladas no **Bank** através da ação especial de Bank. |
+**Banqueiro**
+**Financiar:** Pegue 3 moedas do Tesouro Central.
 
-### **⚔️ Force — Anarchy**
+**Capitalista**
+**Capitalizar:** Pegue 4 moedas do Tesouro Central. Depois que todos os jogadores que declararam Capitalista resolverem suas contestações, cada Capitalista sobrevivente paga 1 moeda a cada outro Capitalista sobrevivente.
 
-| Personagem | Habilidade | Custo |
-| ----- | ----- | ----- |
-| **Anarquista**  | Coloca uma **Bomba 💣** em outro jogador. O alvo precisa desarmá-la ou passá-la para outro jogador. Se não conseguir se livrar dela, perde 1 influência. | 🪙 3 |
-| **Paramilitar**  | Escolhe um jogador e faz com que ele perca 1 influência. Custa mais quando o alvo já possui apenas 1 influência. | 🪙 3 ou 5 |
+**Fazendeiro**
+**Colher:** Pegue 3 moedas do Tesouro Central e dê 1 moeda a outro jogador.
 
-**🎯 Special Interests — Anarchy**
+**Especulador**
+**Especular:** Pegue do Tesouro Central uma quantidade de moedas igual à quantidade que você já possui, até o máximo de 5 moedas recebidas. Se for contestado com sucesso, devolva as moedas extras ao Tesouro Central e pague ao contestador as moedas que você tinha antes da ação.
 
-| Personagem | Habilidade |
-| ----- | ----- |
-| **Traficante de armas**  | Escolhe um personagem e revela 2 cartas do Court. Se pelo menos uma for o personagem escolhido, recebe moedas. |
-| **Socialista**  | Os outros jogadores precisam entregar **1 moeda ou 1 influência**. Você recebe essas cartas/moedas e manipula as cartas recebidas. |
+**Espião**
+**Infiltrar:** Pegue 1 moeda do Tesouro Central e realize uma segunda ação imediatamente. Não pode usar novamente a ação do Espião no mesmo turno.
 
-### 
+### Force
 
-### **📱 Ações novas do Anarchy**
+**Chefe do Crime**
+**Intimidar:** Escolha um jogador. O alvo pode pagar 2 moedas para encerrar seu turno. Se não pagar, pague 5 moedas ao Tesouro Central e o alvo perde 1 influência.
 
-| Ação | Habilidade |
-| ----- | ----- |
-| **Bank** | Coloca moedas em um banco separado, que pode posteriormente ser explorado pelo **Financier**. |
-| **Social Media** | Permite manipular uma carta do Court e pode alterar a composição dos personagens disponíveis na partida. |
+**General**
+**Comandar Ataque:** Pague 5 moedas ao Tesouro Central. Todos os outros jogadores perdem 1 influência. O General pode ser usado como contra-ação para evitar esse ataque.
 
+**Guerrilheiro**
+**Emboscar:** Pague 4 moedas ao Tesouro Central e escolha um alvo. O alvo perde 1 influência. O alvo pode declarar Guerrilheiro como contra-ação para evitar o ataque.
+
+**Juiz**
+**Sentenciar:** Dê 3 moedas ao alvo e faça esse alvo perder 1 influência. Se o alvo conseguir contra-atacar, ele fica com as 3 moedas.
+
+**Mercenário**
+**Marcar Alvo:** Pague 3 moedas e coloque a ficha Desaparecer no alvo. Se a ficha ainda estiver no alvo no final do próximo turno dele, ele perde 1 influência. O alvo pode declarar Mercenário para escapar.
+
+### Special Interests
+
+**Comunista**
+**Redistribuir:** Roube até 3 moedas do jogador mais rico e entregue essas moedas ao jogador mais pobre.
+
+**Oficial da Alfândega**
+**Taxar Personagem:** Pegue os 2 marcadores de Taxa. Fique com 1 marcador e coloque o outro sobre uma carta de personagem. Antes que outro jogador possa reivindicar esse personagem, ele deve pagar 1 moeda ao Oficial da Alfândega.
+
+**Cônsul Estrangeiro**
+**Firmar Tratado:** Pegue os 2 marcadores de Tratado. Fique com 1 marcador e entregue o outro a outro jogador. Os dois jogadores se tornam aliados e não podem ter um ao outro como alvo, nem mesmo através de Golpe de Estado.
+
+**Intelectual**
+**Reivindicar Prestígio:** Quando perder uma influência, você pode declarar Intelectual e pegar 5 moedas do Tesouro Central. Se for contestado e estiver mentindo, perde outra influência. Se a contestação falhar, o contestador perde 1 influência.
+
+**Advogado**
+**Herdar Bens:** Quando outro jogador for eliminado, você pode pegar todas as moedas que ele possuía.
+
+**Missionário**
+**Converter:** Se perder uma influência, exceto por Golpe de Estado, você pode declarar Missionário e comprar 1 carta do Baralho da Corte. Se for contestado com sucesso, perde outra influência. Se a contestação falhar, o contestador perde 1 influência.
+
+**Pacificador**
+**Proteger:** Pegue 1 moeda e coloque o marcador de Pacificação à sua frente. Enquanto estiver com o marcador, você não pode ser alvo de ações, mas ainda pode sofrer Golpe de Estado.
+
+**Político**
+**Influenciar:** Escolha um alvo e pegue até 2 moedas dele.
+
+**Padre**
+**Cobrar Dízimo:** Todos os outros jogadores são alvos e devem entregar 1 moeda ao Padre.
+
+**Manifestante**
+**Incitar:** Pague 2 moedas e escolha um alvo. Outro jogador pode pagar 3 moedas para fazer o alvo perder 1 influência.
+
+## Anarchy
+
+### Finance
+
+**Proprietário de Plantação**
+**Colher Plantação:** Pegue 1 moeda do Tesouro Central. Todos os Proprietários de Plantação recebem 1 moeda para cada Proprietário de Plantação reivindicado.
+
+**Financista**
+**Sacar Banco:** Pode retirar as moedas acumuladas no Banco através da ação especial Banco.
+
+### Force
+
+**Anarquista**
+**Bomba:** Pague 3 moedas e coloque uma Bomba em outro jogador. O alvo precisa desarmá-la ou passá-la para outro jogador. Se não conseguir se livrar dela, perde 1 influência.
+
+**Paramilitar**
+**Ataque Armado:** Escolha um jogador e faça com que ele perca 1 influência. Custa 3 moedas, ou 5 moedas se o alvo tiver apenas 1 influência.
+
+### Special Interests
+
+**Traficante de Armas**
+**Contrabandear Armas:** Escolha um personagem e revele 2 cartas aleatórias do Baralho da Corte. Se pelo menos uma delas for o personagem escolhido, pegue 4 moedas do Tesouro Central.
+
+**Socialista**
+**Coletivizar:** Os outros jogadores precisam entregar 1 moeda ou 1 influência. Você recebe essas cartas ou moedas e manipula as cartas recebidas.
+
+### Ações Novas
+
+**Banco**
+**Depositar:** Pegue 1 moeda do Tesouro Central e adicione 1 moeda ao Banco. Não pode ser contestado nem bloqueado.
+
+**Mídias Sociais**
+**Manipular Corte:** Compre 1 carta do Baralho da Corte e devolva 1 carta ao Baralho da Corte. Não pode ser contestado nem bloqueado. Quando Mídias Sociais for escolhida para a partida, selecione também mais um personagem de Communications.
+
+## Pendências de Revisão
+
+- Revisar se os nomes de ações traduzidos devem ser mantidos ou substituídos por nomes originais antes da adaptação para Coup Master.
