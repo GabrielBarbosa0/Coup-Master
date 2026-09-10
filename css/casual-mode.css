@@ -980,24 +980,14 @@ h2 {
         max-width: 560px;
         max-height: calc(100dvh - 24px);
         padding: 14px;
-        overflow-x: hidden;
-        overflow-y: auto;
-        scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
-        scrollbar-width: thin;
+        overflow: visible;
     }
 
-    #quickActionsModal .quick-player-modal::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    #quickActionsModal .quick-player-modal::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
-    }
-
-    #quickActionsModal .quick-player-modal::-webkit-scrollbar-thumb {
-        background: var(--accent);
-        border-radius: 10px;
+    #quickActionsModal .close-btn {
+        top: -10px;
+        right: -10px;
+        z-index: 1020;
+        transform: translateZ(80px);
     }
 
     #quickActionsModal #quickActionsTitle {
