@@ -2592,7 +2592,9 @@ h2 {
 .game-table .score {
     min-width: 18px;
     color: var(--text);
+    font-family: 'Harlean', 'Cinzel', serif !important;
     font-size: 17px;
+    font-weight: 400;
     line-height: 1;
     text-align: center;
 }
