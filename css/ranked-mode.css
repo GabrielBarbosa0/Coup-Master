@@ -3475,6 +3475,35 @@ body[data-rank-view="game"] .rank-timer {
 }
 
 @media (max-width: 980px) {
+    body[data-rank-view="game"] .rank-shell {
+        display: flex;
+        flex-direction: column;
+        min-height: 100dvh;
+    }
+
+    body[data-rank-view="game"] .rank-header {
+        flex-shrink: 0;
+    }
+
+    body[data-rank-view="game"] .rank-layout {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    body[data-rank-view="game"] .rank-main-stack {
+        width: 100%;
+    }
+
+    body[data-rank-view="game"] .rank-players {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body[data-rank-view="game"] .rank-player-slot.is-compact-hidden {
+        display: none;
+    }
+
     .rank-layout {
         display: block;
     }

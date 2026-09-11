@@ -1319,6 +1319,8 @@
         container.replaceChildren();
         container.classList.toggle('is-waiting-view', state.status === PHASES.WAITING);
         const bySeat = new Map(Engine.getPlayers(state).map((player) => [player.seat, player]));
+        const compactSeatCount = Math.max(2, Math.ceil(bySeat.size / 2) * 2);
+        let compactEmptySeats = compactSeatCount - bySeat.size;
         const activeUid = Engine.getActiveUid(state);
         const drawCandidates = new Set(state.starterDraw?.candidates || []);
 
@@ -1326,6 +1328,8 @@
             const player = bySeat.get(seat);
             if (!player) {
                 const empty = element('article', 'rank-player-slot is-empty');
+                empty.classList.toggle('is-compact-hidden', compactEmptySeats <= 0);
+                compactEmptySeats -= 1;
                 const emptyText = element('div');
                 emptyText.append(
                     element('strong', '', t('ranked.emptySeat', { seat }, `Lugar ${seat}`)),
