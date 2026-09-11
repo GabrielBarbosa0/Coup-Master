@@ -2109,6 +2109,10 @@ Impacto:
 - Git pack esta grande, com historico em torno de centenas de MB.
 - GitHub Pages entrega estatico, sem pipeline de compressao/otimizacao neste repositorio.
 
+### Tela cheia na primeira interacao das mesas
+
+`js/ui/first-interaction-fullscreen.js` solicita tela cheia no primeiro clique ou toque que gere um evento `click` real nas mesas casual, ranqueada e personalizada. A tentativa ocorre uma vez por carregamento da pagina. O botao existente de tela cheia trata seu proprio clique; sair por ele ou por Esc nao dispara nova tentativa automatica. Negativas do navegador sao tratadas sem interromper a acao do jogador. Login, lobby e salas de espera nao carregam esse comportamento.
+
 ## 17. SEO, Indexacao e GitHub Pages
 
 Arquivos relacionados:
