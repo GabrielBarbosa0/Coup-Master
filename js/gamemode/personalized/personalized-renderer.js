@@ -1878,7 +1878,7 @@
         }
 
         if (selectedAction) {
-            const targetPlayers = Engine.getAlivePlayers(state).filter((player) => player.uid !== currentUid);
+            const targetPlayers = Engine.getActionTargets(state, currentUid, selectedAction);
             const targetCount = Math.min(targetPlayers.length, 5);
             const targets = element('div', `rank-target-list rank-target-list--count-${targetCount}`);
             targetPlayers.forEach((player) => {
@@ -1904,6 +1904,7 @@
         const grid = element('div', 'rank-actions-grid');
         Object.values(ACTIONS).forEach((actionType) => {
             if (!Rules.isActionAvailable(state, actionType)) return;
+            if (actionType === ACTIONS.STEAL && !Engine.getActionTargets(state, currentUid, actionType).length) return;
             const action = Rules.getAction(actionType);
             const button = element('button', 'rank-action-btn');
             button.type = 'button';

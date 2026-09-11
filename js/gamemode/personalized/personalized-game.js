@@ -251,7 +251,7 @@
     }
 
     function chooseTarget(state, bot, purpose) {
-        const candidates = Engine.getAlivePlayers(state).filter((player) => player.uid !== bot.uid);
+        const candidates = Engine.getActionTargets(state, bot.uid, purpose === 'steal' ? Rules.ACTIONS.STEAL : null);
         if (!candidates.length) return null;
         return candidates
             .map((target) => ({ target, score: getTargetScore(bot, target, purpose) }))
@@ -273,7 +273,7 @@
 
         if (shouldClaimRole(bot, ROLES.DUKE, 1.2)) return { type: ACTIONS.TAX, targetUid: null };
 
-        if (stealTarget?.coins > 0 && shouldClaimRole(bot, ROLES.CAPTAIN)) {
+        if (stealTarget && shouldClaimRole(bot, ROLES.CAPTAIN)) {
             return { type: ACTIONS.STEAL, targetUid: stealTarget.uid };
         }
 

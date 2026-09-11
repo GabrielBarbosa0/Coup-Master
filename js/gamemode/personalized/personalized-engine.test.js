@@ -398,6 +398,33 @@ function testMatchStatsTrackActionsAndChallenges() {
     assert.equal(stealResult.players.u1.matchStats.coinsStolen, 2);
 }
 
+function testStealRequiresTwoTargetCoins() {
+    for (const coins of [0, 1, 2, 3]) {
+        const state = createStartedState();
+        state.players.u1.coins = 4;
+        state.players.u2.coins = coins;
+        const targets = Engine.getActionTargets(state, 'u1', Rules.ACTIONS.STEAL);
+        assert.equal(targets.length, coins >= 2 ? 1 : 0);
+        if (coins < 2) {
+            const before = JSON.stringify(state);
+            assert.throws(() => Engine.performAction(state, 'u1', Rules.ACTIONS.STEAL, 'u2', 2000), /alvo/);
+            assert.equal(JSON.stringify(state), before);
+        } else {
+            Engine.performAction(state, 'u1', Rules.ACTIONS.STEAL, 'u2', 2000);
+            Engine.passResponse(state, 'u2', 2100);
+            assert.equal(state.players.u1.coins, 6);
+            assert.equal(state.players.u2.coins, coins - 2);
+        }
+    }
+    const state = createStartedStateWithThree();
+    state.players.u2.coins = 1;
+    state.players.u3.coins = 2;
+    assert.deepEqual(Engine.getActionTargets(state, 'u1', Rules.ACTIONS.STEAL).map((player) => player.uid), ['u3']);
+    state.players.u3.eliminated = true;
+    assert.equal(Engine.getActionTargets(state, 'u1', Rules.ACTIONS.STEAL).length, 0);
+}
+
+testStealRequiresTwoTargetCoins();
 testImmediateIncome();
 testReadyCountdownDelaysStart();
 testInitialDealSkipsAmbassador();
@@ -422,6 +449,6 @@ testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 
-console.log('personalized-engine: 23 testes aprovados');
+console.log('personalized-engine: 24 testes aprovados');
 
 

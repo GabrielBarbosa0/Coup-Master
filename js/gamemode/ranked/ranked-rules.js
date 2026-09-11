@@ -55,7 +55,7 @@
             claim: ROLES.DUKE, cost: 0, challengeable: true, blockClaims: []
         },
         [ACTIONS.STEAL]: {
-            label: 'Extorquir', description: 'Declare Capitão e roube até 2 moedas.', requiresTarget: true,
+            label: 'Extorquir', description: 'Declare Capitão e roube 2 moedas de um jogador com pelo menos 2 moedas.', requiresTarget: true,
             claim: ROLES.CAPTAIN, cost: 0, challengeable: true,
             blockClaims: [ROLES.CAPTAIN, ROLES.AMBASSADOR, ROLES.INQUISITOR], blockScope: 'target'
         },

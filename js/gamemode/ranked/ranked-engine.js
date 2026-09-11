@@ -609,6 +609,11 @@
         return true;
     }
 
+    function getActionTargets(state, uid, actionType) {
+        return getAlivePlayers(state).filter((player) => player.uid !== uid
+            && (actionType !== ACTIONS.STEAL || player.coins >= 2));
+    }
+
     function validateTurnAction(state, uid, actionType, targetUid) {
         if (state.status !== 'active' || state.phase !== PHASES.TURN) throw new Error('Aguarde a etapa atual terminar.');
         if (getActiveUid(state) !== uid) throw new Error('Não é o seu turno.');
@@ -625,7 +630,7 @@
 
         if (action.requiresTarget) {
             const target = getPlayer(state, targetUid);
-            if (!target || target.uid === uid || target.eliminated || countInfluences(target) === 0) {
+            if (!target || !getActionTargets(state, uid, actionType).some((player) => player.uid === targetUid)) {
                 throw new Error('Escolha um alvo válido.');
             }
         }
@@ -1288,6 +1293,7 @@
         advanceExpired,
         getPlayers,
         getAlivePlayers,
+        getActionTargets,
         getPlayer,
         getActiveUid,
         getResponseUids,

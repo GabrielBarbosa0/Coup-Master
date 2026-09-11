@@ -11,6 +11,8 @@ Commit base da atualizacao parcial: `9ffcbaf` (`suporte ao discord`)
 
 ## 1. Sumario Executivo
 
+No ranqueado e na Sala Personalizada, Extorquir exige um adversario vivo com pelo menos 2 moedas. A interface oculta a acao quando nao existe alvo elegivel e filtra a selecao de jogadores; o motor e os bots usam a mesma validacao.
+
 ### Variante Embaixador/Inquisidor (2026-09-11)
 
 Ranqueado e Sala Personalizada sorteiam uma unica variante por partida, com 50% de chance para cada personagem. O motor grava `exchangeRole` no estado sincronizado, antes de criar o baralho: cinco personagens com cinco copias cada (25 cartas). A distribuicao inicial continua excluindo o Embaixador, conforme a regra existente.
