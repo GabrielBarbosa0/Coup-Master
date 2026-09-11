@@ -665,9 +665,9 @@
                 showError(t('ranked.copyInviteError', {}, 'Não foi possível copiar o convite da sala.'));
             }
         });
-        bindModal('rankCharacterActionsBtn', 'rankActionsModal', '#closeRankActionsBtn', resetActionsGuide);
+        bindModal('rankCharacterActionsBtn', 'rankActionsModal', '#closeRankActionsBtn', resetActionsGuide, { silent: true });
         bindModal('rankSettingsBtn', 'rankSettingsModal', '#closeRankSettingsBtn', null, { silent: true });
-        bindModal('openRankFeedbackBtn', 'rankFeedbackModal', '#closeRankFeedbackBtn');
+        bindModal('openRankFeedbackBtn', 'rankFeedbackModal', '#closeRankFeedbackBtn', null, { silent: true });
         bindRankPlayerProfileModal();
         bindRankPanel('openRankLogBtn', 'rankLogModal', '#closeRankLogBtn');
         bindAddAiModal();
@@ -675,7 +675,6 @@
         setupActionsGuide();
         document.getElementById('copyRankLogBtn')?.addEventListener('click', copyOfficialLog);
         document.getElementById('rankFullscreenBtn')?.addEventListener('click', () => {
-            playRankSfx('click');
             if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
             else document.exitFullscreen?.();
         });
@@ -2160,7 +2159,6 @@
         }
         if (musicBtn && bgm) {
             musicBtn.addEventListener('click', () => {
-                playRankSfx('click');
                 if (bgmGuard) {
                     bgmGuard.toggle();
                     return;

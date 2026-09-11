@@ -21,7 +21,7 @@
 
     <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
     <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=feedback-border-v1">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=feedback-settings-v2">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
 </head>
 
@@ -178,7 +178,7 @@
                     </select>
                 </div>
 
-                <div class="setting-row">
+                <div class="setting-row setting-row-toggle">
                     <label for="rankCalloutsToggle" data-i18n="cm:cmFua2VkLmNhbGxvdXRzTGFiZWw">Mensagens dos jogadores:</label>
                     <label class="rank-settings-toggle">
                         <input id="rankCalloutsToggle" type="checkbox" checked>
@@ -239,7 +239,8 @@
             <button id="closeRankFeedbackBtn" class="close-btn" aria-label="Fechar" data-i18n-aria-label="cm:Y29tbW9uLmNsb3Nl">&times;</button>
             <div class="feedback-form-header">
                 <h2 class="config-title" data-i18n="cm:Y2FzdWFsLmZlZWRiYWNrVGl0bGU=">Feedback & Sugestões</h2>
-                <p class="config-p-title" data-i18n="cm:Y2FzdWFsLmZlZWRiYWNrSW50cm8=">Conte o que aconteceu ou mande uma ideia para melhorar o jogo.</p>
+                <p class="config-p-title"><span data-i18n="casual.feedbackIntroLine1">Conte o que aconteceu ou mande</span><br><span
+                    data-i18n="casual.feedbackIntroLine2">uma ideia para melhorar o jogo.</span></p>
             </div>
 
             <form id="rankFeedbackForm" class="feedback-form" action="https://submit-form.com/YEc6RM4hj" method="POST"
@@ -329,7 +330,7 @@
     <script src="js/gamemode/casual/rules-guides.js?v=dynamic-guides-v8" defer></script>
     <script src="js/gamemode/personalized/personalized-rules.js?v=personalized-kick-modal-v1" defer></script>
     <script src="js/gamemode/personalized/personalized-engine.js?v=personalized-kick-modal-v1" defer></script>
-    <script src="js/gamemode/personalized/personalized-renderer.js?v=dynamic-guides-v2" defer></script>
+    <script src="js/gamemode/personalized/personalized-renderer.js?v=silent-toolbar-v1" defer></script>
     <script src="js/gamemode/personalized/personalized-game.js?v=personalized-kick-modal-v1" defer></script>
 </body>
 
