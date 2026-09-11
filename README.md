@@ -1,6 +1,6 @@
-# Coup Master - Multiplayer Online Beta v0.5
+# Coup Master - Multiplayer Online Beta v0.9
 
-![Status](https://img.shields.io/badge/Status-Beta_v0.5-blue) ![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Database-orange)
+![Status](https://img.shields.io/badge/Status-Beta_v0.9-blue) ![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Database-orange)
 
 <p align="center">
   <img src="./assets/img/marketing/banners/banner-coup-master.png" alt="Coup Master Banner" width="100%">
@@ -9,8 +9,7 @@
 ## 📖 Sobre o Projeto
 
 **Coup Master** é um jogo multiplayer **sandbox** inspirado em jogos de blefe e estratégia política. 
-Diferente de versões automatizadas, o foco aqui é reproduzir a experiência manual de uma mesa real, 
-onde os próprios jogadores gerenciam ações, moedas e interações.
+O modo casual reproduz a experiência manual de uma mesa real, onde os próprios jogadores gerenciam ações, moedas e interações. O projeto também oferece os modos experimentais Ranqueado e Sala Personalizada, com regras automatizadas e bots de IA.
 
 O projeto é uma iniciativa indie, gratuita e sem fins lucrativos.
 
@@ -44,47 +43,29 @@ com foco em escalabilidade e consistência de estado.
 
 ---
 
-## ✨ Novidades da Versão Beta (v0.5)
+## ✨ Novidades e Marcos do Projeto
 
-### 🌑 Expansão: Lei e Desordem (DLC 3)
+### v0.9 — Modos Automatizados e Evolução da Mesa
+
+A Beta v0.9 reúne as principais novidades desde a v0.5 e prepara o projeto para o lançamento da versão 1.0. Ranqueado e Sala Personalizada continuam experimentais.
+
+- **Modo Ranqueado experimental:** Partidas com turnos, ações, bloqueios, contestações e perdas de influência controlados pelo sistema, além de bots de IA. Rating e classificação competitiva permanecem suspensos enquanto não houver validação autoritativa dos resultados.
+- **Sala Personalizada experimental:** Mesa automatizada para jogar com amigos e bots, com controles do anfitrião na sala de espera e sem gerar pontos ranqueados.
+- **Variante de personagens por partida:** Ranqueado e Sala Personalizada sorteiam Embaixador ou Inquisidor; o guia e as ações disponíveis acompanham o personagem escolhido.
+- **Guias dinâmicos:** Ações de personagens geradas conforme o baralho e regras alternativas renderizadas em texto, com suporte a português e inglês.
+- **Interação da mesa casual:** Preview ampliado por botão direito, cartas sobrepostas em pilha horizontal e ações rápidas ao clicar no nome de um jogador. O perfil é acessado pela foto.
+
+### 🌑 v0.5 — Lei e Desordem (DLC 3)
+
 * **Novas Influências:** Adição de 6 personagens inéditos com mecânicas avançadas: Pistoleiro, Magnata, Estrategista, Ladrão, Vigarista e Xerife.
-* **Regras Dinâmicas:** O manual de ajuda (Flip Card) agora detecta automaticamente quais DLCs estão ativas no deck e exibe a carta de regras correspondente (`dlc3-actions.jpg`).
+* **Integração ao Baralho:** Personagens disponíveis na configuração e nos presets do casual.
 
-### 🔍 Otimização de Descoberta (SEO & Indexação)
-* **Google Search Console:** Integração e verificação de propriedade para permitir que o jogo seja encontrado em buscas por "Coup Online".
-* **Meta Tags Avançadas:** Implementação de títulos dinâmicos, descrições ricas e suporte a **Open Graph** para visualização profissional em compartilhamentos no WhatsApp e Discord.
+### 👻 v0.3 — Modo Espectador Fantasma
 
----
-
-## ✨ Novidades da Versão Beta (v0.4)
-
-### 🧹 Manutenção e Autodestruição de Salas
-* **Limpeza Automática:** Implementação de um sistema de varredura que deleta automaticamente salas sem atividade por mais de 24 horas.
-* **Registro de Atividade:** Cada ação realizada na mesa — como mover cartas, alterar moedas ou mudar religião — agora atualiza o carimbo de tempo (`lastActivity`) da sala.
-* **Otimização de Banco de Dados:** A rotina de limpeza é executada de forma silenciosa sempre que um novo jogador acessa o lobby, garantindo que o Realtime Database permaneça leve e organizado.
-
-### 🛠️ Estabilidade e Persistência
-* **Sincronização de Estado:** Melhoria nos gatilhos de atualização para garantir que o status da sala reflita sempre a última interação válida de forma consistente.
-* **Segurança de Remoção:** Configuração de novas regras no Firebase para permitir a exclusão segura de nós de salas órfãs por usuários autenticados.
-
----
-
-## ✨ Novidades da Versão Beta (v0.3)
-
-### 👻 Modo Espectador Fantasma
 * **Visão de Jogo:** Jogadores eliminados (0 cartas) agora podem solicitar permissão para assistir a mão de outros jogadores ativos.
 * **Sistema de Convites:** Envio de notificações em tempo real para o alvo, que pode aceitar ou negar ser espectado.
 * **Feedback Visual:** Jogadores sendo assistidos recebem um brilho azul sutil em seus avatares.
 * **Mecânica Híbrida:** O modo espectador é visual e não bloqueia ações técnicas, garantindo que o fluxo da mesa sandbox nunca trave.
-
-### ⛪ Identidade Visual de Religiões
-* **Ícones Dinâmicos:** Adição de escudos personalizados (`shield-cross` e `shield-sword`) ao lado do status de religião.
-* **Cores Suavizadas:** Paleta de cores atualizada para as facções Católica e Protestante, facilitando a identificação rápida na mesa.
-* **Filtros Adaptativos:** Ícones em formato SVG com tratamento visual branco para máxima legibilidade em temas escuros.
-
-### ⚙️ Melhorias na Interface (UI)
-* **Novo Menu de Controles:** Ícones reorganizados para facilitar o acesso às Regras Alternativas, Música, Configurações e Modo Espectador.
-* **Modais Elegantes:** Substituição de prompts nativos por janelas modais personalizadas para seleção de jogadores e configuração de baralho.
 
 ---
 
@@ -93,22 +74,27 @@ com foco em escalabilidade e consistência de estado.
 * **Sandbox Total:** Gestão manual de moedas, vidas, trocas de cartas e o prêmio do Asilo.
 * **Login com Google ou visitante:** Identificação automática com Nome/Foto via Google ou UID anônimo temporário pelo Firebase Auth.
 * **Persistência de Slot:** Reconexão inteligente que reserva seu lugar na mesa através do seu UID único.
-* **Deck Configurável:** O Host possui controle total sobre a quantidade de cada personagem (incluindo cartas de DLC's).
-* **Suporte para 8 Jogadores:** Layout otimizado para partidas grandes, inclusive em dispositivos móveis.
+* **Baralho Configurável:** O anfitrião do casual controla a quantidade de cada personagem, incluindo personagens das expansões, com presets de composição.
+* **Suporte para até 8 Jogadores no Casual:** Os modos automatizados possuem até 6 lugares, com slots dinâmicos em telas menores.
 * **Modo Espectador Fantasma:** Permite que jogadores com zero cartas na mão solicitem visão da mão de outros jogadores ativos.
 * **Sistema de Notificações em Tempo Real:** Mecânica de "aceitar ou negar" para solicitações de espectador e alertas de interação.
-* **Identidade Religiosa Visual:** Exibição de ícones de escudo (`shield-cross.svg` e `shield-sword.svg`) e cores dinâmicas para as facções Católica e Protestante.
+* **Religião na Mesa Casual:** Identificação visual das facções Católica e Protestante, com controle de visibilidade nas configurações.
 * **Feedback Visual de Espectador:** Destaque com brilho azul suave e borda no avatar do jogador que está sendo assistido.
 * **Interface Responsiva e Adaptável:** Ocultação automática do botão de espectador para jogadores que possuem cartas na mão.
-* **Sistema de Salas Privadas:** Criação e entrada em salas via códigos únicos de 4 dígitos com função de cópia rápida no cabeçalho.
+* **Sistema de Salas por Código:** Criação, entrada e compartilhamento de salas por códigos de 4 caracteres.
 * **Modo Ranqueado Beta:** Tela e fluxo próprios para contas Google, sem host, com matchmaking simulado que preenche a mesa com bots IA de personalidade sorteada antes da partida. Turnos, custos, alvos, contestações, bloqueios, perdas de influência e tempos de resposta são controlados pelo sistema. Rating e leaderboard continuam suspensos até existir validação autoritativa antifraude.
 * **Sala Personalizada:** Fluxo paralelo criado a partir do ranqueado automatizado, usando `mode = "personalized"` e `personalizedState` para permitir evoluir salas com amigos e bots sem alterar os arquivos do ranqueado.
 * **Variante por partida:** Ranqueado e Sala Personalizada sorteiam Embaixador ou Inquisidor (50% cada). O baralho usa apenas o escolhido, com ações e bloqueios correspondentes; o personagem ausente fica oculto no guia, com os demais centralizados.
 * **Idioma Alternativo:** Interface preparada para alternar entre Português do Brasil e Inglês, com preferência salva localmente e dicionários em JSON.
 * **Carregamento sem Flicker de Idioma:** Telas de loading e páginas legais respeitam o idioma salvo desde a primeira renderização para evitar piscadas temporárias em português quando o usuário usa inglês.
 * **Controle de Áudio Integrado:** Música de fundo e efeitos sonoros sincronizados para ações como compra de cartas, moedas e impacto.
-* **Gestão de Bots:** Capacidade de usar bots para testes de mesa, com controle manual concentrado na Sala Personalizada e preenchimento automático no ranqueado.
-* **Modais de Referência Rápida:** Visualização de guias de ações de personagens e regras alternativas através de cartas que giram (flip cards).
+* **Gestão de Bots:** Bots de teste no casual são peças de teste da mesa, sem jogar autonomamente. Ranqueado e Sala Personalizada possuem bots de IA para partidas automatizadas.
+* **Modais de Referência Rápida:** Guias de ações de personagens e regras alternativas renderizados dinamicamente em formato de carta.
+* **Preview de Cartas:** Visualização ampliada pelo botão direito no desktop, respeitando a visibilidade da carta.
+* **Pilha Horizontal de Cartas:** Sobreposição das cartas para aproveitar o espaço da mesa, sem angulação de leque na disposição padrão.
+* **Ações Rápidas no Casual:** Acesso pelo nome do jogador a taxar, extorquir, assassinar e golpe de Estado, conforme as opções disponíveis para o alvo.
+* **Perfil do Jogador:** Acesso pela foto, separado das ações rápidas.
+* **Feedback e Sugestões:** Formulário integrado às mesas para relatar problemas e enviar ideias.
 
 ---
 
@@ -126,11 +112,12 @@ com foco em escalabilidade e consistência de estado.
 ## 🎮 Como Jogar
 
 1. **Acesso:** Faça login com sua conta Google ou entre como visitante.
-2. **Salas:** Crie uma nova sala como Host ou entre em uma existente usando o código de 4 dígitos.
-3. **Mesa:**
-   * **Host:** Configure o baralho no menu de engrenagem (⚙️) antes de iniciar.
-   * **Ações:** Clique no Deck para comprar, arraste cartas para o Cemitério ou clique nos botões de moedas para atualizar seu saldo.
-   * **Eliminação:** Se ficar sem cartas, clique no ícone do **Fantasma** para começar a espectar seus amigos.
+2. **Modo:** Escolha Casual para uma mesa livre ou um dos modos automatizados experimentais. O ranqueado exige conta Google.
+3. **Sala:** Crie uma sala ou entre pelo código compartilhado por um amigo.
+4. **No casual:** O anfitrião configura o baralho pela engrenagem. Compre cartas pelo baralho, arraste-as entre as áreas e use os contadores para gerenciar moedas.
+5. **Consulta e interação:** Abra os guias pela barra de controles. No desktop, use o botão direito para ampliar uma carta. Clique na foto para abrir um perfil ou no nome para acessar ações rápidas.
+6. **Espectador casual:** Ao ficar sem cartas, solicite pelo botão de espectador a permissão para assistir à mão de outro jogador.
+7. **Nos modos automatizados:** Aguarde a preparação da sala e siga as ações e respostas disponíveis na interface. Esses modos ainda são experimentais e podem apresentar falhas ou não registrar resultados e conquistas corretamente.
 
 ---
 
@@ -140,8 +127,8 @@ O projeto segue uma arquitetura modular com separação clara de responsabilidad
 
 - **js/firebase/firebase.js** → Inicialização e infraestrutura (Auth + Database)
 - **js/gamemode/game-modes.js** → Contrato compartilhado dos modos Casual, Ranqueado e Sala Personalizada
-- **rules.js** → Constantes e manipulação estrutural do baralho
-- **gameState.js** → Gerenciamento de estado e transações Firebase
+- **js/core/rules.js** → Constantes e manipulação estrutural do baralho
+- **js/core/gameState.js** → Gerenciamento de estado e transações Firebase
 - **js/i18n/initial-language.js** → Define o idioma inicial antes da primeira pintura visível da interface
 - **js/i18n/language-service.js** → Carrega dicionários JSON, aplica traduções e sincroniza seletores de idioma
 - **js/gamemode/casual/audio-service.js** → Audio casual, BGM, volume e sincronizacao de efeitos
@@ -150,7 +137,7 @@ O projeto segue uma arquitetura modular com separação clara de responsabilidad
 - **js/gamemode/casual/chat-service.js** → Chat casual em tempo real, atalhos rapidos e aviso de mensagens
 - **js/gamemode/casual/board-status.js** → Contadores do tabuleiro casual e copia do codigo da sala
 - **js/gamemode/casual/visual-effects.js** → Efeito Balatro, leques de cartas e overlap visual
-- **js/gamemode/casual/admin-controls.js** → Controles visuais de host, kick, bots, reset e deck
+- **js/gamemode/casual/admin-controls.js** → Controles do anfitrião, remoção de jogadores, bots, reinício e baralho
 - **js/gamemode/casual/rules-guides.js** → Guias de acoes/personagens, regras alternativas e flip cards
 - **js/gamemode/casual/spectator-service.js** → Botao, modal e lista segura de alvos do espectador
 - **js/gamemode/casual/quick-actions.js** → Perfil rapido, estatisticas ranqueadas e acoes rapidas do casual
@@ -159,12 +146,17 @@ O projeto segue uma arquitetura modular com separação clara de responsabilidad
 - **js/gamemode/casual/asylum-controls.js** → Duplo clique, botoes de moedas e tooltip do asilo
 - **js/gamemode/casual/tutorial-service.js** → Tutorial inicial e persistencia tutorialSeen
 - **js/gamemode/casual/deck-presets.js** → Presets de composicao do baralho casual e duelo
-- **js/gamemode/casual/drag-drop.js** → Drag/drop HTML5 legado, fallback Pointer Events e dropzones
+- **js/gamemode/casual/drag-drop.js** → Arraste por Pointer Events ativado por padrão, implementação HTML5 legada e áreas de destino
 - **js/gamemode/casual/render-cards.js** → Renderizacao de cartas, assets, tooltips e frente/verso
 - **js/gamemode/casual/render-players.js** → Renderizacao dos slots, avatares, maos e badges do casual
 - **js/gamemode/casual/table-render.js** → Renderizacao da area central, cemiterio/freeCards e status
-- **board-renderer.js** → Coordenador principal do modo casual
-- **lobby-manager.js** → Autenticação, criação e gerenciamento de salas
+- **js/gamemode/casual/board-renderer.js** → Coordenador principal do modo casual
+- **js/lobby/lobby-manager.js** → Autenticação, criação e gerenciamento de salas
+- **js/gamemode/ranked/ranked-engine.js** → Motor de turnos, contestações, bloqueios e eliminações
+- **js/gamemode/ranked/ranked-game.js** → Presença, transações e integração Firebase do ranqueado
+- **js/gamemode/ranked/ranked-renderer.js** → Interface e chat do ranqueado
+- **js/gamemode/personalized/** → Regras, motor, integração e renderização próprios da Sala Personalizada
+- **js/ui/feedback-form.js** → Formulário de feedback compartilhado
 
 Essa divisão garante escalabilidade, manutenibilidade e separação entre lógica de domínio e camada de apresentação.
 
@@ -189,11 +181,12 @@ Coup-Master/
 │   │   │   ├── 📂 base/        # Cartas do Jogo Base (Duque, Capitão, etc.)
 │   │   │   ├── 📂 promo/       # Cartas promocionais e extras
 │   │   │   ├── 📂 dlc1/        # Influências da Revolução
-│   │   │   └── 📂 dlc2/        # Influências do Asilo
+│   │   │   ├── 📂 dlc2/        # Lei e Desordem (nome técnico histórico da pasta)
+│   │   │   └── 📂 religion/    # Religiões e imagens do Asilo
 │   │   ├── 📂 icons/           # Ícones SVG e UI do tabuleiro
 │   │   ├── 📂 logo/            # Identidade visual e favicons do projeto
 │   │   └── 📂 marketing/       # Banners e screenshots de divulgação
-│   ├── 📂 sounds/              # Trilha sonora (bgm) e efeitos sonoros (vfx)
+│   └── 📂 sounds/              # Trilha sonora Opus (bgm.webm) e efeitos (vfx)
 ├── 📂 css/                     # Estilização e folhas de estilo
 │   ├── lobby.css               # Design da interface do menu e salas
 │   ├── legal.css               # Layout das páginas legais públicas
@@ -225,16 +218,16 @@ Coup-Master/
 │   │   │   ├── asylum-controls.js # Controles do asilo casual
 │   │   │   ├── tutorial-service.js # Tutorial inicial do casual
 │   │   │   ├── deck-presets.js # Presets de baralho casual
-│   │   │   ├── drag-drop.js # Drag/drop legado e fallback compativel
+│   │   │   ├── drag-drop.js # Pointer Events padrão e arraste HTML5 legado
 │   │   │   ├── render-cards.js # Renderizacao de cartas
 │   │   │   ├── render-players.js # Renderizacao dos jogadores
 │   │   │   ├── table-render.js # Renderizacao da area central
 │   │   │   └── board-renderer.js # Coordenador principal da mesa casual
-│   │   └── 📂 ranked/          # Scripts dedicados ao modo ranqueado
-│   │       ├── ranked-rules.js
-│   │       ├── ranked-engine.js
-│   │       ├── ranked-renderer.js
-│   │       └── ranked-game.js
+│   │   ├── 📂 ranked/          # Scripts dedicados ao modo ranqueado
+│   │   │   ├── ranked-rules.js
+│   │   │   ├── ranked-engine.js
+│   │   │   ├── ranked-renderer.js
+│   │   │   └── ranked-game.js
 │   │   └── 📂 personalized/    # Clone inicial do ranqueado para Sala Personalizada
 │   │       ├── personalized-rules.js
 │   │       ├── personalized-engine.js
@@ -242,9 +235,10 @@ Coup-Master/
 │   │       ├── personalized-renderer.js
 │   │       └── personalized-game.js
 │   ├── 📂 lobby/
-│   │   └── lobby-manager.js    # Fluxo de criação, faxina e entrada de salas
+│   │   └── lobby-manager.js    # Fluxo de criação e entrada em salas
 │   └── 📂 ui/
 │       ├── background-audio-guard.js
+│       ├── feedback-form.js
 │       └── selection-lock.js
 ├── 📂 lang/                    # Dicionários de tradução
 │   ├── pt-BR.json              # Texto base em português do Brasil
@@ -255,12 +249,20 @@ Coup-Master/
 │   ├── card-physics.html       # Testes de física de cartas
 │   ├── card-physics-balatro.html # Combinação de física e perspectiva
 │   ├── rules-flipbook.html     # Protótipo de manual em formato livro
+│   ├── guide-generator-lab.html # Ajustes dos guias de personagens
+│   ├── alternative-rules-translation-lab.html # Ajustes das regras alternativas
+│   ├── npc-tutorial-lab.html   # Protótipo de tutorial com NPC
 │   └── landing.html            # Landing experimental
 ├── 📄 index.html               # Tabuleiro principal do jogo em modo normal 2D
 ├── 📄 login.html               # Tela de autenticação Google/visitante
 ├── 📄 lobby.html               # Perfil autenticado, criação e entrada em salas
-├── 📄 legal/privacy.html             # Política de Privacidade
-├── 📄 legal/terms.html               # Termos de Serviço
+├── 📂 ranked/                  # Sala de espera e mesa ranqueada
+├── 📂 personalized/            # Sala de espera e mesa personalizada
+├── 📂 legal/
+│   ├── privacy.html            # Política de Privacidade
+│   └── terms.html              # Termos de Serviço
+├── 📄 manifest.webmanifest     # Configuração do PWA
+├── 📄 sw.js                    # Service worker e cache
 ├── 📂 docs/
 │   ├── 📄 modo-casual.md       # Design e funcionamento da mesa casual sandbox
 │   ├── 📄 modo-ranqueado.md    # Design e regras do modo ranqueado
@@ -283,9 +285,9 @@ Coup-Master/
 * **`js/gamemode/personalized/`**: Mantém a primeira cópia isolada da Sala Personalizada, permitindo evoluir convites, bots e controles próprios sem renomear o ranqueado atual.
 * **`js/ui/`**: Centraliza utilitarios de interface compartilhados, incluindo protecao de audio em background e bloqueio de selecao.
 * **`lab/`**: Guarda protótipos visuais independentes, como laboratórios de loading, física de cartas, efeito Balatro, landing experimental e manual flipbook.
-* **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
+* **Pontos de entrada (`.html`)**: Login, lobby e casual ficam na raiz. `ranked/` e `personalized/` mantêm as páginas dos modos automatizados; as salas são acessadas por parâmetros como `?room=CODE`.
 
-### Documentos legais
+## 📄 Documentos Legais
 
 O projeto possui páginas públicas para a **Política de Privacidade** (`legal/privacy.html`) e os **Termos de Serviço** (`legal/terms.html`). Os links ficam no rodapé de `login.html` e `lobby.html`, fora das telas de partida e da sala de espera ranqueada, para manter o jogo limpo e ainda permitir consulta antes da entrada em salas.
 
@@ -293,7 +295,7 @@ Esses textos são uma base operacional para o beta do Coup Master e devem passar
 
 ---
 
-### Internacionalização
+## 🌐 Internacionalização
 
 O Coup Master possui suporte inicial a idiomas com dicionários JSON:
 
@@ -307,6 +309,16 @@ A preferência do usuário fica salva em `localStorage` na chave `coupMasterLang
 Ao adicionar texto novo na interface, prefira criar uma chave nos dois arquivos de `lang/` e ligar o elemento com `data-i18n`, `data-i18n-placeholder`, `data-i18n-title`, `data-i18n-aria-label`, `data-i18n-alt`, `data-i18n-value` ou `data-i18n-content`. Telas de carregamento e páginas legais usam bloqueios visuais temporários para evitar flicker de idioma enquanto o JSON é carregado.
 
 ## 🛠️ Instalação e Configuração
+
+### 1️⃣ Prepare o ambiente local
+
+Clone o repositório ou extraia sua cópia local. O projeto é estático, sem etapa de build ou instalação de pacotes npm. Abra a pasta em um servidor HTTP local, por exemplo com Live Server ou, se Python estiver instalado:
+
+```powershell
+python -m http.server 8000
+```
+
+Acesse `http://localhost:8000/login.html` após configurar o Firebase. Abrir diretamente por `file://` não substitui o servidor HTTP para os módulos e dicionários de tradução.
 
 ### 2️⃣ Crie o Projeto no Firebase
 
@@ -334,7 +346,9 @@ Para que o login e a reserva de slots funcionem:
 ### 4️⃣ Configure o Realtime Database
 
 1. Vá em **Build** > **Realtime Database** e crie uma instância.
-2. Na aba **Regras**, utilize a configuração abaixo para permitir a manutenção automática:
+2. Na aba **Regras**, consulte o exemplo de configuração do beta abaixo.
+
+> Este exemplo contém escrita ampla para usuários autenticados em `salas/$roomCode`. Essa permissão também libera seus descendentes; as condições mais específicas de baralho e jogadores não restringem uma permissão já concedida no pai. O exemplo precisa de revisão antes de ser tratado como configuração de produção.
 
 ```json
 {
@@ -360,23 +374,18 @@ Para que o login e a reserva de slots funcionem:
     "salas": {
       "$roomCode": {
         ".read": "auth != null",
-        // Permite criar a sala e atualizar a atividade (lastActivity)
         ".write": "auth != null",
 
         "gameState": {
-          // Permite que jogadores enviem sons e mexam no Asilo/Cemitério
           "lastSFX": { ".write": "auth != null" },
           "asylumScore": { ".write": "auth != null" },
           "freeCards": { ".write": "auth != null" },
 
-          // PROTEÇÃO DO DECK: Apenas o Host pode resetar ou mudar a config
           "deck": { ".write": "auth.uid === data.parent().parent().child('hostUID').val()" },
           "deckConfig": { ".write": "auth.uid === data.parent().parent().child('hostUID').val()" },
 
           "players": {
             "$playerId": {
-              // PERMISSÃO DE ENTRADA: 
-              // Permite escrever se o slot estiver vazio (Join), se for o dono ou se for o Host (Kick)
               ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid || auth.uid === data.parent().parent().parent().child('hostUID').val() || (!data.hasChild('uid') && newData.child('uid').val() === auth.uid))"
             }
           }
@@ -418,9 +427,9 @@ const firebaseConfig = {
 
 ## 🛠️ Manutenção do Banco de Dados (Realtime Database)
 
-Este projeto utiliza o **Plano Spark (Gratuito)** do Firebase. Por conta das limitações deste plano, funções agendadas de limpeza automática via servidor (Cloud Functions) não podem ser ativadas.
+O projeto utiliza Firebase Realtime Database. A manutenção operacional das salas deve considerar o procedimento manual abaixo.
 
-Com o tempo, o acúmulo de salas pode deixar o console do Firebase lento ou ativar o **"Modo Somente Leitura"**. Quando isso ocorrer, siga o procedimento abaixo:
+Quando for necessário remover salas antigas, confirme que não há partidas em andamento nos registros selecionados e faça um backup antes da exclusão.
 
 ### 🧹 Procedimento de Limpeza Manual
 
@@ -449,13 +458,6 @@ Opção usando importação:
 
 Esse procedimento substitui apenas `salas` por `{}`. As conquistas ficam preservadas porque permanecem em `rankedStats`, e os resultados ranqueados permanecem em `rankedResults`.
 
-### 🤖 Limpeza em Tempo de Execução
-
-Embora o servidor não limpe as salas sozinho, o projeto possui uma lógica interna no arquivo `lobby-manager.js` que tenta remover salas inativas por mais de 24 horas sempre que um usuário acessa o Lobby.
-
-* **Critério de Limpeza:** A função verifica os campos `lastActivity` e `createdAt` para determinar a idade da sala.
-* **Limitação:** Se o site ficar muito tempo sem nenhum acesso no Lobby, o acúmulo manual via console (explicado acima) será necessário.
-
 ---
 
 ## 🧠 Desafios Técnicos
@@ -477,23 +479,36 @@ Durante o desenvolvimento deste projeto, foram aplicados conceitos como:
 - Design de sistemas multiplayer em tempo real
 - Gerenciamento de autenticação e persistência com Firebase
 
-## Compatibilidade
+## 🖱️ Compatibilidade e Arraste
 
-O modo casual usa o drag and drop nativo do navegador como base historica. Em `Configuracoes > Compatibilidade`, o fluxo alternativo de arraste baseado em Pointer Events fica ativado por padrao para melhorar a usabilidade em navegadores moveis como Samsung Internet.
+O modo casual usa **Pointer Events ativado por padrão** para arrastar cartas com mouse, toque e caneta. Esse fluxo, originalmente apresentado como modo de compatibilidade, passou a ser a experiência padrão da mesa, oferecendo maior controle sobre o movimento e as animações.
+
+A implementação nativa HTML5 de drag and drop ainda existe no código legado. O controle para alternar entre os fluxos não é exibido às contas comuns; não é necessário ativar a compatibilidade manualmente para jogar.
 
 O projeto também carrega `css/compat.css` nas telas principais para reduzir interferências de alto contraste forçado e recoloração automática em navegadores móveis.
 
 ## 🚀 Próximas Atualizações (Roadmap)
 
-- [ ] **Custom Deck Engine:** Sistema de importação de baralhos via JSON personalizado, permitindo temas e regras totalmente customizáveis.
-- [ ] **Card Previewer:** Visualização de cartas em alta definição ao clicar e segurar, facilitando a leitura de artes e habilidades.
-- [ ] **Visual Stack:** Nova renderização de cartas em formato de leque ou pilha, otimizando o espaço da mesa para grandes grupos.
-- [ ] **Coup Workshop:** Web app integrado para criação, edição e exportação de cartas personalizadas para a comunidade.
-- [ ] **Expansões de Conteúdo:** Adição de novos sistemas de DLCs para integrar mecânicas complexas de forma modular.
-- [ ] **Theming Engine (Beta):** Suporte para troca dinâmica de nomes de cartas, nomes de áreas, estilos visuais e efeitos sonoros.
+### Entregas já disponíveis
 
+- [x] **Preview ampliado de cartas:** Acesso por botão direito no desktop.
+- [x] **Pilha visual de cartas:** Sobreposição horizontal para aproveitar o espaço da mesa.
+- [x] **Expansões de conteúdo:** Integração de personagens e da expansão Lei e Desordem ao casual.
+- [x] **Modo espectador:** Solicitação e autorização para acompanhar a mão de outro jogador no casual.
+- [x] **Modos automatizados experimentais:** Ranqueado e Sala Personalizada com bots de IA.
+
+### Próximas entregas
+
+- [ ] **Tutorial guiado:** Evoluir o protótipo com NPC para ensinar uma partida aos novos jogadores.
+- [ ] **Regras alternativas sincronizadas:** Integrar seleção e sorteio ao estado da sala e aos guias de todos os jogadores.
+- [ ] **Consolidação dos modos experimentais:** Refinar regras, reconexão, interface e registro de resultados.
+- [ ] **Lançamento 1.0:** Definir escopo, realizar playtests e preparar tutorial e material de divulgação.
+- [ ] **Importação de baralhos:** Carregar composições por JSON personalizado.
+- [ ] **Coup Workshop:** Ferramenta para criação, edição e exportação de cartas personalizadas.
+- [ ] **Personalização de temas:** Troca de nomes, áreas, estilos e efeitos sonoros.
 
 ---
 
 ## 📄 Licença
+
 Este projeto é de código aberto sob a licença [MIT](LICENSE).
