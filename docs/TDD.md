@@ -11,6 +11,14 @@ Commit base da atualizacao parcial: `9ffcbaf` (`suporte ao discord`)
 
 ## 1. Sumario Executivo
 
+### Variante Embaixador/Inquisidor (2026-09-11)
+
+Ranqueado e Sala Personalizada sorteiam uma unica variante por partida, com 50% de chance para cada personagem. O motor grava `exchangeRole` no estado sincronizado, antes de criar o baralho: cinco personagens com cinco copias cada (25 cartas). A distribuicao inicial continua excluindo o Embaixador, conforme a regra existente.
+
+As acoes, bloqueios de Extorsao, bots e guia usam essa mesma escolha. O personagem ausente fica oculto no guia, com os demais centralizados; suas acoes e bloqueios sao recusados pelo motor. O log informa a variante em portugues ou ingles. Reconexoes preservam o sorteio; uma nova partida sorteia novamente. Partidas antigas sem `exchangeRole` conservam a disponibilidade dos seis personagens. A escolha manual pelo anfitriao fica para uma etapa futura.
+
+Verificacao adicional: `node js/gamemode/exchange-variant.test.js`.
+
 O Coup Master e um jogo multiplayer online, em beta, inspirado em jogos de blefe e estrategia politica. A proposta atual e reproduzir uma mesa fisica em formato sandbox: os jogadores continuam responsaveis por declarar acoes, desafiar, aplicar regras sociais e administrar boa parte do fluxo da partida. O software oferece a sala, o tabuleiro compartilhado, cartas, moedas, expansoes, interface visual, audio e sincronizacao em tempo real.
 
 O projeto e um aplicativo estatico hospedavel em GitHub Pages. Nao existe etapa de build, empacotador, servidor proprio, backend customizado, TypeScript, framework frontend ou gerenciador de pacotes versionado. Toda a execucao acontece no navegador, usando HTML, CSS, JavaScript vanilla e Firebase Realtime Database/Auth via scripts CDN.

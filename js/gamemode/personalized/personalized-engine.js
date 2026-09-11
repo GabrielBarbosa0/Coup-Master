@@ -339,7 +339,8 @@
         const starterIndex = Math.max(0, Math.min(players.length - 1, Math.floor(random() * players.length)));
         const starterUid = players[starterIndex]?.uid || players[0]?.uid || null;
 
-        state.deck = Rules.createDeck(random);
+        state.exchangeRole = random() < 0.5 ? ROLES.AMBASSADOR : ROLES.INQUISITOR;
+        state.deck = Rules.createDeck(random, state.exchangeRole);
         state.discard = [];
         state.turnOrder = players.map((player) => player.uid);
         state.turnIndex = Math.max(0, state.turnOrder.indexOf(starterUid));
@@ -364,6 +365,7 @@
         });
 
         state.status = 'active';
+        addLog(state, `Personagem desta partida: ${Rules.getRole(state.exchangeRole).label}.`, 'important', now);
         state.phase = PHASES.STARTER_DRAW;
         state.deadline = now + SETTINGS.starterDrawSeconds * 1000;
         state.starterDraw = {
@@ -405,6 +407,7 @@
         state.deck = [];
         state.discard = [];
         state.log = [];
+        state.exchangeRole = null;
         state.deadline = null;
         state.starterDraw = null;
         state.pendingAction = null;
@@ -445,6 +448,7 @@
         const action = Rules.getAction(actionType);
         if (!player || player.eliminated) throw new Error('Jogador indisponivel.');
         if (!action) throw new Error('Ação inválida.');
+        if (!Rules.isActionAvailable(state, actionType)) throw new Error('Personagem ausente nesta partida.');
         if (player.coins >= SETTINGS.mandatoryCoupCoins && actionType !== ACTIONS.COUP) {
             throw new Error(`Com ${SETTINGS.mandatoryCoupCoins} moedas ou mais, o Golpe de Estado é obrigatório.`);
         }
@@ -535,7 +539,7 @@
             return action.blockClaims.includes(ROLES.CAPTAIN) ? [ROLES.CAPTAIN] : [];
         }
         if (action.blockScope === 'target' && pending.targetUid !== uid) return [];
-        return action.blockClaims.slice();
+        return action.blockClaims.filter((role) => Rules.isRoleAvailable(state, role));
     }
 
     function passResponse(state, uid, now = Date.now()) {

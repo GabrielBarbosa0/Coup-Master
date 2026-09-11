@@ -112,11 +112,23 @@
         return ROLE_DEFINITIONS[role] || null;
     }
 
-    function createDeck(random = Math.random) {
+    function isRoleAvailable(state, role) {
+        // Older matches without a variant retain their original six-role deck.
+        return !state?.exchangeRole || ![ROLES.AMBASSADOR, ROLES.INQUISITOR].includes(role)
+            || role === state.exchangeRole;
+    }
+
+    function isActionAvailable(state, actionType) {
+        const action = getAction(actionType);
+        return Boolean(action && isRoleAvailable(state, action.claim));
+    }
+
+    function createDeck(random = Math.random, exchangeRole = null) {
         const deck = [];
         let cardNumber = 1;
 
         Object.keys(ROLE_DEFINITIONS).forEach((role) => {
+            if (!isRoleAvailable({ exchangeRole }, role)) return;
             for (let index = 0; index < SETTINGS.cardsPerRole; index += 1) {
                 deck.push({ id: `rank-card-${cardNumber}`, role });
                 cardNumber += 1;
@@ -144,6 +156,8 @@
         SETTINGS,
         getAction,
         getRole,
+        isRoleAvailable,
+        isActionAvailable,
         createDeck,
         shuffle
     });

@@ -482,6 +482,8 @@
             'A investigação foi encerrada porque o alvo não tem influências ocultas.': 'rankedLog.investigationNoHiddenInfluences'
         };
         if (exactMessages[raw]) return t(exactMessages[raw], {}, raw);
+        const variantMatch = raw.match(/^Personagem desta partida: (Embaixador|Inquisidor)[.]$/);
+        if (variantMatch) return t('rankedLog.exchangeRoleDrawn', { role: translateLoggedRole(variantMatch[1]) }, raw);
 
         let match = raw.match(/^Todos estão prontos\. A partida começa em (\d+) segundos\.$/);
         if (match) return t('rankedLog.allReady', { seconds: match[1] }, raw);
@@ -1171,7 +1173,10 @@
     function getActionsGuidePages() {
         const guide = root.CoupRulesGuides;
         if (!guide?.buildDynamicGuidePages || !guide?.renderDynamicGuidePage) return [];
-        return guide.buildDynamicGuidePages(STANDARD_GUIDE_DECK_CONFIG);
+        const deckConfig = Object.fromEntries(Object.entries(STANDARD_GUIDE_DECK_CONFIG)
+            .map(([role, count]) => [role, Rules.isRoleAvailable(state, role) ? count : 0]));
+        return guide.buildDynamicGuidePages(deckConfig)
+            .map((page) => ({ ...page, showRemovedCards: false }));
     }
 
     function renderActionsGuideFaces(flipCard) {
@@ -1195,6 +1200,11 @@
         }
 
         face.innerHTML = root.CoupRulesGuides.renderDynamicGuidePage(page);
+        if (page.type === 'characters') {
+            const gap = state?.exchangeRole === Rules.ROLES.INQUISITOR ? '5.5%'
+                : state?.exchangeRole === Rules.ROLES.AMBASSADOR ? '6.5%' : null;
+            if (gap) face.querySelector('.guide-page')?.style.setProperty('--guide-list-gap', gap);
+        }
     }
 
     function renderRoomCode() {
@@ -1274,6 +1284,7 @@
         const previousState = state;
         state = nextState;
         if (!state) return;
+        if (previousState?.exchangeRole !== state.exchangeRole) resetActionsGuide();
         playStateSfx(previousState, state);
         updateRankPlayerCallouts(previousState, state);
         renderPlayers();
@@ -1868,6 +1879,7 @@
 
         const grid = element('div', 'rank-actions-grid');
         Object.values(ACTIONS).forEach((actionType) => {
+            if (!Rules.isActionAvailable(state, actionType)) return;
             const action = Rules.getAction(actionType);
             const button = element('button', 'rank-action-btn');
             button.type = 'button';

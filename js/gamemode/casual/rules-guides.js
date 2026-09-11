@@ -824,7 +824,7 @@
     if (!page.entries) return page;
 
     const allEntries = page.entries;
-    const visibleEntries = SHOW_REMOVED_GUIDE_CARDS
+    const visibleEntries = (page.showRemovedCards ?? SHOW_REMOVED_GUIDE_CARDS)
       ? allEntries
       : allEntries.filter((entry) => !entry.muted);
     const mutedEntries = allEntries.filter((entry) => entry.muted).length;

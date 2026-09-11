@@ -2,18 +2,21 @@
 const Rules = require('./ranked-rules.js');
 const Engine = require('./ranked-engine.js');
 
-function createStartedState() {
+function createStartedState(exchangeRole = Rules.ROLES.AMBASSADOR) {
     const state = Engine.createState(1000);
     Engine.joinPlayer(state, { uid: 'u1', name: 'Alice', photo: '' }, 1001);
     Engine.joinPlayer(state, { uid: 'u2', name: 'Bruno', photo: '' }, 1002);
     Engine.toggleReady(state, 'u1', 1003, () => 0.42);
     Engine.toggleReady(state, 'u2', 1004, () => 0.42);
-    Engine.advanceExpired(state, state.deadline + 1, () => 0);
+    let draws = 0;
+    Engine.advanceExpired(state, state.deadline + 1, () => (
+        draws++ === 1 && exchangeRole === Rules.ROLES.INQUISITOR ? 0.75 : 0
+    ));
     Engine.advanceExpired(state, state.deadline + 1);
     return state;
 }
 
-function createStartedStateWithThree() {
+function createStartedStateWithThree(exchangeRole = Rules.ROLES.AMBASSADOR) {
     const state = Engine.createState(1000);
     Engine.joinPlayer(state, { uid: 'u1', name: 'Alice', photo: '' }, 1001);
     Engine.joinPlayer(state, { uid: 'u2', name: 'Bruno', photo: '' }, 1002);
@@ -21,7 +24,10 @@ function createStartedStateWithThree() {
     Engine.toggleReady(state, 'u1', 1004, () => 0);
     Engine.toggleReady(state, 'u2', 1005, () => 0);
     Engine.toggleReady(state, 'u3', 1006, () => 0);
-    Engine.advanceExpired(state, state.deadline + 1, () => 0);
+    let draws = 0;
+    Engine.advanceExpired(state, state.deadline + 1, () => (
+        draws++ === 1 && exchangeRole === Rules.ROLES.INQUISITOR ? 0.75 : 0
+    ));
     Engine.advanceExpired(state, state.deadline + 1);
     state.turnOrder = ['u1', 'u2', 'u3'];
     state.turnIndex = 0;
@@ -269,7 +275,7 @@ function testStealBlockScope() {
 
     assert.deepEqual(
         Engine.getBlockClaimsForPlayer(state, 'u2').sort(),
-        [Rules.ROLES.AMBASSADOR, Rules.ROLES.CAPTAIN, Rules.ROLES.INQUISITOR].sort()
+        [Rules.ROLES.AMBASSADOR, Rules.ROLES.CAPTAIN].sort()
     );
     assert.deepEqual(Engine.getBlockClaimsForPlayer(state, 'u3'), [Rules.ROLES.CAPTAIN]);
     assert.throws(
@@ -303,7 +309,7 @@ function testExchangeSelection() {
 }
 
 function testInquisitorExchangeDrawsOneAndKeepsHandOptions() {
-    const state = createStartedState();
+    const state = createStartedState(Rules.ROLES.INQUISITOR);
     state.players.u1.influences[0].role = Rules.ROLES.INQUISITOR;
     const handIds = state.players.u1.influences.map((card) => card.id);
     Engine.performAction(state, 'u1', Rules.ACTIONS.EXCHANGE_INQUISITOR, null, 2000);
@@ -315,7 +321,7 @@ function testInquisitorExchangeDrawsOneAndKeepsHandOptions() {
 }
 
 function testChallengedInquisitorExchangeKeepsProvenCardAsOption() {
-    const state = createStartedState();
+    const state = createStartedState(Rules.ROLES.INQUISITOR);
     state.players.u1.influences[0].role = Rules.ROLES.INQUISITOR;
     const inquisitorId = state.players.u1.influences[0].id;
     Engine.performAction(state, 'u1', Rules.ACTIONS.EXCHANGE_INQUISITOR, null, 2000);
@@ -326,7 +332,7 @@ function testChallengedInquisitorExchangeKeepsProvenCardAsOption() {
 }
 
 function testInquisitorExamine() {
-    const state = createStartedState();
+    const state = createStartedState(Rules.ROLES.INQUISITOR);
     Engine.performAction(state, 'u1', Rules.ACTIONS.EXAMINE, 'u2', 2000);
     Engine.passResponse(state, 'u2', 2100);
     assert.equal(state.phase, Rules.PHASES.EXAMINE);
@@ -336,7 +342,7 @@ function testInquisitorExamine() {
 }
 
 function testExamineEndsIfChallengerTargetIsEliminated() {
-    const state = createStartedStateWithThree();
+    const state = createStartedStateWithThree(Rules.ROLES.INQUISITOR);
     state.players.u1.influences[0].role = Rules.ROLES.INQUISITOR;
     state.players.u2.influences = [
         { id: 'u2-final', role: Rules.ROLES.CONTESSA, revealed: false },

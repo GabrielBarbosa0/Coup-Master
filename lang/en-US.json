@@ -1037,6 +1037,7 @@
   "rankedLog": {
     "roomReset": "Room reset for a new match.",
     "rankedStarted": "The ranked match has started. Drawing the first player.",
+    "exchangeRoleDrawn": "Character for this match: {role}.",
     "personalizedStarted": "The custom match has started. Drawing the first player.",
     "actionTargetUnavailable": "The action ended because the target is no longer available.",
     "investigationTargetUnavailable": "The investigation ended because the target is no longer available.",

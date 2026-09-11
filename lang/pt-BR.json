@@ -1037,6 +1037,7 @@
   "rankedLog": {
     "roomReset": "Sala reiniciada para uma nova partida.",
     "rankedStarted": "A partida ranqueada começou. Sorteando quem joga primeiro.",
+    "exchangeRoleDrawn": "Personagem desta partida: {role}.",
     "personalizedStarted": "A partida personalizada começou. Sorteando quem joga primeiro.",
     "actionTargetUnavailable": "A ação foi encerrada porque o alvo não está mais disponível.",
     "investigationTargetUnavailable": "A investigação foi encerrada porque o alvo não está mais disponível.",

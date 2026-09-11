@@ -392,15 +392,15 @@
             return { type: ACTIONS.ASSASSINATE, targetUid: attackTarget.uid };
         }
 
-        if (shouldClaimRole(bot, ROLES.INQUISITOR, 0.7) && attackTarget && Math.random() < 0.45) {
+        if (Rules.isActionAvailable(state, ACTIONS.EXAMINE) && shouldClaimRole(bot, ROLES.INQUISITOR, 0.7) && attackTarget && Math.random() < 0.45) {
             return { type: ACTIONS.EXAMINE, targetUid: attackTarget.uid };
         }
 
-        if (shouldClaimRole(bot, ROLES.AMBASSADOR, 0.7)) {
+        if (Rules.isActionAvailable(state, ACTIONS.EXCHANGE_AMBASSADOR) && shouldClaimRole(bot, ROLES.AMBASSADOR, 0.7)) {
             return { type: ACTIONS.EXCHANGE_AMBASSADOR, targetUid: null };
         }
 
-        if (shouldClaimRole(bot, ROLES.INQUISITOR, 0.55)) {
+        if (Rules.isActionAvailable(state, ACTIONS.EXCHANGE_INQUISITOR) && shouldClaimRole(bot, ROLES.INQUISITOR, 0.55)) {
             return { type: ACTIONS.EXCHANGE_INQUISITOR, targetUid: null };
         }
 
