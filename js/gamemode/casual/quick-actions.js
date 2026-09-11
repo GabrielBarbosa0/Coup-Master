@@ -147,16 +147,25 @@
 
   function closeQuickActions() {
     root.CoupModal?.close('quickActionsModal');
+  }
+
+  function closePlayerActions() {
+    root.CoupModal?.close('playerActionsModal');
     quickActionTargetPid = null;
   }
 
   function bindCloseButton() {
     const closeQuickActionsBtn = getElement('closeQuickActionsBtn');
-    if (!closeQuickActionsBtn) return;
-    closeQuickActionsBtn.onclick = closeQuickActions;
+    const closePlayerActionsBtn = getElement('closePlayerActionsBtn');
+    if (closeQuickActionsBtn) closeQuickActionsBtn.onclick = closeQuickActions;
+    if (closePlayerActionsBtn) closePlayerActionsBtn.onclick = closePlayerActions;
+
+    document.querySelectorAll('#playerActionsModal [data-action]').forEach((button) => {
+      button.onclick = () => executeAction(button.dataset.action);
+    });
   }
 
-  function openQuickActions(pid) {
+  function openPlayerProfile(pid) {
     const state = getState();
     const player = state.players?.[pid];
     const modal = getElement('quickActionsModal');
@@ -166,7 +175,6 @@
 
     if (!modal || !title || !player) return;
 
-    quickActionTargetPid = pid;
     title.innerText = t('ranked.playerProfile', {}, 'Perfil do jogador');
     loadQuickPlayerRankedStats(player);
 
@@ -178,11 +186,63 @@
       );
       kickBtn.hidden = !canKick;
       kickBtn.onclick = canKick ? () => {
-        const targetPid = quickActionTargetPid;
         closeQuickActions();
-        root.kickPlayer?.(targetPid);
+        root.kickPlayer?.(pid);
       } : null;
     }
+
+    playSound('click');
+    root.CoupModal?.open(modal);
+  }
+
+  function setPlayerActionAvailability(id, enabled, reason = '') {
+    const button = getElement(id);
+    if (!button) return;
+    button.disabled = !enabled;
+    button.title = enabled ? '' : reason;
+  }
+
+  function openPlayerActions(pid) {
+    const state = getState();
+    const player = state.players?.[pid];
+    const myPlayerId = getMyPlayerId();
+    const myPlayer = state.players?.[myPlayerId];
+    const modal = getElement('playerActionsModal');
+
+    if (!modal || !player || !myPlayer) return;
+
+    quickActionTargetPid = pid;
+    const targetScore = Number(player.score || 0);
+    const myScore = Number(myPlayer.score || 0);
+    const isSelf = String(pid) === String(myPlayerId);
+    const opponentRequired = t(
+      'casual.actionOpponentRequired',
+      {},
+      'Esta ação só pode ser usada contra outro jogador.'
+    );
+
+    setPlayerActionAvailability(
+      'playerActionSteal',
+      !isSelf && targetScore >= 2,
+      isSelf
+        ? opponentRequired
+        : t('casual.actionStealUnavailable', {}, 'O alvo precisa ter pelo menos 2 moedas.')
+    );
+    setPlayerActionAvailability(
+      'playerActionAssassinate',
+      !isSelf && myScore >= 3,
+      isSelf
+        ? opponentRequired
+        : t('casual.actionAssassinateUnavailable', {}, 'Você precisa ter pelo menos 3 moedas.')
+    );
+    setPlayerActionAvailability(
+      'playerActionCoup',
+      !isSelf && myScore >= 7,
+      isSelf
+        ? opponentRequired
+        : t('casual.actionCoupUnavailable', {}, 'Você precisa ter pelo menos 7 moedas.')
+    );
+    setPlayerActionAvailability('playerActionTax', true);
 
     playSound('click');
     root.CoupModal?.open(modal);
@@ -195,9 +255,19 @@
     if (!quickActionTargetPid || !myPlayerId) return;
 
     const myPlayer = state.players?.[myPlayerId];
-    const myScore = myPlayer ? (myPlayer.score || 0) : 0;
     const targetPlayer = state.players?.[quickActionTargetPid];
-    const targetScore = targetPlayer ? (targetPlayer.score || 0) : 0;
+    if (!myPlayer || !targetPlayer) {
+      closePlayerActions();
+      return;
+    }
+
+    const myScore = myPlayer.score || 0;
+    const targetScore = targetPlayer.score || 0;
+    const isSelf = String(quickActionTargetPid) === String(myPlayerId);
+
+    if (isSelf && type !== 'tax') {
+      return;
+    }
 
     switch (type) {
       case 'coup':
@@ -238,7 +308,7 @@
         break;
     }
 
-    closeQuickActions();
+    closePlayerActions();
   }
 
   function setup(options = {}) {
@@ -251,11 +321,14 @@
 
   root.CoupQuickActions = {
     setup,
-    openQuickActions,
+    openQuickActions: openPlayerProfile,
+    openPlayerProfile,
+    openPlayerActions,
     executeAction,
-    closeQuickActions
+    closeQuickActions,
+    closePlayerActions
   };
 
-  root.openQuickActions = openQuickActions;
+  root.openQuickActions = openPlayerProfile;
   root.executeAction = executeAction;
 })(window);

@@ -944,6 +944,146 @@ h2 {
     display: none;
 }
 
+#playerActionsModal .player-actions-modal {
+    width: min(92%, 430px);
+    padding: 24px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+#playerActionsModal h2 {
+    margin: 0 0 18px;
+    color: var(--text);
+    font-size: 24px;
+}
+
+.player-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.player-action-btn {
+    --action-color: var(--accent);
+    display: grid;
+    grid-template-columns: 29px minmax(0, 1fr);
+    align-items: center;
+    gap: 9px;
+    min-height: 66px;
+    padding: 10px;
+    border: 1px solid color-mix(in srgb, var(--action-color) 52%, transparent);
+    border-left: 3px solid var(--action-color);
+    border-radius: 7px;
+    background: rgba(10, 15, 22, 0.42);
+    color: var(--text);
+    font-family: 'Cinzel', serif;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.player-action-btn:hover:not(:disabled),
+.player-action-btn:focus-visible:not(:disabled) {
+    border-color: var(--action-color);
+    background: color-mix(in srgb, var(--action-color) 10%, rgba(10, 15, 22, 0.62));
+    outline: 0;
+    transform: translateY(-1px);
+}
+
+.player-action-btn:disabled {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(10, 15, 22, 0.2);
+    color: var(--muted);
+    cursor: not-allowed;
+    opacity: 0.46;
+}
+
+.player-action-icon {
+    display: block;
+    width: 27px;
+    height: 27px;
+    background: var(--action-color);
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    opacity: 0.9;
+}
+
+.player-action-btn span,
+.player-action-btn strong,
+.player-action-btn small {
+    display: block;
+    min-width: 0;
+}
+
+.player-action-btn strong {
+    color: var(--action-color);
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.player-action-btn:disabled strong {
+    color: inherit;
+}
+
+.player-action-btn:disabled .player-action-icon {
+    background: currentColor;
+}
+
+.player-action-btn small {
+    margin-top: 4px;
+    color: var(--muted);
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    line-height: 1.25;
+}
+
+.player-action-btn.is-steal {
+    --action-color: #42a5ff;
+}
+
+.player-action-btn.is-steal .player-action-icon {
+    mask-image: url('../assets/img/icons/counter_2.svg');
+}
+
+.player-action-btn.is-assassinate {
+    --action-color: #ff5d72;
+}
+
+.player-action-btn.is-assassinate .player-action-icon {
+    mask-image: url('../assets/img/icons/skull.svg');
+}
+
+.player-action-btn.is-coup {
+    --action-color: #ffd000;
+}
+
+.player-action-btn.is-coup .player-action-icon {
+    mask-image: url('../assets/img/icons/gavel.svg');
+}
+
+.player-action-btn.is-tax {
+    --action-color: #ff72c8;
+}
+
+.player-action-btn.is-tax .player-action-icon {
+    mask-image: url('../assets/img/icons/paid.svg');
+}
+
+@media (max-width: 430px) {
+    #playerActionsModal .player-actions-modal {
+        padding: 20px;
+    }
+
+    .player-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .player-action-btn {
+        min-height: 55px;
+    }
+}
+
 /*  Otimização do Modal de Configurações */
 
 /* Define uma largura fixa e centraliza o conteúdo */
@@ -2101,6 +2241,13 @@ h2 {
     padding: 20px;
 }
 
+@media (orientation: portrait), (min-height: 561px) {
+    #quickActionsModal .standard-modal-content {
+        width: min(380px, calc(100vw - 28px));
+        max-width: 380px;
+    }
+}
+
 #tutorialModal .master-commands-list {
     display: flex;
     flex-direction: column;
@@ -2556,6 +2703,16 @@ h2 {
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.game-table .player-title.has-quick-actions {
+    transition: color 0.18s ease;
+}
+
+.game-table .player-title.has-quick-actions:hover,
+.game-table .player-title.has-quick-actions:focus-visible {
+    color: var(--accent);
+    outline: 0;
 }
 
 .game-table .player-area.local-player .player-title {

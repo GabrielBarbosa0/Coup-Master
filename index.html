@@ -54,7 +54,7 @@
 
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
-  <link rel="stylesheet" href="css/casual-mode.css?v=feedback-border-v1">
+  <link rel="stylesheet" href="css/casual-mode.css?v=quick-action-colors-v2">
   <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
   <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
   <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
@@ -843,6 +843,46 @@
     </div>
   </div>
 
+  <div id="playerActionsModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content standard-modal-content player-actions-modal">
+      <button id="closePlayerActionsBtn" class="close-btn" aria-label="Fechar"
+        data-i18n-aria-label="common.close">&times;</button>
+      <h2 data-i18n="casual.quickActionsTitle">Ações rápidas</h2>
+
+      <div class="player-actions-grid">
+        <button id="playerActionSteal" class="player-action-btn is-steal" type="button" data-action="steal">
+          <span class="player-action-icon" aria-hidden="true"></span>
+          <span>
+            <strong data-i18n="casual.actionSteal">Extorquir</strong>
+            <small data-i18n="casual.actionStealEffect">Alvo -2 / Você +2</small>
+          </span>
+        </button>
+        <button id="playerActionAssassinate" class="player-action-btn is-assassinate" type="button"
+          data-action="assassinate">
+          <span class="player-action-icon" aria-hidden="true"></span>
+          <span>
+            <strong data-i18n="casual.actionAssassinate">Assassinar</strong>
+            <small data-i18n="casual.actionAssassinateCost">Custa 3 moedas</small>
+          </span>
+        </button>
+        <button id="playerActionCoup" class="player-action-btn is-coup" type="button" data-action="coup">
+          <span class="player-action-icon" aria-hidden="true"></span>
+          <span>
+            <strong data-i18n="casual.actionCoup">Golpe de Estado</strong>
+            <small data-i18n="casual.actionCoupCost">Custa 7 moedas</small>
+          </span>
+        </button>
+        <button id="playerActionTax" class="player-action-btn is-tax" type="button" data-action="tax">
+          <span class="player-action-icon" aria-hidden="true"></span>
+          <span>
+            <strong data-i18n="casual.actionTax">Taxar</strong>
+            <small data-i18n="casual.actionTaxEffect">Você recebe 3 moedas</small>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
 
 
   <div id="duelModal" class="modal-overlay" style="display: none;">
@@ -905,7 +945,7 @@
   <script src="js/gamemode/casual/admin-controls.js?v=casual-host-controls-v2" defer></script>
   <script src="js/gamemode/casual/rules-guides.js?v=dynamic-guides-v11" defer></script>
   <script src="js/gamemode/casual/spectator-service.js?v=casual-spectator-service-v1" defer></script>
-  <script src="js/gamemode/casual/quick-actions.js?v=casual-host-controls-v2" defer></script>
+  <script src="js/gamemode/casual/quick-actions.js?v=self-quick-actions-v1" defer></script>
   <script src="js/gamemode/casual/settings-service.js?v=app-access-v1" defer></script>
   <script src="js/gamemode/casual/room-ui.js?v=casual-room-ui-i18n-v1" defer></script>
   <script src="js/gamemode/casual/asylum-controls.js?v=casual-asylum-controls-v2" defer></script>
@@ -913,11 +953,11 @@
   <script src="js/gamemode/casual/deck-presets.js?v=revolution-preset-balance-v1" defer></script>
   <script src="js/gamemode/casual/drag-drop.js?v=casual-drag-drop-v2" defer></script>
   <script src="js/gamemode/casual/render-cards.js?v=casual-render-cards-v2" defer></script>
-  <script src="js/gamemode/casual/render-players.js?v=casual-render-players-v1" defer></script>
+  <script src="js/gamemode/casual/render-players.js?v=self-quick-actions-v1" defer></script>
   <script src="js/gamemode/casual/table-render.js?v=casual-table-render-v1" defer></script>
   <script src="js/core/gameState.js?v=casual-host-controls-v2" defer></script>
   <script src="js/gamemode/casual/card-preview.js?v=casual-card-preview-v1" defer></script>
-  <script src="js/gamemode/casual/board-renderer.js?v=casual-board-renderer-i18n-v1" defer></script>
+  <script src="js/gamemode/casual/board-renderer.js?v=player-actions-v1" defer></script>
 
 </body>
 

@@ -119,10 +119,12 @@
     return '';
   }
 
-  function renderPlayerIdentity(playerEl, player, pid, openQuickActions) {
+  function renderPlayerIdentity(playerEl, player, pid, options) {
     const headerEl = ensurePlayerHeader(playerEl);
     const avatarImg = headerEl.querySelector('.player-avatar');
     const nameTxt = headerEl.querySelector('.player-title');
+    const openPlayerProfile = options.openPlayerProfile;
+    const openPlayerActions = options.openPlayerActions;
 
     headerEl.classList.add('player-identity');
     nameTxt?.classList.add('player-name');
@@ -139,20 +141,30 @@
       avatarImg.tabIndex = 0;
       avatarImg.onclick = (event) => {
         event.stopPropagation();
-        if (typeof openQuickActions === 'function') openQuickActions(pid);
+        if (typeof openPlayerProfile === 'function') openPlayerProfile(pid);
       };
       avatarImg.onkeydown = (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
-        if (typeof openQuickActions === 'function') openQuickActions(pid);
+        if (typeof openPlayerProfile === 'function') openPlayerProfile(pid);
       };
     }
 
     if (nameTxt) {
       nameTxt.textContent = player.name || t('casual.playerSeat', { seat: pid }, `Jogador ${pid}`);
+      nameTxt.classList.add('has-quick-actions');
       nameTxt.style.cursor = 'pointer';
-      nameTxt.onclick = () => {
-        if (typeof openQuickActions === 'function') openQuickActions(pid);
+      nameTxt.setAttribute('role', 'button');
+      nameTxt.tabIndex = 0;
+      nameTxt.title = t('casual.openQuickActions', {}, 'Abrir ações rápidas');
+      nameTxt.onclick = (event) => {
+        event.stopPropagation();
+        if (typeof openPlayerActions === 'function') openPlayerActions(pid);
+      };
+      nameTxt.onkeydown = (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        if (typeof openPlayerActions === 'function') openPlayerActions(pid);
       };
     }
 
@@ -230,7 +242,7 @@
       playerEl.classList.add('local-player');
     }
 
-    const headerEl = renderPlayerIdentity(playerEl, player, pid, options.openQuickActions);
+    const headerEl = renderPlayerIdentity(playerEl, player, pid, options);
     renderReligionBadge(headerEl, player, pid, options.toggleReligion);
     renderPlayerHand(playerEl, player, options.createCardElement, options.updateHandFanLayout);
 

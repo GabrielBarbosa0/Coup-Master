@@ -147,7 +147,8 @@ function renderPlayers(state) {
     createCardElement: window.CoupRenderCards?.createCardElement,
     updateHandFanLayout: window.CoupVisualEffects?.updateHandFanLayout,
     toggleReligion,
-    openQuickActions: window.CoupQuickActions?.openQuickActions || window.openQuickActions
+    openPlayerProfile: window.CoupQuickActions?.openPlayerProfile || window.openQuickActions,
+    openPlayerActions: window.CoupQuickActions?.openPlayerActions
   });
 }
 
