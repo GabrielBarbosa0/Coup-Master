@@ -642,8 +642,7 @@
     "searchingTitle": "Procurando partida",
     "searchingDescription": "O sistema preenche a mesa com oponentes IA e inicia quando todos confirmarem prontidão.",
     "qrAlt": "QR Code para entrar nesta sala ranqueada",
-    "playersLabel": "Jogadores da sala ranqueada",
-    "adLabel": "Publicidade na sala de espera ranqueada"
+    "playersLabel": "Jogadores da sala ranqueada"
   },
   "personalizedWaiting": {
     "title": "Sala Personalizada | Coup Master",
@@ -656,7 +655,6 @@
     "addAiPlayer": "Adicionar jogador IA",
     "qrAlt": "QR Code para entrar nesta sala personalizada",
     "playersLabel": "Jogadores da sala personalizada",
-    "adLabel": "Publicidade na sala de espera personalizada",
     "removePlayerTitle": "Remover Jogador?",
     "removePlayerText": "Tem certeza que deseja remover este jogador da sala?",
     "removePlayerNamed": "Tem certeza que deseja remover {name} da sala?",

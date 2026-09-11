@@ -166,7 +166,6 @@ Coup-Master/
       soundtrack/
       vfx/
   css/
-    ads.css
     lobby.css
     casual-mode.css
     ranked-mode.css
@@ -225,7 +224,6 @@ Coup-Master/
     pwa/
       pwa.js
     ui/
-      ad-slots.js
       background-audio-guard.js
       selection-lock.js
   lang/
@@ -291,7 +289,6 @@ Observacao: a pasta existente no filesystem esta como `docs` em minusculo. Em Wi
 - Fonte local: `Tilda Script`.
 - Material Symbols via Google Fonts no tabuleiro, aparentemente para icone `info`.
 - Tally embed para feedback/bug report.
-- Google AdSense para monetizacao do banner responsivo na sala de espera ranqueada.
 - YouTube embed comentado no lobby.
 
 ### 5.4 Estado de Tooling
@@ -367,30 +364,6 @@ No modo casual, `gameState.js` mantem `#loadingOverlay` visivel ate tres condico
 No modo ranqueado, `ranked-renderer.js` inicia o pre-carregamento no `init()` e so oculta `#rankLoading` depois da primeira renderizacao e do carregamento dos assets essenciais. A lista ranqueada inclui as cartas `base`, o template `clean.png` e os retratos base de `assets/img/perfil-cards`, usados pelo guia dinamico de baralho padrao.
 
 Falhas ou timeouts individuais de imagem nao travam a entrada; o asset e contabilizado como falho e o jogo continua apos a tentativa, evitando loading infinito.
-
-### 5.7 Monetizacao e AdSense
-
-O projeto possui uma integracao pontual com Google AdSense, mantendo a arquitetura estatica e sem adicionar dependencias de build.
-
-Estado atual:
-
-- existe um unico slot preparado de anuncio: banner responsivo na sala de espera ranqueada (`ranked/ranked-waiting.html`), atualmente oculto/desativado ate a aprovacao do AdSense;
-- `ranked/ranked-waiting.html` carrega `css/ads.css`, o snippet oficial do AdSense no `<head>` e `js/ui/ad-slots.js`;
-- `js/ui/ad-slots.js` centraliza `ADSENSE_ENABLED = false`, `ADSENSE_CLIENT = "ca-pub-1234567890123456"` como exemplo documental e `AD_SLOTS.rankedWaiting = "1234567890"` como exemplo documental;
-- `css/ads.css` define o visual do container, label `Publicidade`, placeholder, estado oculto/desativado e comportamento responsivo;
-- lobby, mesa casual, mesa ranqueada ativa e resultado final ranqueado nao exibem anuncios.
-
-O helper `js/ui/ad-slots.js` procura elementos `.coup-ad-slot[data-ad-slot-key]`, mantem o slot oculto quando `ADSENSE_ENABLED` esta `false`, cria o `<ins class="adsbygoogle">` quando a configuracao esta ativa e usa placeholder quando falta configuracao. Como `ranked/ranked-waiting.html` ja declara o script oficial no `<head>` com `id="coup-adsense-script"`, o helper evita injetar o script novamente.
-
-Observacao operacional:
-
-O projeto esta hospedado como GitHub Pages de repositorio em `https://gabrielbarbosa0.github.io/Coup-Master/`, mas o AdSense valida o site raiz `gabrielbarbosa0.github.io`. Para revisao do Google, existe a necessidade operacional de manter o repositorio raiz `gabrielbarbosa0.github.io` publicado com o snippet de verificacao do AdSense.
-
-Restricoes de produto:
-
-- nao posicionar anuncios sobre cartas, botoes de turno, botoes de confirmacao, modais de decisao ou areas de interacao frequente;
-- evitar anuncios na mesa ativa para nao induzir clique acidental durante a partida;
-- antes de expandir monetizacao, revisar politicas do AdSense e UX mobile.
 
 ## 6. Pontos de Entrada HTML
 
@@ -1675,7 +1648,6 @@ Regras atuais:
 - os bots entram gradualmente com nome e personalidade sorteados, aparecem como IA, usam intervalos aleatorios de 0,8 a 1,6 segundos e recebem horario proprio de prontidao assim que entram, permitindo bots prontos enquanto outros ainda estao chegando;
 - desenha seis lugares na sala de espera e, com matchmaking ativo, so inicia quando a mesa esta cheia e todos marcam pronto;
 - exibe QR Code de convite na sala de espera, apontando para `ranked/ranked-waiting.html?room={codigo}`;
-- renderiza um banner responsivo AdSense abaixo da lista de jogadores, antes da partida ativa;
 - antes de iniciar, agenda uma contagem de 3 segundos para evitar que a sala comece instantaneamente por clique impulsivo em "Estou pronto";
 - ao sair da espera, cria deck, distribui influencias iniciais sem permitir Embaixador na mao inicial e entra em `starter-draw`, uma fase curta de sorteio visual em overlay que define aleatoriamente quem abre a partida;
 - quando o estado sai de `waiting`, `ranked/ranked-waiting.html` redireciona para `ranked/ranked.html`, que renderiza apenas a mesa ativa, as acoes e o registro oficial;
@@ -2078,22 +2050,6 @@ Responsabilidades:
 - proteger controles, imagens, SVGs, canvas, videos e iframes contra recoloracao automatica.
 
 Essa folha existe para preservar a identidade visual do Coup Master em navegadores que alteram cores agressivamente, com foco especial no Samsung Internet. Ela deve continuar pequena e global; ajustes especificos de layout pertencem aos CSSs de cada tela/modo.
-
-### 15.4 `css/ads.css`
-
-Folha compartilhada para slots de publicidade.
-
-Responsabilidades:
-
-- definir o container `.coup-ad-slot`;
-- limitar largura em `min(100%, 728px)`;
-- manter altura minima para banners responsivos;
-- exibir label `Publicidade`;
-- mostrar placeholder quando `js/ui/ad-slots.js` nao possui configuracao completa;
-- ocultar slots marcados como `data-ad-status="disabled"` ou `data-ad-status="unfilled"`;
-- ajustar altura e margem em telas pequenas.
-
-No estado atual, essa folha e usada apenas por `ranked/ranked-waiting.html`.
 
 ## 16. Assets
 
@@ -2638,10 +2594,8 @@ Estas invariantes devem ser preservadas:
 | `js/gamemode/ranked/ranked-engine.js` | Maquina de estados e resolucao das regras | Muito alto |
 | `js/gamemode/ranked/ranked-game.js` | Coordenacao Firebase e presenca ranqueada | Muito alto |
 | `js/gamemode/ranked/ranked-renderer.js` | DOM, respostas, log, mao e chat ranqueados | Alto |
-| `js/ui/ad-slots.js` | Configuracao e renderizacao dos slots AdSense | Medio: depende de politica externa e dominio aprovado |
 | `css/casual-mode.css` | Layout e visual do jogo | Medio/alto |
 | `css/lobby.css` | Layout e visual do lobby | Medio |
-| `css/ads.css` | Visual do banner responsivo de anuncio | Baixo/medio |
 | `robots.txt` | Crawling | Baixo/medio |
 | `sitemap.xml` | SEO/indexacao | Baixo/medio |
 | `limpeza.json` | JSON vazio para limpeza manual | Alto se usado no lugar errado |

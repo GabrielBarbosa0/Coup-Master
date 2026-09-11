@@ -12,6 +12,8 @@
 Diferente de versões automatizadas, o foco aqui é reproduzir a experiência manual de uma mesa real, 
 onde os próprios jogadores gerenciam ações, moedas e interações.
 
+O projeto é uma iniciativa indie, gratuita e sem fins lucrativos.
+
 O sistema é sincronizado em tempo real via Firebase Realtime Database, utilizando uma arquitetura modular orientada a eventos,
 com foco em escalabilidade e consistência de estado.
 
@@ -35,7 +37,6 @@ com foco em escalabilidade e consistência de estado.
 - Chat: mensagens em tempo real da sala com atalhos rápidos
 - PWA: manifest + service worker para instalação e cache de assets locais
 - Idiomas: sistema i18n com dicionários JSON para `pt-BR` e `en-US`
-- Monetizacao: banner responsivo do Google AdSense na sala de espera ranqueada
 
 > O PWA melhora instalação, abertura em modo standalone e cache do shell. O multiplayer continua exigindo conexão com Firebase.
 
@@ -102,7 +103,6 @@ com foco em escalabilidade e consistência de estado.
 * **Sala Personalizada:** Fluxo paralelo criado a partir do ranqueado automatizado, usando `mode = "personalized"` e `personalizedState` para permitir evoluir salas com amigos e bots sem alterar os arquivos do ranqueado.
 * **Idioma Alternativo:** Interface preparada para alternar entre Português do Brasil e Inglês, com preferência salva localmente e dicionários em JSON.
 * **Carregamento sem Flicker de Idioma:** Telas de loading e páginas legais respeitam o idioma salvo desde a primeira renderização para evitar piscadas temporárias em português quando o usuário usa inglês.
-* **Banner AdSense na Espera Ranqueada:** Slot responsivo de publicidade carregado apenas em `ranked/ranked-waiting.html`, antes da partida ativa.
 * **Controle de Áudio Integrado:** Música de fundo e efeitos sonoros sincronizados para ações como compra de cartas, moedas e impacto.
 * **Gestão de Bots:** Capacidade de usar bots para testes de mesa, com controle manual concentrado na Sala Personalizada e preenchimento automático no ranqueado.
 * **Modais de Referência Rápida:** Visualização de guias de ações de personagens e regras alternativas através de cartas que giram (flip cards).
@@ -117,7 +117,6 @@ com foco em escalabilidade e consistência de estado.
 - **Backend (BaaS):** Firebase Realtime Database
 - **Autenticação:** Firebase Authentication (Google Provider + Anonymous Provider)
 - **Hospedagem:** GitHub Pages
-- **Monetizacao:** Google AdSense com bloco display responsivo na sala de espera ranqueada
 
 ---
 
@@ -163,7 +162,6 @@ O projeto segue uma arquitetura modular com separação clara de responsabilidad
 - **js/gamemode/casual/table-render.js** → Renderizacao da area central, cemiterio/freeCards e status
 - **board-renderer.js** → Coordenador principal do modo casual
 - **lobby-manager.js** → Autenticação, criação e gerenciamento de salas
-- **js/ui/ad-slots.js** → Configuracao central dos slots Google AdSense
 
 Essa divisão garante escalabilidade, manutenibilidade e separação entre lógica de domínio e camada de apresentação.
 
@@ -194,7 +192,6 @@ Coup-Master/
 │   │   └── 📂 marketing/       # Banners e screenshots de divulgação
 │   ├── 📂 sounds/              # Trilha sonora (bgm) e efeitos sonoros (vfx)
 ├── 📂 css/                     # Estilização e folhas de estilo
-│   ├── ads.css                 # Slot responsivo de publicidade
 │   ├── lobby.css               # Design da interface do menu e salas
 │   ├── legal.css               # Layout das páginas legais públicas
 │   ├── casual-mode.css         # Layout do tabuleiro 2D e responsividade mobile
@@ -244,7 +241,6 @@ Coup-Master/
 │   ├── 📂 lobby/
 │   │   └── lobby-manager.js    # Fluxo de criação, faxina e entrada de salas
 │   └── 📂 ui/
-│       ├── ad-slots.js         # Renderizacao dos slots AdSense
 │       ├── background-audio-guard.js
 │       └── selection-lock.js
 ├── 📂 lang/                    # Dicionários de tradução
@@ -282,7 +278,7 @@ Coup-Master/
 * **`js/gamemode/casual/`**: Concentra a mesa casual. `board-renderer.js` atua como coordenador principal, chamando setup dos modulos e preservando `renderAll`, `setupUI` e `setupAutoScroll` para `gameState.js`. `audio-service.js` centraliza BGM/efeitos, `card-preview.js` cuida do preview ampliado, `modal-service.js` padroniza modais, `chat-service.js` controla o chat em tempo real, `board-status.js` atualiza contadores e codigo da sala, `visual-effects.js` centraliza efeito Balatro e leques, `admin-controls.js` controla a UI de host, `rules-guides.js` gerencia guias de acoes/personagens e regras alternativas, `spectator-service.js` controla o fluxo de espectador, `quick-actions.js` gerencia perfil rapido e acoes rapidas, `settings-service.js` centraliza preferencias locais, `room-ui.js` agrupa sair da sala, fullscreen, feedback e configuracoes simples, `asylum-controls.js` centraliza duplo clique, botoes e tooltip do asilo, `tutorial-service.js` controla o tutorial inicial e `tutorialSeen`, `deck-presets.js` concentra presets de baralho, `drag-drop.js` centraliza o arraste legado e compativel, `render-cards.js` monta as cartas visuais, `render-players.js` renderiza os slots de jogadores e `table-render.js` renderiza a area central do tabuleiro.
 * **`js/gamemode/ranked/`**: Concentra o fluxo automatizado do modo ranqueado, incluindo regras, máquina de estados, renderização e integração Firebase.
 * **`js/gamemode/personalized/`**: Mantém a primeira cópia isolada da Sala Personalizada, permitindo evoluir convites, bots e controles próprios sem renomear o ranqueado atual.
-* **`js/ui/`**: Centraliza utilitarios de interface compartilhados, incluindo protecao de audio em background, bloqueio de selecao e renderizacao dos slots AdSense.
+* **`js/ui/`**: Centraliza utilitarios de interface compartilhados, incluindo protecao de audio em background e bloqueio de selecao.
 * **`lab/`**: Guarda protótipos visuais independentes, como laboratórios de loading, física de cartas, efeito Balatro, landing experimental e manual flipbook.
 * **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
 
@@ -306,35 +302,6 @@ O Coup Master possui suporte inicial a idiomas com dicionários JSON:
 A preferência do usuário fica salva em `localStorage` na chave `coupMasterLanguage`. O seletor de idioma aparece no lobby e dentro das configurações das mesas casual, ranqueada e personalizada.
 
 Ao adicionar texto novo na interface, prefira criar uma chave nos dois arquivos de `lang/` e ligar o elemento com `data-i18n`, `data-i18n-placeholder`, `data-i18n-title`, `data-i18n-aria-label`, `data-i18n-alt`, `data-i18n-value` ou `data-i18n-content`. Telas de carregamento e páginas legais usam bloqueios visuais temporários para evitar flicker de idioma enquanto o JSON é carregado.
-
----
-
-### Monetizacao com AdSense
-
-O projeto possui um bloco de anuncio preparado para a sala de espera ranqueada (`ranked/ranked-waiting.html`), mas ele fica oculto/desativado enquanto a conta do AdSense ainda nao esta aprovada. O lobby, a mesa casual, a mesa ranqueada ativa e o modal de resultado final nao exibem anuncios.
-
-Arquivos relacionados:
-
-- `ranked/ranked-waiting.html`: carrega `css/ads.css`, o snippet oficial do AdSense no `<head>` para verificacao e o script `js/ui/ad-slots.js`.
-- `css/ads.css`: define o visual responsivo do slot, o estado placeholder e o estado oculto/desativado.
-- `js/ui/ad-slots.js`: centraliza `ADSENSE_ENABLED`, `ADSENSE_CLIENT` e `AD_SLOTS.rankedWaiting`.
-
-Configuracao atual:
-
-```javascript
-const ADSENSE_ENABLED = false;
-const ADSENSE_CLIENT = 'ca-pub-1234567890123456';
-
-const AD_SLOTS = {
-  rankedWaiting: '1234567890'
-};
-```
-
-Como o GitHub Pages do Coup Master usa caminho de projeto (`/Coup-Master`), o AdSense valida o dominio raiz `gabrielbarbosa0.github.io`. Para revisao do Google, mantenha tambem o repositorio raiz `gabrielbarbosa0.github.io` publicado com o snippet de verificacao do AdSense.
-
-Evite adicionar anuncios dentro da mesa ativa, sobre cartas, controles de turno, modais de decisao ou areas de clique frequente, para reduzir risco de clique acidental.
-
----
 
 ## 🛠️ Instalação e Configuração
 

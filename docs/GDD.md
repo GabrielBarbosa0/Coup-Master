@@ -714,7 +714,6 @@ Nao implementar agora, exceto se for pedido explicitamente:
 - matchmaking;
 - temporadas;
 - loja;
-- monetizacao;
 - bots inteligentes;
 - automacao completa de regras;
 - suporte oficial amplo a Safari/Samsung Internet;

@@ -54,7 +54,6 @@ Scripts principais:
 - `js/gamemode/personalized/personalized-engine.js`: clone inicial do motor ranqueado para a Sala Personalizada.
 - `js/gamemode/personalized/personalized-game.js`: conexao Firebase da Sala Personalizada usando `personalizedState`.
 - `js/gamemode/personalized/personalized-renderer.js`: interface da Sala Personalizada baseada no renderer ranqueado.
-- `js/ui/ad-slots.js`: configuracao e renderizacao dos slots Google AdSense.
 
 Leia `docs/TDD.md` antes de fazer mudancas estruturais.
 
@@ -140,16 +139,6 @@ Cuidados:
 - Evite operacoes destrutivas no banco de producao.
 - `cleanupOldRooms()` remove salas inativas; cuidado ao testar regras de escrita.
 - Dados de usuario vindos do Firebase/Auth devem ser tratados como externos.
-
-## Monetizacao e AdSense
-
-- O projeto possui um unico slot de anuncio preparado e temporariamente oculto: banner responsivo na sala de espera ranqueada (`ranked/ranked-waiting.html`).
-- A configuracao do publisher e do slot fica centralizada em `js/ui/ad-slots.js`.
-- O estilo visual do slot fica em `css/ads.css`.
-- `ranked/ranked-waiting.html` tambem carrega o snippet oficial do AdSense no `<head>` para verificacao/publicacao.
-- Enquanto o AdSense nao estiver aprovado, mantenha `ADSENSE_ENABLED = false` em `js/ui/ad-slots.js` e o slot com estado `data-ad-status="disabled"`.
-- Nao adicione anuncios dentro da mesa ativa, sobre cartas, botoes de acao, modais de decisao ou qualquer area que possa induzir clique acidental.
-- Para GitHub Pages em repositorio de projeto (`/Coup-Master`), o AdSense valida o dominio raiz `gabrielbarbosa0.github.io`; mantenha o repositorio raiz publicado com o snippet de verificacao enquanto a revisao estiver pendente.
 
 ## Invariantes de Jogo
 

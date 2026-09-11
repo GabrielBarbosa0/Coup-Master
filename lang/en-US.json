@@ -642,8 +642,7 @@
     "searchingTitle": "Finding match",
     "searchingDescription": "The system fills the table with AI opponents and starts when everyone confirms readiness.",
     "qrAlt": "QR Code to enter this ranked room",
-    "playersLabel": "Ranked room players",
-    "adLabel": "Ad in ranked waiting room"
+    "playersLabel": "Ranked room players"
   },
   "personalizedWaiting": {
     "title": "Custom Room | Coup Master",
@@ -656,7 +655,6 @@
     "addAiPlayer": "Add AI player",
     "qrAlt": "QR Code to enter this custom room",
     "playersLabel": "Custom room players",
-    "adLabel": "Ad in custom waiting room",
     "removePlayerTitle": "Remove Player?",
     "removePlayerText": "Are you sure you want to remove this player from the room?",
     "removePlayerNamed": "Are you sure you want to remove {name} from the room?",
