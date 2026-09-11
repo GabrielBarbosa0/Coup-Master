@@ -2335,7 +2335,7 @@ h2 {
 .game-table {
     --table-content-width: min(82vw, 1460px);
     --table-gap: 14px;
-    --card-width: clamp(48px, 4.2vw, 72px);
+    --card-width: clamp(48px, 4.2vw, 65px);
     --card-radius: clamp(4px, 0.35vw, 6px);
     position: relative;
     box-sizing: border-box;
@@ -2619,6 +2619,13 @@ h2 {
     padding: 2px 0 0;
     overflow: visible;
     perspective: 820px;
+}
+
+@media (min-width: 1201px) {
+    .game-table .player-stack {
+        box-sizing: border-box;
+        padding-bottom: 10px;
+    }
 }
 
 .game-table .slot {
