@@ -2779,6 +2779,10 @@ h2 {
 }
 
 @media (min-width: 1201px) {
+    .game-table .center-area {
+        align-self: center;
+    }
+
     .game-table .player-stack {
         box-sizing: border-box;
         padding-bottom: 10px;
