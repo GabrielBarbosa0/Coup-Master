@@ -1848,7 +1848,7 @@ input {
     left: auto;
     z-index: 14;
     isolation: isolate;
-    width: min(92vw, 360px);
+    width: min(92vw, 400px);
     margin: 18px auto 0;
     transform: none;
     align-self: center;
@@ -1856,7 +1856,6 @@ input {
 
 .lobby-legal-links .legal-footer-link {
     flex: 1 1 0;
-    max-width: 150px;
 }
 
 @media (max-height: 640px) {
@@ -1949,7 +1948,7 @@ body.lobby-page {
     left: auto;
     flex-shrink: 0;
     align-self: center;
-    width: min(92vw, 360px);
+    width: min(92vw, 400px);
     margin: 0 auto;
     transform: none;
     z-index: 14;
