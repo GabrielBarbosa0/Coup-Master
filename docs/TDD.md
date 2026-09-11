@@ -2101,7 +2101,7 @@ Usados para botoes, Google login, bots, religiao, configuracoes, visibilidade, t
 Maiores arquivos no estado analisado:
 
 - `assets/sounds/soundtrack/bgm.mp3`: aproximadamente 40 MB.
-- `assets/img/marketing/screenshots/game-preview.webm`: aproximadamente 3 MB.
+- `assets/img/marketing/screenshots/game-preview.webp`: aproximadamente 3,5 MB.
 
 Impacto:
 
