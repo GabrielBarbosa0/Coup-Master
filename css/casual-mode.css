@@ -2241,6 +2241,25 @@ h2 {
     padding: 20px;
 }
 
+#settingsModal .standard-modal-content,
+#shareRoomModal > .modal-content,
+#feedbackModal > .modal-content,
+#spectatorModal > .modal-content,
+#quickActionsModal > .modal-content,
+#chatModal > .modal-content,
+#configModal > .modal-content,
+#tutorialModal > .modal-content,
+#playerActionsModal > .modal-content,
+#resetModal > .modal-content,
+#kickPlayerModal > .modal-content,
+#fullRoomModal > .modal-content,
+#spectateRequestModal > .modal-content,
+#waitSpectateModal > .modal-content,
+#duelModal > .modal-content,
+#ruleDrawModal > .modal-content {
+    border: 2px solid var(--seat-border);
+}
+
 @media (orientation: portrait), (min-height: 561px) {
     #quickActionsModal .standard-modal-content {
         width: min(380px, calc(100vw - 28px));
@@ -2497,7 +2516,11 @@ h2 {
     overflow: hidden;
     border: 1px solid rgba(230, 238, 246, 0.12);
     border-radius: 0;
-    background: var(--bg);
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(145deg, #07101a 0%, #0f2434 48%, #111217 100%);
+    background-size: 42px 42px, 42px 42px, auto;
     box-shadow: none;
 }
 
@@ -2625,6 +2648,34 @@ h2 {
     border-radius: 8px;
     background: rgba(17, 25, 35, 0.94);
     box-shadow: var(--table-shadow);
+}
+
+.game-table .controls button,
+.game-table .room-controls button,
+#chatBtn.floating-chat-btn,
+.game-table .player-area:not(.is-empty) {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        rgba(16, 29, 41, 0.92);
+}
+
+.game-table .controls button,
+.game-table .room-controls button,
+#chatBtn.floating-chat-btn {
+    box-sizing: border-box;
+    border: 2px solid var(--seat-border);
+}
+
+.game-table .controls button:hover,
+.game-table .controls button:focus-visible,
+.game-table .room-controls button:hover,
+.game-table .room-controls button:focus-visible,
+#chatBtn.floating-chat-btn:hover,
+#chatBtn.floating-chat-btn:focus-visible {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        #2c3540;
+    border-color: var(--accent);
 }
 
 .game-table .player-area.local-player {
@@ -2988,7 +3039,9 @@ h2 {
     min-width: 0;
     min-height: 0;
     border-radius: 8px;
-    background: rgba(28, 37, 48, 0.96);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        rgba(16, 29, 41, 0.92);
     box-shadow: var(--table-shadow);
 }
 
@@ -3350,6 +3403,18 @@ body.hide-religion .game-table .center-area {
 }
 
 @media (max-width: 700px) {
+    .game-table .graveyard-area,
+    .game-table .asylum-area,
+    .game-table .deck-area {
+        border-width: 2px;
+    }
+
+    .game-table .controls button,
+    .game-table .room-controls button,
+    #chatBtn.floating-chat-btn {
+        border-width: 2px;
+    }
+
     .container.prototype-scroll {
         overflow-x: hidden;
     }
@@ -3437,7 +3502,7 @@ body.hide-religion .game-table .center-area {
         grid-template-rows: auto auto minmax(51px, 1fr);
         min-height: 114px;
         padding: 6px 4px 5px;
-        border-width: 1px;
+        border-width: 2px;
         box-shadow: none;
     }
 
@@ -3447,7 +3512,7 @@ body.hide-religion .game-table .center-area {
         min-height: 114px;
         padding: 6px 4px 5px;
         align-content: stretch;
-        border-width: 1px;
+        border-width: 2px;
     }
 
     .game-table .player-header {
@@ -3576,8 +3641,8 @@ body.hide-religion .game-table .center-area {
 @media (orientation: landscape) and (max-width: 1024px) and (max-height: 560px) {
     .game-table {
         --table-gap: clamp(4px, 1.2dvh, 7px);
-        height: 100dvh;
-        min-height: 0;
+        height: auto;
+        min-height: 100dvh;
         padding-block: clamp(6px, 1.6dvh, 8px);
     }
 

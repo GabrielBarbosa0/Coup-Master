@@ -1876,6 +1876,17 @@ body.lobby-page {
     overflow: hidden;
 }
 
+.lobby-page .legal-footer-link,
+.lobby-page .logout-floating-btn,
+.lobby-page .landing-return-floating-btn,
+.lobby-page .discord-floating-btn,
+.lobby-page .leaderboard-floating-btn,
+.lobby-page .language-floating-toggle {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        rgba(16, 29, 41, 0.92);
+}
+
 .lobby-page .lobby-box {
     width: min(92vw, 500px);
     max-width: 400px;
