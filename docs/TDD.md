@@ -2101,11 +2101,11 @@ Usados para botoes, Google login, bots, religiao, configuracoes, visibilidade, t
 Maiores arquivos no estado analisado:
 
 - `assets/sounds/soundtrack/bgm.mp3`: aproximadamente 40 MB.
-- `assets/img/marketing/screenshots/game-preview.gif`: aproximadamente 20 MB.
+- `assets/img/marketing/screenshots/game-preview.webm`: aproximadamente 3 MB.
 
 Impacto:
 
-- Primeira visita pode ser pesada em mobile.
+- A trilha sonora continua sendo o principal asset pesado da primeira visita.
 - Git pack esta grande, com historico em torno de centenas de MB.
 - GitHub Pages entrega estatico, sem pipeline de compressao/otimizacao neste repositorio.
 

@@ -24,7 +24,15 @@ com foco em escalabilidade e consistência de estado.
 
 ## 🖼️ Preview
 
-  <img src="./assets/img/marketing/screenshots/game-preview.gif" width="800">
+<p align="center">
+  <a href="./assets/img/marketing/screenshots/game-preview.webm">
+    <img src="./assets/img/marketing/screenshots/game-preview.png" alt="Demonstração da mesa do Coup Master" width="800">
+  </a>
+</p>
+
+<p align="center">
+  Clique na imagem para assistir à demonstração da mesa.
+</p>
 
 ---
 
