@@ -54,7 +54,7 @@
 
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
-  <link rel="stylesheet" href="css/casual-mode.css?v=profile-close-layer-v2">
+  <link rel="stylesheet" href="css/casual-mode.css?v=feedback-border-v1">
   <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
   <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
   <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
@@ -559,7 +559,7 @@
           </button>
         </div>
 
-        <div class="setting-row" data-app-permission="casual.addTestBot" hidden>
+        <div class="setting-row">
           <label data-i18n="casual.testBotLabel">Bot de Teste:</label>
           <button id="addBotBtn" class="icon-btn settings-control-btn" title="Adicionar jogador bot"
             data-i18n-title="casual.addBotPlayer">
@@ -695,7 +695,7 @@
       <div style="display: flex; gap: 10px; justify-content: center;">
         <button id="confirmKickBtn" class="icon-btn"
           style="background: #ff3b3b; color: #fff; flex: 1; justify-content: center; font-weight: bold; border: none;"
-          data-i18n="casual.removePlayer">REMOVER</button>
+          data-i18n="personalizedWaiting.remove">REMOVER</button>
         <button id="cancelKickBtn" class="icon-btn"
           style="background: rgba(255,255,255,0.1); flex: 1; justify-content: center; border: none;"
           data-i18n="ranked.cancel">CANCELAR</button>
@@ -833,11 +833,12 @@
           style="width: 100%; justify-content: center; color: #ff66c4; font-weight: bold;">
           DUQUE (+3 Moedas)
         </button>
-        <hr class="quick-actions-divider">
-        <button id="quickActionKickBtn" class="icon-btn quick-action-kick" type="button" hidden>
-          REMOVER JOGADOR
-        </button>
       </div> -->
+
+      <button id="quickActionKickBtn" class="icon-btn quick-action-kick" type="button"
+        data-i18n="casual.removePlayer" hidden>
+        REMOVER JOGADOR
+      </button>
 
     </div>
   </div>
@@ -892,7 +893,7 @@
   <script src="js/ui/asset-preloader.js?v=asset-preload-v2" defer></script>
   <script src="js/i18n/language-service.js?v=i18n-v7" defer></script>
   <script src="js/firebase/firebase.js" defer></script>
-  <script src="js/core/access-control.js?v=app-access-v1" defer></script>
+  <script src="js/core/access-control.js?v=app-access-v2" defer></script>
   <script src="js/pwa/pwa.js" defer></script>
   <script src="js/core/rules.js" defer></script>
   <script src="js/gamemode/game-modes.js?v=game-modes-i18n-v1" defer></script>
@@ -901,10 +902,10 @@
   <script src="js/gamemode/casual/chat-service.js?v=casual-chat-service-v1" defer></script>
   <script src="js/gamemode/casual/board-status.js?v=casual-board-status-share-v1" defer></script>
   <script src="js/gamemode/casual/visual-effects.js?v=casual-visual-effects-v1" defer></script>
-  <script src="js/gamemode/casual/admin-controls.js?v=app-access-v1" defer></script>
+  <script src="js/gamemode/casual/admin-controls.js?v=casual-host-controls-v2" defer></script>
   <script src="js/gamemode/casual/rules-guides.js?v=dynamic-guides-v11" defer></script>
   <script src="js/gamemode/casual/spectator-service.js?v=casual-spectator-service-v1" defer></script>
-  <script src="js/gamemode/casual/quick-actions.js?v=casual-quick-actions-v1" defer></script>
+  <script src="js/gamemode/casual/quick-actions.js?v=casual-host-controls-v2" defer></script>
   <script src="js/gamemode/casual/settings-service.js?v=app-access-v1" defer></script>
   <script src="js/gamemode/casual/room-ui.js?v=casual-room-ui-i18n-v1" defer></script>
   <script src="js/gamemode/casual/asylum-controls.js?v=casual-asylum-controls-v2" defer></script>
@@ -914,7 +915,7 @@
   <script src="js/gamemode/casual/render-cards.js?v=casual-render-cards-v2" defer></script>
   <script src="js/gamemode/casual/render-players.js?v=casual-render-players-v1" defer></script>
   <script src="js/gamemode/casual/table-render.js?v=casual-table-render-v1" defer></script>
-  <script src="js/core/gameState.js?v=app-access-v1" defer></script>
+  <script src="js/core/gameState.js?v=casual-host-controls-v2" defer></script>
   <script src="js/gamemode/casual/card-preview.js?v=casual-card-preview-v1" defer></script>
   <script src="js/gamemode/casual/board-renderer.js?v=casual-board-renderer-i18n-v1" defer></script>
 

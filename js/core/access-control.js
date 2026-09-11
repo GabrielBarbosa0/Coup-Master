@@ -1,6 +1,5 @@
 (function setupAccessControl(root) {
   const PERMISSIONS = Object.freeze({
-    CASUAL_ADD_TEST_BOT: 'casual.addTestBot',
     CASUAL_TOGGLE_COMPATIBILITY: 'casual.toggleCompatibility'
   });
 

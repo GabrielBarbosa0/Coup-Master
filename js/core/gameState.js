@@ -482,12 +482,8 @@ function toggleReligion(pid) {
  * Caso a sala esteja cheia, exibe um modal de aviso.
  */
 function addBot() {
-  const canAddTestBot = window.CoupAccessControl?.hasPermission(
-    window.CoupAccessControl.PERMISSIONS.CASUAL_ADD_TEST_BOT
-  ) === true;
-
-  if (!isAdmin || !canAddTestBot) {
-    console.warn('A conta atual não tem permissão para adicionar bots de teste.');
+  if (!isAdmin) {
+    console.warn('Apenas o criador da sala pode adicionar bots de teste.');
     return;
   }
 
@@ -548,7 +544,7 @@ function addBot() {
  */
 function confirmKickAction() {
   const pid = window.pendingKickPid; // Usa a variável global
-  if (!isAdmin || !pid || pid === myPlayerId) {
+  if (!isAdmin || !pid || String(pid) === String(myPlayerId)) {
     window.pendingKickPid = null;
     return;
   }
@@ -898,6 +894,10 @@ function initializeGame() {
  */
 auth.onAuthStateChanged((user) => {
   if (user) {
+    currentUser.uid = user.uid;
+    currentUser.isAnonymous = Boolean(user.isAnonymous);
+    sessionStorage.setItem('currentUID', user.uid);
+    sessionStorage.setItem('currentIsAnonymous', String(Boolean(user.isAnonymous)));
     window.CoupAccessControl?.applyVisibility(document, user.uid);
     initializeGame();
   } else {

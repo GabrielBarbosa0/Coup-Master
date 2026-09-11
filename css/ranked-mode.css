@@ -1929,9 +1929,9 @@ button.rank-card {
     max-width: 380px;
     max-height: calc(100dvh - 28px);
     overflow: visible;
-    border: 1px solid rgba(30, 144, 255, 0.72);
+    border: 0;
     background: linear-gradient(180deg, rgba(34, 44, 57, 0.98), rgba(25, 34, 45, 0.98));
-    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55), 0 0 32px rgba(30, 144, 255, 0.14);
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
     box-sizing: border-box;
 }
 

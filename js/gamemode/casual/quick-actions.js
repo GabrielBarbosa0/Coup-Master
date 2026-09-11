@@ -171,7 +171,11 @@
     loadQuickPlayerRankedStats(player);
 
     if (kickBtn) {
-      const canKick = Boolean(getIsAdmin() && pid !== myPlayerId && (player.uid || player.online));
+      const canKick = Boolean(
+        getIsAdmin()
+        && String(pid) !== String(myPlayerId)
+        && (player.uid || player.online || player.name)
+      );
       kickBtn.hidden = !canKick;
       kickBtn.onclick = canKick ? () => {
         const targetPid = quickActionTargetPid;
