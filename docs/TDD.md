@@ -1927,7 +1927,7 @@ Aplicar configuracao sempre reseta a mesa.
 `index.html` inclui:
 
 - `<audio id="bgmAudio" loop autoplay>`
-- `assets/sounds/soundtrack/bgm.mp3`
+- `assets/sounds/soundtrack/bgm.webm`
 
 `js/gamemode/casual/audio-service.js`:
 
@@ -2100,7 +2100,7 @@ Usados para botoes, Google login, bots, religiao, configuracoes, visibilidade, t
 
 Maiores arquivos no estado analisado:
 
-- `assets/sounds/soundtrack/bgm.mp3`: aproximadamente 40 MB.
+- `assets/sounds/soundtrack/bgm.webm`: aproximadamente 23 MB.
 - `assets/img/marketing/screenshots/game-preview.webp`: aproximadamente 3,5 MB.
 
 Impacto:
@@ -2270,7 +2270,7 @@ Principais gargalos provaveis:
 
 Recomendacoes:
 
-- Comprimir `bgm.mp3` ou trocar por versao mais curta/loopada.
+- Avaliar futuramente uma versao mais curta/loopada de `bgm.webm`.
 - Carregar audio sob preferencia ou apos interacao.
 - Avaliar lazy loading de guias e imagens grandes.
 - Reduzir animacoes em mobile por padrao.

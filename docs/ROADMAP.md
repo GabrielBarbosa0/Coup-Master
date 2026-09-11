@@ -206,7 +206,7 @@ Estas dividas bloqueiam qualquer tentativa de tratar ranking como competitivo se
 
 1. **Trilha sonora muito pesada**
 
-   `assets/sounds/soundtrack/bgm.mp3` e grande para um app estatico.
+   `assets/sounds/soundtrack/bgm.webm` ainda e grande para um app estatico, apesar da conversao para Opus.
 
    Impacto:
 
@@ -518,7 +518,7 @@ Objetivo: deixar o app mais leve e confiavel para usuarios recorrentes.
 
 Tarefas:
 
-- Comprimir `bgm.mp3` ou trocar por loop menor.
+- Avaliar a troca de `bgm.webm` por um loop menor.
 - Revisar tamanho dos VFX.
 - Avaliar `.ogg` alem de `.mp3`.
 - Revisar cache do service worker.
