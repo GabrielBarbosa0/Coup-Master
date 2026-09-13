@@ -24,7 +24,7 @@ function fixture(count = 12) {
       2: { uid: 'bot', online: true, hand: [{ id: 'held', owner: 2, visible: false, location: 'player-2' }] },
       3: { uid: 'full', online: true, hand: [{ id: 'full-1' }, { id: 'full-2' }] },
       4: { uid: null, online: false },
-      5: { uid: 'offline', online: false }
+      5: { uid: null, online: false }
     }
   };
 }
@@ -56,6 +56,20 @@ test('baralho insuficiente distribui so o que existe, sem criar cartas', () => {
   assert.equal(state.deck.length, 0);
   assert.equal(state.players[1].hand.length, 1);
   assert.equal(state.players[2].hand.length, 2);
+});
+
+test('distribui para humanos com presenca desatualizada e bots, sem preencher slots vazios', () => {
+  const { applyDeal } = load();
+  const state = fixture();
+  state.players[1].online = false;
+  state.players[5] = { uid: 'human-without-presence', hand: [] };
+  applyDeal(state, 'reconnected');
+  assert.equal(state.players[1].hand.length, 2);
+  assert.equal(state.players[2].hand.length, 2);
+  assert.equal(state.players[5].hand.length, 2);
+  assert.equal(state.players[4].hand, undefined);
+  assert.equal(state.deck.length, 7);
+  assert.equal(applyDeal(state, 'repeat'), undefined);
 });
 
 test('repetir comando/transacao nao ultrapassa duas nem altera evento sem distribuicao', () => {

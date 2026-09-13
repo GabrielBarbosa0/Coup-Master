@@ -12,7 +12,8 @@
     if (!state?.players || !Array.isArray(state.deck) || !state.deck.length) return;
     const recipients = Object.keys(state.players).filter((pid) => {
       const player = state.players[pid];
-      return player?.uid && player.online && Number(pid) >= 1 && Number(pid) <= 8;
+      // The slot stays occupied across transient disconnects; online can be stale.
+      return player?.uid && Number(pid) >= 1 && Number(pid) <= 8;
     }).sort((a, b) => Number(a) - Number(b));
     const cards = [];
     for (let round = 0; round < 2; round++) {
