@@ -1,4 +1,8 @@
 (function setupFirstInteractionFullscreen() {
+  // Temporarily disabled while investigating Edge scareware false positives.
+  const AUTO_FULLSCREEN_ENABLED = false;
+  if (!AUTO_FULLSCREEN_ENABLED) return;
+
   const page = document.documentElement;
   if (typeof page.requestFullscreen !== 'function' || document.fullscreenEnabled === false) return;
 
