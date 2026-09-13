@@ -744,16 +744,8 @@
   }
 
   function formatAssassinBlockers(deckConfig) {
-    const language = getGuideLanguage();
-    const blockers = [];
-
-    if (hasCard(deckConfig, 'condessa')) blockers.push(language === 'en' ? 'the Contessa' : 'pela Condessa');
-    if (hasCard(deckConfig, 'diplomata')) blockers.push(language === 'en' ? 'the Diplomat' : 'pelo Diplomata');
-
-    if (blockers.length <= 1) return blockers[0] || '';
-    return language === 'en'
-      ? `${blockers.slice(0, -1).join(', ')} or ${blockers[blockers.length - 1]}`
-      : `${blockers.slice(0, -1).join(', ')} ou ${blockers[blockers.length - 1]}`;
+    if (!hasCard(deckConfig, 'condessa')) return '';
+    return getGuideLanguage() === 'en' ? 'the Contessa' : 'pela Condessa';
   }
 
   function getGuidePageStyle(pageType) {

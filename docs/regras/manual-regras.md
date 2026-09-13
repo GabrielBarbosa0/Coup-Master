@@ -125,7 +125,7 @@ No ranqueado e na Sala Personalizada, Capitão pode bloquear Extorsão contra qu
 
 Pode ser bloqueado pela Condessa.
 
-Com módulos da Revolução, efeitos específicos também podem envolver o Diplomata.
+O Diplomata não bloqueia Assassinato; Interceder bloqueia apenas Execução Bruta contra si.
 
 ### Condessa
 
@@ -431,7 +431,7 @@ A ideia deste capítulo é transformar o manual em uma referência de mesa e tam
 
 **Habilidade:** Assassinar: pague 3 moedas e escolha um oponente para perder 1 influência.
 
-**Bloqueio:** pode ser bloqueado pela Condessa. Com Revolução, também pode ser bloqueado pelo Diplomata em efeitos específicos.
+**Bloqueio:** pode ser bloqueado apenas pela Condessa.
 
 **Lore:** Ninguém sabe seu nome verdadeiro. Sabe-se apenas que portas trancadas não costumam atrasá-lo.
 
@@ -699,7 +699,6 @@ O efeito termina após essa ação ou se o Marionetista morrer.
 | Extorsão | Inquisidor | Jogador alvo |
 | Extorsão | Bufão | Jogador alvo, quando o módulo estiver ativo |
 | Assassinato | Condessa | Jogador alvo |
-| Assassinato | Diplomata | Conforme regras da Revolução |
 | Desordem | Bufão | Jogador alvo |
 | Redistribuição | Benfeitor | Qualquer jogador que declarar Benfeitor |
 | Ajuda Externa | Burocrata | Qualquer jogador que declarar Burocrata |
