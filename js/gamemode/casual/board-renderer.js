@@ -174,6 +174,7 @@ function renderAll() {
   clearDOM();
   renderPlayers(state);
   renderTable(state);
+  window.CoupCasualDeal?.render(state);
 }
 
 function setupAutoScroll() {
@@ -272,6 +273,10 @@ function setupPlayerCoinControls() {
 }
 
 function setupUI() {
+  window.CoupCasualDeal?.setup({
+    canDeal: () => isAdmin && !!myPlayerId && currentGameMode === CoupGameModes.CASUAL && !isDealingCards,
+    deal: dealCardsToPlayers
+  });
   setupChatService();
   setupAdminService();
   setupRoomUiService();

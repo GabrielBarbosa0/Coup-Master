@@ -28,6 +28,7 @@ const gameStateRef = db.ref(`salas/${roomCode}/gameState`);
 let localGameState = {};
 let myPlayerId = null;
 let isDrawingCard = false;
+let isDealingCards = false;
 let lastSoundTimestamp = 0;
 let pendingKickPid = null;
 window.pendingKickPid = null;
@@ -281,9 +282,26 @@ function resetTable(newConfig = null) {
 
 
 /**
- * COMPRAR CARTA
- * Retira a carta do topo do deck e a entrega a um jogador específico.
+ * Completa as maos em uma unica transacao; o evento anima apenas o estado confirmado.
  */
+function dealCardsToPlayers() {
+  if (!isAdmin || !myPlayerId || currentGameMode !== CoupGameModes.CASUAL || isDealingCards) return;
+  isDealingCards = true;
+  const eventId = gameStateRef.push().key;
+  gameStateRef.transaction((state) => {
+    if (!isAdmin || state?.players?.[myPlayerId]?.uid !== currentUser.uid) return;
+    return window.CoupCasualDeal.applyDeal(state, eventId);
+  }, (error, committed) => {
+    isDealingCards = false;
+    if (error) {
+      console.error('Falha ao distribuir cartas:', error);
+      return;
+    }
+    if (committed) updateRoomActivity();
+  }, false);
+}
+
+/** Retira a carta do topo do baralho e a entrega a um jogador. */
 function drawCard(targetPid = null) {
   const playerToReceive = targetPid || myPlayerId;
   if (!playerToReceive) return;

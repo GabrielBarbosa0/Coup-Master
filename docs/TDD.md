@@ -11,6 +11,14 @@ Commit base da atualizacao parcial: `9ffcbaf` (`suporte ao discord`)
 
 ## 1. Sumario Executivo
 
+### Distribuicao manual no casual (2026-09-13)
+
+O anfitriao pode pressionar D com a mesa em foco para completar as maos dos jogadores presentes ate duas cartas. A distribuicao percorre os slots em duas rodadas, uma carta por jogador, ignorando slots vazios, offline e maos com duas ou mais cartas; quem possui uma recebe apenas uma. O baralho insuficiente distribui apenas as cartas disponiveis. Uma unica transacao em `gameState.js` move as cartas e registra `lastDeal` com ID e destinos, sem duplicar cartas em repeticoes ou concorrencia.
+
+`casual/deal-cards.js` anima esse evento em todos os clientes ja conectados, com verso durante o voo e a visibilidade normal ao chegar. A animacao usa escala uniforme e os cantos da carta renderizada, sem mudar o tamanho final. Reconexoes nao repetem o ultimo evento. Movimento reduzido, redimensionamento e rolagem encerram o efeito sem alterar o estado. O atalho ignora campos de texto, modais, modificadores e repeticao da tecla; nao se aplica ao ranqueado ou personalizado. A verificacao de anfitriao no cliente segue os controles existentes e nao substitui Firebase Security Rules.
+
+Verificacao adicional: `node js/gamemode/casual/deal-cards.test.js`.
+
 No ranqueado e na Sala Personalizada, Extorquir exige um adversario vivo com pelo menos 2 moedas. A interface oculta a acao quando nao existe alvo elegivel e filtra a selecao de jogadores; o motor e os bots usam a mesma validacao.
 
 ### Variante Embaixador/Inquisidor (2026-09-11)
