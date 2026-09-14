@@ -1909,6 +1909,18 @@
             const button = element('button', 'rank-action-btn');
             button.type = 'button';
             button.textContent = actionLabel(actionType);
+            button.dataset.actionType = actionType;
+            if (action.claim) {
+                const roleSuffix = `(${roleLabel(action.claim)})`;
+                if (!button.textContent.endsWith(roleSuffix)) {
+                    button.textContent += ` ${roleSuffix}`;
+                }
+                button.dataset.actionRole = action.claim;
+            }
+            const label = element('span', 'rank-action-label', button.textContent);
+            const icon = element('span', 'rank-action-icon');
+            icon.setAttribute('aria-hidden', 'true');
+            button.replaceChildren(icon, label);
             const self = Engine.getPlayer(state, currentUid);
             const forcedCoup = self.coins >= Rules.SETTINGS.mandatoryCoupCoins;
             button.disabled = self.coins < action.cost || (forcedCoup && actionType !== ACTIONS.COUP);
