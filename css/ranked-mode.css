@@ -1187,6 +1187,56 @@ button.rank-card {
     white-space: nowrap;
 }
 
+.rank-action-btn[data-action-type] {
+    display: grid;
+    grid-template-columns: 27px minmax(0, 1fr);
+    align-items: center;
+    gap: 9px;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    border-color: color-mix(in srgb, var(--rank-action-color, var(--rank-text)) 52%, transparent);
+    border-left: 3px solid var(--rank-action-color, var(--rank-text));
+    color: var(--rank-action-color, var(--rank-text));
+}
+
+.rank-action-label { min-width: 0; color: inherit; }
+
+.rank-action-icon {
+    display: block;
+    width: 27px;
+    height: 27px;
+    background-color: currentColor;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+}
+
+.rank-action-btn[data-action-type="income"] { --rank-action-color: #ffffff; }
+.rank-action-btn[data-action-type="foreign-aid"] { --rank-action-color: #38d9e6; }
+.rank-action-btn[data-action-type="income"] .rank-action-icon { mask-image: url('../assets/img/icons/counter_1.svg'); }
+.rank-action-btn[data-action-type="foreign-aid"] .rank-action-icon { mask-image: url('../assets/img/icons/money_bag.svg'); }
+.rank-action-btn[data-action-type="tax"] .rank-action-icon { mask-image: url('../assets/img/icons/paid.svg'); }
+.rank-action-btn[data-action-type="steal"] .rank-action-icon { mask-image: url('../assets/img/icons/counter_2.svg'); }
+.rank-action-btn[data-action-type="assassinate"] .rank-action-icon { mask-image: url('../assets/img/icons/skull.svg'); }
+.rank-action-btn[data-action-type="coup"] .rank-action-icon { mask-image: url('../assets/img/icons/gavel.svg'); }
+.rank-action-btn[data-action-type="exchange-ambassador"] .rank-action-icon,
+.rank-action-btn[data-action-type="exchange-inquisitor"] .rank-action-icon { mask-image: url('../assets/img/icons/cached.svg'); }
+.rank-action-btn[data-action-type="examine"] .rank-action-icon { mask-image: url('../assets/img/icons/eye.svg'); }
+
+.rank-action-btn[data-action-role="duque"] { --rank-action-color: #ff72c8; }
+.rank-action-btn[data-action-role="capitao"] { --rank-action-color: #42a5ff; }
+.rank-action-btn[data-action-role="assassino"] { --rank-action-color: #ff5d72; }
+.rank-action-btn[data-action-role="embaixador"] { --rank-action-color: #46d993; }
+.rank-action-btn[data-action-role="inquisidor"] { --rank-action-color: #ff9666; }
+.rank-action-btn[data-action-type="coup"] { --rank-action-color: #ffd000; }
+
+.rank-action-btn[data-action-type]:hover:not(:disabled),
+.rank-action-btn[data-action-type]:focus-visible {
+    border-color: var(--rank-action-color, var(--rank-accent));
+}
+
 .rank-action-btn:hover,
 .rank-target-btn:hover,
 .rank-secondary-btn:hover {
@@ -1786,6 +1836,11 @@ button.rank-card {
     max-width: 380px;
     max-height: calc(100dvh - 28px);
     padding: 20px;
+}
+
+.rank-centered-layout #rankSettingsModal > .modal-content,
+.rank-centered-layout #rankFeedbackModal > .modal-content {
+    border: 2px solid rgba(133, 154, 177, 0.25);
 }
 
 .config-title {
@@ -3235,6 +3290,24 @@ button.rank-card {
     display: grid;
     align-content: start;
     min-width: 0;
+}
+
+@media (min-width: 981px) {
+    .rank-centered-layout .rank-shell {
+        display: flex;
+        flex-direction: column;
+        min-height: 100dvh;
+    }
+
+    .rank-centered-layout .rank-header {
+        flex-shrink: 0;
+    }
+
+    .rank-centered-layout .rank-layout {
+        flex: 0 0 auto;
+        width: 100%;
+        margin-block: auto;
+    }
 }
 
 body[data-rank-view="game"] .rank-players {

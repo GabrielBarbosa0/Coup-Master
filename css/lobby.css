@@ -1125,6 +1125,11 @@ button {
     scrollbar-color: var(--accent) rgba(255, 255, 255, 0.08);
 }
 
+#playerStatsModal .player-stats-content {
+    background: #232a33;
+    border: 2px solid rgba(133, 154, 177, 0.25);
+}
+
 .player-stats-close {
     top: -12px;
     right: -12px;
