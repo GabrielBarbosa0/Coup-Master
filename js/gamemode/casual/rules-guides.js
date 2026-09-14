@@ -339,7 +339,7 @@
         vigilante: 'Vingança: Escolha um jogador que tenha usado uma ação ofensiva contra você desde seu último turno. Ele deve lhe pagar 2 moedas. Se não puder, revela uma de suas influências e permanece com ela revelada no cemitério até que seja trocada.',
         pistoleiro: 'Cabeça a Prêmio: Pague 2 moedas e escolha um alvo. Outro jogador pode pagar 2 moedas para fazer o alvo perder 1 influência. Pode ser bloqueado pelo Xerife.',
         magnata: 'Suborno: Troque uma de suas cartas com o baralho. Você pode pagar X moedas para comprar X cartas extras, escolha uma e devolva o restante ao baralho.',
-        estrategista: 'Manobra: Receba 2 moedas e troque uma de suas cartas com outro jogador.',
+        estrategista: 'Manobra: Receba 1 moeda. Escolha e olhe uma carta de outro jogador. Você pode trocá-la por uma de suas cartas.',
         ladrao: 'Roubo: Pegue 1 moeda de cada jogador. Outros Ladrões bloqueiam o roubo contra si.',
         vigarista: 'Fortuna Arriscada: Dobre suas moedas (máx.5) Se for contestado e perder, entregue todas as suas moedas ao desafiante.',
         xerife: 'Procurado: Pague 1 moeda e escolha um jogador. Até seu próximo turno, habilidades ofensivas usadas por ele que custem moedas custam 2 moedas adicionais. Bloqueia Cabeça a Prêmio contra qualquer jogador incluindo você.'
@@ -385,7 +385,7 @@
         vigilante: 'Revenge: Choose a player who used an offensive action against you since your last turn. They must pay you 2 coins. If they cannot, they reveal one of their influences and keep it revealed in the cemetery until it is exchanged.',
         pistoleiro: 'Bounty: Pay 2 coins and choose a target. Another player may pay 2 coins to make the target lose 1 influence. Can be blocked by the Sheriff.',
         magnata: 'Bribe: Exchange one of your cards with the deck. You may pay X coins to draw X extra cards, choose one, and return the rest to the deck.',
-        estrategista: 'Maneuver: Receive 2 coins and exchange one of your cards with another player.',
+        estrategista: "Maneuver: Receive 1 coin. Choose and look at another player's card. You may exchange one of your cards for it.",
         ladrao: 'Robbery: Take 1 coin from each player. Other Thieves block the robbery against themselves.',
         vigarista: 'Risky Fortune: Double your coins (max. 5). If challenged and you lose, give all your coins to the challenger.',
         xerife: 'Wanted: Pay 1 coin and choose a player. Until your next turn, offensive abilities used by them that cost coins cost 2 additional coins. Blocks Bounty against any player including you.'

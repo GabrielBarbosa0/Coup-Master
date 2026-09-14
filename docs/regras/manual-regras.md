@@ -623,7 +623,7 @@ O efeito termina após essa ação ou se o Marionetista morrer.
 
 **Imagem sugerida:** `assets/img/cards/dlc2/estrategista.png`
 
-**Habilidade:** Manobra: receba 2 moedas e troque uma de suas cartas com outro jogador.
+**Habilidade:** Manobra: Receba 1 moeda. Escolha e olhe uma carta de outro jogador. Você pode trocá-la por uma de suas cartas.
 
 **Bloqueio:** não possui bloqueio direto nesta ficha.
 

@@ -421,7 +421,7 @@ Você pode pagar X moedas para comprar X cartas extras, escolher uma e devolver 
 
 ## Estrategista
 
-**Manobra:** receba 2 moedas e troque uma de suas cartas com outro jogador.
+**Manobra:** Receba 1 moeda. Escolha e olhe uma carta de outro jogador. Você pode trocá-la por uma de suas cartas.
 
 ## Ladrão
 
