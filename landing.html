@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <script src="js/i18n/initial-language.js?v=i18n-v7"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Coup Master | Jogue Coup Online com Amigos</title>
   <meta name="description" content="Jogue Coup online com amigos no navegador. Crie mesas casuais, teste expansões gratuitas, complete partidas com bots IA e dispute o modo ranqueado.">
@@ -108,6 +109,87 @@
       color: var(--muted);
       font-size: 13px;
       font-weight: 800;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .landing-language {
+      position: relative;
+    }
+
+    .landing-language summary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      list-style: none;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: linear-gradient(145deg, #1a2833, #14212b);
+      cursor: pointer;
+    }
+
+    .landing-language summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .landing-language summary img {
+      width: 23px;
+      height: 23px;
+      filter: brightness(0) invert(1);
+      opacity: 0.9;
+    }
+
+    .landing-language summary:hover,
+    .landing-language[open] summary {
+      border-color: var(--blue);
+    }
+
+    .landing-language-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: max-content;
+      max-width: calc(100vw - 32px);
+      padding: 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: #232a33;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.34);
+      font-size: 13px;
+    }
+
+    .landing-language select {
+      appearance: none;
+      max-width: 140px;
+      min-height: 42px;
+      padding: 8px 40px 8px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: var(--panel);
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23e6eef6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 13px center;
+      background-size: 12px 8px;
+      color: var(--text);
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .landing-language select:focus-visible,
+    .landing-language summary:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
     }
 
     .nav-links a {
@@ -737,38 +819,54 @@
       <a class="brand-mark" href="login.html">
         <img src="assets/img/logo/logo-coup-master-transparente.png" alt="Coup Master">
       </a>
+      <div class="header-actions">
       <nav class="nav-links" aria-label="Navegação da landing">
-        <a href="#modos">Modos</a>
-        <a href="#ranqueado">Ranqueado</a>
-        <a href="#jogar">Jogar</a>
+        <a href="#modos" data-i18n="landing.navModes">Modos</a>
+        <a href="#ranqueado" data-i18n="landing.navRanked">Ranqueado</a>
+        <a href="#jogar" data-i18n="landing.navPlay">Jogar</a>
       </nav>
+      <details class="landing-language">
+        <summary aria-label="Idioma" title="Idioma"
+          data-i18n-aria-label="language.label" data-i18n-title="language.label">
+          <img src="assets/img/icons/translate.svg" alt="" aria-hidden="true">
+        </summary>
+        <div class="landing-language-panel">
+        <label for="languageSelectLanding" data-i18n="language.label">Idioma</label>
+        <select id="languageSelectLanding" data-language-select aria-label="Idioma" title="Idioma"
+          data-i18n-aria-label="language.label" data-i18n-title="language.label">
+          <option value="pt-BR">Português</option>
+          <option value="en-US">English</option>
+        </select>
+        </div>
+      </details>
+      </div>
     </header>
 
     <main>
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-grid">
           <div class="hero-copy">
-            <p class="eyebrow">Blefe online em tempo real</p>
+            <p class="eyebrow" data-i18n="landing.eyebrow">Blefe online em tempo real</p>
             <h1 id="hero-title">Coup Master</h1>
-            <p class="hero-lead">
+            <p class="hero-lead" data-i18n="landing.lead">
               Uma mesa digital para intriga, moedas, cartas ocultas e decisões que ficam melhores quando ninguém sabe se você está dizendo a verdade.
             </p>
             <div class="hero-actions">
-              <a class="btn primary" href="login.html">Jogar agora</a>
-              <a class="btn secondary" href="lobby.html">Entrar no lobby</a>
+              <a class="btn primary" href="login.html" data-i18n="landing.playNow">Jogar agora</a>
+              <a class="btn secondary" href="lobby.html" data-i18n="landing.lobby">Entrar no lobby</a>
             </div>
             <div class="hero-stats" aria-label="Resumo do Coup Master">
               <div class="stat">
                 <strong>DLCs</strong>
-                <span>expansões gratuitas no casual</span>
+                <span data-i18n="landing.dlcs">expansões gratuitas no casual</span>
               </div>
               <div class="stat">
-                <strong>Decks</strong>
-                <span>base, promo, Revolução e Asilo</span>
+                <strong data-i18n="landing.decks">Decks</strong>
+                <span data-i18n="landing.deckTypes">base, promo, Revolução e Asilo</span>
               </div>
               <div class="stat">
                 <strong>Bots</strong>
-                <span>IA para completar a mesa</span>
+                <span data-i18n="landing.botsHint">IA para completar a mesa</span>
               </div>
             </div>
           </div>
@@ -794,27 +892,27 @@
 
       <section id="modos" class="content-section" aria-labelledby="modes-title">
         <div class="section-heading">
-          <p class="eyebrow">Mesa, ranking e presença</p>
-          <h2 id="modes-title">Escolha o ritmo da conspiração.</h2>
-          <p>
+          <p class="eyebrow" data-i18n="landing.modesEyebrow">Mesa, ranking e presença</p>
+          <h2 id="modes-title" data-i18n="landing.modesTitle">Escolha o ritmo da conspiração.</h2>
+          <p data-i18n="landing.modesText">
             O Coup Master combina uma mesa casual flexível com uma experiência ranqueada automatizada para partidas mais guiadas.
           </p>
         </div>
         <div class="feature-grid">
           <article class="feature-card">
             <div class="feature-icon"><img src="assets/img/icons/grid_view.svg" alt=""></div>
-            <h3>Casual sandbox</h3>
-            <p>Controle manual da mesa para grupos que gostam de adaptar regras, narrar jogadas e administrar o caos social.</p>
+            <h3 data-i18n="landing.casual">Casual sandbox</h3>
+            <p data-i18n="landing.casualText">Controle manual da mesa para grupos que gostam de adaptar regras, narrar jogadas e administrar o caos social.</p>
           </article>
           <article class="feature-card">
             <div class="feature-icon"><img src="assets/img/icons/trophy.svg" alt=""></div>
-            <h3>Ranqueado beta</h3>
-            <p>Turnos, contestações, bloqueios e eliminações conduzidos pelo motor de regras, com resultados e estatísticas.</p>
+            <h3 data-i18n="landing.ranked">Ranqueado beta</h3>
+            <p data-i18n="landing.rankedText">Turnos, contestações, bloqueios e eliminações conduzidos pelo motor de regras, com resultados e estatísticas.</p>
           </article>
           <article class="feature-card">
             <div class="feature-icon"><img src="assets/img/icons/chat.svg" alt=""></div>
-            <h3>Sala viva</h3>
-            <p>Chat, presença, som contextual, bots experimentais e convites por código para reunir a mesa sem instalação.</p>
+            <h3 data-i18n="landing.live">Sala viva</h3>
+            <p data-i18n="landing.liveText">Chat, presença, som contextual, bots experimentais e convites por código para reunir a mesa sem instalação.</p>
           </article>
         </div>
       </section>
@@ -842,32 +940,32 @@
       <section id="ranqueado" class="ranked-band" aria-labelledby="ranked-title">
         <div class="ranked-inner">
           <div class="section-heading">
-            <p class="eyebrow">Modo ranqueado</p>
-            <h2 id="ranked-title">Suba no ranking sem abandonar o blefe.</h2>
-            <p>
+            <p class="eyebrow" data-i18n="landing.rankedEyebrow">Modo ranqueado</p>
+            <h2 id="ranked-title" data-i18n="landing.rankedTitle">Suba no ranking sem abandonar o blefe.</h2>
+            <p data-i18n="landing.rankedLead">
               A partida ranqueada conduz sorteio inicial, respostas, desafios, bloqueios e resultados para transformar cada mesa em progresso de perfil.
             </p>
             <div class="hero-actions">
-              <a class="btn primary" href="lobby.html">Criar sala ranqueada</a>
-              <a class="btn secondary" href="ranked/ranked-waiting.html">Ver sala de espera</a>
+              <a class="btn primary" href="lobby.html" data-i18n="landing.createRanked">Criar sala ranqueada</a>
+              <a class="btn secondary" href="ranked/ranked-waiting.html" data-i18n="landing.waiting">Ver sala de espera</a>
             </div>
           </div>
           <div class="ranked-badges" aria-label="Recursos do modo ranqueado">
             <div class="badge-card">
-              <strong>Bots IA</strong>
-              <span>Bots experimentais para preencher a sala e testar partidas.</span>
+              <strong data-i18n="landing.aiBots">Bots IA</strong>
+              <span data-i18n="landing.aiBotsText">Bots experimentais para preencher a sala e testar partidas.</span>
             </div>
             <div class="badge-card">
-              <strong>Conquistas</strong>
-              <span>Marcos desbloqueáveis para vitórias, partidas, blefes e ações decisivas.</span>
+              <strong data-i18n="landing.achievements">Conquistas</strong>
+              <span data-i18n="landing.achievementsText">Marcos desbloqueáveis para vitórias, partidas, blefes e ações decisivas.</span>
             </div>
             <div class="badge-card">
-              <strong>Estatísticas</strong>
-              <span>Perfil ranqueado com vitórias, derrotas, pontos e histórico de desempenho.</span>
+              <strong data-i18n="landing.stats">Estatísticas</strong>
+              <span data-i18n="landing.statsText">Perfil ranqueado com vitórias, derrotas, pontos e histórico de desempenho.</span>
             </div>
             <div class="badge-card">
-              <strong>Resultados</strong>
-              <span>Tela final com pontuação, resumo da partida e destaques de cada jogador.</span>
+              <strong data-i18n="landing.results">Resultados</strong>
+              <span data-i18n="landing.resultsText">Tela final com pontuação, resumo da partida e destaques de cada jogador.</span>
             </div>
           </div>
         </div>
@@ -876,18 +974,19 @@
       <section id="jogar" class="content-section" aria-label="Chamada para jogar">
         <div class="cta-strip">
           <div>
-            <h2>Pronto para mentir com classe?</h2>
-            <p>Entre com Google ou visitante, crie uma sala e convide a mesa.</p>
+            <h2 data-i18n="landing.ctaTitle">Pronto para mentir com classe?</h2>
+            <p data-i18n="landing.ctaText">Entre com Google ou visitante, crie uma sala e convide a mesa.</p>
           </div>
-          <a class="btn primary" href="login.html">Abrir Coup Master</a>
+          <a class="btn primary" href="login.html" data-i18n="landing.open">Abrir Coup Master</a>
         </div>
       </section>
     </main>
 
-    <footer class="site-footer">
+    <footer class="site-footer" data-i18n="landing.footer">
       Coup Master é um projeto independente de mesa online inspirado em jogos de blefe, estratégia política e dedução social.
     </footer>
   </div>
+  <script src="js/i18n/language-service.js?v=i18n-v8" defer></script>
   <script>
     (() => {
       const dukeCard = document.querySelector('.hero-duke-card');
