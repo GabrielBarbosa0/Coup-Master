@@ -838,7 +838,6 @@
         document.body.appendChild(modal);
 
         close.addEventListener('click', () => {
-            playRankSfx('click');
             hideRankCardPreviewModal();
         });
         modal.addEventListener('click', (event) => {
@@ -1496,10 +1495,10 @@
                 choosingTarget
                     ? t('ranked.chooseTarget', {}, 'Escolha o alvo')
                     : activePlayer?.uid === currentUid
-                        ? t('ranked.yourTurn', {}, 'Sua vez')
+                        ? t('ranked.yourMove', {}, 'Sua jogada')
                         : t('ranked.playerTurn', { name: activePlayer?.name || t('ranked.playerFallbackLower', {}, 'jogador') }, `Vez de ${activePlayer?.name || 'jogador'}`),
                 choosingTarget
-                    ? [t('ranked.turnDescriptionLine1', {}, 'Escolha uma ação. O sistema aplica custos, abre as janelas de resposta'), t('ranked.turnDescriptionLine2', {}, 'e resolve a rodada automaticamente.')]
+                    ? ''
                     : describeTurnPhase(activePlayer)
             );
             renderTurn(interaction, activePlayer);
@@ -1779,7 +1778,7 @@
         panel.append(list);
 
         const actions = element('div', 'rank-match-result-actions');
-        const restart = element('button', 'rank-primary-btn', t('ranked.restartMatch', {}, 'Reiniciar partida'));
+        const restart = element('button', 'rank-primary-btn', t('ranked.findNewMatch', {}, 'Buscar nova partida'));
         restart.type = 'button';
         restart.addEventListener('click', () => {
             playRankSfx('click');
@@ -1806,7 +1805,7 @@
             if (self?.coins >= Rules.SETTINGS.mandatoryCoupCoins) {
                 return t('ranked.mandatoryCoup', {}, 'Você tem 10 moedas ou mais e precisa aplicar um Golpe de Estado.');
             }
-            return `${t('ranked.turnDescriptionLine1', {}, 'Escolha uma ação. O sistema aplica custos, abre as janelas de resposta')} ${t('ranked.turnDescriptionLine2', {}, 'e resolve a rodada automaticamente.')}`;
+            return '';
         }
         return t('ranked.activeChoosing', { name: activePlayer.name }, `${activePlayer.name} está escolhendo a próxima ação da rodada.`);
     }

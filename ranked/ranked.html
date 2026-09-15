@@ -21,11 +21,11 @@
 
     <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
     <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-modal-borders-v1">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=rank-turn-spacing-v1">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
 </head>
 
-<body data-rank-view="game" class="rank-centered-layout">
+<body data-rank-view="game" class="rank-centered-layout rank-compact-shell">
     <div id="rankLoading" class="game-loading-overlay">
         <div class="game-loading-content">
             <p id="rankLoadingMessage" data-i18n="cm:cmFua2VkR2FtZS5sb2FkaW5n"><span data-loading-lang="pt-BR">Entrando na partida ranqueada...</span><span data-loading-lang="en-US">Entering ranked match...</span></p>
@@ -321,7 +321,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/ui/selection-lock.js?v=selection-lock-v1" defer></script>
     <script src="js/ui/first-interaction-fullscreen.js?v=2" defer></script>
-    <script src="js/i18n/language-service.js?v=i18n-v7" defer></script>
+    <script src="js/i18n/language-service.js?v=i18n-v9" defer></script>
     <script src="js/ui/background-audio-guard.js?v=bgm-random-start-v1" defer></script>
     <script src="js/ui/asset-preloader.js?v=asset-preload-v2" defer></script>
     <script src="js/firebase/firebase.js" defer></script>
@@ -330,8 +330,8 @@
     <script src="js/gamemode/game-modes.js?v=game-modes-i18n-v1" defer></script>
     <script src="js/gamemode/casual/rules-guides.js?v=dynamic-guides-v13" defer></script>
     <script src="js/gamemode/ranked/ranked-rules.js?v=rank-matchmaking-v4" defer></script>
-    <script src="js/gamemode/ranked/ranked-engine.js?v=rank-matchmaking-v4" defer></script>
-    <script src="js/gamemode/ranked/ranked-renderer.js?v=rank-action-roles-v2" defer></script>
+    <script src="js/gamemode/ranked/ranked-engine.js?v=rank-new-match-v1" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=preview-silent-close-v1" defer></script>
     <script src="js/gamemode/ranked/ranked-game.js?v=rank-matchmaking-v4" defer></script>
 </body>
 

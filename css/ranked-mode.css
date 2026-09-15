@@ -1072,6 +1072,10 @@ button.rank-card {
     color: var(--rank-danger);
 }
 
+.rank-phase-description[hidden] + .rank-interaction {
+    margin-top: 20px;
+}
+
 .rank-phase-description {
     max-width: 760px;
     margin: 10px 0 16px;
@@ -3297,6 +3301,10 @@ button.rank-card {
         display: flex;
         flex-direction: column;
         min-height: 100dvh;
+    }
+
+    .rank-compact-shell .rank-shell {
+        width: min(1000px, calc(100% - 16px));
     }
 
     .rank-centered-layout .rank-header {

@@ -177,23 +177,38 @@ function testRestartMatchPreservesRoomParticipants() {
     bot.eliminated = true;
     bot.influences = [{ id: 'bot-card', role: Rules.ROLES.DUKE, revealed: true }];
     bot.grudges = { u1: 2 };
+    bot.name = 'Augusto';
+    const previousMatchId = state.matchId;
 
     Engine.restartMatch(state, 4000);
 
     assert.equal(state.status, Rules.PHASES.WAITING);
+    assert.equal(state.matchId, previousMatchId);
     assert.equal(state.phase, Rules.PHASES.WAITING);
-    assert.equal(Engine.getPlayers(state).length, 3);
+    assert.equal(Engine.getPlayers(state).length, 2);
     assert.equal(state.players.u1.ready, false);
     assert.equal(state.players.u1.coins, Rules.SETTINGS.startingCoins);
     assert.deepEqual(state.players.u1.influences, []);
-    assert.equal(bot.ready, true);
-    assert.equal(bot.connected, true);
-    assert.equal(bot.eliminated, false);
-    assert.deepEqual(bot.influences, []);
-    assert.deepEqual(bot.grudges, {});
+    assert.equal(state.players[bot.uid], undefined);
+    assert.deepEqual(state.previousBotNames, [bot.name]);
+    assert.equal(state.matchmaking.nextBotAt, null);
+    assert.deepEqual(state.matchmaking.botReadyAt, {});
     assert.equal(state.deck.length, 0);
     assert.equal(state.winnerUid, null);
     assert.equal(state.log[state.log.length - 1].message, 'Sala reiniciada para uma nova partida.');
+    const waitingSnapshot = JSON.stringify(state);
+    assert.throws(() => Engine.restartMatch(state, 4001));
+    assert.equal(JSON.stringify(state), waitingSnapshot);
+    for (let now = 5000; now <= 35000; now += 1000) {
+        Engine.advanceMatchmaking(state, now, () => 0);
+    }
+    const newBots = Engine.getPlayers(state).filter((player) => player.ai);
+    assert.equal(Engine.getPlayers(state).length, Rules.SETTINGS.maxPlayers);
+    assert.ok(newBots.every((player) => player.uid !== bot.uid && player.name !== bot.name));
+    assert.equal(new Set(newBots.map((player) => player.name)).size, newBots.length);
+    assert.ok(newBots.every((player) => player.ready && player.connected));
+    assert.equal(state.players.u1.ready, false);
+    assert.equal(state.deadline, null);
 }
 
 function testSuccessfulChallengeCancelsBluff() {

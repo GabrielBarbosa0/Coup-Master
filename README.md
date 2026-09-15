@@ -83,6 +83,7 @@ A Beta v0.9 reúne as principais novidades desde a v0.5 e prepara o projeto para
 * **Interface Responsiva e Adaptável:** Ocultação automática do botão de espectador para jogadores que possuem cartas na mão.
 * **Sistema de Salas por Código:** Criação, entrada e compartilhamento de salas por códigos de 4 caracteres.
 * **Modo Ranqueado Beta:** Tela e fluxo próprios para contas Google, sem host, com matchmaking simulado que preenche a mesa com bots IA de personalidade sorteada antes da partida. Turnos, custos, alvos, contestações, bloqueios, perdas de influência e tempos de resposta são controlados pelo sistema. Rating e leaderboard continuam suspensos até existir validação autoritativa antifraude.
+* **Nova partida ranqueada:** Ao terminar, busque outra partida na mesma sala, preservando os jogadores humanos e sorteando novos bots IA, sem repetir os nomes da partida anterior.
 * **Sala Personalizada:** Fluxo paralelo criado a partir do ranqueado automatizado, usando `mode = "personalized"` e `personalizedState` para permitir evoluir salas com amigos e bots sem alterar os arquivos do ranqueado.
 * **Variante por partida:** Ranqueado e Sala Personalizada sorteiam Embaixador ou Inquisidor (50% cada). O baralho usa apenas o escolhido, com ações e bloqueios correspondentes; o personagem ausente fica oculto no guia, com os demais centralizados.
 * **Idioma Alternativo:** Interface preparada para alternar entre Português do Brasil e Inglês, com preferência salva localmente e dicionários em JSON.

@@ -11,6 +11,10 @@ Commit base da atualizacao parcial: `9ffcbaf` (`suporte ao discord`)
 
 ## 1. Sumario Executivo
 
+### Nova busca ranqueada (2026-09-15)
+
+Ao finalizar, "Buscar nova partida" reutiliza a sala e retorna a espera. O motor preserva humanos e o contador de partidas, remove os bots anteriores e reinicia o preenchimento gradual com novas personalidades. Os nomes dos bots da partida imediatamente anterior ficam em `previousBotNames` e sao excluidos do proximo sorteio. Humanos precisam confirmar prontidao novamente; bots continuam identificados como IA. O modo personalizado conserva seu reinicio original.
+
 ### Distribuicao manual no casual (2026-09-13)
 
 O anfitriao pode pressionar D com a mesa em foco para completar as maos dos jogadores que ocupam slots (com UID) ate duas cartas. A distribuicao percorre os slots em duas rodadas, uma carta por jogador, ignorando slots vazios e maos com duas ou mais cartas; quem possui uma recebe apenas uma. O indicador `online` nao determina elegibilidade: pode permanecer falso apos uma desconexao temporaria, sem que o jogador tenha deixado o slot. O baralho insuficiente distribui apenas as cartas disponiveis. Uma unica transacao em `gameState.js` move as cartas e registra `lastDeal` com ID e destinos, sem duplicar cartas em repeticoes ou concorrencia.

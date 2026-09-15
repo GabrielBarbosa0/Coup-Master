@@ -145,6 +145,9 @@
         const usedNames = new Set(getPlayers(state).map((player) => (
             String(player.name || '').toLocaleLowerCase('pt-BR')
         )));
+        (Array.isArray(state.previousBotNames) ? state.previousBotNames : []).forEach((name) => {
+            usedNames.add(String(name).toLocaleLowerCase('pt-BR'));
+        });
         const available = MATCHMAKING_BOT_NAMES.filter((name) => !usedNames.has(name.toLocaleLowerCase('pt-BR')));
         const names = available.length ? available : MATCHMAKING_BOT_NAMES;
         return names[Math.floor(random() * names.length)] || `Bot ${getPlayers(state).length + 1}`;
@@ -556,16 +559,17 @@
         normalizeState(state);
         if (state.status !== PHASES.FINISHED) throw new Error('A partida ainda não foi finalizada.');
 
+        state.previousBotNames = getPlayers(state).filter((player) => player.ai).map((player) => player.name);
+        getPlayers(state).filter((player) => player.ai).forEach((player) => {
+            delete state.players[player.uid];
+        });
+        state.matchmaking = null;
         getPlayers(state).forEach((player) => {
-            player.connected = player.ai ? true : player.connected !== false;
-            player.ready = Boolean(player.ai);
+            player.connected = player.connected !== false;
+            player.ready = false;
             player.coins = SETTINGS.startingCoins;
             player.influences = [];
             player.eliminated = false;
-            if (player.ai) {
-                player.grudges = {};
-                player.personality = normalizeBotPersonality(player.personality);
-            }
         });
 
         state.status = PHASES.WAITING;
@@ -588,6 +592,7 @@
         state.winnerUid = null;
         state.startedAt = null;
         state.finishedAt = null;
+        ensureMatchmaking(state, now);
         addLog(state, 'Sala reiniciada para uma nova partida.', 'system', now);
         updateReadyCountdown(state, now);
         state.updatedAt = now;

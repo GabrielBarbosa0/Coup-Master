@@ -834,7 +834,6 @@
         document.body.appendChild(modal);
 
         close.addEventListener('click', () => {
-            playRankSfx('click');
             hideRankCardPreviewModal();
         });
         modal.addEventListener('click', (event) => {
