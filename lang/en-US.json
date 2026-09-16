@@ -928,9 +928,9 @@
     "chooseInfluenceInvestigated": "Choose the influence that will be investigated.",
     "playerInvestigating": "{actor} is investigating an influence{target}.",
     "ofTarget": " from {name}",
-    "pendingAction": "{actor} chose {action}{claim}{target}.",
+    "pendingAction": "{actor} chose {action}{target}{claim}.",
     "actionClaim": " claiming {role}",
-    "actionTarget": "\nagainst {name}",
+    "actionTarget": " against {name}",
     "pendingBlock": "{name} blocked by claiming {role}.\nYou may challenge the block or accept the resolution.",
     "pendingOwnBlock": "You blocked by claiming {role}.\nWaiting for the other players.",
     "pendingBlockWaiting": "{name} blocked by claiming {role}.\nWaiting for the other players.",
@@ -957,8 +957,7 @@
       "3": "A little coin"
     },
     "foreignAid": {
-      "0": "Foreign Aid",
-      "1": "I'll ask for Foreign Aid"
+      "0": "Foreign Aid"
     },
     "coup": {
       "0": "Coup!",

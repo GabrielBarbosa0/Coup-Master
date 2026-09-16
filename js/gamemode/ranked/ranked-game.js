@@ -15,8 +15,8 @@
     let botActionPending = false;
     let matchmakingPending = false;
 
-    const BOT_DECISION_MIN_DELAY_MS = 3600;
-    const BOT_DECISION_RANDOM_DELAY_MS = 1200;
+    const BOT_DECISION_MIN_DELAY_MS = 3060;
+    const BOT_DECISION_RANDOM_DELAY_MS = 1020;
     const MATCHMAKING_TICK_MS = 650;
 
     function t(key, params = {}, fallback = '') {

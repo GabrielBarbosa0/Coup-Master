@@ -1087,6 +1087,12 @@ button.rank-card {
     white-space: pre-line;
 }
 
+.rank-phase-description .rank-action-player-name {
+    color: var(--rank-text);
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
 .rank-interaction {
     min-height: 120px;
     width: 100%;

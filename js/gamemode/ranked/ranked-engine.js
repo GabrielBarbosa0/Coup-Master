@@ -12,8 +12,8 @@
     if (!Rules) throw new Error('CoupRankedRules precisa ser carregado antes do motor ranqueado.');
 
     const { ACTIONS, PHASES, ROLES, SETTINGS } = Rules;
-    const MATCHMAKING_BOT_JOIN_MIN_MS = 800;
-    const MATCHMAKING_BOT_JOIN_SPAN_MS = 800;
+    const MATCHMAKING_BOT_JOIN_MIN_MS = 720;
+    const MATCHMAKING_BOT_JOIN_SPAN_MS = 720;
     const MATCHMAKING_READY_MIN_MS = 1000;
     const MATCHMAKING_READY_SPAN_MS = 1000;
     const MATCHMAKING_BOT_NAMES = Object.freeze([

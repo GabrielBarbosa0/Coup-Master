@@ -14,8 +14,8 @@
     let deadlineAdvancePending = false;
     let botActionPending = false;
 
-    const BOT_DECISION_MIN_DELAY_MS = 3600;
-    const BOT_DECISION_RANDOM_DELAY_MS = 1200;
+    const BOT_DECISION_MIN_DELAY_MS = 3060;
+    const BOT_DECISION_RANDOM_DELAY_MS = 1020;
 
     function t(key, params = {}, fallback = '') {
         const translated = root.CoupLanguage?.t?.(key, params);

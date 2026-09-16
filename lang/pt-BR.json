@@ -928,9 +928,9 @@
     "chooseInfluenceInvestigated": "Escolha a influência que será investigada.",
     "playerInvestigating": "{actor} está investigando uma influência{target}.",
     "ofTarget": " de {name}",
-    "pendingAction": "{actor} escolheu {action}{claim}{target}.",
+    "pendingAction": "{actor} escolheu {action}{target}{claim}.",
     "actionClaim": " declarando {role}",
-    "actionTarget": "\ncontra {name}",
+    "actionTarget": " {name}",
     "pendingBlock": "{name} bloqueou declarando {role}.\nVocê pode contestar o bloqueio ou aceitar a resolução.",
     "pendingOwnBlock": "Você bloqueou declarando {role}.\nAguardando os outros jogadores.",
     "pendingBlockWaiting": "{name} bloqueou declarando {role}.\nAguardando os outros jogadores.",
@@ -957,8 +957,7 @@
       "3": "Uma moedinha"
     },
     "foreignAid": {
-      "0": "Ajuda externa",
-      "1": "Vou pedir Ajuda Externa"
+      "0": "Ajuda externa"
     },
     "coup": {
       "0": "Golpe de Estado!",

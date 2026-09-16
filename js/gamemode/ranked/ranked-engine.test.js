@@ -128,9 +128,10 @@ function testMatchmakingFillsRoomAndReadiesBots() {
     assert.equal(Engine.advanceMatchmaking(state, 2000, () => 0), true);
     assert.equal(Engine.getPlayers(state).length, 1);
     assert.equal(state.deadline, null);
-    assert.equal(Engine.advanceMatchmaking(state, 2799, () => 0), false);
+    assert.equal(state.matchmaking.nextBotAt, 2720);
+    assert.equal(Engine.advanceMatchmaking(state, 2719, () => 0), false);
 
-    let now = 2800;
+    let now = 2720;
     assert.equal(Engine.advanceMatchmaking(state, now, () => 0), true);
     const firstBot = Engine.getPlayers(state).find((player) => player.ai);
     assert.ok(firstBot);

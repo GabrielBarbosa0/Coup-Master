@@ -142,7 +142,7 @@
 
     const CALLOUT_VARIANTS = Object.freeze({
         income: calloutKeys('income', 4),
-        foreignAid: calloutKeys('foreignAid', 2),
+        foreignAid: calloutKeys('foreignAid', 1),
         coup: calloutKeys('coup', 4),
         tax: calloutKeys('tax', 3),
         steal: calloutKeys('steal', 4),
@@ -1528,7 +1528,7 @@
             renderTurn(interaction, activePlayer);
         } else if (state.phase === PHASES.RESPONSE) {
             stage?.classList.add(canCurrentPlayerRespond(state.pendingAction?.actorUid) ? 'is-response-stage' : 'is-centered-stage');
-            setPhaseText(t('ranked.respond', {}, 'Responder'), describePendingAction());
+            setPhaseText(t('ranked.respond', {}, 'Responder'), describePendingAction(true));
             renderActionResponse(interaction);
         } else if (state.phase === PHASES.BLOCK_CHALLENGE) {
             stage?.classList.add(canCurrentPlayerRespond(state.pendingAction?.block?.uid) ? 'is-response-stage' : 'is-centered-stage');
@@ -1584,7 +1584,7 @@
             const lines = Array.isArray(descriptionText) ? descriptionText : [descriptionText];
             lines.filter(Boolean).forEach((line, index) => {
                 if (index > 0) description.append(document.createElement('br'));
-                description.append(document.createTextNode(line));
+                description.append(line instanceof Node ? line : document.createTextNode(line));
             });
             description.hidden = !lines.some(Boolean);
         }
@@ -1957,20 +1957,34 @@
         container.append(grid);
     }
 
-    function describePendingAction() {
+    function describePendingAction(highlightNames = false) {
         const pending = state.pendingAction;
         const action = Rules.getAction(pending?.type);
         const actor = Engine.getPlayer(state, pending?.actorUid);
         const target = Engine.getPlayer(state, pending?.targetUid);
         if (!pending || !action || !actor) return '';
+        const actorText = highlightNames ? '\uFFF0actor\uFFF1' : actor.name;
+        const targetName = highlightNames ? '\uFFF0target\uFFF1' : target?.name;
         const claim = pending.claim ? t('ranked.actionClaim', { role: roleLabel(pending.claim) }, ` declarando ${roleLabel(pending.claim)}`) : '';
-        const targetText = target ? t('ranked.actionTarget', { name: target.name }, `\ncontra ${target.name}`) : '';
-        return t('ranked.pendingAction', {
-            actor: actor.name,
+        const targetText = target ? t('ranked.actionTarget', { name: targetName }, ` ${targetName}`) : '';
+        const text = t('ranked.pendingAction', {
+            actor: actorText,
             action: actionLabel(pending.type),
             claim,
             target: targetText
-        }, `${actor.name} escolheu ${actionLabel(pending.type)}${claim}${targetText}.`);
+        }, `${actorText} escolheu ${actionLabel(pending.type)}${targetText}${claim}.`);
+        if (!highlightNames) return text;
+        const fragment = document.createDocumentFragment();
+        // Resolve name placeholders as text nodes, never as player-supplied HTML.
+        text.split(/(\uFFF0(?:actor|target)\uFFF1)/).forEach(part => {
+            if (part === '\uFFF0actor\uFFF1' || part === '\uFFF0target\uFFF1') {
+                fragment.append(element('strong', 'rank-action-player-name',
+                    part === '\uFFF0actor\uFFF1' ? actor.name : target.name));
+            } else {
+                fragment.append(document.createTextNode(part));
+            }
+        });
+        return fragment;
     }
 
     function describePendingBlock() {
