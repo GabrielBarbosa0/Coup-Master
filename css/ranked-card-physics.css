@@ -1,0 +1,31 @@
+#rankPlayers [data-rank-drag-key] {
+    cursor: grab;
+    touch-action: none;
+}
+
+#rankPlayers .is-rank-drag-source {
+    visibility: hidden;
+    transform: none;
+}
+
+.is-rank-card-dragging,
+.is-rank-card-dragging * {
+    cursor: grabbing !important;
+}
+
+.is-rank-card-dragging .rank-card-tooltip {
+    visibility: hidden;
+}
+
+.rank-card.rank-card-drag-ghost {
+    position: fixed;
+    left: 0;
+    top: 0;
+    margin: 0;
+    z-index: 2000;
+    pointer-events: none;
+    transition: none;
+    animation: none;
+    will-change: transform;
+    box-shadow: 0 14px 24px rgb(0 0 0 / 35%);
+}

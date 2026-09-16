@@ -11,6 +11,10 @@ Commit base da atualizacao parcial: `9ffcbaf` (`suporte ao discord`)
 
 ## 1. Sumario Executivo
 
+### Arraste visual ranqueado e personalizado (2026-09-16)
+
+`ranked-card-physics.js` e `ranked-card-physics.css` sao compartilhados pelas mesas ativas do ranqueado e personalizado e habilitam arraste por Pointer Events nas cartas das maos. Uma copia visual preserva a frente/verso renderizada, acompanha o ponteiro com os coeficientes de mola/amortecimento do casual e retorna a origem ao soltar. Nao existem dropzones nem escrita no estado/Firebase. As escolhas de influencia/troca continuam como botoes. Ambos os `renderPlayers` sincronizam a origem por jogador/carta apos recriar a mesa; revelacao, substituicao ou remocao cancela a copia desatualizada. Escape, cancelamento de toque e perda de foco retornam a carta; movimento reduzido desativa a animacao de retorno. As salas de espera nao carregam o modulo.
+
 ### Paridade do personalizado (2026-09-16)
 
 O personalizado agora tambem usa `challenge-reveal`, escolha voluntaria da influencia apresentada, perda dupla de assassinato, espera de 4,5 segundos dos bots, leitura sequencial das falas e memoria de favores por protecao. Os fluxos de contestacao e IA descritos abaixo passam a valer para ambos os modos. As particularidades do personalizado permanecem: host e remocao de participantes na espera, `personalizedState`, reinicio com os mesmos participantes e sem matchmaking ranqueado. Testes: `personalized-engine.test.js`, `personalized-bot-decisions.test.js` e `personalized-callouts.test.js`.

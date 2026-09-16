@@ -1411,7 +1411,9 @@
 
                 const hand = element('div', 'rank-opponent-hand');
                 (player.influences || []).forEach((card) => {
-                    hand.append(createCard(card, player.uid === currentUid || card.revealed));
+                    const cardElement = createCard(card, player.uid === currentUid || card.revealed);
+                    cardElement.dataset.rankDragKey = `${player.uid}:${card.id}`;
+                    hand.append(cardElement);
                 });
                 slot.append(header, hand);
             }
@@ -1419,6 +1421,7 @@
             if (callout) slot.append(callout);
             container.append(slot);
         }
+        root.CoupRankedCardPhysics?.sync();
     }
 
     function getPlayerStateLabel(player, activeUid) {
