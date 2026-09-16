@@ -1973,6 +1973,15 @@
     function describePendingBlock() {
         const block = state.pendingAction?.block;
         const blocker = Engine.getPlayer(state, block?.uid);
+        if (!block || !blocker) return '';
+        if (block.uid === currentUid) {
+            return t('ranked.pendingOwnBlock', { role: roleLabel(block.claim) },
+                `Você bloqueou declarando ${roleLabel(block.claim)}.\nAguardando os outros jogadores.`);
+        }
+        if (!canCurrentPlayerRespond(block.uid)) {
+            return t('ranked.pendingBlockWaiting', { name: blocker.name, role: roleLabel(block.claim) },
+                `${blocker.name} bloqueou declarando ${roleLabel(block.claim)}.\nAguardando os outros jogadores.`);
+        }
         return block && blocker
             ? t('ranked.pendingBlock', {
                 name: blocker.name,

@@ -932,6 +932,8 @@
     "actionClaim": " declarando {role}",
     "actionTarget": "\ncontra {name}",
     "pendingBlock": "{name} bloqueou declarando {role}.\nVocê pode contestar o bloqueio ou aceitar a resolução.",
+    "pendingOwnBlock": "Você bloqueou declarando {role}.\nAguardando os outros jogadores.",
+    "pendingBlockWaiting": "{name} bloqueou declarando {role}.\nAguardando os outros jogadores.",
     "anInfluence": "uma influência",
     "challenge": "Contestar",
     "blockWith": "Bloquear: {role}",
@@ -952,7 +954,7 @@
       "0": "Renda",
       "1": "Vou de renda",
       "2": "+1 moeda",
-      "3": "Só uma moeda"
+      "3": "Uma moedinha"
     },
     "foreignAid": {
       "0": "Ajuda externa",
@@ -965,29 +967,29 @@
       "3": "Sem conversa!"
     },
     "tax": {
-      "0": "Eu sou o Duque",
-      "1": "Tenho o Duque",
+      "0": "Sou Duque",
+      "1": "Tenho Duque",
       "2": "Duque"
     },
     "steal": {
-      "0": "Eu sou o Capitão",
+      "0": "Sou Capitão",
       "1": "Vou Extorquir",
-      "2": "Eu como Capitão...",
-      "3": "Duas moedas pra cá"
+      "2": "Capitão",
+      "3": "Duas moedas"
     },
     "assassinate": {
-      "0": "Eu sou o Assassino",
+      "0": "Assassino",
       "1": "Bota na mesa",
       "2": "Morre!",
       "3": "Fim da linha"
     },
     "exchangeAmbassador": {
-      "0": "Sou o Embaixador",
+      "0": "Embaixador",
       "1": "Vou trocar",
       "2": "Hora da troca"
     },
     "exchangeInquisitor": {
-      "0": "Sou o Inquisidor",
+      "0": "Inquisidor",
       "1": "Vou trocar",
       "2": "Vou comprar uma carta",
       "3": "Hora da troca"
@@ -1006,10 +1008,10 @@
       "4": "Essa não passa"
     },
     "contessaBlock": {
-      "0": "Tenho a Condessa",
-      "1": "Sou a Condessa",
+      "0": "Tenho Condessa",
+      "1": "Sou Condessa",
       "2": "Condessa bloqueia",
-      "3": "Bloqueio com a Condessa",
+      "3": "Condessa",
       "4": "Assassinato negado"
     },
     "challenge": {

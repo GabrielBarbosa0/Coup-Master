@@ -932,6 +932,8 @@
     "actionClaim": " claiming {role}",
     "actionTarget": "\nagainst {name}",
     "pendingBlock": "{name} blocked by claiming {role}.\nYou may challenge the block or accept the resolution.",
+    "pendingOwnBlock": "You blocked by claiming {role}.\nWaiting for the other players.",
+    "pendingBlockWaiting": "{name} blocked by claiming {role}.\nWaiting for the other players.",
     "anInfluence": "an influence",
     "challenge": "Challenge",
     "blockWith": "Block: {role}",
@@ -952,7 +954,7 @@
       "0": "Income",
       "1": "I'll take income",
       "2": "+1 coin",
-      "3": "Just one coin"
+      "3": "A little coin"
     },
     "foreignAid": {
       "0": "Foreign Aid",
@@ -965,29 +967,29 @@
       "3": "No talking!"
     },
     "tax": {
-      "0": "I am the Duke",
-      "1": "I have the Duke",
+      "0": "Duke",
+      "1": "Got Duke",
       "2": "Duke"
     },
     "steal": {
-      "0": "I am the Captain",
+      "0": "Captain",
       "1": "I'll Steal",
-      "2": "As Captain...",
-      "3": "Two coins over here"
+      "2": "Got Captain",
+      "3": "Two coins"
     },
     "assassinate": {
-      "0": "I am the Assassin",
+      "0": "Assassin",
       "1": "Put it on the table",
       "2": "Die!",
       "3": "End of the line"
     },
     "exchangeAmbassador": {
-      "0": "I am the Ambassador",
+      "0": "Ambassador",
       "1": "I'll exchange",
       "2": "Time to exchange"
     },
     "exchangeInquisitor": {
-      "0": "I am the Inquisitor",
+      "0": "Inquisitor",
       "1": "I'll exchange",
       "2": "I'll draw one card",
       "3": "Time to exchange"
@@ -1006,10 +1008,10 @@
       "4": "That won't pass"
     },
     "contessaBlock": {
-      "0": "I have the Contessa",
-      "1": "I am the Contessa",
+      "0": "Got Contessa",
+      "1": "Contessa",
       "2": "Contessa blocks",
-      "3": "Blocking with Contessa",
+      "3": "Contessa",
       "4": "Assassination denied"
     },
     "challenge": {
