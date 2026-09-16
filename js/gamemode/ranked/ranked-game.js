@@ -92,6 +92,7 @@
         declareBlock: (role) => transaction((state) => Engine.declareBlock(state, currentUser.uid, role)),
         challengeBlock: () => transaction((state) => Engine.challengeBlock(state, currentUser.uid)),
         loseInfluence: (cardId) => transaction((state) => Engine.loseInfluence(state, currentUser.uid, cardId)),
+        revealChallenge: (cardId) => transaction((state) => Engine.revealChallenge(state, currentUser.uid, cardId)),
         completeExchange: (cardIds) => transaction((state) => Engine.completeExchange(state, currentUser.uid, cardIds)),
         completeExamine: (replace) => transaction((state) => Engine.completeExamine(state, currentUser.uid, replace)),
         addAiPlayer: (options) => transaction((state) => Engine.addAiPlayer(state, options)),
@@ -413,8 +414,23 @@
         return { type: ACTIONS.INCOME, targetUid: null };
     }
 
+    function shouldStayOutOfConflict(state, bot) {
+        const pending = state.pendingAction;
+        return Boolean(pending?.targetUid && pending.targetUid !== bot.uid && pending.actorUid !== bot.uid);
+    }
+
+    function getFavorStrength(state, bot) {
+        return Math.min(3, Math.max(0, Number(bot.favors?.[state.pendingAction?.targetUid]) || 0));
+    }
+
     function shouldChallengeClaim(state, bot, claim, actorUid, isSelfTarget = false) {
         if (!claim || !actorUid) return false;
+        if (shouldStayOutOfConflict(state, bot)) {
+            // Do not undermine somebody else's defense; helping the target is rare and risky.
+            if (state.phase === Rules.PHASES.BLOCK_CHALLENGE) return false;
+            const caution = Engine.countInfluences(bot) === 1 ? 0.25 : 1;
+            return Math.random() < (0.015 + getFavorStrength(state, bot) * 0.04) * caution;
+        }
         if (getKnownRoleCount(state, claim) >= Rules.SETTINGS.cardsPerRole) return true;
         const { skepticism } = getPersonality(bot);
         const actor = Engine.getPlayer(state, actorUid);
@@ -428,6 +444,17 @@
     function chooseBotBlockClaim(state, bot) {
         const claims = Engine.getBlockClaimsForPlayer(state, bot.uid);
         if (!claims.length) return null;
+        if (shouldStayOutOfConflict(state, bot)) {
+            if (state.pendingAction.type !== Rules.ACTIONS.STEAL || !claims.includes(Rules.ROLES.CAPTAIN)) return null;
+            const favors = getFavorStrength(state, bot);
+            const ownedCaptain = hasRole(bot, Rules.ROLES.CAPTAIN);
+            const { honesty } = getPersonality(bot);
+            const caution = Engine.countInfluences(bot) === 1 ? 0.35 : 1;
+            const chance = ownedCaptain
+                ? Math.min(0.7, 0.06 + favors * 0.24)
+                : (0.005 + favors * 0.035) * (1 - honesty);
+            return Math.random() < chance * caution ? Rules.ROLES.CAPTAIN : null;
+        }
         const owned = claims.find((role) => hasRole(bot, role));
         if (owned && Math.random() > 0.08) return owned;
         const { honesty } = getPersonality(bot);
@@ -516,6 +543,16 @@
             return true;
         }
 
+        if (state.phase === Rules.PHASES.CHALLENGE_REVEAL) {
+            const challenge = state.pendingAction?.challenge;
+            const bot = Engine.getPlayer(state, challenge?.playerUid);
+            if (!bot?.ai || now < challenge.revealAfter) return false;
+            const card = bot.influences.find((item) => !item.revealed && item.role === challenge.claim) || chooseInfluenceToLose(bot);
+            if (!card) return false;
+            Engine.revealChallenge(state, bot.uid, card.id, now);
+            return true;
+        }
+
         if (state.phase === Rules.PHASES.INFLUENCE_LOSS) {
             const bot = Engine.getPlayer(state, state.pendingLoss?.playerUid);
             const card = bot?.ai ? chooseInfluenceToLose(bot) : null;
@@ -559,6 +596,7 @@
                 player.ai && player.uid !== blockerUid && !pending?.passes?.[player.uid]
             ));
         }
+        if (state.phase === Rules.PHASES.CHALLENGE_REVEAL) return Boolean(Engine.getPlayer(state, state.pendingAction?.challenge?.playerUid)?.ai);
         if (state.phase === Rules.PHASES.INFLUENCE_LOSS) return Boolean(Engine.getPlayer(state, state.pendingLoss?.playerUid)?.ai);
         if (state.phase === Rules.PHASES.EXCHANGE) return Boolean(Engine.getPlayer(state, state.pendingExchange?.playerUid)?.ai);
         if (state.phase === Rules.PHASES.EXAMINE) return Boolean(Engine.getPlayer(state, state.pendingExamine?.actorUid)?.ai);
@@ -569,6 +607,9 @@
         root.setInterval(() => {
             if (!hasPendingBotDecision(rankedState) || botActionPending) return;
             botActionPending = true;
+            const delay = rankedState.phase === Rules.PHASES.CHALLENGE_REVEAL
+                ? Math.max(0, rankedState.pendingAction.challenge.revealAfter - Date.now())
+                : BOT_DECISION_MIN_DELAY_MS + Math.floor(Math.random() * BOT_DECISION_RANDOM_DELAY_MS);
             root.setTimeout(() => {
                 transaction((state) => {
                     if (!applyNextBotDecision(state, Date.now())) {
@@ -578,7 +619,7 @@
                 }, { silent: true }).catch(() => null).finally(() => {
                     botActionPending = false;
                 });
-            }, BOT_DECISION_MIN_DELAY_MS + Math.floor(Math.random() * BOT_DECISION_RANDOM_DELAY_MS));
+            }, delay);
         }, 900);
     }
 

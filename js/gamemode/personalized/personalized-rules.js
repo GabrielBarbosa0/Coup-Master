@@ -84,6 +84,7 @@
         TURN: 'turn',
         RESPONSE: 'response',
         BLOCK_CHALLENGE: 'block-challenge',
+        CHALLENGE_REVEAL: 'challenge-reveal',
         INFLUENCE_LOSS: 'influence-loss',
         EXCHANGE: 'exchange',
         EXAMINE: 'examine',
@@ -100,6 +101,7 @@
         readyCountdownSeconds: 3,
         starterDrawSeconds: 5,
         responseSeconds: 15,
+        challengeReadSeconds: 4.5,
         turnSeconds: 40,
         selectionSeconds: 20
     });

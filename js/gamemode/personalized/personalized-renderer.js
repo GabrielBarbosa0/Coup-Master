@@ -34,6 +34,7 @@
     let languageEventsBound = false;
     let rankCalloutLogInitialized = false;
     let rankCalloutsEnabled = true;
+    let challengeCalloutReadUntil = 0;
     const seenRankCalloutLogIds = new Set();
     const rankPlayerCallouts = new Map();
     const rankCalloutTimers = new Map();
@@ -47,6 +48,7 @@
     const DEFAULT_RANK_MUSIC_VOLUME = 0.1;
     const DEFAULT_RANK_SFX_VOLUME = 0.2;
     const RANK_CALLOUT_DURATION_MS = 3800;
+    const RANK_CHALLENGE_CALLOUT_GAP_MS = 350;
     const RANK_CALLOUT_PASS_JITTER_MS = 620;
     const RANK_CALLOUTS_ENABLED_KEY = 'rankCalloutsEnabled';
     const RANK_BALATRO_HOVER = Object.freeze({
@@ -223,6 +225,7 @@
     }
 
     function clearAllRankPlayerCallouts() {
+        challengeCalloutReadUntil = 0;
         Array.from(rankCalloutTimers.values()).forEach((timer) => window.clearTimeout(timer));
         Array.from(rankScheduledCalloutTimers.values()).forEach((timer) => window.clearTimeout(timer));
         rankCalloutTimers.clear();
@@ -232,7 +235,11 @@
 
     function scheduleRankPlayerCallout(callout, delayMs = 0) {
         if (!rankCalloutsEnabled || !callout?.uid || !callout.text) return;
-        const delay = Math.max(0, Number(delayMs) || 0);
+        const isAnswer = callout.kind === 'proof' || callout.kind === 'bluff';
+        const delay = Math.max(0, Number(delayMs) || 0, isAnswer ? challengeCalloutReadUntil - Date.now() : 0);
+        if (callout.kind === 'challenge') {
+            challengeCalloutReadUntil = Date.now() + delay + RANK_CALLOUT_DURATION_MS + RANK_CHALLENGE_CALLOUT_GAP_MS;
+        }
         if (!delay) {
             showRankPlayerCallout(callout);
             return;
@@ -240,6 +247,11 @@
 
         const timer = window.setTimeout(() => {
             rankScheduledCalloutTimers.delete(timer);
+            // Background tabs can run delayed timers together; preserve reading time on resume.
+            if (isAnswer && Date.now() < challengeCalloutReadUntil) {
+                scheduleRankPlayerCallout(callout, challengeCalloutReadUntil - Date.now());
+                return;
+            }
             showRankPlayerCallout(callout);
             if (state?.status !== PHASES.WAITING) renderPlayers();
         }, delay);
@@ -362,6 +374,11 @@
         }
 
         if (entry?.type === 'challenge-result') {
+            match = message.match(/^(.+) cedeu à contestação\.$/);
+            if (match) {
+                const player = findPlayerByLogName(match[1]);
+                return player ? [{ uid: player.uid, text: t('ranked.concedeCallout', {}, 'Eu cedo.'), key, kind: 'bluff' }] : [];
+            }
             match = message.match(/^(.+) provou (?:ter .+|o bloqueio)\.$/);
             if (match) {
                 const player = findPlayerByLogName(match[1]);
@@ -399,6 +416,9 @@
         }
 
         const startedAt = Date.now();
+        if (callout.kind === 'challenge') {
+            challengeCalloutReadUntil = startedAt + RANK_CALLOUT_DURATION_MS + RANK_CHALLENGE_CALLOUT_GAP_MS;
+        }
         const token = `${Date.now()}-${Math.random()}`;
         rankPlayerCallouts.set(callout.uid, {
             ...callout,
@@ -442,12 +462,10 @@
             newCallouts.push(...buildRankCallouts(entry, entries, index));
         });
 
-        newCallouts
-            .map((callout, index) => ({ callout, delay: getRankCalloutDelay(callout, index) }))
-            .sort((a, b) => a.delay - b.delay)
-            .forEach(({ callout, delay }) => {
-                scheduleRankPlayerCallout(callout, delay);
-            });
+        // Reserve the challenge reading window in log order, including batched snapshots.
+        newCallouts.forEach((callout, index) => {
+            scheduleRankPlayerCallout(callout, getRankCalloutDelay(callout, index));
+        });
     }
 
     function createRankPlayerCallout(uid) {
@@ -557,6 +575,9 @@
 
         match = raw.match(/^(.+) não tinha (.+)\.$/);
         if (match) return t('rankedLog.playerDidNotHaveRole', { name: match[1], role: translateLoggedRole(match[2]) }, raw);
+
+        match = raw.match(/^(.+) cedeu à contestação\.$/);
+        if (match) return t('rankedLog.playerConcededChallenge', { name: match[1] }, raw);
 
         match = raw.match(/^(.+) blefou o bloqueio\.$/);
         if (match) return t('rankedLog.playerBluffedBlock', { name: match[1] }, raw);
@@ -1481,8 +1502,8 @@
         if (state.status === PHASES.WAITING) {
             stage?.classList.add('is-centered-stage');
             setPhaseText(
-                state.deadline ? t('ranked.starting', {}, 'Iniciando') : t('personalizedWaiting.prepareTitle', {}, 'Prepare sua entrada'),
-                state.deadline ? t('ranked.allReady', {}, 'Tudo pronto.') : t('personalizedWaiting.readyInstruction', {}, 'Convide pela sala e marque pronto.')
+                state.deadline ? t('ranked.starting', {}, 'Iniciando') : t('ranked.prepareTitle', {}, 'Prepare-se para a partida'),
+                state.deadline ? t('ranked.allReady', {}, 'Tudo pronto.') : t('ranked.readyInstruction', {}, 'Aperte pronto para começar.')
             );
             renderWaiting(interaction);
             return;
@@ -1521,10 +1542,10 @@
                 choosingTarget
                     ? t('ranked.chooseTarget', {}, 'Escolha o alvo')
                     : activePlayer?.uid === currentUid
-                        ? t('ranked.yourTurn', {}, 'Sua vez')
+                        ? t('ranked.yourMove', {}, 'Sua jogada')
                         : t('ranked.playerTurn', { name: activePlayer?.name || t('ranked.playerFallbackLower', {}, 'jogador') }, `Vez de ${activePlayer?.name || 'jogador'}`),
                 choosingTarget
-                    ? [t('ranked.turnDescriptionLine1', {}, 'Escolha uma ação. O sistema aplica custos, abre as janelas de resposta'), t('ranked.turnDescriptionLine2', {}, 'e resolve a rodada automaticamente.')]
+                    ? ''
                     : describeTurnPhase(activePlayer)
             );
             renderTurn(interaction, activePlayer);
@@ -1536,6 +1557,27 @@
             stage?.classList.add(canCurrentPlayerRespond(state.pendingAction?.block?.uid) ? 'is-response-stage' : 'is-centered-stage');
             setPhaseText(t('ranked.block', {}, 'Bloqueio'), describePendingBlock());
             renderBlockChallenge(interaction);
+        } else if (state.phase === PHASES.CHALLENGE_REVEAL) {
+            stage?.classList.add('is-centered-stage');
+            const challenge = state.pendingAction.challenge;
+            const player = Engine.getPlayer(state, challenge.playerUid);
+            setPhaseText(
+                t('ranked.challengeReveal', {}, 'Resposta à contestação'),
+                t('ranked.challengeRevealPlayer', { name: player.name, role: roleLabel(challenge.claim) }, `${player.name} está defendendo a declaração de ${roleLabel(challenge.claim)}.`)
+            );
+            if (challenge.playerUid === currentUid) {
+                const cards = element('div', 'rank-choice-cards');
+                player.influences.filter((card) => !card.revealed).forEach((card) => {
+                    const button = createCard(card, true, { button: true });
+                    button.title = card.role === challenge.claim
+                        ? t('ranked.proveClaim', {}, 'Provar declaração')
+                        : t('ranked.concedeChallenge', {}, 'Ceder à contestação e perder esta influência');
+                    button.setAttribute('aria-label', `${roleLabel(card.role)}: ${button.title}`);
+                    button.addEventListener('click', () => controller.revealChallenge(card.id));
+                    cards.append(button);
+                });
+                interaction.append(cards);
+            }
         } else if (state.phase === PHASES.INFLUENCE_LOSS) {
             stage?.classList.add('is-centered-stage');
             setPhaseText(
@@ -1829,7 +1871,7 @@
             if (self?.coins >= Rules.SETTINGS.mandatoryCoupCoins) {
                 return t('ranked.mandatoryCoup', {}, 'Você tem 10 moedas ou mais e precisa aplicar um Golpe de Estado.');
             }
-            return `${t('ranked.turnDescriptionLine1', {}, 'Escolha uma ação. O sistema aplica custos, abre as janelas de resposta')} ${t('ranked.turnDescriptionLine2', {}, 'e resolve a rodada automaticamente.')}`;
+            return '';
         }
         return t('ranked.activeChoosing', { name: activePlayer.name }, `${activePlayer.name} está escolhendo a próxima ação da rodada.`);
     }

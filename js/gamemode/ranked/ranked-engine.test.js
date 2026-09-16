@@ -47,6 +47,14 @@ function firstHiddenCard(state, uid) {
     return state.players[uid].influences.find((card) => !card.revealed);
 }
 
+function answerChallenge(state) {
+    assert.equal(state.phase, Rules.PHASES.CHALLENGE_REVEAL);
+    const challenge = state.pendingAction.challenge;
+    const hidden = state.players[challenge.playerUid].influences.filter((card) => !card.revealed);
+    const card = hidden.find((item) => item.role === challenge.claim) || hidden[0];
+    Engine.revealChallenge(state, challenge.playerUid, card.id, state.updatedAt + 50);
+}
+
 function testImmediateIncome() {
     const state = createStartedState();
     Engine.performAction(state, 'u1', Rules.ACTIONS.INCOME, null, 2000);
@@ -216,8 +224,8 @@ function testSuccessfulChallengeCancelsBluff() {
     state.players.u1.influences.forEach((card) => { card.role = Rules.ROLES.CAPTAIN; });
     Engine.performAction(state, 'u1', Rules.ACTIONS.TAX, null, 2000);
     Engine.challengeAction(state, 'u2', 2100);
-    assert.equal(state.pendingLoss.playerUid, 'u1');
-    Engine.loseInfluence(state, 'u1', firstHiddenCard(state, 'u1').id, 2200);
+    assert.equal(state.phase, Rules.PHASES.CHALLENGE_REVEAL);
+    Engine.revealChallenge(state, 'u1', firstHiddenCard(state, 'u1').id, 2200);
     assert.equal(Engine.getActiveUid(state), 'u2');
     assert.equal(state.players.u1.coins, 2);
 }
@@ -227,6 +235,7 @@ function testFailedChallengeResumesAction() {
     state.players.u1.influences[0].role = Rules.ROLES.DUKE;
     Engine.performAction(state, 'u1', Rules.ACTIONS.TAX, null, 2000);
     Engine.challengeAction(state, 'u2', 2100);
+    answerChallenge(state);
     assert.equal(state.pendingLoss.playerUid, 'u2');
     Engine.loseInfluence(state, 'u2', firstHiddenCard(state, 'u2').id, 2200);
     assert.equal(state.phase, Rules.PHASES.TURN);
@@ -241,6 +250,7 @@ function testTruthfulBlockCancelsAssassination() {
     Engine.performAction(state, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 2000);
     Engine.declareBlock(state, 'u2', Rules.ROLES.CONTESSA, 2100);
     Engine.challengeBlock(state, 'u1', 2200);
+    answerChallenge(state);
     assert.equal(state.pendingLoss.playerUid, 'u1');
     Engine.loseInfluence(state, 'u1', firstHiddenCard(state, 'u1').id, 2300);
     assert.equal(Engine.countInfluences(state.players.u2), 2);
@@ -254,6 +264,7 @@ function testProvenAssassinationExecutesAfterChallenge() {
     state.players.u1.influences[0].role = Rules.ROLES.ASSASSIN;
     Engine.performAction(state, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 2000);
     Engine.challengeAction(state, 'u3', 2100);
+    answerChallenge(state);
     Engine.loseInfluence(state, 'u3', firstHiddenCard(state, 'u3').id, 2200);
     assert.equal(state.phase, Rules.PHASES.INFLUENCE_LOSS);
     assert.equal(state.pendingLoss.playerUid, 'u2');
@@ -272,6 +283,7 @@ function testAssassinationTargetFailedChallengeLosesBothAutomatically() {
     Engine.performAction(state, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 2000);
     Engine.challengeAction(state, 'u2', 2100);
 
+    answerChallenge(state);
     assert.equal(state.pendingLoss, null);
     assert.equal(state.players.u2.eliminated, true);
     assert.equal(Engine.countInfluences(state.players.u2), 0);
@@ -341,6 +353,7 @@ function testChallengedInquisitorExchangeKeepsProvenCardAsOption() {
     const inquisitorId = state.players.u1.influences[0].id;
     Engine.performAction(state, 'u1', Rules.ACTIONS.EXCHANGE_INQUISITOR, null, 2000);
     Engine.challengeAction(state, 'u2', 2100);
+    answerChallenge(state);
     Engine.loseInfluence(state, 'u2', firstHiddenCard(state, 'u2').id, 2200);
     assert.equal(state.phase, Rules.PHASES.EXCHANGE);
     assert.ok(state.pendingExchange.options.some((card) => card.id === inquisitorId));
@@ -367,6 +380,7 @@ function testExamineEndsIfChallengerTargetIsEliminated() {
     Engine.performAction(state, 'u1', Rules.ACTIONS.EXAMINE, 'u2', 2000);
     Engine.challengeAction(state, 'u2', 2100);
 
+    answerChallenge(state);
     assert.equal(state.players.u2.eliminated, true);
     assert.ok(state.discard.some((card) => card.id === 'u2-final'));
     assert.equal(state.pendingAction, null);
@@ -391,6 +405,7 @@ function testBluffedBlockLetsActionContinue() {
     Engine.performAction(state, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 2000);
     Engine.declareBlock(state, 'u2', Rules.ROLES.CONTESSA, 2100);
     Engine.challengeBlock(state, 'u1', 2200);
+    answerChallenge(state);
     assert.equal(state.pendingLoss, null);
     assert.equal(state.players.u2.eliminated, true);
     assert.equal(state.discard.length, 2);
@@ -436,6 +451,7 @@ function testMatchStatsTrackActionsAndChallenges() {
     state.players.u1.influences.forEach((card) => { card.role = Rules.ROLES.CAPTAIN; });
     Engine.performAction(state, 'u1', Rules.ACTIONS.TAX, null, 2000);
     Engine.challengeAction(state, 'u2', 2100);
+    answerChallenge(state);
     const challengeResult = Engine.buildMatchResults(state, 2200);
     assert.equal(challengeResult.players.u1.matchStats.actions, 1);
     assert.equal(challengeResult.players.u1.matchStats.bluffs, 1);
@@ -480,6 +496,112 @@ function testStealRequiresTwoTargetCoins() {
     assert.equal(Engine.getActionTargets(state, 'u1', Rules.ACTIONS.STEAL).length, 0);
 }
 
+function testVoluntaryConcessionAndGuards() {
+    const state = createStartedStateWithThree();
+    const [duke, captain] = state.players.u1.influences;
+    duke.role = Rules.ROLES.DUKE;
+    captain.role = Rules.ROLES.CAPTAIN;
+    Engine.performAction(state, 'u1', Rules.ACTIONS.TAX, null, 2000);
+    const deck = JSON.stringify(state.deck);
+    Engine.challengeAction(state, 'u2', 2100);
+    assert.equal(state.phase, Rules.PHASES.CHALLENGE_REVEAL);
+    assert.equal(state.pendingLoss, null);
+    assert.equal(state.log.at(-1).type, 'challenge');
+    assert.equal(Engine.countInfluences(state.players.u1), 2);
+    assert.throws(() => Engine.revealChallenge(state, 'u2', captain.id, 2200));
+    assert.throws(() => Engine.revealChallenge(state, 'u1', 'missing', 2200));
+    assert.throws(() => Engine.challengeAction(state, 'u3', 2200));
+    Engine.revealChallenge(state, 'u1', captain.id, 2500);
+    assert.equal(captain.revealed, true);
+    assert.equal(duke.revealed, false);
+    assert.equal(state.players.u1.coins, 2);
+    assert.equal(state.players.u2.influences.filter((card) => card.revealed).length, 0);
+    assert.equal(JSON.stringify(state.deck), deck);
+    assert.equal(state.pendingAction, null);
+    assert.ok(state.log.some((entry) => entry.message === 'Alice cedeu à contestação.'));
+    assert.throws(() => Engine.revealChallenge(state, 'u1', duke.id, 2600));
+}
+
+function testVoluntaryContessaConcessionLosesBoth() {
+    const state = createStartedStateWithThree();
+    state.players.u1.coins = 3;
+    const [contessa, assassin] = state.players.u2.influences;
+    contessa.role = Rules.ROLES.CONTESSA;
+    assassin.role = Rules.ROLES.ASSASSIN;
+    Engine.performAction(state, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 2000);
+    Engine.declareBlock(state, 'u2', Rules.ROLES.CONTESSA, 2100);
+    Engine.challengeBlock(state, 'u1', 2200);
+    assert.equal(Engine.countInfluences(state.players.u2), 2);
+    Engine.revealChallenge(state, 'u2', assassin.id, 4200);
+    assert.equal(state.players.u2.eliminated, true);
+    assert.deepEqual(state.discard.map((card) => card.id), [assassin.id, contessa.id]);
+    assert.equal(state.players.u1.coins, 0);
+    assert.equal(Engine.getActiveUid(state), 'u3');
+}
+
+function testChallengeBotDelayAndTimeout() {
+    const state = createStartedStateWithThree();
+    state.players.u1.ai = true;
+    state.players.u1.influences[0].role = Rules.ROLES.DUKE;
+    Engine.performAction(state, 'u1', Rules.ACTIONS.TAX, null, 2000);
+    Engine.challengeAction(state, 'u2', 2100);
+    const cardId = state.players.u1.influences[0].id;
+    const revealAt = 2100 + Rules.SETTINGS.challengeReadSeconds * 1000;
+    assert.equal(revealAt, 6600);
+    assert.throws(() => Engine.revealChallenge(state, 'u1', cardId, revealAt - 1), /Aguarde/);
+    assert.equal(state.phase, Rules.PHASES.CHALLENGE_REVEAL);
+    assert.equal(Engine.advanceExpired(state, revealAt), false);
+    Engine.revealChallenge(state, 'u1', cardId, revealAt);
+    assert.equal(state.pendingLoss.playerUid, 'u2');
+    assert.equal(state.log.at(-1).type, 'challenge-result');
+    assert.ok(!state.players.u1.influences.some((card) => card.id === cardId));
+
+    const timeout = createStartedStateWithThree();
+    timeout.players.u1.influences[0].role = Rules.ROLES.CAPTAIN;
+    timeout.players.u1.influences[1].role = Rules.ROLES.DUKE;
+    Engine.performAction(timeout, 'u1', Rules.ACTIONS.TAX, null, 2000);
+    Engine.challengeAction(timeout, 'u2', 2100);
+    const restored = JSON.parse(JSON.stringify(timeout));
+    assert.equal(Engine.advanceExpired(restored, restored.deadline), true);
+    assert.equal(restored.pendingLoss.playerUid, 'u2');
+    assert.equal(Engine.countInfluences(restored.players.u1), 2);
+}
+
+function testConcededBlockExecutesOriginalAction() {
+    const state = createStartedStateWithThree();
+    state.players.u2.influences[0].role = Rules.ROLES.DUKE;
+    state.players.u2.influences[1].role = Rules.ROLES.CAPTAIN;
+    Engine.performAction(state, 'u1', Rules.ACTIONS.FOREIGN_AID, null, 2000);
+    Engine.declareBlock(state, 'u2', Rules.ROLES.DUKE, 2100);
+    Engine.challengeBlock(state, 'u3', 2200);
+    Engine.revealChallenge(state, 'u2', state.players.u2.influences[1].id, 2500);
+    assert.equal(state.players.u1.coins, 4);
+    assert.equal(Engine.countInfluences(state.players.u2), 1);
+    assert.equal(Engine.countInfluences(state.players.u3), 2);
+    assert.equal(state.players.u2.influences[0].revealed, false);
+    assert.equal(state.pendingAction, null);
+    assert.equal(state.phase, Rules.PHASES.TURN);
+}
+
+function testLastCardStillRequiresChallengeChoice() {
+    const state = createStartedStateWithThree();
+    state.players.u1.influences[0].revealed = true;
+    state.players.u1.influences[1].role = Rules.ROLES.CAPTAIN;
+    Engine.performAction(state, 'u1', Rules.ACTIONS.TAX, null, 2000);
+    Engine.challengeAction(state, 'u2', 2100);
+    assert.equal(state.phase, Rules.PHASES.CHALLENGE_REVEAL);
+    assert.equal(state.players.u1.eliminated, false);
+    assert.throws(() => Engine.revealChallenge(state, 'u1', state.players.u1.influences[0].id, 2500));
+    Engine.revealChallenge(state, 'u1', state.players.u1.influences[1].id, 2500);
+    assert.equal(state.players.u1.eliminated, true);
+    assert.equal(Engine.getActiveUid(state), 'u2');
+}
+
+testVoluntaryConcessionAndGuards();
+testConcededBlockExecutesOriginalAction();
+testVoluntaryContessaConcessionLosesBoth();
+testChallengeBotDelayAndTimeout();
+testLastCardStillRequiresChallengeChoice();
 testStealRequiresTwoTargetCoins();
 testImmediateIncome();
 testReadyCountdownDelaysStart();
@@ -506,6 +628,6 @@ testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 
-console.log('ranked-engine: 25 testes aprovados');
+console.log('ranked-engine: 30 testes aprovados');
 
 

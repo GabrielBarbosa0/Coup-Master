@@ -89,6 +89,7 @@
                 player.connected = true;
                 player.ready = player.ready !== false;
                 player.grudges = player.grudges && typeof player.grudges === 'object' ? player.grudges : {};
+                player.favors = player.favors && typeof player.favors === 'object' && !Array.isArray(player.favors) ? player.favors : {};
                 player.personality = normalizeBotPersonality(player.personality);
             }
         });
@@ -529,6 +530,7 @@
             player.eliminated = false;
             player.ready = false;
             player.influences = [];
+            if (player.ai) player.favors = {};
             ensureMatchStats(state, player.uid);
             for (let index = 0; index < SETTINGS.startingInfluences; index += 1) {
                 const card = drawStartingInfluence(state);
@@ -760,26 +762,59 @@
         }
 
         const actor = getPlayer(state, pending.actorUid);
-        const truthfulCard = actor.influences.find((card) => !card.revealed && card.role === pending.claim);
         const challengerStats = ensureMatchStats(state, challengerUid);
         challengerStats.challenges += 1;
         addLog(state, `${getPlayer(state, challengerUid).name} contestou ${actor.name}.`, 'challenge', now);
 
-        if (truthfulCard) {
+        beginChallengeReveal(state, actor.uid, challengerUid, pending.claim, false, now);
+        return state;
+    }
+
+    function beginChallengeReveal(state, playerUid, challengerUid, claim, isBlock, now) {
+        state.pendingAction.challenge = { playerUid, challengerUid, claim, isBlock, revealAfter: now + SETTINGS.challengeReadSeconds * 1000 };
+        state.phase = PHASES.CHALLENGE_REVEAL;
+        state.deadline = now + SETTINGS.selectionSeconds * 1000;
+        state.updatedAt = now;
+    }
+
+    function revealChallenge(state, uid, cardId, now = Date.now()) {
+        normalizeState(state);
+        const pending = state.pendingAction;
+        const challenge = pending?.challenge;
+        if (state.phase !== PHASES.CHALLENGE_REVEAL || challenge?.playerUid !== uid) {
+            throw new Error('Você não precisa responder a uma contestação agora.');
+        }
+        const actor = getPlayer(state, uid);
+        const card = actor?.influences.find((item) => item.id === cardId && !item.revealed);
+        if (!card) throw new Error('Escolha uma influência válida.');
+        if (actor.ai && now < challenge.revealAfter) throw new Error('Aguarde a resposta à contestação.');
+        const { challengerUid, claim, isBlock } = challenge;
+        const challengerStats = ensureMatchStats(state, challengerUid);
+        delete pending.challenge;
+
+        if (card.role === claim) {
             challengerStats.failedChallenges += 1;
-            if (!isExchangeAction(pending.type)) {
-                replaceProvenInfluence(state, actor.uid, truthfulCard.id);
+            if (isBlock || !isExchangeAction(pending.type)) {
+                replaceProvenInfluence(state, actor.uid, card.id);
             }
-            pending.claimConfirmed = true;
-            addLog(state, `${actor.name} provou ter ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
-            const lossPlan = getFailedActionChallengeLossPlan(state, challengerUid);
+            if (!isBlock) pending.claimConfirmed = true;
+            addLog(state, isBlock ? `${actor.name} provou o bloqueio.` : `${actor.name} provou ter ${Rules.getRole(claim).label}.`, 'challenge-result', now);
+            const lossPlan = isBlock
+                ? { reason: 'Contestação incorreta do bloqueio.', continuation: 'accept-block', count: 1 }
+                : getFailedActionChallengeLossPlan(state, challengerUid);
             scheduleLoss(state, challengerUid, lossPlan.reason, lossPlan.continuation, now, lossPlan.count);
         } else {
             challengerStats.successfulChallenges += 1;
             ensureMatchStats(state, actor.uid).provenBluffs += 1;
-            addLog(state, `${actor.name} não tinha ${Rules.getRole(pending.claim).label}.`, 'challenge-result', now);
-            scheduleLoss(state, actor.uid, 'Blefe contestado.', 'cancel-action', now);
+            addLog(state, `${actor.name} cedeu à contestação.`, 'challenge-result', now);
+            const lossPlan = isBlock ? getBluffedBlockLossPlan(state, uid) : { count: 1, continuation: 'cancel-action' };
+            if (pending.actorUid !== uid) bumpGrudge(state, uid, pending.actorUid, 2);
+            // Consume the chosen card first, before resolving any forced second loss.
+            state.pendingLoss = { playerUid: uid, count: lossPlan.count, continuation: lossPlan.continuation, reason: 'Contestação aceita.' };
+            state.phase = PHASES.INFLUENCE_LOSS;
+            loseInfluence(state, uid, card.id, now);
         }
+        state.updatedAt = now;
         return state;
     }
 
@@ -818,23 +853,11 @@
         }
 
         const blocker = getPlayer(state, block.uid);
-        const truthfulCard = blocker.influences.find((card) => !card.revealed && card.role === block.claim);
         const challengerStats = ensureMatchStats(state, challengerUid);
         challengerStats.challenges += 1;
         addLog(state, `${getPlayer(state, challengerUid).name} contestou o bloqueio de ${blocker.name}.`, 'challenge', now);
 
-        if (truthfulCard) {
-            challengerStats.failedChallenges += 1;
-            replaceProvenInfluence(state, blocker.uid, truthfulCard.id);
-            addLog(state, `${blocker.name} provou o bloqueio.`, 'challenge-result', now);
-            scheduleLoss(state, challengerUid, 'Contestação incorreta do bloqueio.', 'accept-block', now);
-        } else {
-            challengerStats.successfulChallenges += 1;
-            ensureMatchStats(state, blocker.uid).provenBluffs += 1;
-            const lossPlan = getBluffedBlockLossPlan(state, blocker.uid);
-            addLog(state, `${blocker.name} blefou o bloqueio.`, 'challenge-result', now);
-            scheduleLoss(state, blocker.uid, 'Bloqueio blefado.', lossPlan.continuation, now, lossPlan.count);
-        }
+        beginChallengeReveal(state, blocker.uid, challengerUid, block.claim, true, now);
         return state;
     }
 
@@ -959,13 +982,31 @@
             executePendingAction(state, now);
             return;
         }
-        if (continuation === 'accept-block' || continuation === 'cancel-action' || continuation === 'end-turn') {
+        if (continuation === 'accept-block') {
+            acceptBlock(state, now);
+            return;
+        }
+        if (continuation === 'cancel-action' || continuation === 'end-turn') {
             endTurn(state, now);
         }
     }
 
     function acceptBlock(state, now = Date.now()) {
         const blocker = getPlayer(state, state.pendingAction?.block?.uid);
+        const pending = state.pendingAction;
+        const protectedPlayer = getPlayer(state, pending?.targetUid);
+        if (pending?.type === ACTIONS.STEAL && pending.block?.claim === ROLES.CAPTAIN
+            && blocker && protectedPlayer && blocker.uid !== protectedPlayer.uid) {
+            // Only a successful protection creates gratitude; returning it spends one favor.
+            if (blocker.ai) {
+                blocker.favors = blocker.favors || {};
+                blocker.favors[protectedPlayer.uid] = Math.max(0, (Number(blocker.favors[protectedPlayer.uid]) || 0) - 1);
+            }
+            if (protectedPlayer.ai) {
+                protectedPlayer.favors = protectedPlayer.favors || {};
+                protectedPlayer.favors[blocker.uid] = Math.min(3, Math.max(0, Number(protectedPlayer.favors[blocker.uid]) || 0) + 1);
+            }
+        }
         if (blocker) ensureMatchStats(state, blocker.uid).blockedActions += 1;
         if (blocker) addLog(state, `O bloqueio de ${blocker.name} foi aceito.`, 'block', now);
         endTurn(state, now);
@@ -1256,6 +1297,13 @@
             executePendingAction(state, now);
         } else if (state.phase === PHASES.BLOCK_CHALLENGE) {
             acceptBlock(state, now);
+        } else if (state.phase === PHASES.CHALLENGE_REVEAL) {
+            const challenge = state.pendingAction.challenge;
+            const player = getPlayer(state, challenge.playerUid);
+            const hidden = player.influences.filter((card) => !card.revealed);
+            const card = hidden.find((item) => item.role === challenge.claim) || hidden[0];
+            if (card) revealChallenge(state, player.uid, card.id, now);
+            else endTurn(state, now);
         } else if (state.phase === PHASES.INFLUENCE_LOSS) {
             const player = getPlayer(state, state.pendingLoss?.playerUid);
             const card = player?.influences?.find((influence) => !influence.revealed);
@@ -1292,6 +1340,7 @@
         challengeAction,
         declareBlock,
         challengeBlock,
+        revealChallenge,
         loseInfluence,
         completeExchange,
         completeExamine,

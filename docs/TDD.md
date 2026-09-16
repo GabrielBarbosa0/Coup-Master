@@ -11,6 +11,20 @@ Commit base da atualizacao parcial: `9ffcbaf` (`suporte ao discord`)
 
 ## 1. Sumario Executivo
 
+### Paridade do personalizado (2026-09-16)
+
+O personalizado agora tambem usa `challenge-reveal`, escolha voluntaria da influencia apresentada, perda dupla de assassinato, espera de 4,5 segundos dos bots, leitura sequencial das falas e memoria de favores por protecao. Os fluxos de contestacao e IA descritos abaixo passam a valer para ambos os modos. As particularidades do personalizado permanecem: host e remocao de participantes na espera, `personalizedState`, reinicio com os mesmos participantes e sem matchmaking ranqueado. Testes: `personalized-engine.test.js`, `personalized-bot-decisions.test.js` e `personalized-callouts.test.js`.
+
+### Autopreservacao dos bots ranqueados (2026-09-15)
+
+Revisao em 2026-09-16: a autopreservacao e uma tendencia, nao um veto absoluto. Em conflitos entre terceiros, bots raramente contestam a acao (1,5% base, mais 4 pontos percentuais por favor pendente), mas nao contestam o bloqueio do defensor. O Capitao continua podendo bloquear extorsao contra si ou terceiros. Com Capitao, a chance de proteger terceiros e 6% base, mais 24 pontos por favor (limite 70%); sem a carta, um blefe de protecao e bem mais raro e depende da honestidade. Uma unica influencia reduz ambas as chances. Ceticismo e rancor nao sobrepoem esse filtro. Bloqueios de extorsao bem-sucedidos por terceiros geram `player.favors[helperUid]` no bot protegido (limite 3); retribuir um bloqueio bem-sucedido consome um favor. Bloqueios aceitos ou provados geram memoria, bloqueios desmentidos nao. A memoria persiste na reconexao e reinicia na proxima partida. Autodefesa, contestacao dos bloqueios contra a propria acao, Taxar e Ajuda Externa preservam suas decisoes anteriores. Golpe de Estado continua sem janela de contestacao. Cobertura em `ranked-bot-decisions.test.js`; personalizado nao alterado.
+
+### Escolha na contestacao ranqueada (2026-09-15)
+
+Revisao de ritmo: `SETTINGS.challengeReadSeconds` agora vale 4,5 segundos. A interface reserva a leitura completa do balao de contestacao (3,8 segundos), seguida de 350 ms de intervalo antes da prova ou concessao. A reserva respeita a ordem do log, snapshots agrupados e timers atrasados de abas em segundo plano. `ranked-callouts.test.js` cobre esses casos. A atualizacao da carta do bot continua ocorrendo na resolucao do motor, apos a espera, e nao no instante da contestacao.
+
+O ranqueado usa a fase `challenge-reveal`: `pendingAction.challenge` registra contestador, jogador contestado, personagem declarado e se a defesa e de bloqueio. `revealChallenge` recebe a carta escolhida pelo contestado. Apresentar o personagem prova a declaracao; apresentar outro perde a carta escolhida, mesmo possuindo o personagem declarado. O registro informa que o jogador cedeu, sem expor a carta preservada. A perda dupla ao ceder um bloqueio de assassinato continua valendo. Bots aguardam pelo menos 2 segundos (`revealAfter`) e preferem provar; no timeout de 20 segundos o motor tambem prefere a carta declarada, ou a primeira influencia oculta. Reinicio/fim de turno limpam a defesa junto com `pendingAction`. O personalizado mantem seu fluxo anterior.
+
 ### Nova busca ranqueada (2026-09-15)
 
 Ao finalizar, "Buscar nova partida" reutiliza a sala e retorna a espera. O motor preserva humanos e o contador de partidas, remove os bots anteriores e reinicia o preenchimento gradual com novas personalidades. Os nomes dos bots da partida imediatamente anterior ficam em `previousBotNames` e sao excluidos do proximo sorteio. Humanos precisam confirmar prontidao novamente; bots continuam identificados como IA. O modo personalizado conserva seu reinicio original.
