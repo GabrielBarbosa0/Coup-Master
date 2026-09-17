@@ -1102,6 +1102,11 @@ button {
     display: none;
 }
 
+.player-stats-modal,
+.leaderboard-modal {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
 .player-stats-modal {
     padding: 22px;
     overflow: hidden;
@@ -1474,6 +1479,7 @@ button {
 }
 
 .leaderboard-content {
+    background: #232a33;
     display: flex;
     flex-direction: column;
     gap: 16px;

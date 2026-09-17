@@ -1267,9 +1267,9 @@ h2 {
 .preset-btn {
     width: 100%;
     min-height: 40px;
-    background: #20242b;
-    color: #f8fafc;
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: #232a33;
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 8px 10px;
     border-radius: 8px;
     cursor: pointer;
@@ -1285,9 +1285,6 @@ h2 {
 
 .preset-btn:hover {
     background: #2c3540;
-    border-color: var(--accent);
-    color: #f8fafc;
-    box-shadow: 0 0 10px rgba(30, 144, 255, 0.25);
 }
 
 
