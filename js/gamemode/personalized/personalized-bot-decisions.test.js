@@ -70,6 +70,7 @@ assert.equal(defense.pendingAction.block.uid, 'c');
 random = 0;
 
 const targetedChallenge = fixture();
+targetedChallenge.players.c.influences.forEach((card) => { card.role = Rules.ROLES.DUKE; });
 Engine.performAction(targetedChallenge, 'a', Rules.ACTIONS.ASSASSINATE, 'c', 2000);
 assert.equal(root.test.shouldChallengeClaim(targetedChallenge, targetedChallenge.players.c, Rules.ROLES.ASSASSIN, 'a', true), true);
 

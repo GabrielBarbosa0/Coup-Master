@@ -470,6 +470,26 @@
             const caution = Engine.countInfluences(bot) === 1 ? 0.25 : 1;
             return Math.random() < (0.015 + getFavorStrength(state, bot) * 0.04) * caution;
         }
+        const facingAssassination = state.phase === Rules.PHASES.RESPONSE
+            && state.pendingAction?.type === Rules.ACTIONS.ASSASSINATE
+            && state.pendingAction.targetUid === bot.uid && actorUid === state.pendingAction.actorUid;
+        if (facingAssassination && hiddenInfluences(bot).length > 1) {
+            if (hasRole(bot, Rules.ROLES.CONTESSA)) return false;
+            // Count physical cards once: discard and revealed hands reference the same losses.
+            const known = new Set([
+                ...(state.discard || []),
+                ...Engine.getPlayers(state).flatMap((player) => (player.influences || [])
+                    .filter((card) => card.revealed || player.uid === bot.uid))
+            ].filter((card) => card.role === claim).map((card) => card.id));
+            if (known.size >= Rules.SETTINGS.cardsPerRole) return true;
+            const { skepticism } = getPersonality(bot);
+            const publicStats = state.matchStats?.[actorUid] || {};
+            const exposedBluffs = Math.min(3, Math.max(0, Number(publicStats.provenBluffs) || 0));
+            const successfulAttacks = Math.min(4, Math.max(0, Number(publicStats.assassinations) || 0));
+            const chance = (0.03 + skepticism * 0.07 + exposedBluffs * 0.025)
+                / (1 + successfulAttacks * 0.25);
+            return Math.random() < chance;
+        }
         if (getKnownRoleCount(state, claim) >= Rules.SETTINGS.cardsPerRole) return true;
         const { skepticism } = getPersonality(bot);
         const actor = Engine.getPlayer(state, actorUid);
@@ -495,10 +515,17 @@
             return Math.random() < chance * caution ? Rules.ROLES.CAPTAIN : null;
         }
         const owned = claims.find((role) => hasRole(bot, role));
-        if (owned && Math.random() > 0.08) return owned;
-        const { honesty } = getPersonality(bot);
         const facingAssassination = state.pendingAction?.type === Rules.ACTIONS.ASSASSINATE
             && state.pendingAction.targetUid === bot.uid;
+        if (facingAssassination && owned === Rules.ROLES.CONTESSA) return owned;
+        if (owned && Math.random() > 0.08) return owned;
+        const { honesty } = getPersonality(bot);
+        if (facingAssassination && hiddenInfluences(bot).length > 1) {
+            const attackerStats = state.matchStats?.[state.pendingAction.actorUid] || {};
+            const challenges = Math.min(8, Math.max(0, Number(attackerStats.challenges) || 0));
+            const chance = 0.18 * ((1 - honesty) ** 0.9) / (1 + challenges * 0.3);
+            return Math.random() < chance ? Rules.ROLES.CONTESSA : null;
+        }
         const defenseWeight = facingAssassination && hiddenInfluences(bot).length === 1 ? 0.9 : 0.7;
         const bluffChance = ((1 - honesty) ** 0.9) * defenseWeight;
         return Math.random() < bluffChance ? claims[Math.floor(Math.random() * claims.length)] : null;

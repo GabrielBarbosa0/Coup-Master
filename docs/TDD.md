@@ -11,6 +11,10 @@ Commit base da atualizacao parcial: `9ffcbaf` (`suporte ao discord`)
 
 ## 1. Sumario Executivo
 
+### Cautela contra assassinato (2026-09-16)
+
+Nos dois modos automatizados, o alvo de assassinato com duas influencias trata a perda dupla separadamente: contestacao tem chance base de 3% a 10% conforme ceticismo, ajustada por blefes publicamente expostos e assassinatos executados do atacante. Rancor nao aumenta essa chance. Certeza por cartas conhecidas ainda permite contestar, sem contar duas vezes cartas presentes no descarte e nas maos reveladas. Condessa verdadeira sempre bloqueia. Blefe de Condessa com duas influencias usa no maximo 18%, reduzido por honestidade e pelo historico publico de contestacoes do atacante. Com uma unica influencia, as chances de defesa anteriores permanecem. Nao consulta maos ocultas adversarias nem o contador privado de blefes. Cobertura: `bot-assassination-caution.test.js`.
+
 ### Blefes em beneficio proprio (2026-09-16)
 
 Ranqueado e personalizado consideram um blefe lucrativo antes de priorizar cartas reais: Taxar, Extorquir ou Assassinar, apenas com personagem ausente da propria mao e custo/alvo legal. Probabilidade de entrar nessa selecao: `0.65 * (1 - honesty)^0.85`, reduzida em 15% com uma unica influencia. Pesos: Taxar 3, Extorquir 3, Assassinar 2 (4 contra alvo com uma influencia). Golpe obrigatorio e a preferencia existente por golpe com 7 moedas permanecem anteriores a essa etapa. Fora dela, a selecao anterior continua valendo.
