@@ -1324,6 +1324,14 @@
     }
 
     function render(nextState) {
+        if (viewMode === 'game' && root.CoupRankedReveal) {
+            root.CoupRankedReveal.present(nextState, renderState);
+            return;
+        }
+        renderState(nextState);
+    }
+
+    function renderState(nextState) {
         const previousState = state;
         state = nextState;
         if (!state) return;

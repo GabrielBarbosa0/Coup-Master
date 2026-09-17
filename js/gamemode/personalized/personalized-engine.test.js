@@ -318,6 +318,10 @@ function testExamineEndsIfChallengerTargetIsEliminated() {
     Engine.challengeAction(state, 'u2', 2100);
 
     answerChallenge(state);
+    assert.equal(state.players.u2.eliminated, false);
+    assert.equal(state.pendingLoss.requireChoice, true);
+    assert.equal(state.publicReveals.length, 1);
+    Engine.advanceExpired(state, state.deadline + 1);
     assert.equal(state.players.u2.eliminated, true);
     assert.ok(state.discard.some((card) => card.id === 'u2-final'));
     assert.equal(state.pendingAction, null);
@@ -441,7 +445,7 @@ function answerChallenge(state) {
     Engine.revealChallenge(state, challenge.playerUid, card.id, state.updatedAt + 50);
 }
 
-function testAssassinationTargetFailedChallengeLosesBothAutomatically() {
+function testAssassinationTargetFailedChallengeChoosesEachLoss() {
     const state = createStartedStateWithThree();
     state.players.u1.coins = 3;
     state.players.u1.influences[0].role = Rules.ROLES.ASSASSIN;
@@ -450,6 +454,14 @@ function testAssassinationTargetFailedChallengeLosesBothAutomatically() {
     Engine.challengeAction(state, 'u2', 2100);
 
     answerChallenge(state);
+    assert.equal(state.publicReveals.length, 1);
+    assert.equal(state.publicReveals[0].kind, 'proof');
+    assert.equal(state.phase, Rules.PHASES.INFLUENCE_LOSS);
+    assert.equal(Engine.countInfluences(state.players.u2), 2);
+    Engine.loseInfluence(state, 'u2', firstHiddenCard(state, 'u2').id, 2300);
+    assert.equal(Engine.countInfluences(state.players.u2), 1);
+    assert.equal(state.phase, Rules.PHASES.INFLUENCE_LOSS);
+    Engine.loseInfluence(state, 'u2', firstHiddenCard(state, 'u2').id, 2400);
     assert.equal(state.pendingLoss, null);
     assert.equal(state.players.u2.eliminated, true);
     assert.equal(Engine.countInfluences(state.players.u2), 0);
@@ -559,7 +571,7 @@ function testConcededBlockExecutesOriginalAction() {
     assert.equal(state.phase, Rules.PHASES.TURN);
 }
 
-testAssassinationTargetFailedChallengeLosesBothAutomatically();
+testAssassinationTargetFailedChallengeChoosesEachLoss();
 testVoluntaryConcessionAndGuards();
 testVoluntaryContessaConcessionLosesBoth();
 testChallengeBotDelayAndTimeout();

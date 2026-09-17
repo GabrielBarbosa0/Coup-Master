@@ -1,4 +1,12 @@
 {
+  "rankedReveal": {
+    "proof": "{name} proved they have {role}",
+    "coup": "{name} was hit by a Coup",
+    "assassination": "{name} was assassinated",
+    "concession": "{name} conceded the challenge",
+    "challengeLoss": "{name} lost the challenge",
+    "loss": "{name} lost an influence"
+  },
   "landing": {
     "navModes": "Modes",
     "navRanked": "Ranked",

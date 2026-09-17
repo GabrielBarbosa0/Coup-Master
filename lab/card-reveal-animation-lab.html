@@ -18,9 +18,10 @@
       --accent: #1e90ff;
       --gold: #ffcc00;
       --danger: #ff4048;
-      --reveal-duration: 1500ms;
+      --reveal-duration: 1200ms;
       --reveal-hold: 420ms;
       --card-scale: 1.08;
+      --reveal-easing: cubic-bezier(0.420, 0.000, 0.580, 1);
     }
 
     @font-face {
@@ -324,16 +325,9 @@
       display: grid;
       justify-items: center;
       align-content: center;
-      gap: 18px;
-      width: min(460px, calc(100vw - 56px));
-      min-height: 430px;
-      border: 1px solid rgba(230, 238, 246, 0.17);
-      border-radius: 8px;
-      padding: 22px;
-      background:
-        linear-gradient(145deg, rgba(31, 43, 56, 0.98), rgba(17, 25, 35, 0.98));
-      box-shadow: 0 32px 90px rgba(0, 0, 0, 0.52);
-      overflow: hidden;
+      width: 100%;
+      min-height: 320px;
+      background: transparent;
     }
 
     .card-zone {
@@ -363,7 +357,7 @@
     }
 
     .reveal-card.is-revealing {
-      animation: revealCard var(--reveal-duration) cubic-bezier(0.18, 0.86, 0.22, 1) both;
+      animation: revealCard var(--reveal-duration) var(--reveal-easing) both;
     }
 
     .reveal-card.is-revealed {
@@ -380,31 +374,6 @@
       user-select: none;
     }
 
-    .reveal-actions {
-      display: flex;
-      width: min(320px, 100%);
-      gap: 8px;
-    }
-
-    .reveal-actions button {
-      flex: 1 1 0;
-      min-height: 42px;
-      border-radius: 7px;
-      color: var(--text);
-      font-weight: 900;
-      cursor: pointer;
-      text-transform: uppercase;
-    }
-
-    .reveal-btn {
-      background: var(--accent);
-    }
-
-    .reset-btn {
-      border: 1px solid rgba(230, 238, 246, 0.2);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
     @keyframes revealCard {
       0% {
         transform: translateY(0) rotateY(0deg) rotateZ(0deg) scale(1);
@@ -416,7 +385,7 @@
       }
 
       46% {
-        transform: translateY(-42px) rotateY(92deg) rotateZ(1deg) scale(var(--card-scale));
+        transform: translateY(-42px) rotateY(90deg) rotateZ(1deg) scale(var(--card-scale));
         filter: drop-shadow(0 32px 34px rgba(0, 0, 0, 0.5));
       }
 
@@ -452,7 +421,6 @@
 
       .reveal-modal {
         grid-template-columns: 1fr;
-        width: min(460px, calc(100vw - 28px));
         min-height: auto;
       }
 
@@ -492,9 +460,7 @@
       }
 
       .reveal-modal {
-        width: min(360px, calc(100vw - 340px));
         min-height: 310px;
-        padding: 16px;
       }
 
       .card-zone {
@@ -533,9 +499,17 @@
         <label class="control-row">
           <span class="control-label">
             Duração
-            <span class="control-value" id="durationValue">1500ms</span>
+            <span class="control-value" id="durationValue">1200ms</span>
           </span>
-          <input id="durationRange" type="range" min="900" max="2400" value="1500" step="50">
+          <input id="durationRange" type="range" min="900" max="2400" value="1200" step="50">
+        </label>
+
+        <label class="control-row">
+          <span class="control-label">
+            Suavidade
+            <span class="control-value" id="smoothnessValue">100%</span>
+          </span>
+          <input id="smoothnessRange" type="range" min="0" max="100" value="100" step="5">
         </label>
 
         <label class="control-row">
@@ -576,7 +550,7 @@
         </div>
         <div class="metrics">
           <div class="metric">Estado<strong id="stateMetric">Oculta</strong></div>
-          <div class="metric">Timing<strong id="timingMetric">1.92s</strong></div>
+          <div class="metric">Timing<strong id="timingMetric">1.62s</strong></div>
         </div>
       </header>
 
@@ -623,10 +597,6 @@
             </div>
           </div>
 
-          <div class="reveal-actions">
-            <button class="reveal-btn" id="modalRevealBtn" type="button">Revelar</button>
-            <button class="reset-btn" id="modalResetBtn" type="button">Voltar</button>
-          </div>
         </section>
       </div>
     </section>
@@ -651,6 +621,8 @@
     const durationRange = document.getElementById('durationRange');
     const holdRange = document.getElementById('holdRange');
     const scaleRange = document.getElementById('scaleRange');
+    const smoothnessRange = document.getElementById('smoothnessRange');
+    const smoothnessValue = document.getElementById('smoothnessValue');
     const durationValue = document.getElementById('durationValue');
     const holdValue = document.getElementById('holdValue');
     const scaleValue = document.getElementById('scaleValue');
@@ -661,15 +633,24 @@
     let revealTimer = null;
     let swapTimer = null;
 
+    Object.values(cards).forEach(({ image }) => {
+      const preload = new Image();
+      preload.src = image;
+    });
+
     function getSelectedCard() {
       return cards[cardSelect.value] || cards.duque;
     }
 
     function updateControls() {
+      if (card.classList.contains('is-revealing')) resetReveal();
       const selected = getSelectedCard();
       const duration = Number(durationRange.value);
       const hold = Number(holdRange.value);
       const scale = Number(scaleRange.value) / 100;
+      const smoothness = Number(smoothnessRange.value) / 100;
+      // Blend the original sharp curve into a gentle ease-in-out for each stage.
+      const easing = `cubic-bezier(${(0.18 + 0.24 * smoothness).toFixed(3)}, ${(0.86 * (1 - smoothness)).toFixed(3)}, ${(0.22 + 0.36 * smoothness).toFixed(3)}, 1)`;
 
       if (card.classList.contains('is-revealed')) {
         cardImage.src = selected.image;
@@ -683,17 +664,21 @@
       durationValue.textContent = `${duration}ms`;
       holdValue.textContent = `${hold}ms`;
       scaleValue.textContent = `${scale.toFixed(2)}x`;
+      smoothnessValue.textContent = `${smoothnessRange.value}%`;
       timingMetric.textContent = `${((duration + hold) / 1000).toFixed(2)}s`;
 
       root.style.setProperty('--reveal-duration', `${duration}ms`);
       root.style.setProperty('--reveal-hold', `${hold}ms`);
       root.style.setProperty('--card-scale', String(scale));
+      root.style.setProperty('--reveal-easing', easing);
 
       configOutput.value = [
         'const revealConfig = {',
         `  durationMs: ${duration},`,
         `  suspenseHoldMs: ${hold},`,
         `  liftScale: ${scale.toFixed(2)},`,
+        `  smoothness: ${smoothness.toFixed(2)},`,
+        `  easing: '${easing}',`,
         `  revealedRole: '${cardSelect.value}'`,
         '};'
       ].join('\n');
@@ -728,7 +713,7 @@
       swapTimer = window.setTimeout(() => {
         cardImage.src = selected.image;
         cardImage.alt = selected.label;
-      }, Math.max(180, Math.floor(duration * 0.48)));
+      }, Math.floor(duration * 0.46));
 
       revealTimer = window.setTimeout(() => {
         card.classList.remove('is-revealing');
@@ -749,15 +734,13 @@
       playReveal();
     }
 
-    [cardSelect, durationRange, holdRange, scaleRange].forEach((input) => {
+    [cardSelect, durationRange, holdRange, scaleRange, smoothnessRange].forEach((input) => {
       input.addEventListener('input', updateControls);
       input.addEventListener('change', updateControls);
     });
 
     document.getElementById('playBtn').addEventListener('click', playReveal);
-    document.getElementById('modalRevealBtn').addEventListener('click', playReveal);
     document.getElementById('resetBtn').addEventListener('click', resetReveal);
-    document.getElementById('modalResetBtn').addEventListener('click', resetReveal);
     document.getElementById('randomBtn').addEventListener('click', randomizeCard);
     card.addEventListener('click', playReveal);
 

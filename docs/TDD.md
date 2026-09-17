@@ -11,6 +11,18 @@ Commit base da atualizacao parcial: `9ffcbaf` (`suporte ao discord`)
 
 ## 1. Sumario Executivo
 
+### Revelacao na Sala Personalizada (2026-09-16)
+
+A mesa personalizada tambem carrega `ranked-reveal.js` e `ranked-reveal.css`, selecionando `CoupPersonalizedRules` para os assets. Seu motor registra os mesmos eventos publicos e aguarda a escolha de influencia depois da prova; o controlador pausa transacoes e bots durante `revealPresentation` e preserva os prazos. Titulo PT/EN, fade-in 350ms, giro 1200ms, pausa 420ms e fade-out 450ms sao compartilhados. As esperas nao carregam o overlay. `personalizedState`, controles de host e Reiniciar partida com os mesmos participantes permanecem inalterados.
+
+### Revelacao publica no ranqueado (2026-09-16)
+
+O overlay identifica jogador e motivo (prova, golpe, assassinato, concessao ou contestacao perdida), com textos PT/EN e nomes inseridos via textContent. Depois de uma prova, `pendingLoss.requireChoice` impede resolucao automatica: a mesa volta para escolha do perdedor, mesmo com uma unica influencia. Perdas duplas por contestacao de assassinato aguardam uma escolha por carta; timeout continua disponivel. Bots usam a etapa de decisao normal entre as animacoes. Golpes/perdas forçadas fora desse fluxo preservam a regra anterior.
+
+O motor registra `publicReveals` (ultimos 12 eventos, sequencia crescente) apenas para provas de contestacao e perdas de influencia, incluindo perdas automaticas/multiplas. Investigacoes privadas nao geram eventos. A transacao confirmada agrupa os novos eventos em `revealPresentation`, com fim compartilhado; nao emite snapshots otimistas. Durante esse intervalo, o controlador bloqueia mutacoes e os bots aguardam. O prazo seguinte recebe 2420ms por carta para preservar o tempo de decisao: fade-in de 350ms, giro de 1200ms, pausa de 420ms e fade-out de 450ms. Os tempos viajam em `revealPresentation.timing`, sincronizando a opacidade do fundo e da carta com a pausa da partida.
+
+`ranked-reveal.js` e `ranked-reveal.css` exibem overlay fixo, fundo escurecido e carta sem painel/botoes. Usam os parametros do lab: 1200ms, pausa 420ms, escala 1.08, suavidade 100%. O renderer adia a mesa, logs, falas e resultado ate o fim da apresentacao; snapshots de presenca nao repetem o evento. O primeiro snapshot de uma conexao nao reproduz historico. Movimento reduzido mostra a carta sem giro. Apenas a mesa ranqueada carrega o overlay; personalizado e lab nao mudam.
+
 ### Arraste visual ranqueado e personalizado (2026-09-16)
 
 `ranked-card-physics.js` e `ranked-card-physics.css` sao compartilhados pelas mesas ativas do ranqueado e personalizado e habilitam arraste por Pointer Events nas cartas das maos. Uma copia visual preserva a frente/verso renderizada, acompanha o ponteiro com os coeficientes de mola/amortecimento do casual e retorna a origem ao soltar. Nao existem dropzones nem escrita no estado/Firebase. As escolhas de influencia/troca continuam como botoes. Ambos os `renderPlayers` sincronizam a origem por jogador/carta apos recriar a mesa; revelacao, substituicao ou remocao cancela a copia desatualizada. Escape, cancelamento de toque e perda de foco retornam a carta; movimento reduzido desativa a animacao de retorno. As salas de espera nao carregam o modulo.

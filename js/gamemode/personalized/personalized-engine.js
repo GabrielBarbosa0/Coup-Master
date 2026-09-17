@@ -619,6 +619,7 @@
         delete pending.challenge;
 
         if (card.role === claim) {
+            recordPublicReveal(state, actor, card, 'proof');
             challengerStats.failedChallenges += 1;
             if (isBlock || !isExchangeAction(pending.type)) {
                 replaceProvenInfluence(state, actor.uid, card.id);
@@ -628,7 +629,7 @@
             const lossPlan = isBlock
                 ? { reason: 'Contestação incorreta do bloqueio.', continuation: 'accept-block', count: 1 }
                 : getFailedActionChallengeLossPlan(state, challengerUid);
-            scheduleLoss(state, challengerUid, lossPlan.reason, lossPlan.continuation, now, lossPlan.count);
+            scheduleLoss(state, challengerUid, lossPlan.reason, lossPlan.continuation, now, lossPlan.count, true);
         } else {
             challengerStats.successfulChallenges += 1;
             ensureMatchStats(state, actor.uid).provenBluffs += 1;
@@ -717,10 +718,10 @@
         state.deck = Rules.shuffle([...state.deck, { id: provenCard.id, role: provenCard.role }]);
     }
 
-    function scheduleLoss(state, playerUid, reason, continuation, now = Date.now(), count = 1) {
+    function scheduleLoss(state, playerUid, reason, continuation, now = Date.now(), count = 1, requireChoice = false) {
         const offenderUid = state.pendingAction?.actorUid;
         if (offenderUid && offenderUid !== playerUid) bumpGrudge(state, playerUid, offenderUid, 2);
-        state.pendingLoss = { playerUid, count: Math.max(1, Number(count) || 1), reason, continuation };
+        state.pendingLoss = { playerUid, count: Math.max(1, Number(count) || 1), reason, continuation, requireChoice };
         state.phase = PHASES.INFLUENCE_LOSS;
         state.deadline = now + SETTINGS.selectionSeconds * 1000;
         state.updatedAt = now;
@@ -728,6 +729,14 @@
     }
 
     function revealInfluenceForLoss(state, player, card, now) {
+        const reason = state.pendingLoss?.reason;
+        const assassinationSecondLoss = state.pendingAction?.type === ACTIONS.ASSASSINATE
+            && state.pendingAction.targetUid === player.uid && state.pendingLoss?.count === 1
+            && (reason === 'Contestação aceita.' || reason === 'Contestação incorreta e vítima de assassinato.');
+        const kind = reason === 'Vítima de Golpe de Estado.' ? 'coup'
+            : reason === 'Vítima de assassinato.' || assassinationSecondLoss ? 'assassination'
+                : reason === 'Contestação aceita.' ? 'concession' : 'challengeLoss';
+        recordPublicReveal(state, player, card, kind);
         card.revealed = true;
         state.discard.push({ id: card.id, role: card.role });
         addLog(state, `${player.name} perdeu ${Rules.getRole(card.role).label}.`, 'loss', now);
@@ -738,11 +747,19 @@
         }
     }
 
+    function recordPublicReveal(state, player, card, kind) {
+        state.revealSequence = (Number(state.revealSequence) || 0) + 1;
+        state.publicReveals = [...(state.publicReveals || []), {
+            sequence: state.revealSequence, playerUid: player.uid, playerName: player.name,
+            role: card.role, cardId: card.id, kind
+        }].slice(-12);
+    }
+
     function resolveAutomaticLossIfForced(state, now = Date.now()) {
         const pendingLoss = state.pendingLoss;
         const player = getPlayer(state, pendingLoss?.playerUid);
         const hidden = player?.influences?.filter((card) => !card.revealed) || [];
-        if (!pendingLoss || !player || hidden.length === 0 || hidden.length > pendingLoss.count) return false;
+        if (!pendingLoss || pendingLoss.requireChoice || !player || hidden.length === 0 || hidden.length > pendingLoss.count) return false;
 
         hidden.slice(0, pendingLoss.count).forEach((card) => {
             revealInfluenceForLoss(state, player, card, now);
@@ -776,7 +793,11 @@
 
         if (finishIfWinner(state, now)) return state;
         if (resolveAutomaticLossIfForced(state, now)) return state;
-        if (pendingLoss.count > 0) return state;
+        if (pendingLoss.count > 0) {
+            state.deadline = now + SETTINGS.selectionSeconds * 1000;
+            state.updatedAt = now;
+            return state;
+        }
 
         const continuation = pendingLoss.continuation;
         state.pendingLoss = null;

@@ -65,14 +65,28 @@
             if (!current) return;
             try {
                 Engine.normalizeState(current);
+                if (Date.now() < (current.revealPresentation?.endsAt || 0)) return;
+                const revealSequence = Number(current.revealSequence) || 0;
                 mutator(current);
+                const reveals = (current.publicReveals || []).filter((event) => event.sequence > revealSequence);
+                if (reveals.length) {
+                    const timing = { durationMs: 1200, holdMs: 420, fadeInMs: 350, fadeOutMs: 450 };
+                    const duration = reveals.length * (timing.durationMs + timing.holdMs + timing.fadeInMs + timing.fadeOutMs);
+                    current.revealPresentation = {
+                        timing,
+                        id: `${current.matchId}:${current.revealSequence}`,
+                        events: reveals,
+                        endsAt: Date.now() + duration
+                    };
+                    if (current.deadline) current.deadline += duration;
+                }
                 current.updatedAt = Date.now();
                 return current;
             } catch (error) {
                 mutationError = error;
                 return;
             }
-        }).then((result) => {
+        }, undefined, false).then((result) => {
             if (mutationError) throw mutationError;
             if (!result.committed) throw new Error(t('ranked.actionNotConfirmed', {}, 'A ação não foi confirmada. Tente novamente.'));
             return db.ref(`salas/${roomCode}/lastActivity`).set(Date.now());
@@ -582,6 +596,7 @@
 
     function hasPendingBotDecision(state) {
         if (!state || state.status !== 'active') return false;
+        if (Date.now() < (state.revealPresentation?.endsAt || 0)) return false;
         if (state.phase === Rules.PHASES.TURN) return Boolean(Engine.getPlayer(state, Engine.getActiveUid(state))?.ai);
         if (state.phase === Rules.PHASES.RESPONSE) {
             const responseUids = Engine.getResponseUids(state);

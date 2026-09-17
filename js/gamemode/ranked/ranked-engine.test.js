@@ -55,6 +55,26 @@ function answerChallenge(state) {
     Engine.revealChallenge(state, challenge.playerUid, card.id, state.updatedAt + 50);
 }
 
+function testStealProofWaitsForChosenLoss() {
+    const state = createStartedStateWithThree();
+    state.players.u1.influences[0].role = Rules.ROLES.CAPTAIN;
+    Engine.performAction(state, 'u1', Rules.ACTIONS.STEAL, 'u2', 2000);
+    Engine.challengeAction(state, 'u2', 2100);
+    answerChallenge(state);
+    assert.equal(state.publicReveals.length, 1);
+    assert.equal(state.publicReveals[0].role, Rules.ROLES.CAPTAIN);
+    assert.equal(state.publicReveals[0].playerName, 'Alice');
+    assert.equal(state.phase, Rules.PHASES.INFLUENCE_LOSS);
+    assert.equal(state.pendingLoss.playerUid, 'u2');
+    const chosen = state.players.u2.influences[1];
+    assert.throws(() => Engine.loseInfluence(state, 'u3', chosen.id, 2200));
+    Engine.loseInfluence(state, 'u2', chosen.id, 2300);
+    assert.equal(state.publicReveals.length, 2);
+    assert.equal(state.publicReveals[1].cardId, chosen.id);
+    assert.equal(state.publicReveals[1].kind, 'challengeLoss');
+    assert.equal(state.players.u2.coins, 0);
+}
+
 function testImmediateIncome() {
     const state = createStartedState();
     Engine.performAction(state, 'u1', Rules.ACTIONS.INCOME, null, 2000);
@@ -276,7 +296,7 @@ function testProvenAssassinationExecutesAfterChallenge() {
     );
 }
 
-function testAssassinationTargetFailedChallengeLosesBothAutomatically() {
+function testAssassinationTargetFailedChallengeChoosesEachLoss() {
     const state = createStartedStateWithThree();
     state.players.u1.coins = 3;
     state.players.u1.influences[0].role = Rules.ROLES.ASSASSIN;
@@ -285,10 +305,21 @@ function testAssassinationTargetFailedChallengeLosesBothAutomatically() {
     Engine.challengeAction(state, 'u2', 2100);
 
     answerChallenge(state);
+    assert.equal(state.phase, Rules.PHASES.INFLUENCE_LOSS);
+    assert.equal(state.publicReveals.length, 1, 'Only proof is revealed before the next choice');
+    assert.equal(state.publicReveals[0].kind, 'proof');
+    assert.equal(Engine.countInfluences(state.players.u2), 2);
+    Engine.loseInfluence(state, 'u2', firstHiddenCard(state, 'u2').id, 2300);
+    assert.equal(Engine.countInfluences(state.players.u2), 1);
+    assert.equal(state.phase, Rules.PHASES.INFLUENCE_LOSS);
+    Engine.loseInfluence(state, 'u2', firstHiddenCard(state, 'u2').id, 2400);
     assert.equal(state.pendingLoss, null);
     assert.equal(state.players.u2.eliminated, true);
     assert.equal(Engine.countInfluences(state.players.u2), 0);
     assert.equal(state.discard.length, 2);
+    assert.deepEqual(state.publicReveals.map((event) => event.playerUid), ['u1', 'u2', 'u2']);
+    assert.equal(state.publicReveals[0].role, Rules.ROLES.ASSASSIN);
+    assert.deepEqual(state.publicReveals.map((event) => event.sequence), [1, 2, 3]);
     assert.equal(state.phase, Rules.PHASES.TURN);
     assert.equal(Engine.getActiveUid(state), 'u3');
 }
@@ -382,6 +413,10 @@ function testExamineEndsIfChallengerTargetIsEliminated() {
     Engine.challengeAction(state, 'u2', 2100);
 
     answerChallenge(state);
+    assert.equal(state.players.u2.eliminated, false);
+    assert.equal(state.pendingLoss.requireChoice, true);
+    assert.equal(state.publicReveals.length, 1);
+    Engine.advanceExpired(state, state.deadline + 1);
     assert.equal(state.players.u2.eliminated, true);
     assert.ok(state.discard.some((card) => card.id === 'u2-final'));
     assert.equal(state.pendingAction, null);
@@ -604,6 +639,7 @@ testVoluntaryContessaConcessionLosesBoth();
 testChallengeBotDelayAndTimeout();
 testLastCardStillRequiresChallengeChoice();
 testStealRequiresTwoTargetCoins();
+testStealProofWaitsForChosenLoss();
 testImmediateIncome();
 testReadyCountdownDelaysStart();
 testInitialDealSkipsAmbassador();
@@ -614,7 +650,7 @@ testSuccessfulChallengeCancelsBluff();
 testFailedChallengeResumesAction();
 testTruthfulBlockCancelsAssassination();
 testProvenAssassinationExecutesAfterChallenge();
-testAssassinationTargetFailedChallengeLosesBothAutomatically();
+testAssassinationTargetFailedChallengeChoosesEachLoss();
 testStealBlockScope();
 testTurnTimeoutUsesIncome();
 testExchangeSelection();
@@ -629,6 +665,6 @@ testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 
-console.log('ranked-engine: 30 testes aprovados');
+console.log('ranked-engine: 31 testes aprovados');
 
 
