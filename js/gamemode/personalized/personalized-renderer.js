@@ -1333,7 +1333,8 @@
 
     function renderState(nextState) {
         const previousState = state;
-        state = nextState;
+        // Callouts and language changes can redraw while a newer snapshot is animating.
+        state = nextState ? JSON.parse(JSON.stringify(nextState)) : null;
         if (!state) return;
         if (previousState?.exchangeRole !== state.exchangeRole) resetActionsGuide();
         hideLoading();

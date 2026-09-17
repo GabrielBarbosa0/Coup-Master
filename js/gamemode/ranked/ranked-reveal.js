@@ -2,6 +2,8 @@
     const Rules = root.CoupPersonalizedRules || root.CoupRankedRules;
     let initialized = false;
     let lastId = null;
+    let lastSequence = 0;
+    let matchId = null;
     let latest = null;
     let busy = false;
     let generation = 0;
@@ -96,19 +98,22 @@
     async function present(nextState, commit) {
         latest = nextState;
         const presentation = nextState?.revealPresentation;
-        if (!initialized) {
+        if (!initialized || (!busy && nextState?.matchId !== matchId)) {
             initialized = true;
+            matchId = nextState?.matchId;
             lastId = presentation?.id;
+            lastSequence = Number(nextState?.revealSequence) || 0;
             commit(nextState);
             return;
         }
         if (busy) return;
-        if (!presentation || presentation.id === lastId || presentation.endsAt <= Date.now()) {
+        const unseenEvents = (nextState?.publicReveals || []).filter((event) => event.sequence > lastSequence);
+        if (!unseenEvents.length && (!presentation || presentation.id === lastId)) {
             lastId = presentation?.id;
             commit(nextState);
             return;
         }
-        lastId = presentation.id;
+        lastId = presentation?.id;
         busy = true;
         const token = ++generation;
         previousFocus = document.activeElement;
@@ -123,15 +128,15 @@
         document.body.append(overlay);
         overlay.focus({ preventScroll: true });
         try {
-            const events = presentation.events || [];
-            // Older in-flight presentations keep their original shared deadline.
-            const timing = presentation.timing || { durationMs: 1200, holdMs: 420, fadeInMs: 0, fadeOutMs: 0 };
-            const total = timing.durationMs + timing.holdMs + timing.fadeInMs + timing.fadeOutMs;
-            const startsAt = presentation.endsAt - events.length * total;
-            for (const [index, event] of events.entries()) {
+            const events = unseenEvents.length ? unseenEvents : presentation?.events || [];
+            // Use the timing supplied by the room, with defaults for older clients.
+            const timing = presentation?.timing || { durationMs: 1200, holdMs: 420, fadeInMs: 350, fadeOutMs: 450 };
+            // Never skip a fresh reveal because its network timestamp is already old.
+            // Each card gets its full entrance before the table can adopt the snapshot.
+            for (const event of events) {
                 if (token !== generation) break;
-                if (Date.now() >= startsAt + (index + 1) * total) continue;
-                await animate(event, token, startsAt + index * total, timing);
+                await animate(event, token, Date.now(), timing);
+                lastSequence = Math.max(lastSequence, Number(event.sequence) || 0);
             }
         } finally {
             unlock();
