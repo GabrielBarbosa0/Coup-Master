@@ -1,9 +1,7 @@
 (function setupCasualRulesGuides(root) {
   const RULE_DRAW_MIN = 1;
   const RULE_DRAW_MAX = 5;
-  const RULE_DRAW_BUTTON_ENABLED = false;
-  const RULE_DRAW_ANIMATION_MS = 1700;
-  const RULE_DRAW_TICK_MS = 95;
+  const RULE_DRAW_BUTTON_ENABLED = true;
 
   const ALT_RULE_PAGE_IDS = [
     ['justica-lenta', 'falso-duque', 'assassino-declarado', 'sangue-frio', 'ladrao-de-tumulos'],
@@ -553,10 +551,12 @@
   let currentAltRulePages = [];
   let currentRuleIndex = 0;
   let currentAltIndex = 0;
-  let selectedRuleDrawCount = 1;
-  let lastRenderedDrawId = null;
-  let ruleDrawAnimationTimer = null;
-  let ruleDrawTickTimer = null;
+  let selectedRuleDrawCount = 5;
+  let roomRuleDraw = null;
+  let selectedRuleIds = [];
+  let pinnedRuleIds = [];
+  let savingRules = false;
+  let ruleCardObserver = null;
 
   function getElement(id) {
     return document.getElementById(id);
@@ -611,18 +611,6 @@
     return ALTERNATIVE_RULES.find((rule) => rule.id === ruleId) || null;
   }
 
-  function pickRandomRules(count) {
-    const availableRules = [...ALTERNATIVE_RULES];
-    const selectedRules = [];
-    const targetCount = clampRuleCount(count);
-
-    while (selectedRules.length < targetCount && availableRules.length > 0) {
-      const index = Math.floor(Math.random() * availableRules.length);
-      selectedRules.push(availableRules.splice(index, 1)[0]);
-    }
-
-    return selectedRules;
-  }
 
   function getResolvedDeckConfig(deckConfig = getDeckConfig()) {
     if (deckConfig && Object.keys(deckConfig).length > 0) return deckConfig;
@@ -980,6 +968,8 @@
   }
 
   function buildAlternativeRuleGuidePages() {
+    const ids = validRuleIds(roomRuleDraw?.ruleIds);
+    if (ids.length) return [{ pageIndex: 0, selected: true, rules: ids.map(getAlternativeRuleText) }];
     return ALT_RULE_PAGE_IDS.map((ruleIds, pageIndex) => ({
       pageIndex,
       rules: ruleIds.map(getAlternativeRuleText)
@@ -998,12 +988,12 @@
   function renderAlternativeRuleGuidePage(page) {
     const copy = getAlternativeRuleCopy();
     const pageIndex = page?.pageIndex || 0;
-    const intro = pageIndex === 0
+    const intro = pageIndex === 0 && !page?.selected
       ? `<p class="alternative-rules-intro">${escapeHtml(copy.intro)}</p>`
       : '';
 
     return `
-      <article class="alternative-rules-page" data-page="${pageIndex + 1}" style="${getAlternativeRuleStyleAttr(pageIndex)}">
+      <article class="alternative-rules-page${page?.selected ? ' is-room-selection' : ''}" data-page="${pageIndex + 1}" style="${getAlternativeRuleStyleAttr(pageIndex)}">
         <div class="alternative-rules-inner">
           <header class="alternative-rules-header">
             <h2 class="alternative-rules-title">${escapeHtml(copy.title)}</h2>
@@ -1017,6 +1007,14 @@
     `;
   }
 
+  function fitSelectedRuleCard(card) {
+    if (!card?.isConnected || !card.clientWidth) return;
+    const list = card.querySelector('.alternative-rule-list');
+    if (!list) return;
+    card.classList.remove('is-compact');
+    if (list.scrollHeight > list.clientHeight + 1) card.classList.add('is-compact');
+  }
+
   function resetAlternativeRuleFlipCard(flipCard, pages) {
     if (!flipCard || pages.length === 0) return;
 
@@ -1024,7 +1022,17 @@
 
     flipCard.classList.remove('is-flipped');
     if (frontFace) frontFace.innerHTML = renderAlternativeRuleGuidePage(pages[0]);
-    if (backFace) backFace.innerHTML = renderAlternativeRuleGuidePage(pages.length > 1 ? pages[1] : pages[0]);
+    if (backFace) backFace.innerHTML = pages[0].selected
+      ? '<img class="alternative-rules-back" src="assets/img/cards/base/back.png" alt="">'
+      : renderAlternativeRuleGuidePage(pages.length > 1 ? pages[1] : pages[0]);
+    ruleCardObserver?.disconnect();
+    const card = frontFace?.querySelector('.is-room-selection');
+    if (card) {
+      ruleCardObserver = new ResizeObserver(() => fitSelectedRuleCard(card));
+      ruleCardObserver.observe(card);
+      requestAnimationFrame(() => fitSelectedRuleCard(card));
+      document.fonts?.ready.then(() => fitSelectedRuleCard(card));
+    }
   }
 
   function advanceAlternativeRuleFlipCard(flipCard, pages, currentIndex, onIndexChange) {
@@ -1033,10 +1041,13 @@
     playSound('card-slide');
     flipCard.classList.toggle('is-flipped');
 
+    if (pages[0].selected) return;
+
     const nextCurrentIndex = (currentIndex + 1) % pages.length;
     onIndexChange(nextCurrentIndex);
 
     setTimeout(() => {
+      if (pages !== currentAltRulePages) return;
       const { frontFace, backFace } = getFlipFaces(flipCard);
       const nextPageIndex = (nextCurrentIndex + 1) % pages.length;
       const nextMarkup = renderAlternativeRuleGuidePage(pages[nextPageIndex]);
@@ -1091,17 +1102,6 @@
     }
   }
 
-  function stopRuleDrawAnimation() {
-    if (ruleDrawAnimationTimer) {
-      clearTimeout(ruleDrawAnimationTimer);
-      ruleDrawAnimationTimer = null;
-    }
-
-    if (ruleDrawTickTimer) {
-      clearInterval(ruleDrawTickTimer);
-      ruleDrawTickTimer = null;
-    }
-  }
 
   function getRuleDrawElements() {
     return {
@@ -1111,9 +1111,6 @@
       setup: getElement('ruleDrawSetup'),
       intro: getElement('ruleDrawIntro'),
       startButton: getElement('startRuleDrawBtn'),
-      animation: getElement('ruleDrawAnimation'),
-      rollingTitle: getElement('ruleDrawRollingTitle'),
-      results: getElement('ruleDrawResults'),
       countButtons: Array.from(document.querySelectorAll('.rule-draw-count-btn'))
     };
   }
@@ -1127,89 +1124,54 @@
     });
   }
 
-  function createRuleResultCard(rule, index) {
-    const localizedRule = getAlternativeRuleText(rule);
-    const card = document.createElement('article');
-    card.className = 'rule-draw-result-card';
 
-    const number = document.createElement('span');
-    number.className = 'rule-draw-result-number';
-    number.textContent = String(index + 1).padStart(2, '0');
-
-    const title = document.createElement('h3');
-    title.textContent = localizedRule.title;
-
-    const description = document.createElement('p');
-    description.textContent = localizedRule.description;
-
-    card.append(number, title, description);
-    return card;
+  function validRuleIds(ids) {
+    return [...new Set(Array.isArray(ids) ? ids : [])].filter((id) => getRuleById(id)).slice(0, 5);
   }
 
-  function renderRuleDrawResults(drawData) {
-    const { results, animation } = getRuleDrawElements();
-    if (!results) return;
+  function selectionCopy(pt, en) {
+    return getGuideLanguage() === 'en' ? en : pt;
+  }
 
-    if (animation) {
-      animation.hidden = true;
-      animation.classList.remove('is-spinning');
-    }
-
-    results.innerHTML = '';
-    const ruleIds = Array.isArray(drawData?.ruleIds) ? drawData.ruleIds : [];
-    const rules = ruleIds.map(getRuleById).filter(Boolean);
-
-    if (rules.length === 0) {
-      const empty = document.createElement('p');
-      empty.className = 'rule-draw-empty';
-      empty.textContent = t('casual.noRuleDraw', {}, 'Nenhum sorteio realizado nesta sala.');
-      results.appendChild(empty);
-      return;
-    }
-
-    const heading = document.createElement('p');
-    heading.className = 'rule-draw-result-heading';
-    heading.textContent = t('casual.drawnRulesForMatch', {}, 'Regras sorteadas para esta partida');
-    results.appendChild(heading);
-
-    rules.forEach((rule, index) => {
-      results.appendChild(createRuleResultCard(rule, index));
+  function renderRuleSelection() {
+    const list = getElement('ruleSelectionList');
+    if (!list) return;
+    const disabled = savingRules || !getIsAdmin() || isRankedMode();
+    list.innerHTML = ALTERNATIVE_RULES.map((rule) => {
+      const copy = getAlternativeRuleText(rule.id);
+      const selected = selectedRuleIds.includes(rule.id);
+      const pinned = pinnedRuleIds.includes(rule.id);
+      const pinLabel = selectionCopy('Fixar regra', 'Pin rule');
+      return `<div class="rule-selection-row">
+        <label><input type="checkbox" data-select-rule="${rule.id}" ${selected ? 'checked' : ''}
+          ${disabled || (!selected && selectedRuleIds.length >= selectedRuleDrawCount) ? 'disabled' : ''}>
+          <span><strong>${escapeHtml(copy.title)}</strong><span class="rule-selection-description">${escapeHtml(copy.description)}</span></span></label>
+        <label class="rule-selection-pin" title="${pinLabel}"><input type="checkbox" data-pin-rule="${rule.id}" ${pinned ? 'checked' : ''}
+          ${disabled || (!selected && selectedRuleIds.length >= selectedRuleDrawCount) ? 'disabled' : ''}>${selectionCopy('Fixar', 'Pin')}</label>
+      </div>`;
+    }).join('');
+    getElement('ruleSelectionCount').textContent = selectionCopy(
+      `${selectedRuleIds.length}/${selectedRuleDrawCount} selecionadas · ${pinnedRuleIds.length} fixadas`,
+      `${selectedRuleIds.length}/${selectedRuleDrawCount} selected · ${pinnedRuleIds.length} pinned`);
+    const apply = getElement('applyRuleSelectionBtn');
+    apply.textContent = selectionCopy('Aplicar seleção', 'Apply selection');
+    apply.disabled = disabled || selectedRuleIds.length !== selectedRuleDrawCount;
+    const reset = getElement('resetRuleSelectionBtn');
+    reset.textContent = selectionCopy('Restaurar regras padrão', 'Restore default rules');
+    reset.disabled = disabled;
+    const start = getElement('startRuleDrawBtn');
+    start.textContent = selectionCopy('Sortear regras', 'Draw rules');
+    start.disabled = disabled;
+    getRuleDrawElements().countButtons.forEach((button) => {
+      const count = Number(button.dataset.ruleCount);
+      button.disabled = disabled || count < pinnedRuleIds.length;
+      button.classList.toggle('is-selected', count === selectedRuleDrawCount);
+      button.setAttribute('aria-pressed', String(count === selectedRuleDrawCount));
     });
   }
 
-  function runRuleDrawAnimation(drawData) {
-    const { modal, animation, rollingTitle, results } = getRuleDrawElements();
-    const rules = Array.isArray(drawData?.ruleIds)
-      ? drawData.ruleIds.map(getRuleById).filter(Boolean)
-      : [];
-
-    stopRuleDrawAnimation();
-    if (!modal || !animation || !rollingTitle || rules.length === 0) {
-      renderRuleDrawResults(drawData);
-      return;
-    }
-
-    playSound('challenge-suspensful');
-    root.CoupModal?.open(modal);
-    animation.hidden = false;
-    animation.classList.add('is-spinning');
-    if (results) results.innerHTML = '';
-
-    let tick = 0;
-    ruleDrawTickTimer = setInterval(() => {
-      const rollingRule = ALTERNATIVE_RULES[tick % ALTERNATIVE_RULES.length];
-      rollingTitle.textContent = getAlternativeRuleText(rollingRule).title;
-      tick += 1;
-    }, RULE_DRAW_TICK_MS);
-
-    ruleDrawAnimationTimer = setTimeout(() => {
-      stopRuleDrawAnimation();
-      playSound('conquest');
-      renderRuleDrawResults(drawData);
-    }, RULE_DRAW_ANIMATION_MS);
-  }
-
-  function publishRuleDraw() {
+  async function publishRuleDraw(mode = 'random') {
+    if (savingRules) return;
     if (!getIsAdmin()) {
       showError(t('casual.ruleDrawHostOnly', {}, 'Apenas o Host pode sortear regras alternativas.'));
       return;
@@ -1227,23 +1189,44 @@
       return;
     }
 
-    const selectedRules = pickRandomRules(selectedRuleDrawCount);
+    let ids = validRuleIds(selectedRuleIds);
+    if (mode === 'random') {
+      ids = validRuleIds(pinnedRuleIds);
+      const available = ALTERNATIVE_RULES.map((rule) => rule.id).filter((id) => !ids.includes(id));
+      while (ids.length < selectedRuleDrawCount && available.length) {
+        ids.push(available.splice(Math.floor(Math.random() * available.length), 1)[0]);
+      }
+    }
+    if (mode !== 'reset' && ids.length !== selectedRuleDrawCount) return;
     const timestamp = Date.now();
-    const drawData = {
+    const drawData = mode === 'reset' ? null : {
       id: `${timestamp}-${Math.random().toString(16).slice(2)}`,
-      ruleIds: selectedRules.map((rule) => rule.id),
-      count: selectedRules.length,
+      ruleIds: ids,
+      pinnedRuleIds: pinnedRuleIds.filter((id) => ids.includes(id)),
+      count: ids.length,
       by: config.getCurrentUser?.()?.name || 'Host',
       timestamp
     };
 
-    playSound('pop');
-    db.ref(`salas/${roomCode}/lastActivity`).set(timestamp);
-    db.ref(`salas/${roomCode}/gameState/alternativeRuleDraw`).set(drawData)
-      .catch((error) => {
-        console.error('Erro ao sortear regras alternativas:', error);
-        showError(t('casual.ruleDrawError', {}, 'Nao foi possivel sortear regras alternativas.'));
-      });
+    savingRules = true;
+    renderRuleSelection();
+    getElement('ruleSelectionStatus').textContent = '';
+    try {
+      await db.ref(`salas/${roomCode}`).update({ lastActivity: timestamp, 'gameState/alternativeRuleDraw': drawData });
+      selectedRuleIds = drawData?.ruleIds || [];
+      pinnedRuleIds = drawData?.pinnedRuleIds || [];
+      if (!drawData) selectedRuleDrawCount = 5;
+      renderAlternativeRuleDraw({ state: { alternativeRuleDraw: drawData } });
+      getElement('ruleSelectionStatus').textContent = mode === 'reset'
+        ? selectionCopy('Regras padrão restauradas.', 'Default rules restored.')
+        : selectionCopy('Regras aplicadas à sala.', 'Rules applied to the room.');
+      playSound('pop');
+    } catch (error) {
+      getElement('ruleSelectionStatus').textContent = selectionCopy('Não foi possível salvar. Tente novamente.', 'Could not save. Please try again.');
+    } finally {
+      savingRules = false;
+      renderRuleSelection();
+    }
   }
 
   function openRuleDrawModal() {
@@ -1252,12 +1235,16 @@
 
     playSound('click');
     renderRuleDrawControls();
-    renderRuleDrawResults(getState().alternativeRuleDraw);
+    selectedRuleIds = validRuleIds(roomRuleDraw?.ruleIds);
+    pinnedRuleIds = validRuleIds(roomRuleDraw?.pinnedRuleIds).filter((id) => selectedRuleIds.includes(id));
+    selectedRuleDrawCount = selectedRuleIds.length || 5;
+    getElement('ruleSelectionStatus').textContent = '';
+    renderRuleSelection();
+    root.CoupModal?.close('settingsModal');
     root.CoupModal?.open(modal);
   }
 
   function closeRuleDrawModal() {
-    stopRuleDrawAnimation();
     playSound('click');
     root.CoupModal?.close('ruleDrawModal');
   }
@@ -1283,11 +1270,15 @@
 
     renderRuleDrawControls();
 
-    const drawData = options.state?.alternativeRuleDraw || getState().alternativeRuleDraw;
-    if (!drawData?.id || drawData.id === lastRenderedDrawId) return;
-
-    lastRenderedDrawId = drawData.id;
-    runRuleDrawAnimation(drawData);
+    const drawData = options.state ? options.state.alternativeRuleDraw : getState().alternativeRuleDraw;
+    const changed = JSON.stringify(roomRuleDraw) !== JSON.stringify(drawData || null);
+    roomRuleDraw = drawData ? JSON.parse(JSON.stringify(drawData)) : null;
+    if (changed || currentAltRulePages.length === 0) {
+      currentAltRulePages = buildAlternativeRuleGuidePages();
+      currentAltIndex = 0;
+      resetAlternativeRuleFlipCard(getElement('altRulesFlipCard'), currentAltRulePages);
+    }
+    renderRuleSelection();
   }
 
   function bindRuleDraw() {
@@ -1310,7 +1301,7 @@
 
     if (startButton && startButton.dataset.ruleDrawBound !== 'true') {
       startButton.dataset.ruleDrawBound = 'true';
-      startButton.addEventListener('click', publishRuleDraw);
+      startButton.addEventListener('click', () => publishRuleDraw('random'));
     }
 
     countButtons.forEach((button) => {
@@ -1319,11 +1310,33 @@
       button.addEventListener('click', () => {
         playSound('pop');
         setSelectedRuleDrawCount(button.dataset.ruleCount);
+        selectedRuleIds = [...pinnedRuleIds, ...selectedRuleIds.filter((id) => !pinnedRuleIds.includes(id))].slice(0, selectedRuleDrawCount);
+        renderRuleSelection();
       });
     });
 
     setSelectedRuleDrawCount(selectedRuleDrawCount);
     renderRuleDrawControls();
+    const list = getElement('ruleSelectionList');
+    if (list && !list.dataset.bound) {
+      list.dataset.bound = 'true';
+      list.addEventListener('change', (event) => {
+        if (savingRules || !getIsAdmin() || isRankedMode()) return;
+        const input = event.target;
+        const id = input.dataset.selectRule || input.dataset.pinRule;
+        if (!getRuleById(id)) return;
+        if (input.checked) {
+          if (!selectedRuleIds.includes(id) && selectedRuleIds.length < selectedRuleDrawCount) selectedRuleIds.push(id);
+          if (input.dataset.pinRule && selectedRuleIds.includes(id) && !pinnedRuleIds.includes(id)) pinnedRuleIds.push(id);
+        } else {
+          pinnedRuleIds = pinnedRuleIds.filter((value) => value !== id);
+          if (input.dataset.selectRule) selectedRuleIds = selectedRuleIds.filter((value) => value !== id);
+        }
+        renderRuleSelection();
+      });
+      getElement('applyRuleSelectionBtn').addEventListener('click', () => publishRuleDraw('manual'));
+      getElement('resetRuleSelectionBtn').addEventListener('click', () => publishRuleDraw('reset'));
+    }
   }
 
   function bindAlternativeRules() {

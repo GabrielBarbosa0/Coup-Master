@@ -54,7 +54,7 @@
 
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
-  <link rel="stylesheet" href="css/casual-mode.css?v=casual-preset-colors-v3">
+  <link rel="stylesheet" href="css/casual-mode.css?v=casual-rule-fit-v13">
   <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
   <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
   <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
@@ -99,10 +99,6 @@
 
           <button id="altRulesBtn" class="altRulesBtn" title="Regras Alternativas" data-i18n-title="casual.alternativeRules">
             <img src="assets/img/icons/parchment.svg" alt="Regras Alternativas" data-i18n-alt="casual.alternativeRules"></button>
-
-          <button id="ruleDrawBtn" class="ruleDrawBtn" title="Sortear Regras Alternativas" style="display: none;"
-            data-i18n-title="casual.drawAlternativeRules">
-            <img src="assets/img/icons/dice.svg" alt="Sortear Regras Alternativas" data-i18n-alt="casual.drawAlternativeRules"></button>
 
           <button id="spectatorBtn" class="spectatorBtn" title="Modo Espectador" style="display: none;"
             data-i18n-title="casual.spectatorMode">
@@ -291,37 +287,29 @@
     <div class="modal-content standard-modal-content rule-draw-modal-content">
       <button id="closeRuleDrawBtn" class="close-btn" type="button" aria-label="Fechar" data-i18n-aria-label="common.close">&times;</button>
       <div class="rule-draw-scroll">
-        <p class="rule-draw-kicker" data-i18n="casual.casualMode">Modo Casual</p>
         <h2 data-i18n="casual.ruleDrawTitle">Sorteador de Regras</h2>
-        <p id="ruleDrawIntro" class="rule-draw-intro">
-          Escolha até 5 regras alternativas para uma partida mais imprevisível. O resultado aparece para todos os jogadores.
-        </p>
 
         <section id="ruleDrawSetup" class="rule-draw-setup" aria-label="Configurar sorteio de regras"
           data-i18n-aria-label="casual.ruleDrawSetup">
-          <span class="rule-draw-label" data-i18n="casual.ruleCount">Quantidade de regras</span>
           <div class="rule-draw-count-options" role="group" aria-label="Quantidade de regras alternativas"
             data-i18n-aria-label="casual.ruleCountAlt">
-            <button class="rule-draw-count-btn is-selected" type="button" data-rule-count="1">1</button>
+            <button class="rule-draw-count-btn" type="button" data-rule-count="1">1</button>
             <button class="rule-draw-count-btn" type="button" data-rule-count="2">2</button>
             <button class="rule-draw-count-btn" type="button" data-rule-count="3">3</button>
             <button class="rule-draw-count-btn" type="button" data-rule-count="4">4</button>
-            <button class="rule-draw-count-btn" type="button" data-rule-count="5">5</button>
+            <button class="rule-draw-count-btn is-selected" type="button" data-rule-count="5">5</button>
           </div>
           <button id="startRuleDrawBtn" class="settings-action-btn rule-draw-start-btn" type="button">
             Sortear regras
           </button>
+          <p id="ruleSelectionCount" aria-live="polite"></p>
+          <div id="ruleSelectionList" class="rule-selection-list"></div>
+          <div class="rule-selection-actions">
+            <button id="applyRuleSelectionBtn" class="settings-action-btn rule-draw-start-btn" type="button">Aplicar seleção</button>
+            <button id="resetRuleSelectionBtn" class="icon-btn" type="button">Restaurar regras padrão</button>
+          </div>
         </section>
-
-        <section id="ruleDrawAnimation" class="rule-draw-animation" aria-live="polite" hidden>
-          <span class="rule-draw-orbit"></span>
-          <p class="rule-draw-animation-label">Sorteando regra...</p>
-          <strong id="ruleDrawRollingTitle" class="rule-draw-rolling-title">Preparando a mesa</strong>
-        </section>
-
-        <section id="ruleDrawResults" class="rule-draw-results" aria-live="polite">
-          <p class="rule-draw-empty">Nenhum sorteio realizado nesta sala.</p>
-        </section>
+        <p id="ruleSelectionStatus" role="status"></p>
       </div>
     </div>
   </div>
@@ -576,7 +564,10 @@
           </button>
         </div>
 
-        <div class="setting-row" style="justify-content: center; margin-top: 20px;">
+        <button id="ruleDrawBtn" class="settings-action-btn" type="button" style="display: none;">
+          <span data-i18n="casual.drawAlternativeRules">Sortear Regras Alternativas</span>
+        </button>
+        <div class="setting-row" style="justify-content: center;">
           <button id="openDeckConfigBtn"
             style="background: #1e90ff; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;">
             <span data-i18n="casual.configureDeck">Configurar Baralho</span>
@@ -944,7 +935,7 @@
   <script src="js/gamemode/casual/board-status.js?v=casual-board-status-share-v1" defer></script>
   <script src="js/gamemode/casual/visual-effects.js?v=casual-visual-effects-v1" defer></script>
   <script src="js/gamemode/casual/admin-controls.js?v=casual-host-controls-v2" defer></script>
-  <script src="js/gamemode/casual/rules-guides.js?v=dynamic-guides-v13" defer></script>
+  <script src="js/gamemode/casual/rules-guides.js?v=dynamic-guides-v19" defer></script>
   <script src="js/gamemode/casual/spectator-service.js?v=casual-spectator-service-v1" defer></script>
   <script src="js/gamemode/casual/quick-actions.js?v=self-quick-actions-v1" defer></script>
   <script src="js/gamemode/casual/settings-service.js?v=app-access-v1" defer></script>

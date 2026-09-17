@@ -1437,6 +1437,7 @@ h2 {
 
 .rule-draw-start-btn {
     width: 100%;
+    background: var(--accent);
 }
 
 .rule-draw-animation {
@@ -1530,6 +1531,62 @@ h2 {
     height: auto;
     cursor: pointer;
     perspective: 1000px;
+}
+
+.rule-selection-list {
+    display: grid;
+    padding-right: 8px;
+    max-height: 42vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.rule-selection-row {
+    display: flex;
+    align-items: start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(230, 238, 246, 0.14);
+    text-align: left;
+}
+
+.rule-selection-row label {
+    display: flex;
+    align-items: start;
+    gap: 8px;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.rule-selection-row > label:first-child { flex: 1; }
+.rule-selection-row input { flex-shrink: 0; margin-top: 4px; accent-color: var(--accent); }
+.rule-selection-row strong { font-size: 14px; }
+.rule-selection-description { display: block; font: 14px/1.4 Arial, sans-serif; margin-top: 4px; }
+.rule-selection-row .rule-selection-pin {
+    align-items: center;
+    gap: 6px;
+    min-height: 20px;
+    font-size: 12px;
+    line-height: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.rule-selection-pin input { width: 13px; height: 13px; margin: 0; }
+.rule-selection-actions { display: grid; gap: 10px; }
+.rule-selection-actions button { justify-content: center; white-space: normal; }
+#ruleSelectionCount, #ruleSelectionStatus { margin: 4px 0; font-size: 13px; }
+#ruleSelectionStatus { display: none; text-align: center; }
+#ruleDrawModal button:disabled { opacity: 0.45; cursor: not-allowed; }
+#altRulesModal .alternative-rules-back { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+#altRulesModal .is-room-selection .alternative-rule-list {
+    overflow-y: auto;
+    align-content: safe center;
+}
+#altRulesModal .is-room-selection.is-compact .alternative-rule-entry {
+    font-size: calc(var(--alt-guide-rule-size) * 0.9);
+}
+#altRulesModal .is-room-selection.is-compact .alternative-rule-list {
+    gap: 2cqw;
 }
 
 /* Botão de Fechar: Usando a classe .close-btn existente */
@@ -2410,8 +2467,32 @@ h2 {
     box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.25), 0 0 12px rgba(30, 144, 255, 0.16);
 }
 
-#openDeckConfigBtn {
-    min-height: 36px;
+#settingsModal #openDeckConfigBtn,
+#settingsModal #ruleDrawBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--accent);
+}
+
+#settingsModal #ruleDrawBtn {
+    background: #232a33;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    padding: 9px 10px;
+    transition: background 0.2s;
+}
+
+#settingsModal #ruleDrawBtn:hover {
+    background: #2c3540;
+    transform: none;
+    filter: none;
+}
+
+#openDeckConfigBtn,
+#settingsModal #ruleDrawBtn {
+    min-height: 40px;
     font-size: 14px;
 }
 
@@ -2459,7 +2540,8 @@ h2 {
         min-width: 0;
     }
 
-    #openDeckConfigBtn {
+    #openDeckConfigBtn,
+    #settingsModal #ruleDrawBtn {
         font-size: 12px;
     }
 }
