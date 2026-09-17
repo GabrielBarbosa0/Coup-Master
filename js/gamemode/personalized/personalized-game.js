@@ -273,6 +273,28 @@
             .sort((left, right) => right.score - left.score)[0].target;
     }
 
+    function chooseProfitableBluff(state, bot, stealTarget, attackTarget) {
+        const { honesty } = getPersonality(bot);
+        const caution = hiddenInfluences(bot).length === 1 ? 0.85 : 1;
+        if (Math.random() >= 0.65 * ((1 - honesty) ** 0.85) * caution) return null;
+        const { ACTIONS } = Rules;
+        const candidates = [
+            { type: ACTIONS.TAX, targetUid: null, weight: 3 },
+            ...(stealTarget ? [{ type: ACTIONS.STEAL, targetUid: stealTarget.uid, weight: 3 }] : []),
+            ...(bot.coins >= 3 && attackTarget ? [{
+                type: ACTIONS.ASSASSINATE, targetUid: attackTarget.uid,
+                weight: hiddenInfluences(attackTarget).length === 1 ? 4 : 2
+            }] : [])
+        ].filter((action) => Rules.isActionAvailable(state, action.type)
+            && !hasRole(bot, Rules.getAction(action.type).claim));
+        let draw = Math.random() * candidates.reduce((sum, action) => sum + action.weight, 0);
+        for (const action of candidates) {
+            draw -= action.weight;
+            if (draw < 0) return { type: action.type, targetUid: action.targetUid };
+        }
+        return null;
+    }
+
     function chooseBotAction(state, bot) {
         const { ACTIONS, ROLES, SETTINGS } = Rules;
         const stealTarget = chooseTarget(state, bot, 'steal');
@@ -286,6 +308,9 @@
             return { type: ACTIONS.COUP, targetUid: attackTarget.uid };
         }
 
+        // Consider a profitable lie before a held Duke monopolizes every turn.
+        const bluff = chooseProfitableBluff(state, bot, stealTarget, attackTarget);
+        if (bluff) return bluff;
         if (shouldClaimRole(bot, ROLES.DUKE, 1.2)) return { type: ACTIONS.TAX, targetUid: null };
 
         if (stealTarget && shouldClaimRole(bot, ROLES.CAPTAIN)) {
@@ -361,7 +386,10 @@
         const owned = claims.find((role) => hasRole(bot, role));
         if (owned && Math.random() > 0.08) return owned;
         const { honesty } = getPersonality(bot);
-        const bluffChance = ((1 - honesty) ** 1.5) * 0.28;
+        const facingAssassination = state.pendingAction?.type === Rules.ACTIONS.ASSASSINATE
+            && state.pendingAction.targetUid === bot.uid;
+        const defenseWeight = facingAssassination && hiddenInfluences(bot).length === 1 ? 0.9 : 0.7;
+        const bluffChance = ((1 - honesty) ** 0.9) * defenseWeight;
         return Math.random() < bluffChance ? claims[Math.floor(Math.random() * claims.length)] : null;
     }
 

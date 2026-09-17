@@ -11,6 +11,12 @@ Commit base da atualizacao parcial: `9ffcbaf` (`suporte ao discord`)
 
 ## 1. Sumario Executivo
 
+### Blefes em beneficio proprio (2026-09-16)
+
+Ranqueado e personalizado consideram um blefe lucrativo antes de priorizar cartas reais: Taxar, Extorquir ou Assassinar, apenas com personagem ausente da propria mao e custo/alvo legal. Probabilidade de entrar nessa selecao: `0.65 * (1 - honesty)^0.85`, reduzida em 15% com uma unica influencia. Pesos: Taxar 3, Extorquir 3, Assassinar 2 (4 contra alvo com uma influencia). Golpe obrigatorio e a preferencia existente por golpe com 7 moedas permanecem anteriores a essa etapa. Fora dela, a selecao anterior continua valendo.
+
+Blefes de bloqueio em interesse proprio usam `0.7 * (1 - honesty)^0.9`, ou `0.9 * (1 - honesty)^0.9` quando o bot enfrenta assassinato com sua ultima influencia. Cartas reais continuam prioritarias nos bloqueios. A protecao de terceiros, reciprocidade e contestacoes nao mudam. Honestidade maxima nao blefa. `bot-bluffing.test.js` verifica taxas por honestidade em cenario fixo, custos, alvos, golpe obrigatorio e independencia das cartas ocultas adversarias; as taxas nao representam todas as situacoes de uma partida.
+
 ### Revelacao na Sala Personalizada (2026-09-16)
 
 A mesa personalizada tambem carrega `ranked-reveal.js` e `ranked-reveal.css`, selecionando `CoupPersonalizedRules` para os assets. Seu motor registra os mesmos eventos publicos e aguarda a escolha de influencia depois da prova; o controlador pausa transacoes e bots durante `revealPresentation` e preserva os prazos. Titulo PT/EN, fade-in 350ms, giro 1200ms, pausa 420ms e fade-out 450ms sao compartilhados. As esperas nao carregam o overlay. `personalizedState`, controles de host e Reiniciar partida com os mesmos participantes permanecem inalterados.
