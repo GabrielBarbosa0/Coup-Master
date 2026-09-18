@@ -1220,11 +1220,6 @@
         }
 
         face.innerHTML = root.CoupRulesGuides.renderDynamicGuidePage(page);
-        if (page.type === 'characters') {
-            const gap = state?.exchangeRole === Rules.ROLES.INQUISITOR ? '5.5%'
-                : state?.exchangeRole === Rules.ROLES.AMBASSADOR ? '6.5%' : null;
-            if (gap) face.querySelector('.guide-page')?.style.setProperty('--guide-list-gap', gap);
-        }
     }
 
     function renderRoomCode() {

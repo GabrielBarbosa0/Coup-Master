@@ -740,13 +740,13 @@
     return GUIDE_PAGE_STYLES[pageType] || GUIDE_PAGE_STYLES.characters;
   }
 
-  function getDynamicGuideStyleAttr(pageType) {
-    const style = getGuidePageStyle(pageType);
+  function getDynamicGuideStyleAttr(pageType, overrides = {}) {
+    const style = { ...getGuidePageStyle(pageType), ...overrides };
     return [
       `--guide-title-size: ${style.titleSize}cqw`,
-      `--guide-name-size: ${style.nameSize}cqw`,
-      `--guide-body-size: ${style.bodySize}cqw`,
-      `--guide-portrait-size: ${style.portraitSize}%`,
+      `--guide-name-size: ${formatStyleNumber(style.nameSize)}cqw`,
+      `--guide-body-size: ${formatStyleNumber(style.bodySize)}cqw`,
+      `--guide-portrait-size: ${formatStyleNumber(style.portraitSize)}%`,
       `--guide-list-gap: ${style.listGap}%`,
       `--guide-content-width: ${style.contentWidth}%`,
       `--guide-list-offset: ${style.listOffset}%`,
@@ -896,6 +896,13 @@
   function renderDynamicGuidePage(page) {
     const preparedPage = prepareDynamicGuidePage(page);
     const isTurnSummary = preparedPage.type === 'actions';
+    const compactBase = preparedPage.type === 'characters' && preparedPage.entries.length <= 5;
+    const hasInquisitor = preparedPage.entries?.some((entry) => entry.cardType === 'inquisidor' && !entry.muted);
+    const characterStyle = compactBase ? {
+      titleSize: 9, nameSize: hasInquisitor ? 4.2 : 4.4,
+      bodySize: hasInquisitor ? 4 : 4.1, portraitSize: 17,
+      listGap: 3, contentWidth: 100, listOffset: 0
+    } : {};
     const centeredClass = CENTER_REMAINING_GUIDE_CARDS && preparedPage.hasHiddenEntries
       ? ' removed-layout-centered'
       : ' removed-layout-distributed';
@@ -917,7 +924,7 @@
     }
 
     return `
-      <article class="${classes}" style="${getDynamicGuideStyleAttr(preparedPage.type)}">
+      <article class="${classes}" style="${getDynamicGuideStyleAttr(preparedPage.type, characterStyle)}">
         <div class="guide-inner">
           <h2 class="guide-title">${escapeHtml(preparedPage.title)}</h2>
           <div class="guide-list">
