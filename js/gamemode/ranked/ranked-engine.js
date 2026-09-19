@@ -933,7 +933,10 @@
         const pendingLoss = state.pendingLoss;
         const player = getPlayer(state, pendingLoss?.playerUid);
         const hidden = player?.influences?.filter((card) => !card.revealed) || [];
-        if (!pendingLoss || pendingLoss.requireChoice || !player || hidden.length === 0 || hidden.length > pendingLoss.count) return false;
+        const onlyOneCardRemains = hidden.length === 1;
+        if (!pendingLoss || !player || hidden.length === 0
+            || (pendingLoss.requireChoice && !onlyOneCardRemains)
+            || (!onlyOneCardRemains && hidden.length > pendingLoss.count)) return false;
 
         hidden.slice(0, pendingLoss.count).forEach((card) => {
             revealInfluenceForLoss(state, player, card, now);

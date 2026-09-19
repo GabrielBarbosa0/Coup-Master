@@ -88,6 +88,27 @@
         return node;
     }
 
+    function highlightPlayerNames(text) {
+        const fragment = document.createDocumentFragment();
+        const names = [...new Set(Engine.getPlayers(state || {}).map((player) => player.name).filter(Boolean))]
+            .sort((a, b) => b.length - a.length);
+        if (!names.length) {
+            fragment.append(document.createTextNode(String(text || '')));
+            return fragment;
+        }
+        const escaped = names.map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        const pattern = new RegExp(`(?<![\\p{L}\\p{N}_])(${escaped.join('|')})(?![\\p{L}\\p{N}_])`, 'gu');
+        const value = String(text || '');
+        let offset = 0;
+        for (const match of value.matchAll(pattern)) {
+            fragment.append(document.createTextNode(value.slice(offset, match.index)));
+            fragment.append(element('strong', 'rank-action-player-name', match[0]));
+            offset = match.index + match[0].length;
+        }
+        fragment.append(document.createTextNode(value.slice(offset)));
+        return fragment;
+    }
+
     function t(key, params = {}, fallback = '') {
         const translated = root.CoupLanguage?.t?.(key, params);
         return translated && translated !== key ? translated : fallback || key;
@@ -1662,12 +1683,12 @@
         }
 
         function setPhaseText(titleText, descriptionText = '') {
-            title.textContent = titleText;
+            title.replaceChildren(highlightPlayerNames(titleText));
             description.replaceChildren();
             const lines = Array.isArray(descriptionText) ? descriptionText : [descriptionText];
             lines.filter(Boolean).forEach((line, index) => {
                 if (index > 0) description.append(document.createElement('br'));
-                description.append(line instanceof Node ? line : document.createTextNode(line));
+                description.append(line instanceof Node ? line : highlightPlayerNames(line));
             });
             description.hidden = !lines.some(Boolean);
         }
@@ -1782,6 +1803,8 @@
             'rank-starter-overlay-result',
             starter ? t('ranked.playerStarts', { name: starter.name }, `${starter.name} começa.`) : t('ranked.choosingPlayer', {}, 'Escolhendo jogador...')
         ));
+        const starterResult = panel.querySelector('.rank-starter-overlay-result');
+        starterResult.replaceChildren(highlightPlayerNames(starterResult.textContent));
         overlay.append(panel);
         if (!existing) document.body.append(overlay);
     }
@@ -1813,6 +1836,7 @@
             element('h2', '', winner ? t('ranked.playerWon', { name: winner.name }, `${winner.name} venceu`) : t('ranked.matchFinished', {}, 'Partida encerrada'))
         );
         heading.querySelector('h2').id = 'rankMatchResultsTitle';
+        heading.querySelector('h2').replaceChildren(highlightPlayerNames(heading.querySelector('h2').textContent));
         body.append(heading);
         renderMatchResults(body);
         playConquestSfxForResults();
@@ -2228,6 +2252,7 @@
         log.replaceChildren();
         (state.log || []).forEach((entry) => {
             const item = element('div', `rank-log-entry is-${entry.type || 'info'}`, translateLogMessage(entry.message));
+            item.replaceChildren(highlightPlayerNames(translateLogMessage(entry.message)));
             log.append(item);
         });
         const turnNumber = document.getElementById('rankTurnNumber');
