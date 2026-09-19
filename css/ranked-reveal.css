@@ -15,7 +15,7 @@
 
 .rank-reveal-card {
     grid-area: 1 / 1;
-    width: min(190px, 42vw, 35vh);
+    width: min(273.6px, 60.48vw, 50.4vh);
     aspect-ratio: 5 / 7;
     object-fit: cover;
     border-radius: 9px;
