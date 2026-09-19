@@ -17,6 +17,9 @@
 
     const BOT_DECISION_MIN_DELAY_MS = 3060;
     const BOT_DECISION_RANDOM_DELAY_MS = 1020;
+    const BOT_RESPONSE_MIN_DELAY_MS = 550;
+    const BOT_RESPONSE_RANDOM_DELAY_MS = 1250;
+    const BOT_RESPONSE_DEADLINE_BUFFER_MS = 650;
     const MATCHMAKING_TICK_MS = 650;
 
     function t(key, params = {}, fallback = '') {
@@ -561,6 +564,24 @@
             .map((card) => card.id);
     }
 
+    function chooseRandomResponder(players) {
+        if (!players.length) return null;
+        return players[Math.floor(Math.random() * players.length)];
+    }
+
+    function getBotDecisionDelay(state, now = Date.now()) {
+        if (state.phase === Rules.PHASES.CHALLENGE_REVEAL) {
+            return Math.max(0, state.pendingAction.challenge.revealAfter - now);
+        }
+        if ([Rules.PHASES.RESPONSE, Rules.PHASES.BLOCK_CHALLENGE].includes(state.phase)) {
+            const randomizedDelay = BOT_RESPONSE_MIN_DELAY_MS
+                + Math.floor(Math.random() * BOT_RESPONSE_RANDOM_DELAY_MS);
+            const availableTime = Number(state.deadline || 0) - now - BOT_RESPONSE_DEADLINE_BUFFER_MS;
+            return Math.max(100, Math.min(randomizedDelay, availableTime));
+        }
+        return BOT_DECISION_MIN_DELAY_MS + Math.floor(Math.random() * BOT_DECISION_RANDOM_DELAY_MS);
+    }
+
     function applyNextBotDecision(state, now) {
         Engine.normalizeState(state);
         if (state.status !== 'active') return false;
@@ -580,7 +601,7 @@
             const bots = Engine.getAlivePlayers(state).filter((player) => (
                 player.ai && responseUids.includes(player.uid)
             ));
-            const bot = bots[0];
+            const bot = chooseRandomResponder(bots);
             if (!bot) return false;
             const blockClaim = chooseBotBlockClaim(state, bot);
             if (blockClaim) {
@@ -602,7 +623,7 @@
             const bots = Engine.getAlivePlayers(state).filter((player) => (
                 player.ai && player.uid !== blockerUid && !pending?.passes?.[player.uid]
             ));
-            const bot = bots[0];
+            const bot = chooseRandomResponder(bots);
             if (!bot) return false;
             if (shouldChallengeClaim(state, bot, pending.block.claim, blockerUid, pending.actorUid === bot.uid)) {
                 Engine.challengeBlock(state, bot.uid, now);
@@ -677,9 +698,7 @@
         root.setInterval(() => {
             if (!hasPendingBotDecision(rankedState) || botActionPending) return;
             botActionPending = true;
-            const delay = rankedState.phase === Rules.PHASES.CHALLENGE_REVEAL
-                ? Math.max(0, rankedState.pendingAction.challenge.revealAfter - Date.now())
-                : BOT_DECISION_MIN_DELAY_MS + Math.floor(Math.random() * BOT_DECISION_RANDOM_DELAY_MS);
+            const delay = getBotDecisionDelay(rankedState);
             root.setTimeout(() => {
                 transaction((state) => {
                     if (!applyNextBotDecision(state, Date.now())) {
