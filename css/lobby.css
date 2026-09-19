@@ -320,7 +320,8 @@ h2 {
 
 .logout-confirm-content {
     width: min(340px, calc(100vw - 36px));
-    border: 1px solid rgba(230, 238, 246, 0.14);
+    border: 2px solid rgba(133, 154, 177, 0.25);
+    background: #232a33;
     text-align: center;
 }
 
@@ -1480,6 +1481,7 @@ button {
 
 .leaderboard-content {
     background: #232a33;
+    border: 2px solid rgba(133, 154, 177, 0.25);
     display: flex;
     flex-direction: column;
     gap: 16px;

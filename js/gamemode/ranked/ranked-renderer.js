@@ -88,6 +88,27 @@
         return node;
     }
 
+    function highlightPlayerNames(text) {
+        const fragment = document.createDocumentFragment();
+        const names = [...new Set(Engine.getPlayers(state || {}).map((player) => player.name).filter(Boolean))]
+            .sort((a, b) => b.length - a.length);
+        if (!names.length) {
+            fragment.append(document.createTextNode(String(text || '')));
+            return fragment;
+        }
+        const escaped = names.map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        const pattern = new RegExp(`(?<![\\p{L}\\p{N}_])(${escaped.join('|')})(?![\\p{L}\\p{N}_])`, 'gu');
+        const value = String(text || '');
+        let offset = 0;
+        for (const match of value.matchAll(pattern)) {
+            fragment.append(document.createTextNode(value.slice(offset, match.index)));
+            fragment.append(element('strong', 'rank-action-player-name', match[0]));
+            offset = match.index + match[0].length;
+        }
+        fragment.append(document.createTextNode(value.slice(offset)));
+        return fragment;
+    }
+
     function t(key, params = {}, fallback = '') {
         const translated = root.CoupLanguage?.t?.(key, params);
         return translated && translated !== key ? translated : fallback || key;
@@ -152,7 +173,7 @@
         examine: calloutKeys('examine', 4),
         block: calloutKeys('block', 5),
         contessaBlock: calloutKeys('contessaBlock', 5),
-        challenge: calloutKeys('challenge', 6),
+        challenge: calloutKeys('challenge', 5),
         assassinationReaction: calloutKeys('assassinationReaction', 10),
         coupReaction: calloutKeys('coupReaction', 10),
         eliminationReaction: calloutKeys('eliminationReaction', 20),
@@ -1583,12 +1604,12 @@
         }
 
         function setPhaseText(titleText, descriptionText = '') {
-            title.textContent = titleText;
+            title.replaceChildren(highlightPlayerNames(titleText));
             description.replaceChildren();
             const lines = Array.isArray(descriptionText) ? descriptionText : [descriptionText];
             lines.filter(Boolean).forEach((line, index) => {
                 if (index > 0) description.append(document.createElement('br'));
-                description.append(line instanceof Node ? line : document.createTextNode(line));
+                description.append(line instanceof Node ? line : highlightPlayerNames(line));
             });
             description.hidden = !lines.some(Boolean);
         }
@@ -1705,6 +1726,8 @@
             'rank-starter-overlay-result',
             starter ? t('ranked.playerStarts', { name: starter.name }, `${starter.name} começa.`) : t('ranked.choosingPlayer', {}, 'Escolhendo jogador...')
         ));
+        const starterResult = panel.querySelector('.rank-starter-overlay-result');
+        starterResult.replaceChildren(highlightPlayerNames(starterResult.textContent));
         overlay.append(panel);
         if (!existing) document.body.append(overlay);
     }
@@ -1736,6 +1759,7 @@
             element('h2', '', winner ? t('ranked.playerWon', { name: winner.name }, `${winner.name} venceu`) : t('ranked.matchFinished', {}, 'Partida encerrada'))
         );
         heading.querySelector('h2').id = 'rankMatchResultsTitle';
+        heading.querySelector('h2').replaceChildren(highlightPlayerNames(heading.querySelector('h2').textContent));
         body.append(heading);
         renderMatchResults(body);
         playConquestSfxForResults();
@@ -1969,14 +1993,19 @@
         if (!pending || !action || !actor) return '';
         const actorText = highlightNames ? '\uFFF0actor\uFFF1' : actor.name;
         const targetName = highlightNames ? '\uFFF0target\uFFF1' : target?.name;
+        const label = actionLabel(pending.type);
+        const roleSuffix = pending.claim ? ` (${roleLabel(pending.claim)})` : '';
+        const actionName = roleSuffix && label.endsWith(roleSuffix)
+            ? label.slice(0, -roleSuffix.length)
+            : label;
         const claim = pending.claim ? t('ranked.actionClaim', { role: roleLabel(pending.claim) }, ` declarando ${roleLabel(pending.claim)}`) : '';
         const targetText = target ? t('ranked.actionTarget', { name: targetName }, ` ${targetName}`) : '';
         const text = t('ranked.pendingAction', {
             actor: actorText,
-            action: actionLabel(pending.type),
+            action: actionName,
             claim,
             target: targetText
-        }, `${actorText} escolheu ${actionLabel(pending.type)}${targetText}${claim}.`);
+        }, `${actorText} escolheu ${actionName}${targetText}${claim}.`);
         if (!highlightNames) return text;
         const fragment = document.createDocumentFragment();
         // Resolve name placeholders as text nodes, never as player-supplied HTML.
@@ -2020,6 +2049,17 @@
         return true;
     }
 
+    function responseButton(kind, text, role) {
+        const button = element('button', 'rank-action-btn');
+        button.type = 'button';
+        button.dataset.actionType = kind;
+        if (role) button.dataset.actionRole = role;
+        const icon = element('span', 'rank-action-icon');
+        icon.setAttribute('aria-hidden', 'true');
+        button.append(icon, element('span', 'rank-action-label', text));
+        return button;
+    }
+
     function renderActionResponse(container) {
         const pending = state.pendingAction;
         if (!canCurrentPlayerRespond(pending.actorUid)) {
@@ -2028,18 +2068,18 @@
 
         const actions = element('div', 'rank-response-actions');
         if (pending.claim && !pending.claimConfirmed) {
-            const challenge = element('button', 'rank-danger-btn', t('ranked.challenge', {}, 'Contestar'));
+            const challenge = responseButton('challenge', t('ranked.challenge', {}, 'Contestar'));
             challenge.type = 'button';
             challenge.addEventListener('click', () => controller.challengeAction());
             actions.append(challenge);
         }
         Engine.getBlockClaimsForPlayer(state, currentUid).forEach((role) => {
-            const block = element('button', 'rank-secondary-btn', t('ranked.blockWith', { role: roleLabel(role) }, `Bloquear: ${roleLabel(role)}`));
+            const block = responseButton('block', t('ranked.blockWith', { role: roleLabel(role) }, `Bloquear: ${roleLabel(role)}`), role);
             block.type = 'button';
             block.addEventListener('click', () => controller.declareBlock(role));
             actions.append(block);
         });
-        const pass = element('button', 'rank-primary-btn', t('ranked.pass', {}, 'Passar'));
+        const pass = responseButton('pass', t('ranked.pass', {}, 'Passar'));
         pass.type = 'button';
         pass.addEventListener('click', () => controller.passResponse());
         actions.append(pass);
@@ -2053,10 +2093,10 @@
             return;
         }
         const actions = element('div', 'rank-response-actions');
-        const challenge = element('button', 'rank-danger-btn', t('ranked.challengeBlock', {}, 'Contestar bloqueio'));
+        const challenge = responseButton('challenge', t('ranked.challengeBlock', {}, 'Contestar bloqueio'));
         challenge.type = 'button';
         challenge.addEventListener('click', () => controller.challengeBlock());
-        const pass = element('button', 'rank-primary-btn', t('ranked.acceptBlock', {}, 'Aceitar bloqueio'));
+        const pass = responseButton('pass', t('ranked.acceptBlock', {}, 'Aceitar bloqueio'));
         pass.type = 'button';
         pass.addEventListener('click', () => controller.passResponse());
         actions.append(challenge, pass);
@@ -2135,6 +2175,7 @@
         log.replaceChildren();
         (state.log || []).forEach((entry) => {
             const item = element('div', `rank-log-entry is-${entry.type || 'info'}`, translateLogMessage(entry.message));
+            item.replaceChildren(highlightPlayerNames(translateLogMessage(entry.message)));
             log.append(item);
         });
         const turnNumber = document.getElementById('rankTurnNumber');

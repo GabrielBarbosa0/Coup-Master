@@ -606,11 +606,6 @@
                 root.location.href = 'login.html';
                 return;
             }
-            if (user.isAnonymous) {
-                redirectToLobby(t('personalizedGame.googleRequired', {}, 'A Sala Personalizada exige login com uma conta Google.'));
-                return;
-            }
-
             currentUser = user;
             Renderer.init({ controller, currentUid: user.uid, roomCode });
             joinPersonalizedRoom(user).catch((error) => redirectToLobby(error.message));

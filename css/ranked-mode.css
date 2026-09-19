@@ -1087,7 +1087,7 @@ button.rank-card {
     white-space: pre-line;
 }
 
-.rank-phase-description .rank-action-player-name {
+.rank-action-player-name {
     color: var(--rank-text);
     font-weight: 800;
     overflow-wrap: anywhere;
@@ -1102,6 +1102,16 @@ button.rank-card {
 }
 
 .rank-interaction.rank-waiting-interaction {
+    align-content: center;
+}
+
+.rank-stage:has(.rank-actions-grid) {
+    display: flex;
+    flex-direction: column;
+}
+
+.rank-stage:has(.rank-actions-grid) .rank-interaction {
+    flex: 1;
     align-content: center;
 }
 
@@ -1236,6 +1246,12 @@ button.rank-card {
 .rank-action-btn[data-action-type="examine"] .rank-action-icon { mask-image: url('../assets/img/icons/eye.svg'); }
 
 .rank-action-btn[data-action-role="duque"] { --rank-action-color: #ff72c8; }
+.rank-action-btn[data-action-type="challenge"] { --rank-action-color: #ff5d72; }
+.rank-action-btn[data-action-type="pass"] { --rank-action-color: #46d993; }
+.rank-action-btn[data-action-type="challenge"] .rank-action-icon { mask-image: url('../assets/img/icons/pan_tool.svg'); }
+.rank-action-btn[data-action-type="pass"] .rank-action-icon { mask-image: url('../assets/img/icons/thumb_up.svg'); }
+.rank-action-btn[data-action-type="block"] .rank-action-icon { mask-image: url('../assets/img/icons/block.svg'); }
+.rank-action-btn[data-action-role="condessa"] { --rank-action-color: #38d9e6; }
 .rank-action-btn[data-action-role="capitao"] { --rank-action-color: #42a5ff; }
 .rank-action-btn[data-action-role="assassino"] { --rank-action-color: #ff5d72; }
 .rank-action-btn[data-action-role="embaixador"] { --rank-action-color: #46d993; }
@@ -3585,6 +3601,7 @@ body[data-rank-view="game"] .rank-timer {
 
     body[data-rank-view="game"] .rank-players {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin: 0;
     }
 
     body[data-rank-view="game"] .rank-player-slot.is-compact-hidden {
@@ -3596,7 +3613,7 @@ body[data-rank-view="game"] .rank-timer {
     }
 
     .rank-main-stack {
-        gap: 2px;
+        gap: 6px;
     }
 
     .floating-chat-actions {

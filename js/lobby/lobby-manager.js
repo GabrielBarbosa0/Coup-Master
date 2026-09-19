@@ -103,7 +103,7 @@ function isAnonymousSession() {
 }
 
 function requiresGoogleAccount(mode) {
-    return CoupGameModes.isAutomated(mode);
+    return CoupGameModes.isRanked(mode);
 }
 
 function getModeHelpText(mode, user) {
@@ -117,9 +117,7 @@ function getModeHelpText(mode, user) {
     }
 
     if (CoupGameModes.isPersonalized(normalizedMode)) {
-        return canAccessAutomated
-            ? t('lobby.personalizedNoteAvailable')
-            : t('lobby.personalizedNoteLocked');
+        return t('lobby.personalizedNoteAvailable');
     }
 
     return t('lobby.casualNote');
