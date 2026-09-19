@@ -1960,7 +1960,7 @@
             button.dataset.actionType = actionType;
             if (action.claim) {
                 const roleSuffix = `(${roleLabel(action.claim)})`;
-                if (!button.textContent.endsWith(roleSuffix)) {
+                if (actionType !== ACTIONS.ASSASSINATE && !button.textContent.endsWith(roleSuffix)) {
                     button.textContent += ` ${roleSuffix}`;
                 }
                 button.dataset.actionRole = action.claim;

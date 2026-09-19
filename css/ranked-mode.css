@@ -1208,11 +1208,11 @@ button.rank-card {
 }
 
 .rank-action-btn[data-action-type] {
-    display: grid;
-    grid-template-columns: 27px minmax(0, 1fr);
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 9px;
-    text-align: left;
+    gap: 5px;
+    text-align: center;
     white-space: normal;
     overflow-wrap: anywhere;
     min-width: 0;
@@ -1223,10 +1223,15 @@ button.rank-card {
 
 .rank-action-label { min-width: 0; color: inherit; }
 
+@media (min-width: 981px) {
+    .rank-action-label { font-size: 0.9em; }
+}
+
 .rank-action-icon {
     display: block;
-    width: 27px;
-    height: 27px;
+    flex-shrink: 0;
+    width: 25px;
+    height: 25px;
     background-color: currentColor;
     mask-position: center;
     mask-repeat: no-repeat;
