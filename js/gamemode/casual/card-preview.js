@@ -1,6 +1,10 @@
 (function setupCasualCardPreview(root) {
   let previewBound = false;
   let dependencies = {};
+  let longPress = null;
+  let suppressContextMenuUntil = 0;
+  const LONG_PRESS_MS = 800;
+  const LONG_PRESS_MOVE_TOLERANCE = 8;
 
   function getPreviewElements() {
     const modal = document.getElementById('cardPreviewModal');
@@ -45,6 +49,10 @@
   }
 
   function handleContextMenu(event) {
+    if (Date.now() < suppressContextMenuUntil) {
+      event.preventDefault();
+      return;
+    }
     if (event.pointerType === 'touch' || event.pointerType === 'pen') return;
 
     event.preventDefault();
@@ -64,6 +72,54 @@
     }
   }
 
+  function clearLongPress() {
+    if (!longPress) return;
+    clearTimeout(longPress.timer);
+    longPress = null;
+  }
+
+  function resolvePreviewCard(cardElement) {
+    const getState = dependencies.getState || (() => root.localGameState);
+    const findCardById = dependencies.findCardById || root.findCardById;
+    const shouldShowBack = dependencies.shouldShowBack || (() => false);
+    if (typeof findCardById !== 'function') return null;
+
+    const cardData = findCardById(getState(), cardElement?.dataset.cardId);
+    return cardData && !shouldShowBack(cardData) ? cardData : null;
+  }
+
+  function handlePointerDown(event) {
+    if (!event.isPrimary || event.button !== 0) return;
+    const cardElement = event.target.closest?.('.card');
+    const cardData = resolvePreviewCard(cardElement);
+    if (!cardElement || !cardData) return;
+
+    clearLongPress();
+    longPress = {
+      cardElement,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      timer: setTimeout(() => {
+        if (!longPress || !cardElement.isConnected) return;
+        root.CoupDragDrop?.finishCompatibleDrag?.();
+        suppressContextMenuUntil = Date.now() + 800;
+        open(cardData);
+        clearLongPress();
+      }, LONG_PRESS_MS)
+    };
+  }
+
+  function handlePointerMove(event) {
+    if (!longPress || event.pointerId !== longPress.pointerId) return;
+    const distance = Math.hypot(event.clientX - longPress.startX, event.clientY - longPress.startY);
+    if (distance > LONG_PRESS_MOVE_TOLERANCE) clearLongPress();
+  }
+
+  function handlePointerEnd(event) {
+    if (longPress && event.pointerId === longPress.pointerId) clearLongPress();
+  }
+
   function bindControls() {
     const { closeButton, flipCard } = getPreviewElements();
 
@@ -77,6 +133,11 @@
 
     if (!previewBound) {
       document.addEventListener('contextmenu', handleContextMenu);
+      document.addEventListener('pointerdown', handlePointerDown);
+      document.addEventListener('pointermove', handlePointerMove);
+      document.addEventListener('pointerup', handlePointerEnd);
+      document.addEventListener('pointercancel', handlePointerEnd);
+      document.addEventListener('dragstart', clearLongPress);
       previewBound = true;
     }
   }
