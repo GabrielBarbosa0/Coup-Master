@@ -812,6 +812,9 @@ textarea::-moz-selection,
     --rank-tilt-y: 0deg;
     --rank-card-scale: 1;
     --rank-card-lift: 0px;
+    --rank-repel-x: 0px;
+    --rank-repel-y: 0px;
+    --rank-repel-rotation: 0deg;
     width: 62px;
     aspect-ratio: 2 / 3;
     display: block;
@@ -822,9 +825,10 @@ textarea::-moz-selection,
     border-radius: 6px;
     background: #fff;
     transform: perspective(820px)
-        translateY(var(--rank-card-lift))
+        translate(var(--rank-repel-x), calc(var(--rank-card-lift) + var(--rank-repel-y)))
         rotateX(var(--rank-tilt-x))
         rotateY(var(--rank-tilt-y))
+        rotateZ(var(--rank-repel-rotation))
         scale(var(--rank-card-scale));
     transform-style: preserve-3d;
     transition: transform 40ms ease, box-shadow 150ms ease, filter 150ms ease;

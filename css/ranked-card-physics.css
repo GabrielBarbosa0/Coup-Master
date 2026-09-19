@@ -8,6 +8,11 @@
     transform: none;
 }
 
+#rankPlayers .is-rank-physics-target {
+    z-index: 7;
+    transition: none;
+}
+
 .is-rank-card-dragging,
 .is-rank-card-dragging * {
     cursor: grabbing !important;

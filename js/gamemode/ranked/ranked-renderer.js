@@ -28,6 +28,10 @@
     let bgmFadeToken = 0;
     let rankCardTooltipEl = null;
     let cardInteractionsBound = false;
+    let rankCardLongPress = null;
+    let suppressRankCardContextMenuUntil = 0;
+    const RANK_CARD_LONG_PRESS_MS = 800;
+    const RANK_CARD_LONG_PRESS_MOVE_TOLERANCE = 8;
     let rankProfileLoadKey = 0;
     let sideStackResizeObserver = null;
     let languageEventsBound = false;
@@ -821,7 +825,45 @@
 
         document.addEventListener('dragstart', (event) => {
             if (!event.target.closest('.rank-card, img')) return;
+            clearRankCardLongPress();
             event.preventDefault();
+        });
+
+        document.addEventListener('pointerdown', (event) => {
+            if (!event.isPrimary || event.button !== 0) return;
+            const cardElement = event.target.closest('.rank-card');
+            if (!cardElement) return;
+
+            clearRankCardLongPress();
+            rankCardLongPress = {
+                cardElement,
+                pointerId: event.pointerId,
+                startX: event.clientX,
+                startY: event.clientY,
+                timer: setTimeout(() => {
+                    if (!rankCardLongPress || !cardElement.isConnected) return;
+                    root.CoupRankedCardPhysics?.cancel?.();
+                    hideRankCardTooltip();
+                    suppressRankCardContextMenuUntil = Date.now() + 800;
+                    openRankCardPreviewModal(getRankCardPreviewData(cardElement));
+                    clearRankCardLongPress();
+                }, RANK_CARD_LONG_PRESS_MS)
+            };
+        });
+
+        document.addEventListener('pointermove', (event) => {
+            if (!rankCardLongPress || event.pointerId !== rankCardLongPress.pointerId) return;
+            const distance = Math.hypot(
+                event.clientX - rankCardLongPress.startX,
+                event.clientY - rankCardLongPress.startY
+            );
+            if (distance > RANK_CARD_LONG_PRESS_MOVE_TOLERANCE) clearRankCardLongPress();
+        });
+
+        ['pointerup', 'pointercancel'].forEach((type) => {
+            document.addEventListener(type, (event) => {
+                if (rankCardLongPress?.pointerId === event.pointerId) clearRankCardLongPress();
+            });
         });
 
         document.addEventListener('contextmenu', (event) => {
@@ -830,15 +872,12 @@
             if (!cardElement && !rankImage) return;
 
             event.preventDefault();
+            if (Date.now() < suppressRankCardContextMenuUntil) return;
             if (event.pointerType === 'touch' || event.pointerType === 'pen') return;
             if (!cardElement) return;
 
             hideRankCardTooltip();
-            openRankCardPreviewModal({
-                label: cardElement.dataset.cardLabel || t('ranked.hiddenCard', {}, 'Carta oculta'),
-                image: cardElement.dataset.previewImage || 'assets/img/cards/base/back.png',
-                hidden: cardElement.dataset.previewHidden === 'true'
-            });
+            openRankCardPreviewModal(getRankCardPreviewData(cardElement));
         });
 
         document.addEventListener('keydown', (event) => {
@@ -1209,6 +1248,20 @@
             event.preventDefault();
             flip();
         });
+    }
+
+    function clearRankCardLongPress() {
+        if (!rankCardLongPress) return;
+        clearTimeout(rankCardLongPress.timer);
+        rankCardLongPress = null;
+    }
+
+    function getRankCardPreviewData(cardElement) {
+        return {
+            label: cardElement.dataset.cardLabel || t('ranked.hiddenCard', {}, 'Carta oculta'),
+            image: cardElement.dataset.previewImage || 'assets/img/cards/base/back.png',
+            hidden: cardElement.dataset.previewHidden === 'true'
+        };
     }
 
     function getActionsGuidePages() {
