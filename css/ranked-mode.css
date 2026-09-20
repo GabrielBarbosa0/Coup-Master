@@ -821,7 +821,7 @@ textarea::-moz-selection,
     position: relative;
     padding: 0;
     overflow: hidden;
-    border: 2px solid #4f6ea6;
+    border: 1px solid #4f6ea6;
     border-radius: 6px;
     background: #fff;
     transform: perspective(820px)
@@ -3832,12 +3832,12 @@ body[data-rank-view="game"] .rank-timer {
     }
 
     body[data-rank-view="game"] .rank-players {
-        grid-auto-rows: 126px;
+        grid-auto-rows: 120px;
     }
 
     body[data-rank-view="game"] .rank-player-slot {
-        min-height: 126px;
-        padding: 7px;
+        min-height: 120px;
+        padding: 7px 7px 4px;
     }
 
     body[data-rank-view="game"] .rank-player-header {
@@ -3872,7 +3872,7 @@ body[data-rank-view="game"] .rank-timer {
     body[data-rank-view="game"] .rank-opponent-hand,
     body[data-rank-view="game"] .rank-choice-cards {
         min-height: 76px;
-        margin-top: 6px;
+        margin-top: 3px;
     }
 
     body[data-rank-view="game"] .rank-card {
@@ -3995,8 +3995,8 @@ body[data-rank-view="game"] .rank-timer {
     display: block;
     width: 52px;
     height: 80px;
-    border: 2px solid #3b5998;
-    border-radius: 6px;
+    border: 1px solid #3b5998;
+    border-radius: 5px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.34);
     object-fit: cover;
 }
@@ -4253,7 +4253,6 @@ body[data-rank-view="game"] .rank-timer {
     .rank-table-resources-enabled .rank-deck-image img {
         width: 56px;
         height: auto;
-        border-radius: 4px;
     }
 
     .rank-table-resources-enabled .rank-deck-card p {
@@ -4263,17 +4262,18 @@ body[data-rank-view="game"] .rank-timer {
 
 @media (max-width: 560px) {
     .rank-table-resources-enabled .rank-side-stack {
-        grid-template-rows: 126px;
+        grid-template-rows: 120px;
     }
 
     .rank-table-resources-enabled .rank-resource-card {
-        height: 126px;
-        min-height: 126px;
+        height: 120px;
+        min-height: 120px;
     }
 
     .rank-table-resources-enabled .rank-deck-image img {
-        width: 44px;
-        height: 68px;
+        width: 50px;
+        height: 74px;
+        border-radius: 4px;
     }
 }
 
