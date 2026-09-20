@@ -1,4 +1,10 @@
 (function setupCasualPlayerRenderer(root) {
+  let latestPlayers = {};
+  let latestMaxPlayers = 8;
+  let mobileSeatMediaQuery = null;
+  let landscapeSeatMediaQuery = null;
+  let responsiveSeatListenersBound = false;
+
   const DEFAULT_PLAYER = Object.freeze({
     online: false,
     hand: [],
@@ -47,43 +53,103 @@
     }
   }
 
-  function getVisibleMobileSeatLimit(players = {}, maxPlayers = 8) {
-    let highestOccupiedSlot = 0;
+  function getMobileSeatLayout(players = {}, maxPlayers = 8) {
+    const occupied = [];
+    const empty = [];
 
     for (let pid = 1; pid <= maxPlayers; pid++) {
       const player = players[pid];
-      if (player && (player.online || player.uid)) {
-        highestOccupiedSlot = pid;
-      }
+      (player && (player.online || player.uid) ? occupied : empty).push(pid);
     }
 
-    const minimumVisibleSlots = 4;
-    const visibleSlots = Math.max(minimumVisibleSlots, highestOccupiedSlot);
+    const visible = [...occupied];
+    if (occupied.length > 4 && occupied.length % 2 === 1 && empty.length) {
+      visible.push(empty[0]);
+    }
+    const visibleSeats = new Set(visible);
 
-    return Math.min(maxPlayers, Math.ceil(visibleSlots / 2) * 2);
+    return {
+      visible,
+      hidden: Array.from({ length: maxPlayers }, (_, index) => index + 1)
+        .filter((pid) => !visibleSeats.has(pid)),
+      columns: occupied.length <= 3 ? 1 : 2,
+      showBottomRow: visible.some((pid) => pid > 4)
+    };
+  }
+
+  function getLandscapeSeatLayout(players = {}, maxPlayers = 8) {
+    const occupied = [];
+    const empty = [];
+
+    for (let pid = 1; pid <= maxPlayers; pid++) {
+      const player = players[pid];
+      (player && (player.online || player.uid) ? occupied : empty).push(pid);
+    }
+
+    let visibleCount = occupied.length;
+    if (occupied.length <= 2) visibleCount = 2;
+    if (occupied.length > 4 && occupied.length % 2 === 1) visibleCount += 1;
+    const visible = [...occupied, ...empty.slice(0, Math.max(0, visibleCount - occupied.length))];
+    const visibleSeats = new Set(visible);
+    const topCount = visible.filter((pid) => pid <= 4).length;
+    const bottomCount = visible.filter((pid) => pid > 4).length;
+
+    return {
+      visible,
+      hidden: Array.from({ length: maxPlayers }, (_, index) => index + 1)
+        .filter((pid) => !visibleSeats.has(pid)),
+      topColumns: Math.max(1, topCount),
+      bottomColumns: Math.max(1, bottomCount),
+      showBottomRow: bottomCount > 0
+    };
   }
 
   function applyMobileSeatVisibility(players = {}, maxPlayers = 8) {
-    const visibleLimit = getVisibleMobileSeatLimit(players, maxPlayers);
+    latestPlayers = players;
+    latestMaxPlayers = maxPlayers;
+    mobileSeatMediaQuery = mobileSeatMediaQuery || root.matchMedia?.('(max-width: 700px)') || null;
+    landscapeSeatMediaQuery = landscapeSeatMediaQuery
+      || root.matchMedia?.('(orientation: landscape) and (max-width: 1024px) and (max-height: 560px)')
+      || null;
+    if (!responsiveSeatListenersBound) {
+      const refresh = () => applyMobileSeatVisibility(latestPlayers, latestMaxPlayers);
+      mobileSeatMediaQuery?.addEventListener('change', refresh);
+      landscapeSeatMediaQuery?.addEventListener('change', refresh);
+      responsiveSeatListenersBound = true;
+    }
+
+    const isLandscape = Boolean(landscapeSeatMediaQuery?.matches);
+    const isMobile = Boolean(mobileSeatMediaQuery?.matches) && !isLandscape;
+    const isResponsive = isMobile || isLandscape;
+    const layout = isLandscape
+      ? getLandscapeSeatLayout(players, maxPlayers)
+      : getMobileSeatLayout(players, maxPlayers);
+    const topRow = document.querySelector('.player-row-top');
     const bottomRow = document.querySelector('.player-row-bottom');
     const centerArea = document.getElementById('centerArea');
+
+    const visibleSeats = new Set(layout.visible);
 
     for (let pid = 1; pid <= maxPlayers; pid++) {
       const playerEl = document.getElementById(`player-${pid}`);
       if (!playerEl) continue;
 
-      const shouldHideOnMobile = pid > visibleLimit;
+      const shouldHideOnMobile = isResponsive && !visibleSeats.has(pid);
       playerEl.classList.toggle('mobile-seat-hidden', shouldHideOnMobile);
       playerEl.setAttribute('aria-hidden', shouldHideOnMobile ? 'true' : 'false');
     }
 
-    if (bottomRow) {
-      bottomRow.classList.toggle('mobile-row-hidden', visibleLimit <= 4);
+    if (isLandscape) {
+      topRow?.style.setProperty('--casual-seat-columns', layout.topColumns);
+      bottomRow?.style.setProperty('--casual-seat-columns', layout.bottomColumns);
+    } else {
+      topRow?.style.removeProperty('--casual-seat-columns');
+      bottomRow?.style.removeProperty('--casual-seat-columns');
     }
 
-    if (centerArea) {
-      centerArea.classList.toggle('extra-row-hidden', visibleLimit <= 4);
-    }
+    centerArea?.classList.toggle('single-column-players', isMobile && layout.columns === 1);
+    bottomRow?.classList.toggle('mobile-row-hidden', isResponsive && !layout.showBottomRow);
+    centerArea?.classList.toggle('extra-row-hidden', isResponsive && !layout.showBottomRow);
   }
 
   function ensurePlayerHeader(playerEl) {
@@ -275,7 +341,8 @@
   root.CoupRenderPlayers = {
     renderPlayers,
     renderEmptyPlayerSlot,
-    getVisibleMobileSeatLimit,
+    getMobileSeatLayout,
+    getLandscapeSeatLayout,
     applyMobileSeatVisibility
   };
 })(window);

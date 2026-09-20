@@ -3572,6 +3572,10 @@ body.hide-religion .game-table .center-area {
         gap: var(--table-gap);
     }
 
+    .game-table .center-area.single-column-players .player-row {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+
     .game-table .player-row.mobile-row-hidden,
     .game-table .player-area.mobile-seat-hidden {
         display: none !important;
@@ -3727,6 +3731,10 @@ body.hide-religion .game-table .center-area {
 
     .game-table .table-toolbar {
         min-height: clamp(28px, 8dvh, 32px);
+    }
+
+    .game-table .player-row {
+        grid-template-columns: repeat(var(--casual-seat-columns, 4), minmax(0, 1fr));
     }
 
     .game-table .center-area.extra-row-hidden {
