@@ -12,6 +12,7 @@
   let config = {};
   let cardFanLayoutFrame = null;
   let resizeBound = false;
+  const pendingCardOrigins = new Map();
 
   function getGraveyardCardsElement() {
     return config.getGraveyardCardsElement?.() || null;
@@ -107,10 +108,18 @@
     });
   }
 
-  function captureHandCardPositions() {
+  function getReflowCards() {
+    return document.querySelectorAll([
+      '.game-table [data-hand] [data-card-id]',
+      '.game-table .graveyard-cards [data-card-id]'
+    ].join(', '));
+  }
+
+  function captureCardPositions() {
     const positions = new Map();
-    document.querySelectorAll('.game-table [data-hand] [data-card-id]').forEach((card) => {
-      const rect = card.closest('.slot')?.getBoundingClientRect();
+    getReflowCards().forEach((card) => {
+      const motionElement = card.closest('.slot') || card;
+      const rect = motionElement.getBoundingClientRect();
       if (rect?.width && rect?.height) {
         positions.set(String(card.dataset.cardId), { left: rect.left, top: rect.top });
       }
@@ -118,27 +127,34 @@
     return positions;
   }
 
-  function animateHandReflow(previousPositions) {
+  function queueCardReflowOrigin(cardId, rect) {
+    if (!cardId || !rect?.width || !rect?.height) return;
+    pendingCardOrigins.set(String(cardId), { left: rect.left, top: rect.top });
+  }
+
+  function animateCardReflow(previousPositions) {
     if (!previousPositions?.size
       || root.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    document.querySelectorAll('.game-table [data-hand] [data-card-id]').forEach((card) => {
-      const previous = previousPositions.get(String(card.dataset.cardId));
-      const slot = card.closest('.slot');
-      if (!previous || !slot || typeof slot.animate !== 'function') return;
+    getReflowCards().forEach((card) => {
+      const cardId = String(card.dataset.cardId);
+      const previous = pendingCardOrigins.get(cardId) || previousPositions.get(cardId);
+      const motionElement = card.closest('.slot') || card;
+      pendingCardOrigins.delete(cardId);
+      if (!previous || typeof motionElement.animate !== 'function') return;
 
-      const current = slot.getBoundingClientRect();
+      const current = motionElement.getBoundingClientRect();
       const deltaX = previous.left - current.left;
       const deltaY = previous.top - current.top;
       if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) return;
 
-      const baseTransform = root.getComputedStyle(slot).transform;
+      const baseTransform = root.getComputedStyle(motionElement).transform;
       const restingTransform = baseTransform === 'none' ? '' : baseTransform;
-      slot.animate([
+      motionElement.animate([
         { transform: `translate(${deltaX}px, ${deltaY}px) ${restingTransform}`.trim() },
         { transform: restingTransform || 'none' }
       ], {
-        duration: 240,
+        duration: 280,
         easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
       });
     });
@@ -202,8 +218,9 @@
     updateGraveyardFanLayout,
     updateAllCardFans,
     scheduleCardFanLayout,
-    captureHandCardPositions,
-    animateHandReflow,
+    captureCardPositions,
+    queueCardReflowOrigin,
+    animateCardReflow,
     resetBalatroElement,
     attachBalatroEffect
   };

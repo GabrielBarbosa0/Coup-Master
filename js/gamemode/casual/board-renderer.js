@@ -165,7 +165,7 @@ function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
 
-  const previousHandPositions = window.CoupVisualEffects?.captureHandCardPositions?.();
+  const previousCardPositions = window.CoupVisualEffects?.captureCardPositions?.();
 
   renderRoomModeLabel();
   renderAdminControls();
@@ -177,7 +177,7 @@ function renderAll() {
   clearDOM();
   renderPlayers(state);
   renderTable(state);
-  window.CoupVisualEffects?.animateHandReflow?.(previousHandPositions);
+  window.CoupVisualEffects?.animateCardReflow?.(previousCardPositions);
   window.CoupCasualDeal?.render(state);
 }
 

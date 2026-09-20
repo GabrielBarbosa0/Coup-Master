@@ -784,6 +784,12 @@
       return;
     }
 
+    if (data !== 'DECK_DRAW_ACTION' && compatibleDragState.ghost) {
+      root.CoupVisualEffects?.queueCardReflowOrigin?.(
+        data,
+        compatibleDragState.ghost.getBoundingClientRect()
+      );
+    }
     finishCompatibleDrag();
     handleCompatibleDrop(data, finalDropzone, false, dropResolution.options);
   }
