@@ -3622,7 +3622,7 @@ body.hide-religion .game-table .center-area {
     .game-table .points,
     .game-table .asylum-points {
         gap: 6px;
-        margin: 4px 0;
+        margin: 2px 0;
     }
 
     .game-table .points button,
