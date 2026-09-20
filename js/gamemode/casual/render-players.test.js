@@ -43,6 +43,18 @@ assert.deepEqual(normalize(layout(players([1, 2, 3, 4, 5]), 8)), {
   columns: 2,
   showBottomRow: true
 });
+assert.deepEqual(normalize(layout(players([1, 2, 4]), 8)), {
+  visible: [1, 2, 3, 4],
+  hidden: [5, 6, 7, 8],
+  columns: 2,
+  showBottomRow: false
+});
+assert.deepEqual(normalize(layout(players([1, 2, 4, 6, 8]), 8)), {
+  visible: [1, 2, 3, 4, 5, 6, 7, 8],
+  hidden: [],
+  columns: 2,
+  showBottomRow: true
+});
 
 assert.deepEqual(normalize(landscapeLayout(players([1]), 8)), {
   visible: [1, 2],
@@ -72,6 +84,13 @@ assert.deepEqual(normalize(landscapeLayout(players([1, 2, 3, 4]), 8)), {
   bottomColumns: 1,
   showBottomRow: false
 });
+assert.deepEqual(normalize(landscapeLayout(players([1, 2, 4]), 8)), {
+  visible: [1, 2, 3, 4],
+  hidden: [5, 6, 7, 8],
+  topColumns: 4,
+  bottomColumns: 1,
+  showBottomRow: false
+});
 assert.deepEqual(normalize(landscapeLayout(players([1, 2, 3, 4, 5]), 8)), {
   visible: [1, 2, 3, 4, 5, 6],
   hidden: [7, 8],
@@ -80,6 +99,13 @@ assert.deepEqual(normalize(landscapeLayout(players([1, 2, 3, 4, 5]), 8)), {
   showBottomRow: true
 });
 assert.deepEqual(normalize(landscapeLayout(players([1, 2, 3, 4, 5, 6, 7]), 8)), {
+  visible: [1, 2, 3, 4, 5, 6, 7],
+  hidden: [8],
+  topColumns: 4,
+  bottomColumns: 3,
+  showBottomRow: true
+});
+assert.deepEqual(normalize(landscapeLayout(players([1, 2, 3, 4, 5, 6, 7, 8]), 8)), {
   visible: [1, 2, 3, 4, 5, 6, 7, 8],
   hidden: [],
   topColumns: 4,

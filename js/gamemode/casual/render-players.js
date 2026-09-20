@@ -55,41 +55,41 @@
 
   function getMobileSeatLayout(players = {}, maxPlayers = 8) {
     const occupied = [];
-    const empty = [];
 
     for (let pid = 1; pid <= maxPlayers; pid++) {
       const player = players[pid];
-      (player && (player.online || player.uid) ? occupied : empty).push(pid);
+      if (player && (player.online || player.uid)) occupied.push(pid);
     }
 
-    const visible = [...occupied];
-    if (occupied.length > 4 && occupied.length % 2 === 1 && empty.length) {
-      visible.push(empty[0]);
+    const highestOccupiedSeat = occupied.reduce((highest, pid) => Math.max(highest, pid), 0);
+    let visibleCount = highestOccupiedSeat;
+    if (visibleCount > 4 && visibleCount % 2 === 1 && visibleCount < maxPlayers) {
+      visibleCount += 1;
     }
+    const visible = Array.from({ length: visibleCount }, (_, index) => index + 1);
     const visibleSeats = new Set(visible);
 
     return {
       visible,
       hidden: Array.from({ length: maxPlayers }, (_, index) => index + 1)
         .filter((pid) => !visibleSeats.has(pid)),
-      columns: occupied.length <= 3 ? 1 : 2,
+      columns: visible.length <= 3 ? 1 : 2,
       showBottomRow: visible.some((pid) => pid > 4)
     };
   }
 
   function getLandscapeSeatLayout(players = {}, maxPlayers = 8) {
     const occupied = [];
-    const empty = [];
 
     for (let pid = 1; pid <= maxPlayers; pid++) {
       const player = players[pid];
-      (player && (player.online || player.uid) ? occupied : empty).push(pid);
+      if (player && (player.online || player.uid)) occupied.push(pid);
     }
 
-    let visibleCount = occupied.length;
-    if (occupied.length <= 2) visibleCount = 2;
-    if (occupied.length > 4 && occupied.length % 2 === 1) visibleCount += 1;
-    const visible = [...occupied, ...empty.slice(0, Math.max(0, visibleCount - occupied.length))];
+    const highestOccupiedSeat = occupied.reduce((highest, pid) => Math.max(highest, pid), 0);
+    let visibleCount = Math.max(Math.min(2, maxPlayers), highestOccupiedSeat);
+    if (visibleCount === 5 && visibleCount < maxPlayers) visibleCount = 6;
+    const visible = Array.from({ length: visibleCount }, (_, index) => index + 1);
     const visibleSeats = new Set(visible);
     const topCount = visible.filter((pid) => pid <= 4).length;
     const bottomCount = visible.filter((pid) => pid > 4).length;
