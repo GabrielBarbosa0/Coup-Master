@@ -355,6 +355,16 @@
         return hiddenInfluences(player).some((card) => card.role === role);
     }
 
+    function isHandKnownByOpponent(state, player) {
+        const hidden = hiddenInfluences(player);
+        if (!hidden.length) return false;
+        if (hidden.length > 1 && new Set(hidden.map((card) => card.role)).size < hidden.length) return false;
+        return Object.entries(player.investigationExposure || {}).some(([observerUid, exposure]) => {
+            const observer = Engine.getPlayer(state, observerUid);
+            return observer && !observer.eliminated && hidden.every((card) => exposure?.[card.id] === card.role);
+        });
+    }
+
     function getKnownRoleCount(state, role) {
         const discarded = (state.discard || []).filter((card) => card.role === role).length;
         const revealed = Engine.getPlayers(state).reduce((total, player) => (
@@ -363,8 +373,9 @@
         return discarded + revealed;
     }
 
-    function shouldClaimRole(player, role, multiplier = 1) {
+    function shouldClaimRole(state, player, role, multiplier = 1) {
         if (hasRole(player, role)) return Math.random() > 0.08;
+        if (isHandKnownByOpponent(state, player)) return false;
         const { honesty } = getPersonality(player);
         const bluffChance = ((1 - honesty) ** 1.5) * 0.38 * multiplier;
         return Math.random() < bluffChance;
@@ -388,6 +399,7 @@
     }
 
     function chooseProfitableBluff(state, bot, stealTarget, attackTarget) {
+        if (isHandKnownByOpponent(state, bot)) return null;
         const { honesty } = getPersonality(bot);
         const caution = hiddenInfluences(bot).length === 1 ? 0.85 : 1;
         if (Math.random() >= 0.65 * ((1 - honesty) ** 0.85) * caution) return null;
@@ -425,25 +437,25 @@
         // Consider a profitable lie before a held Duke monopolizes every turn.
         const bluff = chooseProfitableBluff(state, bot, stealTarget, attackTarget);
         if (bluff) return bluff;
-        if (shouldClaimRole(bot, ROLES.DUKE, 1.2)) return { type: ACTIONS.TAX, targetUid: null };
+        if (shouldClaimRole(state, bot, ROLES.DUKE, 1.2)) return { type: ACTIONS.TAX, targetUid: null };
 
-        if (stealTarget && shouldClaimRole(bot, ROLES.CAPTAIN)) {
+        if (stealTarget && shouldClaimRole(state, bot, ROLES.CAPTAIN)) {
             return { type: ACTIONS.STEAL, targetUid: stealTarget.uid };
         }
 
-        if (bot.coins >= 3 && attackTarget && shouldClaimRole(bot, ROLES.ASSASSIN, 0.85)) {
+        if (bot.coins >= 3 && attackTarget && shouldClaimRole(state, bot, ROLES.ASSASSIN, 0.85)) {
             return { type: ACTIONS.ASSASSINATE, targetUid: attackTarget.uid };
         }
 
-        if (Rules.isActionAvailable(state, ACTIONS.EXAMINE) && shouldClaimRole(bot, ROLES.INQUISITOR, 0.7) && attackTarget && Math.random() < 0.45) {
+        if (Rules.isActionAvailable(state, ACTIONS.EXAMINE) && shouldClaimRole(state, bot, ROLES.INQUISITOR, 0.7) && attackTarget && Math.random() < 0.45) {
             return { type: ACTIONS.EXAMINE, targetUid: attackTarget.uid };
         }
 
-        if (Rules.isActionAvailable(state, ACTIONS.EXCHANGE_AMBASSADOR) && shouldClaimRole(bot, ROLES.AMBASSADOR, 0.7)) {
+        if (Rules.isActionAvailable(state, ACTIONS.EXCHANGE_AMBASSADOR) && shouldClaimRole(state, bot, ROLES.AMBASSADOR, 0.7)) {
             return { type: ACTIONS.EXCHANGE_AMBASSADOR, targetUid: null };
         }
 
-        if (Rules.isActionAvailable(state, ACTIONS.EXCHANGE_INQUISITOR) && shouldClaimRole(bot, ROLES.INQUISITOR, 0.55)) {
+        if (Rules.isActionAvailable(state, ACTIONS.EXCHANGE_INQUISITOR) && shouldClaimRole(state, bot, ROLES.INQUISITOR, 0.55)) {
             return { type: ACTIONS.EXCHANGE_INQUISITOR, targetUid: null };
         }
 
@@ -506,6 +518,9 @@
     function chooseBotBlockClaim(state, bot) {
         const claims = Engine.getBlockClaimsForPlayer(state, bot.uid);
         if (!claims.length) return null;
+        if (isHandKnownByOpponent(state, bot)) {
+            return claims.find((claim) => hasRole(bot, claim)) || null;
+        }
         if (shouldStayOutOfConflict(state, bot)) {
             if (state.pendingAction.type !== Rules.ACTIONS.STEAL || !claims.includes(Rules.ROLES.CAPTAIN)) return null;
             const favors = getFavorStrength(state, bot);

@@ -6,7 +6,7 @@ const Engine = require('./ranked-engine.js');
 let random = 0;
 const root = { CoupRankedRules: Rules, CoupRankedEngine: Engine, location: { search: '?room=TEST' } };
 const source = fs.readFileSync(require.resolve('./ranked-game.js'), 'utf8').replace('    boot();', `
-    root.test = { applyNextBotDecision, shouldChallengeClaim, chooseBotBlockClaim };
+    root.test = { applyNextBotDecision, shouldChallengeClaim, chooseBotBlockClaim, chooseBotAction };
 `);
 vm.runInNewContext(source, {
     window: root, document: { body: { dataset: {} } }, URLSearchParams,
@@ -90,6 +90,46 @@ const coup = fixture();
 Engine.performAction(coup, 'a', Rules.ACTIONS.COUP, 'b', 2000);
 assert.equal(coup.phase, Rules.PHASES.INFLUENCE_LOSS);
 assert.equal(root.test.applyNextBotDecision(coup, 2100), false);
+
+const exposed = fixture();
+exposed.players.c.influences[0].role = Rules.ROLES.CONTESSA;
+exposed.players.c.influences[1].revealed = true;
+exposed.players.c.investigationExposure = {
+    a: { [exposed.players.c.influences[0].id]: Rules.ROLES.CONTESSA }
+};
+exposed.players.c.coins = 0;
+random = 0;
+assert.equal(root.test.chooseBotAction(exposed, exposed.players.c).type, Rules.ACTIONS.INCOME);
+
+const exposedBlock = fixture();
+exposedBlock.players.c.influences[0].role = Rules.ROLES.CONTESSA;
+exposedBlock.players.c.influences[1].revealed = true;
+exposedBlock.players.c.investigationExposure = {
+    a: { [exposedBlock.players.c.influences[0].id]: Rules.ROLES.CONTESSA }
+};
+Engine.performAction(exposedBlock, 'a', Rules.ACTIONS.STEAL, 'c', 2000);
+random = 0;
+assert.equal(root.test.chooseBotBlockClaim(exposedBlock, exposedBlock.players.c), null);
+
+const fullyExposed = fixture();
+fullyExposed.players.c.influences[0].role = Rules.ROLES.CONTESSA;
+fullyExposed.players.c.influences[1].role = Rules.ROLES.CAPTAIN;
+fullyExposed.players.c.investigationExposure = {
+    a: Object.fromEntries(fullyExposed.players.c.influences.map((card) => [card.id, card.role]))
+};
+fullyExposed.players.c.coins = 0;
+random = 0;
+assert.equal(root.test.chooseBotAction(fullyExposed, fullyExposed.players.c).type, Rules.ACTIONS.INCOME);
+
+const ambiguousPair = fixture();
+ambiguousPair.players.c.influences.forEach((card) => { card.role = Rules.ROLES.CONTESSA; });
+ambiguousPair.players.c.investigationExposure = {
+    a: Object.fromEntries(ambiguousPair.players.c.influences.map((card) => [card.id, card.role]))
+};
+ambiguousPair.players.c.coins = 0;
+random = 0;
+assert.equal(root.test.chooseBotAction(ambiguousPair, ambiguousPair.players.c).type, Rules.ACTIONS.TAX);
+
 const ally = fixture();
 ally.players.c.influences[0].role = Rules.ROLES.CAPTAIN;
 Engine.performAction(ally, 'a', Rules.ACTIONS.STEAL, 'b', 2000);

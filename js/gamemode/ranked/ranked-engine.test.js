@@ -394,8 +394,16 @@ function testInquisitorExamine() {
     Engine.passResponse(state, 'u2', 2100);
     assert.equal(state.phase, Rules.PHASES.EXAMINE);
     assert.ok(state.pendingExamine.role);
+    const examined = { [state.pendingExamine.cardId]: state.pendingExamine.role };
     Engine.completeExamine(state, 'u1', false, 2200);
+    assert.deepEqual(state.players.u2.investigationExposure.u1, examined);
     assert.equal(Engine.getActiveUid(state), 'u2');
+
+    const replaced = createStartedState(Rules.ROLES.INQUISITOR);
+    Engine.performAction(replaced, 'u1', Rules.ACTIONS.EXAMINE, 'u2', 3000);
+    Engine.passResponse(replaced, 'u2', 3100);
+    Engine.completeExamine(replaced, 'u1', true, 3200);
+    assert.equal(replaced.players.u2.investigationExposure.u1, undefined);
 }
 
 function testExamineEndsIfChallengerTargetIsEliminated() {

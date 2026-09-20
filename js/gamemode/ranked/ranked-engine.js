@@ -82,6 +82,15 @@
         }
         Object.values(state.players).forEach((player) => {
             player.influences = Array.isArray(player.influences) ? player.influences : [];
+            player.investigationExposure = player.investigationExposure && typeof player.investigationExposure === 'object'
+                && !Array.isArray(player.investigationExposure) ? player.investigationExposure : {};
+            Object.entries(player.investigationExposure).forEach(([observerUid, exposure]) => {
+                if (exposure?.cardId && exposure?.role) {
+                    player.investigationExposure[observerUid] = { [exposure.cardId]: exposure.role };
+                } else if (!exposure || typeof exposure !== 'object' || Array.isArray(exposure)) {
+                    delete player.investigationExposure[observerUid];
+                }
+            });
             player.coins = Number.isFinite(Number(player.coins)) ? Number(player.coins) : SETTINGS.startingCoins;
             player.eliminated = Boolean(player.eliminated);
             player.ai = Boolean(player.ai);
@@ -1177,8 +1186,10 @@
         const pending = state.pendingExamine;
         if (state.phase !== PHASES.EXAMINE || pending?.actorUid !== uid) throw new Error('Não há investigação pendente.');
 
+        const target = getPlayer(state, pending.targetUid);
+        target.investigationExposure = target.investigationExposure || {};
+
         if (replace && state.deck.length > 0) {
-            const target = getPlayer(state, pending.targetUid);
             const index = target.influences.findIndex((card) => card.id === pending.cardId && !card.revealed);
             if (index >= 0) {
                 const oldCard = target.influences[index];
@@ -1186,6 +1197,13 @@
                 target.influences[index] = { ...replacement, revealed: false };
                 state.deck = Rules.shuffle([...state.deck, { id: oldCard.id, role: oldCard.role }]);
             }
+            Object.entries(target.investigationExposure).forEach(([observerUid, exposure]) => {
+                delete exposure[pending.cardId];
+                if (!Object.keys(exposure).length) delete target.investigationExposure[observerUid];
+            });
+        } else {
+            target.investigationExposure[uid] = target.investigationExposure[uid] || {};
+            target.investigationExposure[uid][pending.cardId] = pending.role;
         }
 
         addLog(state, `${getPlayer(state, uid).name} concluiu a investigação.`, 'action-result', now);
