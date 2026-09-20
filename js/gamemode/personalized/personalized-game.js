@@ -16,8 +16,8 @@
 
     const BOT_DECISION_MIN_DELAY_MS = 3060;
     const BOT_DECISION_RANDOM_DELAY_MS = 1020;
-    const BOT_RESPONSE_MIN_DELAY_MS = 550;
-    const BOT_RESPONSE_RANDOM_DELAY_MS = 1250;
+    const BOT_RESPONSE_MIN_DELAY_MS = 1200;
+    const BOT_RESPONSE_RANDOM_DELAY_MS = 1400;
     const BOT_RESPONSE_DEADLINE_BUFFER_MS = 650;
 
     function t(key, params = {}, fallback = '') {

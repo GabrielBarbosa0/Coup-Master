@@ -14,6 +14,11 @@
     function eventTitle(event, role) {
         const name = event.playerName || latest?.players?.[event.playerUid]?.name || '';
         const roleName = root.CoupLanguage?.t?.(`ranked.roles.${event.role}`) || role.label;
+        const roleWithArticleKey = `rankedReveal.roleWithArticle.${event.role}`;
+        const translatedRoleWithArticle = root.CoupLanguage?.t?.(roleWithArticleKey);
+        const roleWithArticle = translatedRoleWithArticle && translatedRoleWithArticle !== roleWithArticleKey
+            ? translatedRoleWithArticle
+            : roleName;
         const templates = {
             proof: '{name} provou ter {role}',
             coup: '{name} tomou Golpe de Estado',
@@ -25,9 +30,12 @@
         };
         const kind = Object.hasOwn(templates, event.kind) ? event.kind : 'loss';
         const key = `rankedReveal.${kind}`;
-        const translated = root.CoupLanguage?.t?.(key, { name, role: roleName });
+        const translated = root.CoupLanguage?.t?.(key, {
+            name,
+            role: kind === 'proof' ? roleWithArticle : roleName
+        });
         return translated && translated !== key ? translated
-            : templates[kind].replace('{name}', name).replace('{role}', roleName);
+            : templates[kind].replace('{name}', name).replace('{role}', kind === 'proof' ? roleWithArticle : roleName);
     }
 
     function unlock() {

@@ -6,7 +6,15 @@
     "doubleAssassination": "{name} sofreu um assassinato duplo",
     "concession": "{name} cedeu à contestação",
     "challengeLoss": "{name} perdeu a contestação",
-    "loss": "{name} perdeu uma influência"
+    "loss": "{name} perdeu uma influência",
+    "roleWithArticle": {
+      "duque": "o Duque",
+      "capitao": "o Capitão",
+      "assassino": "o Assassino",
+      "condessa": "a Condessa",
+      "embaixador": "o Embaixador",
+      "inquisidor": "o Inquisidor"
+    }
   },
   "landing": {
     "navModes": "Modos",
