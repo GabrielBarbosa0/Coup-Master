@@ -33,6 +33,10 @@
     let suppressRankCardContextMenuUntil = 0;
     const RANK_CARD_LONG_PRESS_MS = 800;
     const RANK_CARD_LONG_PRESS_MOVE_TOLERANCE = 8;
+    const QUICK_CHAT_MESSAGES = [
+        'challenge', 'block', 'duke', 'captain', 'assassin', 'contessa', 'ambassador',
+        'inquisitor', 'tax', 'steal', 'assassinate', 'exchange', 'examine'
+    ];
     let rankProfileLoadKey = 0;
     let sideStackResizeObserver = null;
     let languageEventsBound = false;
@@ -679,6 +683,7 @@
         root.addEventListener?.('coup:languagechange', () => {
             renderRoomCode();
             renderChat(chatMessages);
+            renderQuickChatButtons();
             if (!state) return;
             renderPlayers();
             renderPhase();
@@ -1409,12 +1414,18 @@
         playStateSfx(previousState, state);
         updateRankPlayerCallouts(previousState, state);
         renderPlayers();
+        renderTableResources();
         renderPhase();
         renderStarterDrawOverlay();
         renderMatchResultsModal();
         if (viewMode === 'game') renderLog();
         updateClock();
         root.requestAnimationFrame?.(syncSideStackHeight);
+    }
+
+    function renderTableResources() {
+        const deckCount = document.getElementById?.('rankDeckCount');
+        if (deckCount) deckCount.textContent = String(state?.deck?.length || 0);
     }
 
     function setupSideStackSync() {
@@ -1594,8 +1605,13 @@
         if (state.status === PHASES.FINISHED) {
             stage?.classList.add('is-centered-stage', 'is-finished-stage');
             setPhaseText(t('ranked.matchFinished', {}, 'Partida encerrada'));
-            const viewResults = element('button', 'rank-primary-btn', t('ranked.viewResult', {}, 'Ver resultado'));
+            const viewResults = element('button', 'rank-primary-btn rank-view-results-btn');
             viewResults.type = 'button';
+            const trophy = element('img', 'rank-view-results-icon');
+            trophy.src = 'assets/img/icons/trophy.svg';
+            trophy.alt = '';
+            trophy.setAttribute('aria-hidden', 'true');
+            viewResults.append(trophy, element('span', '', t('ranked.viewResult', {}, 'Ver resultado')));
             viewResults.addEventListener('click', () => {
                 playRankSfx('pop');
                 matchResultsModalDismissed = false;
@@ -2304,15 +2320,17 @@
         const input = document.getElementById('chatInput');
         chatBtn?.addEventListener('click', () => {
             if (!modal) return;
-            openRankPanel(modal);
+            playRankSfx('click');
+            showModal(modal);
             chatBtn.classList.remove('chat-btn-has-unread');
             chatBtn.classList.add('is-chat-open');
             lastSeenChatMessageKey = getLastChatMessageKey();
-            window.setTimeout(() => input?.focus(), 50);
+            window.setTimeout(() => input?.focus(), 60);
         });
         document.getElementById('closeChatBtn')?.addEventListener('click', () => {
             if (!modal) return;
-            closeRankPanel(modal);
+            playRankSfx('click');
+            hideModal(modal);
             chatBtn.classList.remove('is-chat-open');
         });
         document.getElementById('chatForm')?.addEventListener('submit', (event) => {
@@ -2321,6 +2339,23 @@
             if (!message) return;
             controller.sendChat(message);
             input.value = '';
+        });
+        renderQuickChatButtons();
+    }
+
+    function getQuickChatMessage(messageKey) {
+        return t(`casual.quickChat.${messageKey}`, {}, messageKey);
+    }
+
+    function renderQuickChatButtons() {
+        const container = document.getElementById('chatQuickMessages');
+        if (!container) return;
+        container.replaceChildren();
+        QUICK_CHAT_MESSAGES.forEach((messageKey) => {
+            const button = element('button', 'chat-quick-btn', getQuickChatMessage(messageKey));
+            button.type = 'button';
+            button.addEventListener('click', () => controller.sendChat(getQuickChatMessage(messageKey), true));
+            container.append(button);
         });
     }
 
@@ -2874,7 +2909,13 @@
     function isChatModalOpen() {
         const chatPanel = document.getElementById('chatModal');
         if (!chatPanel) return false;
-        return !isRankPanelOverlayMode() || chatPanel.classList.contains('is-panel-open');
+        return chatPanel.style.display !== 'none';
+    }
+
+    function formatChatTime(timestamp) {
+        if (!timestamp) return '--:--';
+        const language = root.CoupLanguage?.getLanguage?.() || 'pt-BR';
+        return new Date(timestamp).toLocaleTimeString(language, { hour: '2-digit', minute: '2-digit' });
     }
 
     function updateChatUnreadState(latestMessage) {
@@ -2914,8 +2955,9 @@
         }
         chatMessages.forEach((message) => {
             const item = element('article', `chat-message${message.quick ? ' is-quick' : ''}`);
+            if (message.uid === currentUid) item.classList.add('is-own');
             item.append(
-                element('div', 'chat-message-meta', message.name || t('ranked.playerFallback', {}, 'Jogador')),
+                element('div', 'chat-message-meta', `${message.name || t('ranked.playerFallback', {}, 'Jogador')} · ${formatChatTime(message.timestamp)}`),
                 element('p', 'chat-message-text', message.text || '')
             );
             list.append(item);

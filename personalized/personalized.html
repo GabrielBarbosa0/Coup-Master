@@ -21,13 +21,13 @@
 
     <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
     <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=balanced-starter-grid-v11">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=mobile-phase-spacing-v32">
     <link rel="stylesheet" href="css/ranked-card-physics.css?v=shared-card-physics-v3">
     <link rel="stylesheet" href="css/ranked-reveal.css?v=larger-reveal-card-v5">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
 </head>
 
-<body data-rank-view="game" class="rank-centered-layout rank-compact-shell">
+<body data-rank-view="game" class="rank-centered-layout rank-compact-shell rank-table-resources-enabled">
     <div id="rankLoading" class="game-loading-overlay">
         <div class="game-loading-content">
             <p id="rankLoadingMessage" data-i18n="cm:cGVyc29uYWxpemVkR2FtZS5sb2FkaW5n"><span data-loading-lang="pt-BR">Entrando na partida personalizada...</span><span data-loading-lang="en-US">Entering custom match...</span></p>
@@ -106,19 +106,24 @@
             </div>
 
             <aside class="rank-side-stack" aria-label="Chat e registro da partida" data-i18n-aria-label="cm:cmFua2VkR2FtZS5zaWRlUGFuZWxzTGFiZWw">
-                <div id="chatModal" class="rank-side-card rank-responsive-panel rank-chat-panel">
-                    <section class="modal-content chat-modal-content" role="region" aria-labelledby="chatTitle">
-                        <button id="closeChatBtn" class="close-btn rank-panel-close" type="button"
-                            aria-label="Fechar chat" data-i18n-aria-label="cm:cmFua2VkLmNsb3NlQ2hhdA">&times;</button>
-                        <h2 id="chatTitle" data-i18n="cm:cmFua2VkLmNoYXQ">Chat</h2>
-                        <p class="chat-subtitle" data-i18n="cm:cmFua2VkLmNoYXRTdWJ0aXRsZQ">Converse com a sala.</p>
-                        <div id="chatMessagesList" class="chat-messages-list"></div>
-                        <form id="chatForm" class="chat-form">
-                            <input id="chatInput" type="text" maxlength="180" placeholder="Mensagem" autocomplete="off" data-i18n-placeholder="cm:cmFua2VkLm1lc3NhZ2VQbGFjZWhvbGRlcg">
-                            <button class="settings-action-btn" type="submit" data-i18n="cm:cmFua2VkLnNlbmQ">Enviar</button>
-                        </form>
-                    </section>
-                </div>
+                <section id="rankTreasuryPanel" class="rank-side-card rank-resource-card rank-treasury-card"
+                    aria-labelledby="rankTreasuryTitle">
+                    <div id="rankTreasurySource" class="rank-treasury-stack" aria-hidden="true">
+                        <img src="assets/img/coins/moeda-prata.png" alt="">
+                        <img src="assets/img/coins/moeda-prata.png" alt="">
+                        <img src="assets/img/coins/moeda-ouro.png" alt="">
+                    </div>
+                    <h2 id="rankTreasuryTitle">Tesouro Central</h2>
+                </section>
+
+                <section id="rankDeckPanel" class="rank-side-card rank-resource-card rank-deck-card"
+                    aria-labelledby="rankDeckTitle">
+                    <h2 id="rankDeckTitle">Baralho</h2>
+                    <div id="rankDeckSource" class="rank-deck-image" aria-hidden="true">
+                        <img src="assets/img/cards/base/back.png" alt="">
+                    </div>
+                    <p><strong id="rankDeckCount">0</strong> cartas</p>
+                </section>
 
                 <div id="rankLogModal" class="rank-side-card rank-responsive-panel rank-log-panel">
                     <section class="modal-content standard-modal-content rank-log-modal-content" role="region"
@@ -139,6 +144,24 @@
         </section>
 
     </main>
+
+    <div id="chatModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content chat-modal-content">
+            <button id="closeChatBtn" class="close-btn" type="button" aria-label="Fechar"
+                data-i18n-aria-label="common.close">&times;</button>
+            <h2 data-i18n="casual.chatRoom">Chat</h2>
+            <p id="chatStatusText" class="muted chat-status-text" data-i18n="casual.chatSubtitle">Converse com a sala.</p>
+            <div id="chatMessagesList" class="chat-messages-list" aria-live="polite"></div>
+            <div id="chatQuickMessages" class="chat-quick-messages" aria-label="Mensagens rápidas"
+                data-i18n-aria-label="casual.quickMessages"></div>
+            <form id="chatForm" class="chat-form">
+                <input id="chatInput" type="text" maxlength="240" autocomplete="off" placeholder="Mensagem"
+                    data-i18n-placeholder="ranked.messagePlaceholder">
+                <button id="sendChatBtn" class="settings-action-btn" type="submit"
+                    data-i18n="ranked.send">Enviar</button>
+            </form>
+        </div>
+    </div>
 
     <div id="rankActionsModal" class="modal-overlay" style="display: none;">
         <div class="modal-actions-and-rules">
@@ -335,8 +358,8 @@
     <script src="js/gamemode/personalized/personalized-engine.js?v=double-assassination-v4" defer></script>
     <script src="js/gamemode/ranked/ranked-card-physics.js?v=shared-card-physics-v3" defer></script>
     <script src="js/gamemode/ranked/ranked-reveal.js?v=reveal-role-article-v7" defer></script>
-    <script src="js/gamemode/personalized/personalized-renderer.js?v=balanced-starter-grid-v17" defer></script>
-    <script src="js/gamemode/personalized/personalized-game.js?v=bot-response-pacing-v6" defer></script>
+    <script src="js/gamemode/personalized/personalized-renderer.js?v=table-resources-v18" defer></script>
+    <script src="js/gamemode/personalized/personalized-game.js?v=casual-chat-parity-v7" defer></script>
 </body>
 
 </html>

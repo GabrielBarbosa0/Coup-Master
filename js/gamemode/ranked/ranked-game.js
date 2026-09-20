@@ -185,7 +185,7 @@
     }
 
     function sendChat(text, quick = false) {
-        const safeText = String(text || '').trim().slice(0, 180);
+        const safeText = String(text || '').trim().slice(0, 240);
         if (!safeText) return Promise.resolve();
         return db.ref(`salas/${roomCode}/chatMessages`).push({
             uid: currentUser.uid,
