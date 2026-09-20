@@ -882,7 +882,7 @@
     "starterDraw": "Initial draw",
     "chooseTarget": "Choose target",
     "yourTurn": "Your turn",
-    "yourMove": "Your move",
+    "yourMove": "Your turn to play",
     "challengeReveal": "Challenge response",
     "challengeRevealPlayer": "{name} is defending the claim of {role}.",
     "proveClaim": "Prove claim",

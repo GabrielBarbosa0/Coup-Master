@@ -890,7 +890,7 @@
     "starterDraw": "Sorteio inicial",
     "chooseTarget": "Escolha o alvo",
     "yourTurn": "Sua vez",
-    "yourMove": "Sua jogada",
+    "yourMove": "Sua vez de jogar",
     "challengeReveal": "Resposta à contestação",
     "challengeRevealPlayer": "{name} está defendendo a declaração de {role}.",
     "proveClaim": "Provar declaração",
