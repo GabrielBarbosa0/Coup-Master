@@ -16,6 +16,16 @@
     return config.getState?.() || {};
   }
 
+  function getGameplayRules(state = getState()) {
+    return root.CoupRulesGuides?.getAlternativeRuleEffects?.(state)
+      || { coupCost: 7, mandatoryCoupCoins: 10 };
+  }
+
+  function isEnglish() {
+    const language = root.CoupLanguage?.getLanguage?.() || document.documentElement.lang || 'pt';
+    return String(language).toLowerCase().startsWith('en');
+  }
+
   function getMyPlayerId() {
     return config.getMyPlayerId?.() || null;
   }
@@ -214,6 +224,7 @@
     quickActionTargetPid = pid;
     const targetScore = Number(player.score || 0);
     const myScore = Number(myPlayer.score || 0);
+    const gameplayRules = getGameplayRules(state);
     const isSelf = String(pid) === String(myPlayerId);
     const opponentRequired = t(
       'casual.actionOpponentRequired',
@@ -237,11 +248,19 @@
     );
     setPlayerActionAvailability(
       'playerActionCoup',
-      !isSelf && myScore >= 7,
+      !isSelf && myScore >= gameplayRules.coupCost,
       isSelf
         ? opponentRequired
-        : t('casual.actionCoupUnavailable', {}, 'Você precisa ter pelo menos 7 moedas.')
+        : isEnglish()
+          ? `You need at least ${gameplayRules.coupCost} coins.`
+          : `Você precisa ter pelo menos ${gameplayRules.coupCost} moedas.`
     );
+    const coupCost = getElement('playerActionCoup')?.querySelector('small');
+    if (coupCost) {
+      coupCost.textContent = isEnglish()
+        ? `Costs ${gameplayRules.coupCost} coins`
+        : `Custa ${gameplayRules.coupCost} moedas`;
+    }
     setPlayerActionAvailability('playerActionTax', true);
 
     playSound('click');
@@ -263,6 +282,7 @@
 
     const myScore = myPlayer.score || 0;
     const targetScore = targetPlayer.score || 0;
+    const gameplayRules = getGameplayRules(state);
     const isSelf = String(quickActionTargetPid) === String(myPlayerId);
 
     if (isSelf && type !== 'tax') {
@@ -271,13 +291,13 @@
 
     switch (type) {
       case 'coup':
-        if (myScore < 7) {
+        if (myScore < gameplayRules.coupCost) {
           console.log('Saldo insuficiente para aplicar um Golpe de Estado.');
           playSound('click');
           return;
         }
 
-        updateScore(myPlayerId, -7, true);
+        updateScore(myPlayerId, -gameplayRules.coupCost, true);
         triggerSound('unity-sword');
         break;
 

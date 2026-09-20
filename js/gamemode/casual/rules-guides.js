@@ -3,6 +3,33 @@
   const RULE_DRAW_MAX = 5;
   const RULE_DRAW_BUTTON_ENABLED = true;
 
+  const DEFAULT_GAMEPLAY_RULES = Object.freeze({
+    coupCost: 7,
+    mandatoryCoupCoins: 10,
+    deckOverrides: Object.freeze({})
+  });
+
+  function getAlternativeRuleIds(source = {}) {
+    const draw = source?.alternativeRuleDraw || source;
+    return Array.isArray(draw?.ruleIds) ? draw.ruleIds : [];
+  }
+
+  function getAlternativeRuleEffects(source = {}) {
+    const ids = new Set(getAlternativeRuleIds(source));
+    return {
+      coupCost: ids.has('justica-lenta') ? 10 : DEFAULT_GAMEPLAY_RULES.coupCost,
+      mandatoryCoupCoins: ids.has('justica-lenta') ? 15 : DEFAULT_GAMEPLAY_RULES.mandatoryCoupCoins,
+      deckOverrides: ids.has('falso-duque') ? { duque: 1 } : {}
+    };
+  }
+
+  function applyAlternativeDeckRules(deckConfig = {}, source = {}) {
+    return {
+      ...deckConfig,
+      ...getAlternativeRuleEffects(source).deckOverrides
+    };
+  }
+
   const ALT_RULE_PAGE_IDS = [
     ['justica-lenta', 'falso-duque', 'assassino-declarado', 'sangue-frio', 'ladrao-de-tumulos'],
     ['ultima-palavra', 'recompensa', 'espolio', 'votos-do-senado', 'mercado-negro', 'golpe-magno'],
@@ -787,11 +814,15 @@
 
   function buildActionGuideEntries(deckConfig, copy) {
     const foreignAidBlockers = ['duque', 'burocrata'].filter((cardType) => hasCard(deckConfig, cardType));
+    const effects = getAlternativeRuleEffects(getState());
+    const coup = getGuideLanguage() === 'en'
+      ? `Coup: Pay ${effects.coupCost} coins and choose an opponent; they lose one influence. It cannot be blocked or challenged.`
+      : `Golpe de Estado: Pague ${effects.coupCost} moedas e escolha um oponente; ele perderá uma de suas influências. Não pode ser bloqueado ou contestado.`;
 
     return [
       { label: copy.actions.income, color: '#111111' },
       { label: resolveGuideAction(copy.actions.foreignAid, formatGuideList(foreignAidBlockers)), color: '#111111' },
-      { label: copy.actions.coup, color: '#111111' },
+      { label: coup, color: '#111111' },
       { label: copy.actions.characterAction, color: '#111111' }
     ];
   }
@@ -822,12 +853,16 @@
     const title = copy.titles[pageType] || copy.titles.characters;
 
     if (pageType === 'actions') {
+      const effects = getAlternativeRuleEffects(getState());
+      const warning = getGuideLanguage() === 'en'
+        ? `If you have ${effects.mandatoryCoupCoins}+ coins,\nyou must launch a Coup.`
+        : `Se você possuir ${effects.mandatoryCoupCoins}+ moedas,\ndeverá dar um Golpe de Estado.`;
       return {
         type: pageType,
         title: copy.titles.backActions,
         intro: copy.actions.turnIntro,
         actions: buildActionGuideEntries(resolvedDeckConfig, copy),
-        warning: copy.actions.coinPressure
+        warning
       };
     }
 
@@ -1219,7 +1254,12 @@
     renderRuleSelection();
     getElement('ruleSelectionStatus').textContent = '';
     try {
-      await db.ref(`salas/${roomCode}`).update({ lastActivity: timestamp, 'gameState/alternativeRuleDraw': drawData });
+      if (typeof config.applyAlternativeRules === 'function') {
+        await config.applyAlternativeRules(drawData);
+        await db.ref(`salas/${roomCode}`).update({ lastActivity: timestamp });
+      } else {
+        await db.ref(`salas/${roomCode}`).update({ lastActivity: timestamp, 'gameState/alternativeRuleDraw': drawData });
+      }
       selectedRuleIds = drawData?.ruleIds || [];
       pinnedRuleIds = drawData?.pinnedRuleIds || [];
       if (!drawData) selectedRuleDrawCount = 5;
@@ -1391,6 +1431,8 @@
 
   root.CoupRulesGuides = {
     setup,
+    getAlternativeRuleEffects,
+    applyAlternativeDeckRules,
     buildDynamicGuidePages,
     renderDynamicGuidePage,
     renderAlternativeRuleDraw

@@ -32,6 +32,7 @@
   });
 
   let cardTooltipEl = null;
+  let clickTooltipDismissBound = false;
   let getState = () => ({});
   let getMyPlayerId = () => null;
   let getDeckElement = () => document.getElementById('deck');
@@ -130,9 +131,10 @@
     tooltip.style.top = `${Math.max(8, top)}px`;
   }
 
-  function showCardTooltip(event, label) {
+  function showCardTooltip(event, label, options = {}) {
     const tooltip = getCardTooltipElement();
     tooltip.textContent = label;
+    tooltip.classList.toggle('allows-wrap', Boolean(options.wrap));
     tooltip.classList.add('is-visible');
     positionCardTooltip(event);
   }
@@ -143,16 +145,26 @@
     }
   }
 
-  function attachElementTooltip(element, label) {
+  function attachElementTooltip(element, label, options = {}) {
     if (!element || !label) return;
     element.dataset.cardLabel = label;
     element.setAttribute('aria-label', label);
+
+    if (options.showOnClick) {
+      element.dataset.clickTooltip = 'true';
+      if (!clickTooltipDismissBound) {
+        clickTooltipDismissBound = true;
+        document.addEventListener('pointerdown', (event) => {
+          if (!event.target.closest?.('[data-click-tooltip="true"]')) hideCardTooltip();
+        }, true);
+      }
+    }
 
     if (element.dataset.tooltipBound === 'true') return;
     element.dataset.tooltipBound = 'true';
 
     element.addEventListener('mouseenter', (event) => {
-      showCardTooltip(event, element.dataset.cardLabel || label);
+      showCardTooltip(event, element.dataset.cardLabel || label, options);
     });
 
     element.addEventListener('mousemove', (event) => {
@@ -162,6 +174,19 @@
     });
 
     element.addEventListener('mouseleave', hideCardTooltip);
+
+    if (options.showOnClick) {
+      element.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const tooltip = getCardTooltipElement();
+        if (tooltip.classList.contains('is-visible')) {
+          hideCardTooltip();
+          return;
+        }
+        showCardTooltip(event, element.dataset.cardLabel || label, options);
+      });
+    }
   }
 
   function attachCardTooltip(element, card) {

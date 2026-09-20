@@ -211,13 +211,47 @@
   }
 
   function syncDeckConfigInputs() {
-    const currentConfig = getState().deckConfig;
+    const state = getState();
+    const currentConfig = state.deckConfig;
     if (!currentConfig) return;
+    const falseDukeActive = state.alternativeRuleDraw?.ruleIds?.includes('falso-duque');
 
     document.querySelectorAll('.card-config-item input').forEach((input) => {
       const cardType = input.dataset.card;
       if (currentConfig[cardType] !== undefined) {
         input.value = currentConfig[cardType];
+      }
+      if (cardType !== 'duque') return;
+
+      const item = input.closest('.card-config-item');
+      const label = item?.querySelector('label');
+      input.disabled = Boolean(falseDukeActive);
+      item?.classList.toggle('is-rule-locked', Boolean(falseDukeActive));
+      let indicator = item?.querySelector('.card-rule-lock-indicator');
+      if (falseDukeActive && item) {
+        const language = root.CoupLanguage?.getLanguage?.() || document.documentElement.lang || 'pt';
+        const message = String(language).toLowerCase().startsWith('en')
+          ? 'False Duke active. Disable the rule to change it.'
+          : 'Falso Duque ativo. Desative a regra para alterar.';
+        if (!indicator && label) {
+          indicator = document.createElement('button');
+          indicator.type = 'button';
+          indicator.className = 'card-rule-lock-indicator';
+          const icon = document.createElement('img');
+          icon.src = 'assets/img/icons/info.svg';
+          icon.alt = '';
+          icon.setAttribute('aria-hidden', 'true');
+          indicator.appendChild(icon);
+          label.appendChild(indicator);
+        }
+        if (indicator) {
+          root.CoupRenderCards?.attachElementTooltip?.(indicator, message, {
+            showOnClick: true,
+            wrap: true
+          });
+        }
+      } else {
+        indicator?.remove();
       }
     });
   }

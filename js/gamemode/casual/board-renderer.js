@@ -258,6 +258,7 @@ function setupRulesAndTutorial() {
     getCurrentUser: () => currentUser,
     isAdmin: () => isAdmin,
     isRankedMode: () => CoupGameModes.isRanked(currentGameMode),
+    applyAlternativeRules: applyAlternativeRuleSelection,
     playSound,
     showError: showCasualError
   });

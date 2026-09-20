@@ -248,9 +248,15 @@ function resetTable(newConfig = null) {
   updateRoomActivity();
   triggerSound('8-bit-start');
 
-  const configToUse = CoupGameModes.isRanked(currentGameMode)
+  const baseConfig = CoupGameModes.isRanked(currentGameMode)
     ? createDefaultDeckConfig()
-    : newConfig || localGameState.deckConfig || createDefaultDeckConfig();
+    : newConfig
+      || localGameState.alternativeRuleBaseDeckConfig
+      || localGameState.deckConfig
+      || createDefaultDeckConfig();
+  const activeRuleDraw = localGameState.alternativeRuleDraw || null;
+  const configToUse = window.CoupRulesGuides?.applyAlternativeDeckRules?.(baseConfig, activeRuleDraw)
+    || baseConfig;
   let newDeck = createDeck(configToUse);
   let currentPlayers = localGameState.players || {};
   let newPlayersState = {};
@@ -272,12 +278,55 @@ function resetTable(newConfig = null) {
     grave: [],
     freeCards: [],
     asylumScore: 0,
-    alternativeRuleDraw: null,
+    alternativeRuleDraw: activeRuleDraw,
+    alternativeRuleBaseDeckConfig: activeRuleDraw ? baseConfig : null,
     deckConfig: configToUse,
     players: newPlayersState
   };
 
   gameStateRef.set(initialState);
+}
+
+/** Aplica regras alternativas e reinicia a mesa com a configuracao resultante. */
+function applyAlternativeRuleSelection(drawData) {
+  if (!isAdmin || currentGameMode !== CoupGameModes.CASUAL) {
+    return Promise.reject(new Error('Apenas o Host pode aplicar regras alternativas.'));
+  }
+
+  return new Promise((resolve, reject) => {
+    gameStateRef.transaction((state) => {
+      if (!state || state.players?.[myPlayerId]?.uid !== currentUser.uid) return;
+
+      const fallbackConfig = createDefaultDeckConfig();
+      const storedBase = state.alternativeRuleBaseDeckConfig;
+      const baseConfig = drawData
+        ? { ...(storedBase || state.deckConfig || fallbackConfig) }
+        : { ...(storedBase || state.deckConfig || fallbackConfig) };
+      const effectiveConfig = window.CoupRulesGuides?.applyAlternativeDeckRules?.(baseConfig, drawData)
+        || baseConfig;
+
+      state.deck = createDeck(effectiveConfig);
+      state.grave = [];
+      state.freeCards = [];
+      state.asylumScore = 0;
+      state.deckConfig = effectiveConfig;
+      state.alternativeRuleDraw = drawData;
+      if (drawData) state.alternativeRuleBaseDeckConfig = baseConfig;
+      else delete state.alternativeRuleBaseDeckConfig;
+
+      Object.values(state.players || {}).forEach((player, index) => {
+        if (!player) return;
+        player.hand = [];
+        player.score = 2;
+        player.religion = ((index + 1) % 2 === 1) ? 'catolico' : 'protestante';
+      });
+      return state;
+    }, (error, committed) => {
+      if (error) reject(error);
+      else if (!committed) reject(new Error('Nao foi possivel aplicar as regras alternativas.'));
+      else resolve();
+    }, false);
+  });
 }
 
 

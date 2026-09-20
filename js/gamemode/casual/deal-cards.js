@@ -1,5 +1,6 @@
 (function setupCasualDeal(root) {
   const DURATION = 680;
+  const SINGLE_DRAW_DURATION = Math.round(DURATION / 1.1);
   const STAGGER = 120;
   const active = new Map();
   let initialized = false;
@@ -44,7 +45,7 @@
     card.visible = false;
     if (!player.hand) player.hand = [];
     player.hand.push(card);
-    state.lastDeal = { id: eventId, cards: [{ id: card.id, pid }] };
+    state.lastDeal = { id: eventId, kind: 'single-draw', cards: [{ id: card.id, pid }] };
     return state;
   }
 
@@ -105,7 +106,7 @@
       { transform: `translate(${x * 0.012}px, ${y * 0.012}px) scale(1) rotate(${direction * -1}deg)`, offset: 0.88 },
       { transform: 'translate(0, 0) scale(1) rotate(0deg)' }
     ], {
-      duration: DURATION, delay: index * STAGGER,
+      duration: entry.duration || DURATION, delay: index * STAGGER,
       easing: 'ease-in-out', fill: 'both'
     });
     const finishFlight = () => {
@@ -125,7 +126,8 @@
       cancelAll();
       lastEventId = event?.id || null;
       if (event && !document.hidden && !root.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        (event.cards || []).forEach((card) => active.set(String(card.id), { pid: card.pid }));
+        const duration = event.kind === 'single-draw' ? SINGLE_DRAW_DURATION : DURATION;
+        (event.cards || []).forEach((card) => active.set(String(card.id), { pid: card.pid, duration }));
         // Fan layout is scheduled by the renderer before these destination measurements.
         root.requestAnimationFrame(() => Array.from(active.keys()).forEach(fly));
       }

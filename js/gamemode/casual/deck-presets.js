@@ -25,6 +25,7 @@
   }
 
   function setInputValue(input, value) {
+    if (input.disabled) return;
     input.value = value;
   }
 

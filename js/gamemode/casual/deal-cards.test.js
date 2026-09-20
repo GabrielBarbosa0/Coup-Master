@@ -63,6 +63,7 @@ test('clique no baralho compra uma carta apenas para o jogador local', () => {
   const state = fixture();
   assert.equal(applySingleDraw(state, 'single-draw', 1), state);
   assert.deepEqual(Array.from(state.lastDeal.cards, (card) => card.pid), [1]);
+  assert.equal(state.lastDeal.kind, 'single-draw');
   assert.equal(state.players[1].hand.length, 1);
   assert.equal(state.players[2].hand.length, 1);
   assert.equal(state.players[3].hand.length, 2);
