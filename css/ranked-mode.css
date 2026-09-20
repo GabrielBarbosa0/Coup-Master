@@ -4183,7 +4183,7 @@ body[data-rank-view="game"] .rank-timer {
     }
 
     body.rank-table-resources-enabled .rank-stage {
-        min-height: 250px;
+        min-height: 245px;
     }
 
     .rank-table-resources-enabled .rank-resource-card {
