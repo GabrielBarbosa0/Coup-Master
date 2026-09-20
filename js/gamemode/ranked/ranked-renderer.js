@@ -1753,7 +1753,6 @@
 
         const panel = element('section', 'rank-starter-overlay-panel');
         panel.append(
-            element('span', 'rank-kicker', t('ranked.starterDraw', {}, 'Sorteio inicial')),
             element('h2', '', t('ranked.whoStarts', {}, 'Quem começa?')),
             element('p', 'rank-phase-description', t('ranked.starterDrawDescription', {}, 'A mesa está sorteando aleatoriamente o primeiro turno.'))
         );
@@ -1774,6 +1773,7 @@
             chip.append(avatar, element('span', '', player.name));
             list.append(chip);
         });
+        list.dataset.count = String(list.children.length);
 
         panel.append(list);
         panel.append(element(

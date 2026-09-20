@@ -1426,9 +1426,26 @@ button.rank-card {
 
 .rank-starter-overlay-list {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     margin: 0 auto;
+}
+
+.rank-starter-overlay-list[data-count="1"] {
+    grid-template-columns: minmax(0, 300px);
+    justify-content: center;
+}
+
+.rank-starter-overlay-list[data-count="6"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rank-starter-overlay-list[data-count="3"] .rank-starter-overlay-chip:last-child,
+.rank-starter-overlay-list[data-count="5"] .rank-starter-overlay-chip:last-child {
+    grid-column: 1 / -1;
+    width: calc((100% - 10px) / 2);
+    box-sizing: border-box;
+    justify-self: center;
 }
 
 .rank-starter-overlay-chip {
@@ -3239,6 +3256,15 @@ button.rank-card {
     .rank-starter-overlay-list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 7px;
+    }
+
+    .rank-starter-overlay-list[data-count="6"] {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rank-starter-overlay-list[data-count="3"] .rank-starter-overlay-chip:last-child,
+    .rank-starter-overlay-list[data-count="5"] .rank-starter-overlay-chip:last-child {
+        width: calc((100% - 7px) / 2);
     }
 
     .rank-starter-overlay-chip {
