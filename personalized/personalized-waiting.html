@@ -20,7 +20,7 @@
     <script src="js/i18n/initial-language.js?v=i18n-v7"></script>
 
     <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=shared-card-physics-v8">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=add-ai-heading-v10">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
 </head>
 
@@ -78,10 +78,9 @@
         <section class="rank-modal rank-add-ai-modal" role="dialog" aria-modal="true" aria-labelledby="rankAddAiTitle">
             <button id="closeRankAddAiBtn" class="rank-close-btn" type="button" aria-label="Fechar"
                 data-i18n-aria-label="cm:Y29tbW9uLmNsb3Nl">&times;</button>
-            <span class="rank-kicker" data-i18n="cm:cmFua2VkLmFpUGxheWVy">Jogador IA</span>
             <h2 id="rankAddAiTitle" data-i18n="cm:cmFua2VkLmFkZEJvdA">Adicionar bot</h2>
             <p class="rank-phase-description" data-i18n="cm:cmFua2VkLmFkZEJvdERlc2NyaXB0aW9u">
-                Defina o nome e, se quiser, ajuste a personalidade. Sem ajuste manual, o sistema escolhe os valores.
+                Defina o nome e escolha como a personalidade será criada. Valores aleatórios permanecem ocultos.
             </p>
 
             <form id="rankAddAiForm" class="rank-add-ai-form">
@@ -93,12 +92,21 @@
                     </div>
                 </label>
 
-                <label class="rank-toggle-field">
-                    <input id="rankChooseAiPersonality" type="checkbox">
-                    <span data-i18n="cm:cmFua2VkLm1hbnVhbFBlcnNvbmFsaXR5">Escolher personalidade manualmente</span>
-                </label>
+                <fieldset class="rank-ai-personality-mode">
+                    <legend data-i18n="cm:cmFua2VkLnBlcnNvbmFsaXR5TW9kZQ">Personalidade</legend>
+                    <div class="rank-ai-personality-options">
+                        <label>
+                            <input type="radio" name="rankAiPersonalityMode" value="random" checked>
+                            <span data-i18n="cm:cmFua2VkLnJhbmRvbVBlcnNvbmFsaXR5">Aleatória</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="rankAiPersonalityMode" value="manual">
+                            <span data-i18n="cm:cmFua2VkLm1hbnVhbFBlcnNvbmFsaXR5">Manual</span>
+                        </label>
+                    </div>
+                </fieldset>
 
-                <div id="rankAiPersonalityFields" class="rank-ai-personality-fields is-disabled">
+                <div id="rankAiPersonalityFields" class="rank-ai-personality-fields" hidden>
                     <label class="rank-range-field">
                         <span data-i18n-label="cm:cmFua2VkLnZlbmdlZnVsbmVzcw">Vingança <strong id="rankAiVengefulnessValue">50%</strong></span>
                         <input id="rankAiVengefulness" type="range" min="0" max="100" value="50">
@@ -151,13 +159,13 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/ui/selection-lock.js?v=selection-lock-v1" defer></script>
-    <script src="js/i18n/language-service.js?v=i18n-v20" defer></script>
+    <script src="js/i18n/language-service.js?v=i18n-v22" defer></script>
     <script src="js/firebase/firebase.js" defer></script>
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=game-modes-i18n-v1" defer></script>
     <script src="js/gamemode/personalized/personalized-rules.js?v=personalized-challenge-favors-v1" defer></script>
-    <script src="js/gamemode/personalized/personalized-engine.js?v=investigation-memory-v3" defer></script>
-    <script src="js/gamemode/personalized/personalized-renderer.js?v=short-callouts-v15" defer></script>
+    <script src="js/gamemode/personalized/personalized-engine.js?v=double-assassination-v4" defer></script>
+    <script src="js/gamemode/personalized/personalized-renderer.js?v=random-ai-personality-v16" defer></script>
     <script src="js/gamemode/personalized/personalized-game.js?v=investigation-memory-v5" defer></script>
 </body>
 

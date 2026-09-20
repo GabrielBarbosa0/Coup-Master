@@ -315,6 +315,7 @@ function testAssassinationTargetFailedChallengeAutoRevealsLastLoss() {
     assert.equal(Engine.countInfluences(state.players.u2), 0);
     assert.equal(state.discard.length, 2);
     assert.deepEqual(state.publicReveals.map((event) => event.playerUid), ['u1', 'u2', 'u2']);
+    assert.deepEqual(state.publicReveals.slice(1).map((event) => event.kind), ['doubleAssassination', 'doubleAssassination']);
     assert.equal(state.publicReveals[0].role, Rules.ROLES.ASSASSIN);
     assert.deepEqual(state.publicReveals.map((event) => event.sequence), [1, 2, 3]);
     assert.equal(state.phase, Rules.PHASES.TURN);
@@ -573,6 +574,7 @@ function testVoluntaryContessaConcessionLosesBoth() {
     assert.equal(Engine.countInfluences(state.players.u2), 2);
     Engine.revealChallenge(state, 'u2', assassin.id, 4200);
     assert.equal(state.players.u2.eliminated, true);
+    assert.deepEqual(state.publicReveals.map((event) => event.kind), ['doubleAssassination', 'doubleAssassination']);
     assert.deepEqual(state.discard.map((card) => card.id), [assassin.id, contessa.id]);
     assert.equal(state.players.u1.coins, 0);
     assert.equal(Engine.getActiveUid(state), 'u3');

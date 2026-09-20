@@ -18,6 +18,7 @@
             proof: '{name} provou ter {role}',
             coup: '{name} tomou Golpe de Estado',
             assassination: '{name} sofreu um assassinato',
+            doubleAssassination: '{name} sofreu um assassinato duplo',
             concession: '{name} cedeu à contestação',
             challengeLoss: '{name} perdeu a contestação',
             loss: '{name} perdeu uma influência'

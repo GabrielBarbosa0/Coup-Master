@@ -820,7 +820,14 @@
             const lossPlan = isBlock ? getBluffedBlockLossPlan(state, uid) : { count: 1, continuation: 'cancel-action' };
             if (pending.actorUid !== uid) bumpGrudge(state, uid, pending.actorUid, 2);
             // Consume the chosen card first, before resolving any forced second loss.
-            state.pendingLoss = { playerUid: uid, count: lossPlan.count, continuation: lossPlan.continuation, reason: 'Contestação aceita.' };
+            state.pendingLoss = {
+                playerUid: uid,
+                count: lossPlan.count,
+                continuation: lossPlan.continuation,
+                reason: 'Contestação aceita.',
+                doubleAssassination: pending.type === ACTIONS.ASSASSINATE
+                    && pending.targetUid === uid && lossPlan.count > 1
+            };
             state.phase = PHASES.INFLUENCE_LOSS;
             loseInfluence(state, uid, card.id, now);
         }
@@ -904,7 +911,12 @@
     function scheduleLoss(state, playerUid, reason, continuation, now = Date.now(), count = 1, requireChoice = false) {
         const offenderUid = state.pendingAction?.actorUid;
         if (offenderUid && offenderUid !== playerUid) bumpGrudge(state, playerUid, offenderUid, 2);
-        state.pendingLoss = { playerUid, count: Math.max(1, Number(count) || 1), reason, continuation, requireChoice };
+        const normalizedCount = Math.max(1, Number(count) || 1);
+        state.pendingLoss = {
+            playerUid, count: normalizedCount, reason, continuation, requireChoice,
+            doubleAssassination: state.pendingAction?.type === ACTIONS.ASSASSINATE
+                && state.pendingAction.targetUid === playerUid && normalizedCount > 1
+        };
         state.phase = PHASES.INFLUENCE_LOSS;
         state.deadline = now + SETTINGS.selectionSeconds * 1000;
         state.updatedAt = now;
@@ -913,10 +925,12 @@
 
     function revealInfluenceForLoss(state, player, card, now) {
         const reason = state.pendingLoss?.reason;
+        const doubleAssassination = Boolean(state.pendingLoss?.doubleAssassination);
         const assassinationSecondLoss = state.pendingAction?.type === ACTIONS.ASSASSINATE
             && state.pendingAction.targetUid === player.uid && state.pendingLoss?.count === 1
             && (reason === 'Contestação aceita.' || reason === 'Contestação incorreta e vítima de assassinato.');
-        const kind = reason === 'Vítima de Golpe de Estado.' ? 'coup'
+        const kind = doubleAssassination ? 'doubleAssassination'
+            : reason === 'Vítima de Golpe de Estado.' ? 'coup'
             : reason === 'Vítima de assassinato.' || assassinationSecondLoss ? 'assassination'
                 : reason === 'Contestação aceita.' ? 'concession' : 'challengeLoss';
         recordPublicReveal(state, player, card, kind);

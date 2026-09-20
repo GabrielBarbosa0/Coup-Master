@@ -1118,7 +1118,7 @@
         const form = document.getElementById('rankAddAiForm');
         const nameInput = document.getElementById('rankAiName');
         const randomButton = document.getElementById('rankRandomAiNameBtn');
-        const customToggle = document.getElementById('rankChooseAiPersonality');
+        const personalityModes = document.querySelectorAll('input[name="rankAiPersonalityMode"]');
 
         document.getElementById('openRankAddAiBtn')?.addEventListener('click', () => {
             fillRandomAiName();
@@ -1134,7 +1134,7 @@
             hideModal(modal);
         });
         randomButton?.addEventListener('click', fillRandomAiName);
-        customToggle?.addEventListener('change', syncAiPersonalityFields);
+        personalityModes.forEach((input) => input.addEventListener('change', syncAiPersonalityFields));
 
         ['rankAiVengefulness', 'rankAiHonesty', 'rankAiSkepticism'].forEach((inputId) => {
             document.getElementById(inputId)?.addEventListener('input', syncAiPersonalityValues);
@@ -1148,7 +1148,7 @@
                 return;
             }
 
-            const choosePersonality = Boolean(customToggle?.checked);
+            const choosePersonality = document.querySelector('input[name="rankAiPersonalityMode"]:checked')?.value === 'manual';
             controller.addAiPlayer({
                 name,
                 personality: choosePersonality ? {
@@ -1242,11 +1242,10 @@
     }
 
     function syncAiPersonalityFields() {
-        const enabled = Boolean(document.getElementById('rankChooseAiPersonality')?.checked);
+        const enabled = document.querySelector('input[name="rankAiPersonalityMode"]:checked')?.value === 'manual';
         const fields = document.getElementById('rankAiPersonalityFields');
         if (fields) {
-            fields.classList.toggle('is-disabled', !enabled);
-            fields.setAttribute('aria-disabled', String(!enabled));
+            fields.hidden = !enabled;
             fields.querySelectorAll('input').forEach((input) => {
                 input.disabled = !enabled;
             });

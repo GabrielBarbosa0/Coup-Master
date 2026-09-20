@@ -110,6 +110,20 @@ function testAddAiPlayerToWaitingRoom() {
         () => Engine.addAiPlayer(state, { name: 'Dama Fortuna' }, 2001),
         /Já existe um jogador/
     );
+
+    const randomState = createWaitingState();
+    const rolls = [0.1, 0.2, 0.3];
+    Engine.addAiPlayer(randomState, {
+        uid: 'random-bot',
+        name: 'Máscara Rubra'
+    }, 2100, () => rolls.shift());
+    const randomBot = Engine.getPlayer(randomState, 'random-bot');
+    assert.deepEqual(randomBot.personality, {
+        vengefulness: 10,
+        honesty: 20,
+        skepticism: 30
+    });
+    assert.equal(randomBot.personalityHidden, true);
 }
 
 function testHostRemovesWaitingPlayer() {
@@ -469,6 +483,7 @@ function testAssassinationTargetFailedChallengeAutoRevealsLastLoss() {
     assert.equal(state.players.u2.eliminated, true);
     assert.equal(Engine.countInfluences(state.players.u2), 0);
     assert.equal(state.discard.length, 2);
+    assert.deepEqual(state.publicReveals.slice(1).map((event) => event.kind), ['doubleAssassination', 'doubleAssassination']);
     assert.equal(state.phase, Rules.PHASES.TURN);
     assert.equal(Engine.getActiveUid(state), 'u3');
 }
@@ -511,6 +526,7 @@ function testVoluntaryContessaConcessionLosesBoth() {
     assert.equal(Engine.countInfluences(state.players.u2), 2);
     Engine.revealChallenge(state, 'u2', assassin.id, 4200);
     assert.equal(state.players.u2.eliminated, true);
+    assert.deepEqual(state.publicReveals.map((event) => event.kind), ['doubleAssassination', 'doubleAssassination']);
     assert.deepEqual(state.discard.map((card) => card.id), [assassin.id, contessa.id]);
     assert.equal(state.players.u1.coins, 0);
     assert.equal(Engine.getActiveUid(state), 'u3');
