@@ -405,21 +405,31 @@ Se o tempo acabar:
 
 Ao final da partida, o sistema registra o resultado e calcula uma pontuação de desempenho.
 
-O resultado considera:
+Existem duas medidas diferentes:
 
-- vitória ou derrota;
-- ações realizadas;
-- blefes;
-- blefes revelados;
-- bloqueios aceitos;
-- contestações vencidas;
-- contestações perdidas;
-- golpes de estado;
-- assassinatos;
-- roubos;
-- moedas roubadas;
-- influências preservadas;
-- eliminação.
+- `performanceScore`: desempenho obtido em uma partida e exibido no resumo final;
+- `rankScore`: pontuação da classificação, calculada pelo limite inferior do intervalo de confiança de Wilson da taxa de vitórias e escalada de 0 a 1000.
+
+O `performanceScore` é acumulado em `performancePoints`, mas não é somado diretamente ao `rankScore`.
+
+### Fórmula de desempenho da partida
+
+| Evento | Pontos |
+| --- | ---: |
+| Vitória | +30 |
+| Derrota | -8 |
+| Golpe de Estado executado | +6 |
+| Assassinato executado | +7 |
+| Roubo executado | +4 |
+| Contestação vencida | +8 |
+| Contestação perdida | -6 |
+| Blefe do próprio jogador revelado | -7 |
+| Influência preservada no final | +3 por influência |
+| Jogador eliminado | -5 |
+
+Ações executadas, quantidade de moedas roubadas e bloqueios aceitos continuam registrados nas estatísticas da partida e do perfil, mas não concedem pontos de desempenho. Isso evita premiar apenas a duração da participação, duplicar a recompensa de um roubo ou pontuar um bloqueio somente por ter sido aceito.
+
+`Blefes revelados` é uma penalidade aplicada ao jogador que blefou e foi descoberto. `Eliminação` é uma penalidade para o jogador eliminado, não uma recompensa por eliminar adversários.
 
 ### Dados persistidos
 

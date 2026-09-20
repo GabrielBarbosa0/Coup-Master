@@ -1310,12 +1310,9 @@
         };
 
         add(player.uid === state.winnerUid ? 'Vitória' : 'Derrota', player.uid === state.winnerUid ? 30 : -8);
-        add('Ações executadas', stats.actions * 2);
         add('Golpes de Estado', stats.coups * 6);
         add('Assassinatos', stats.assassinations * 7);
         add('Roubos', stats.steals * 4);
-        add('Moedas roubadas', stats.coinsStolen);
-        add('Bloqueios aceitos', stats.blockedActions * 4);
         add('Desafios vencidos', stats.successfulChallenges * 8);
         add('Desafios perdidos', stats.failedChallenges * -6);
         add('Blefes revelados', stats.provenBluffs * -7);

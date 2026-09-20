@@ -508,6 +508,15 @@ function testMatchStatsTrackActionsAndChallenges() {
     const stealResult = Engine.buildMatchResults(stealState, 3200);
     assert.equal(stealResult.players.u1.matchStats.steals, 1);
     assert.equal(stealResult.players.u1.matchStats.coinsStolen, 2);
+
+    stealState.matchStats.u1.actions = 4;
+    stealState.matchStats.u1.blockedActions = 2;
+    const performance = Engine.calculateMatchPerformance(stealState, stealState.players.u1);
+    const scoredLabels = performance.breakdown.map((item) => item.label);
+    assert.ok(scoredLabels.includes('Roubos'));
+    assert.ok(!scoredLabels.includes('Ações executadas'));
+    assert.ok(!scoredLabels.includes('Moedas roubadas'));
+    assert.ok(!scoredLabels.includes('Bloqueios aceitos'));
 }
 
 function testStealRequiresTwoTargetCoins() {
