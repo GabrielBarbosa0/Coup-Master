@@ -969,9 +969,8 @@
     },
     "coup": {
       "0": "Coup!",
-      "1": "Put a card on the table",
-      "2": "Put it on the table!",
-      "3": "No talking!"
+      "1": "Put it on the table!",
+      "2": "No talking!"
     },
     "tax": {
       "0": "Duke",
@@ -998,14 +997,12 @@
     "exchangeInquisitor": {
       "0": "Inquisitor",
       "1": "I'll exchange",
-      "2": "I'll draw one card",
-      "3": "Time to exchange"
+      "2": "Time to exchange"
     },
     "examine": {
       "0": "I want to investigate",
-      "1": "Let me see your card",
-      "2": "Show the card",
-      "3": "Let me examine"
+      "1": "Show the card",
+      "2": "Let me examine"
     },
     "block": {
       "0": "I block",

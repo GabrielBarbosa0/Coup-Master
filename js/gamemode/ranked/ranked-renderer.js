@@ -168,13 +168,13 @@
     const CALLOUT_VARIANTS = Object.freeze({
         income: calloutKeys('income', 4),
         foreignAid: calloutKeys('foreignAid', 1),
-        coup: calloutKeys('coup', 4),
+        coup: calloutKeys('coup', 3),
         tax: calloutKeys('tax', 3),
         steal: calloutKeys('steal', 4),
         assassinate: calloutKeys('assassinate', 4),
         exchangeAmbassador: calloutKeys('exchangeAmbassador', 3),
-        exchangeInquisitor: calloutKeys('exchangeInquisitor', 4),
-        examine: calloutKeys('examine', 4),
+        exchangeInquisitor: calloutKeys('exchangeInquisitor', 3),
+        examine: calloutKeys('examine', 3),
         block: calloutKeys('block', 5),
         contessaBlock: calloutKeys('contessaBlock', 5),
         challenge: calloutKeys('challenge', 5),
@@ -1489,7 +1489,9 @@
 
                 const hand = element('div', 'rank-opponent-hand');
                 (player.influences || []).forEach((card) => {
-                    const cardElement = createCard(card, player.uid === currentUid || card.revealed);
+                    const revealWinningInfluence = state.status === PHASES.FINISHED
+                        && player.uid === state.winnerUid && !card.revealed;
+                    const cardElement = createCard(card, player.uid === currentUid || card.revealed || revealWinningInfluence);
                     cardElement.dataset.rankDragKey = `${player.uid}:${card.id}`;
                     hand.append(cardElement);
                 });
