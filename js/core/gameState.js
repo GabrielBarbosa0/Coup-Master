@@ -301,6 +301,27 @@ function dealCardsToPlayers() {
   }, false);
 }
 
+/** Compra uma carta para o jogador local usando a animacao de distribuicao. */
+function drawAnimatedCard() {
+  if (!myPlayerId || currentGameMode !== CoupGameModes.CASUAL || isDrawingCard) return;
+  isDrawingCard = true;
+  const eventId = gameStateRef.push().key;
+  gameStateRef.transaction((state) => {
+    if (state?.players?.[myPlayerId]?.uid !== currentUser.uid) return;
+    return window.CoupCasualDeal.applySingleDraw(state, eventId, myPlayerId);
+  }, (error, committed) => {
+    isDrawingCard = false;
+    if (error) {
+      console.error('Falha ao comprar uma carta:', error);
+      return;
+    }
+    if (committed) {
+      triggerSound('card-slide');
+      updateRoomActivity();
+    }
+  }, false);
+}
+
 /** Retira a carta do topo do baralho e a entrega a um jogador. */
 function drawCard(targetPid = null) {
   const playerToReceive = targetPid || myPlayerId;

@@ -34,6 +34,20 @@
     return state;
   }
 
+  function applySingleDraw(state, eventId, targetPid) {
+    const pid = Number(targetPid);
+    const player = state?.players?.[pid];
+    if (!player?.uid || !Array.isArray(state.deck) || !state.deck.length) return;
+    const card = state.deck.pop();
+    card.owner = pid;
+    card.location = `player-${pid}`;
+    card.visible = false;
+    if (!player.hand) player.hand = [];
+    player.hand.push(card);
+    state.lastDeal = { id: eventId, cards: [{ id: card.id, pid }] };
+    return state;
+  }
+
   function findElement(id) {
     return Array.from(document.querySelectorAll('[data-hand] [data-card-id]'))
       .find((element) => element.dataset.cardId === String(id));
@@ -149,5 +163,5 @@
     });
   }
 
-  root.CoupCasualDeal = { applyDeal, setup, render };
+  root.CoupCasualDeal = { applyDeal, applySingleDraw, setup, render };
 })(window);

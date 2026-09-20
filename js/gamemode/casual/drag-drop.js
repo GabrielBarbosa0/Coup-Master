@@ -54,6 +54,11 @@
     if (typeof handler === 'function') handler(targetPid);
   }
 
+  function drawAnimatedCard() {
+    const handler = dependencies.drawAnimatedCard || root.drawAnimatedCard;
+    if (typeof handler === 'function') handler();
+  }
+
   function moveCard(cardId, targetLocation, targetPlayerId, options) {
     const handler = dependencies.moveCard || root.moveCard;
     if (typeof handler === 'function') handler(cardId, targetLocation, targetPlayerId, options);
@@ -692,7 +697,7 @@
 
     if (dropzone.id === 'deck') {
       if (dragData === 'DECK_DRAW_ACTION') {
-        if (wasTap) drawCard();
+        if (wasTap) drawAnimatedCard();
         return;
       }
 
@@ -758,7 +763,7 @@
 
     if (!activated) {
       finishCompatibleDrag();
-      if (data === 'DECK_DRAW_ACTION' && !hasMoved) drawCard();
+      if (data === 'DECK_DRAW_ACTION' && !hasMoved) drawAnimatedCard();
       return;
     }
 
@@ -854,12 +859,12 @@
     };
 
     deckElement.onclick = () => {
-      if (!isSamsungDragModeEnabled()) drawCard();
+      if (!isSamsungDragModeEnabled()) drawAnimatedCard();
     };
     deckElement.onkeydown = (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        drawCard();
+        drawAnimatedCard();
       }
     };
 

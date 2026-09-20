@@ -58,6 +58,24 @@ test('baralho insuficiente distribui so o que existe, sem criar cartas', () => {
   assert.equal(state.players[2].hand.length, 2);
 });
 
+test('clique no baralho compra uma carta apenas para o jogador local', () => {
+  const { applySingleDraw } = load();
+  const state = fixture();
+  assert.equal(applySingleDraw(state, 'single-draw', 1), state);
+  assert.deepEqual(Array.from(state.lastDeal.cards, (card) => card.pid), [1]);
+  assert.equal(state.players[1].hand.length, 1);
+  assert.equal(state.players[2].hand.length, 1);
+  assert.equal(state.players[3].hand.length, 2);
+  assert.equal(state.players[4].hand, undefined);
+  assert.equal(state.deck.length, 11);
+});
+
+test('compra individual rejeita slot vazio e baralho vazio', () => {
+  const { applySingleDraw } = load();
+  assert.equal(applySingleDraw(fixture(), 'empty-seat', 4), undefined);
+  assert.equal(applySingleDraw(fixture(0), 'empty-deck', 1), undefined);
+});
+
 test('distribui para humanos com presenca desatualizada e bots, sem preencher slots vazios', () => {
   const { applyDeal } = load();
   const state = fixture();

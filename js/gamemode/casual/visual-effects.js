@@ -107,6 +107,43 @@
     });
   }
 
+  function captureHandCardPositions() {
+    const positions = new Map();
+    document.querySelectorAll('.game-table [data-hand] [data-card-id]').forEach((card) => {
+      const rect = card.closest('.slot')?.getBoundingClientRect();
+      if (rect?.width && rect?.height) {
+        positions.set(String(card.dataset.cardId), { left: rect.left, top: rect.top });
+      }
+    });
+    return positions;
+  }
+
+  function animateHandReflow(previousPositions) {
+    if (!previousPositions?.size
+      || root.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    document.querySelectorAll('.game-table [data-hand] [data-card-id]').forEach((card) => {
+      const previous = previousPositions.get(String(card.dataset.cardId));
+      const slot = card.closest('.slot');
+      if (!previous || !slot || typeof slot.animate !== 'function') return;
+
+      const current = slot.getBoundingClientRect();
+      const deltaX = previous.left - current.left;
+      const deltaY = previous.top - current.top;
+      if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) return;
+
+      const baseTransform = root.getComputedStyle(slot).transform;
+      const restingTransform = baseTransform === 'none' ? '' : baseTransform;
+      slot.animate([
+        { transform: `translate(${deltaX}px, ${deltaY}px) ${restingTransform}`.trim() },
+        { transform: restingTransform || 'none' }
+      ], {
+        duration: 240,
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
+      });
+    });
+  }
+
   function resetBalatroElement(element) {
     if (!element) return;
     element.classList.remove('is-tilting');
@@ -165,6 +202,8 @@
     updateGraveyardFanLayout,
     updateAllCardFans,
     scheduleCardFanLayout,
+    captureHandCardPositions,
+    animateHandReflow,
     resetBalatroElement,
     attachBalatroEffect
   };

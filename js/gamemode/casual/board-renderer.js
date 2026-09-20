@@ -62,6 +62,7 @@ function setupInteractionServices() {
     deckElement: deckEl,
     graveyardArea,
     drawCard,
+    drawAnimatedCard,
     moveCard,
     burnTopCard,
     isSamsungDragModeEnabled,
@@ -164,6 +165,8 @@ function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
 
+  const previousHandPositions = window.CoupVisualEffects?.captureHandCardPositions?.();
+
   renderRoomModeLabel();
   renderAdminControls();
   window.CoupRulesGuides?.renderAlternativeRuleDraw?.({
@@ -174,6 +177,7 @@ function renderAll() {
   clearDOM();
   renderPlayers(state);
   renderTable(state);
+  window.CoupVisualEffects?.animateHandReflow?.(previousHandPositions);
   window.CoupCasualDeal?.render(state);
 }
 
