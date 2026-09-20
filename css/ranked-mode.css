@@ -3905,10 +3905,11 @@ body[data-rank-view="game"] .rank-timer {
     body[data-rank-view="game"] .rank-timer {
         top: 12px;
         right: 10px;
-        min-width: 40px;
-        min-height: 34px;
-        padding: 5px 7px;
-        font-size: 17px;
+        min-width: 32px;
+        min-height: 27px;
+        padding: 4px 6px;
+        border-radius: 10px;
+        font-size: 14px;
     }
 
     .rank-side-stack .rank-log-heading,
@@ -4182,7 +4183,7 @@ body[data-rank-view="game"] .rank-timer {
     }
 
     body.rank-table-resources-enabled .rank-stage {
-        min-height: 270px;
+        min-height: 250px;
     }
 
     .rank-table-resources-enabled .rank-resource-card {
