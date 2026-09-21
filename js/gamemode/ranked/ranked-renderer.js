@@ -1384,6 +1384,12 @@
 
     function renderState(nextState) {
         const previousState = state;
+        const cardTransferBatch = viewMode === 'game'
+            ? root.CoupRankedCardTransfers?.prepare(previousState, nextState)
+            : null;
+        const coinTransferBatch = viewMode === 'game'
+            ? root.CoupRankedCoinTransfers?.prepare(previousState, nextState)
+            : null;
         // Callouts and language changes can redraw while a newer snapshot is animating.
         state = nextState ? JSON.parse(JSON.stringify(nextState)) : null;
         if (!state) return;
@@ -1396,6 +1402,8 @@
         renderStarterDrawOverlay();
         renderMatchResultsModal();
         if (viewMode === 'game') renderLog();
+        root.CoupRankedCardTransfers?.play(cardTransferBatch);
+        root.CoupRankedCoinTransfers?.play(coinTransferBatch);
         updateClock();
         root.requestAnimationFrame?.(syncSideStackHeight);
         hideLoading();
@@ -1461,6 +1469,8 @@
             }
 
             const slot = element('article', 'rank-player-slot');
+            slot.dataset.playerUid = player.uid;
+            if (state.phase === PHASES.STARTER_DRAW) slot.classList.add('is-awaiting-initial-deal');
             slot.style.setProperty('--draw-seat', seat);
             if (player.uid === currentUid) slot.classList.add('is-self');
             if (player.uid === activeUid && state.status === 'active' && state.phase !== PHASES.STARTER_DRAW) slot.classList.add('is-active');
@@ -1599,6 +1609,15 @@
         if (state.phase === PHASES.STARTER_DRAW) {
             stage?.classList.add('is-centered-stage');
             setPhaseText(t('ranked.starterDraw', {}, 'Sorteio inicial'));
+            return;
+        }
+
+        if (state.phase === PHASES.DEALING) {
+            stage?.classList.add('is-centered-stage');
+            setPhaseText(
+                t('ranked.dealingCards', {}, 'Distribuindo cartas'),
+                t('ranked.dealingCardsDescription', {}, 'Preparando as mãos da partida.')
+            );
             return;
         }
 

@@ -13,6 +13,7 @@ function createStartedState(exchangeRole = Rules.ROLES.AMBASSADOR) {
         draws++ === 1 && exchangeRole === Rules.ROLES.INQUISITOR ? 0.75 : 0
     ));
     Engine.advanceExpired(state, state.deadline + 1);
+    Engine.advanceExpired(state, state.deadline + 1);
     return state;
 }
 
@@ -28,6 +29,7 @@ function createStartedStateWithThree(exchangeRole = Rules.ROLES.AMBASSADOR) {
     Engine.advanceExpired(state, state.deadline + 1, () => (
         draws++ === 1 && exchangeRole === Rules.ROLES.INQUISITOR ? 0.75 : 0
     ));
+    Engine.advanceExpired(state, state.deadline + 1);
     Engine.advanceExpired(state, state.deadline + 1);
     state.turnOrder = ['u1', 'u2', 'u3'];
     state.turnIndex = 0;
@@ -73,6 +75,10 @@ function testReadyCountdownDelaysStart() {
     assert.equal(state.starterDraw.winnerUid, 'u2');
     assert.equal(Engine.getActiveUid(state), 'u2');
 
+    assert.equal(Engine.advanceExpired(state, state.deadline + 1), true);
+    assert.equal(state.phase, Rules.PHASES.DEALING);
+    assert.equal(state.turnNumber, 0);
+    assert.throws(() => Engine.performAction(state, 'u2', Rules.ACTIONS.INCOME), /Aguarde/);
     assert.equal(Engine.advanceExpired(state, state.deadline + 1), true);
     assert.equal(state.phase, Rules.PHASES.TURN);
     assert.equal(state.turnNumber, 1);

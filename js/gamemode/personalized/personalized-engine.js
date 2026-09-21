@@ -442,10 +442,25 @@
         const starterUid = state.starterDraw?.winnerUid || getActiveUid(state);
         const starterIndex = state.turnOrder.indexOf(starterUid);
         if (starterIndex >= 0) state.turnIndex = starterIndex;
+        const cardCount = getPlayers(state).reduce((total, player) => total + (player.influences?.length || 0), 0);
+        const dealDuration = SETTINGS.dealCardDurationMs
+            + Math.max(0, cardCount - 1) * SETTINGS.dealCardStaggerMs
+            + SETTINGS.dealSettleMs;
+        state.turnNumber = 0;
+        state.phase = PHASES.DEALING;
+        state.deadline = now + dealDuration;
+        if (state.starterDraw) state.starterDraw.completedAt = now;
+        addLog(state, 'Distribuindo as cartas da partida.', 'system', now);
+        state.updatedAt = now;
+        return true;
+    }
+
+    function completeInitialDeal(state, now = Date.now()) {
+        normalizeState(state);
+        if (state.status !== 'active' || state.phase !== PHASES.DEALING) return false;
         state.turnNumber = 1;
         state.phase = PHASES.TURN;
         state.deadline = now + SETTINGS.turnSeconds * 1000;
-        if (state.starterDraw) state.starterDraw.completedAt = now;
         addLog(state, `${getPlayer(state, getActiveUid(state))?.name || 'O jogador sorteado'} começa a partida.`, 'turn', now);
         state.updatedAt = now;
         return true;
@@ -1166,6 +1181,10 @@
             return completeStarterDraw(state, now);
         }
 
+        if (state.phase === PHASES.DEALING) {
+            return completeInitialDeal(state, now);
+        }
+
         if (state.phase === PHASES.TURN) {
             const activeUid = getActiveUid(state);
             const activePlayer = getPlayer(state, activeUid);
@@ -1216,6 +1235,7 @@
         restartMatch,
         maybeStart,
         completeStarterDraw,
+        completeInitialDeal,
         calculateMatchPerformance,
         performAction,
         passResponse,

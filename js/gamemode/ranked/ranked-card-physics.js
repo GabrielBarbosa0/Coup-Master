@@ -12,13 +12,26 @@
         friction: 0.88
     };
     const REFERENCE_CARD_WIDTH = 150;
+    const DECK_DRAG_THRESHOLD = 6;
+    const DECK_HOVER = Object.freeze({ tilt: 36, glowOffset: 23.4 });
     let drag = null;
     let frame = null;
     let lastTime = 0;
 
+    function draggableSources() {
+        return document.querySelectorAll(
+            '#rankPlayers [data-rank-drag-key], #rankDeckSource [data-rank-drag-key], '
+            + '#rankTreasurySource [data-rank-drag-key]'
+        );
+    }
+
     function sourceFor(key) {
-        return Array.from(document.querySelectorAll('#rankPlayers [data-rank-drag-key]'))
+        return Array.from(draggableSources())
             .find(card => card.dataset.rankDragKey === key);
+    }
+
+    function sourceImage(source) {
+        return source?.matches('img') ? source.src : source?.querySelector('img')?.src;
     }
 
     function clamp(value, min, max) {
@@ -140,7 +153,7 @@
         if (!drag?.ghost) return;
         const source = sourceFor(drag.key);
         // A revealed/replaced card must not leave an outdated copy floating over the table.
-        if (!source || source.querySelector('img')?.src !== drag.image
+        if (!source || sourceImage(source) !== drag.image
             || source.classList.contains('is-revealed') !== drag.revealed) {
             finish();
             return;
@@ -195,13 +208,25 @@
         const physics = scaledPhysics(rect);
         const physicsSetup = createTargets(d.source, physics);
         const ghost = d.source.cloneNode(true);
-        ghost.className = 'rank-card rank-card-drag-ghost';
+        ghost.className = d.isDeck
+            ? 'rank-deck-drag-ghost'
+            : d.isCoin ? 'rank-coin-drag-ghost' : 'rank-card rank-card-drag-ghost';
         ghost.removeAttribute('id');
         ghost.removeAttribute('data-rank-drag-key');
         ghost.removeAttribute('style');
         ghost.setAttribute('aria-hidden', 'true');
         ghost.inert = true;
         Object.assign(ghost.style, { width: `${rect.width}px`, height: `${rect.height}px` });
+        if (d.isDeck || d.isCoin) {
+            const computedStyle = root.getComputedStyle(d.source);
+            Object.assign(ghost.style, {
+                aspectRatio: computedStyle.aspectRatio,
+                border: computedStyle.border,
+                borderRadius: computedStyle.borderRadius,
+                objectFit: computedStyle.objectFit,
+                filter: computedStyle.filter
+            });
+        }
         if (d.revealed) ghost.classList.add('is-revealed');
         document.body.append(ghost);
         document.body.classList.add('is-rank-card-dragging');
@@ -216,6 +241,7 @@
             physics: { ...physics, repelRadius: physicsSetup.repelRadius },
             targets: physicsSetup.targets
         });
+        d.activated = true;
         ghost.style.transform = `translate3d(${d.x}px, ${d.y}px, 0)`;
         frame = root.requestAnimationFrame(tick);
     }
@@ -230,22 +256,102 @@
         releasePointer(drag.pointerId);
     }
 
+    function resetDeckTilt(deckCard) {
+        deckCard.classList.remove('is-tilting');
+        deckCard.closest('.rank-deck-card')?.classList.remove('is-deck-card-active');
+        deckCard.closest('.rank-side-stack')?.classList.remove('has-active-deck-card');
+        deckCard.style.removeProperty('--rank-deck-tilt-x');
+        deckCard.style.removeProperty('--rank-deck-tilt-y');
+        deckCard.style.removeProperty('--rank-deck-glow-x');
+        deckCard.style.removeProperty('--rank-deck-glow-y');
+    }
+
+    function bindDeckTilt() {
+        const deckCard = document.querySelector('#rankDeckSource [data-rank-drag-key]');
+        if (!deckCard || deckCard.dataset.rankTiltBound === 'true') return;
+        deckCard.dataset.rankTiltBound = 'true';
+        deckCard.addEventListener('pointermove', event => {
+            if (drag || event.pointerType === 'touch') return;
+            const rect = deckCard.getBoundingClientRect();
+            const x = clamp((event.clientX - rect.left) / rect.width - 0.5, -0.5, 0.5);
+            const y = clamp((event.clientY - rect.top) / rect.height - 0.5, -0.5, 0.5);
+            deckCard.style.setProperty('--rank-deck-tilt-x', `${(-y * DECK_HOVER.tilt).toFixed(2)}deg`);
+            deckCard.style.setProperty('--rank-deck-tilt-y', `${(x * DECK_HOVER.tilt).toFixed(2)}deg`);
+            deckCard.style.setProperty('--rank-deck-glow-x', `${(-x * DECK_HOVER.glowOffset).toFixed(2)}px`);
+            deckCard.style.setProperty('--rank-deck-glow-y', `${(-y * DECK_HOVER.glowOffset).toFixed(2)}px`);
+            deckCard.classList.add('is-tilting');
+            deckCard.closest('.rank-deck-card')?.classList.add('is-deck-card-active');
+            deckCard.closest('.rank-side-stack')?.classList.add('has-active-deck-card');
+        });
+        deckCard.addEventListener('pointerleave', () => resetDeckTilt(deckCard));
+        deckCard.addEventListener('pointercancel', () => resetDeckTilt(deckCard));
+    }
+
+    function resetCoinTilt(coin) {
+        coin.classList.remove('is-tilting');
+        coin.closest('.rank-treasury-card')?.classList.remove('is-treasury-card-active');
+        coin.closest('.rank-side-stack')?.classList.remove('has-active-treasury-coin');
+        coin.style.removeProperty('--rank-coin-tilt-x');
+        coin.style.removeProperty('--rank-coin-tilt-y');
+        coin.style.removeProperty('--rank-coin-glow-x');
+        coin.style.removeProperty('--rank-coin-glow-y');
+    }
+
+    function bindTreasuryCoinTilts() {
+        document.querySelectorAll('#rankTreasurySource [data-rank-drag-key]').forEach(coin => {
+            if (coin.dataset.rankTiltBound === 'true') return;
+            coin.dataset.rankTiltBound = 'true';
+            coin.addEventListener('pointermove', event => {
+                if (drag || event.pointerType === 'touch') return;
+                const rect = coin.getBoundingClientRect();
+                const x = clamp((event.clientX - rect.left) / rect.width - 0.5, -0.5, 0.5);
+                const y = clamp((event.clientY - rect.top) / rect.height - 0.5, -0.5, 0.5);
+                coin.style.setProperty('--rank-coin-tilt-x', `${(-y * DECK_HOVER.tilt).toFixed(2)}deg`);
+                coin.style.setProperty('--rank-coin-tilt-y', `${(x * DECK_HOVER.tilt).toFixed(2)}deg`);
+                coin.style.setProperty('--rank-coin-glow-x', `${(-x * DECK_HOVER.glowOffset).toFixed(2)}px`);
+                coin.style.setProperty('--rank-coin-glow-y', `${(-y * DECK_HOVER.glowOffset).toFixed(2)}px`);
+                coin.classList.add('is-tilting');
+                coin.closest('.rank-treasury-card')?.classList.add('is-treasury-card-active');
+                coin.closest('.rank-side-stack')?.classList.add('has-active-treasury-coin');
+            });
+            coin.addEventListener('pointerleave', () => resetCoinTilt(coin));
+            coin.addEventListener('pointercancel', () => resetCoinTilt(coin));
+        });
+    }
+
     document.addEventListener('pointerdown', event => {
         if (event.button !== 0 || !event.isPrimary || drag) return;
-        const source = event.target.closest('#rankPlayers .rank-opponent-hand [data-rank-drag-key]');
+        const source = event.target.closest(
+            '#rankPlayers .rank-opponent-hand [data-rank-drag-key], '
+            + '#rankDeckSource [data-rank-drag-key], #rankTreasurySource [data-rank-drag-key]'
+        );
         if (!source) return;
+        const isDeck = source.closest('#rankDeckSource') !== null;
+        const isCoin = source.closest('#rankTreasurySource') !== null;
+        if (isDeck || isCoin) {
+            event.preventDefault();
+            if (isDeck) resetDeckTilt(source);
+            if (isCoin) resetCoinTilt(source);
+        }
         drag = {
             source, key: source.dataset.rankDragKey, pointerId: event.pointerId,
             startX: event.clientX, startY: event.clientY,
             pointerX: event.clientX, pointerY: event.clientY,
-            image: source.querySelector('img')?.src,
-            revealed: source.classList.contains('is-revealed')
+            image: sourceImage(source),
+            revealed: source.classList.contains('is-revealed'),
+            isDeck,
+            isCoin,
+            activated: false
         };
         document.documentElement.setPointerCapture(event.pointerId);
-        activate();
+        if (!isDeck && !isCoin) activate();
     });
     root.addEventListener('pointermove', event => {
         if (!drag || drag.returning || event.pointerId !== drag.pointerId) return;
+        if ((drag.isDeck || drag.isCoin) && !drag.activated
+            && Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > DECK_DRAG_THRESHOLD) {
+            activate();
+        }
         drag.pointerX = event.clientX;
         drag.pointerY = event.clientY;
         if (drag?.ghost) event.preventDefault();
@@ -258,5 +364,7 @@
     root.addEventListener('blur', returnToHand);
     root.addEventListener('pagehide', finish);
     document.addEventListener('keydown', event => { if (event.key === 'Escape') returnToHand(); });
+    bindDeckTilt();
+    bindTreasuryCoinTilts();
     root.CoupRankedCardPhysics = Object.freeze({ sync, cancel: finish });
 })(window);

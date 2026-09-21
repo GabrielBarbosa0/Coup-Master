@@ -1,4 +1,6 @@
-#rankPlayers [data-rank-drag-key] {
+#rankPlayers [data-rank-drag-key],
+#rankDeckSource [data-rank-drag-key],
+#rankTreasurySource [data-rank-drag-key] {
     cursor: grab;
     touch-action: none;
 }
@@ -6,6 +8,96 @@
 #rankPlayers .is-rank-drag-source {
     visibility: hidden;
     transform: none;
+}
+
+#rankTreasurySource .is-rank-drag-source {
+    visibility: hidden;
+}
+
+#rankDeckSource img[data-rank-drag-key] {
+    --rank-deck-tilt-x: 0deg;
+    --rank-deck-tilt-y: 0deg;
+    transform: perspective(820px)
+        rotateX(var(--rank-deck-tilt-x))
+        rotateY(var(--rank-deck-tilt-y));
+    transform-origin: center;
+    transform-style: preserve-3d;
+    position: relative;
+    transition: transform 40ms ease, box-shadow 150ms ease, filter 150ms ease;
+    will-change: transform, box-shadow;
+}
+
+#rankDeckSource img[data-rank-drag-key].is-tilting {
+    transform: perspective(820px)
+        translateY(-18px)
+        rotateX(var(--rank-deck-tilt-x))
+        rotateY(var(--rank-deck-tilt-y))
+        scale(1.22);
+    z-index: 8;
+    filter: brightness(1) saturate(1);
+    box-shadow:
+        var(--rank-deck-glow-x, 0) var(--rank-deck-glow-y, 0) 30px rgb(0 191 255 / 40%),
+        0 18px 34px rgb(0 0 0 / 50%);
+}
+
+.rank-table-resources-enabled .rank-side-stack.has-active-deck-card,
+.rank-table-resources-enabled .rank-deck-card.is-deck-card-active {
+    overflow: visible;
+}
+
+#rankTreasurySource img[data-rank-drag-key] {
+    --rank-coin-glow-color: 244 248 255;
+    --rank-coin-tilt-x: 0deg;
+    --rank-coin-tilt-y: 0deg;
+    transform: rotate(var(--rank-coin-base-rotation))
+        perspective(820px)
+        rotateX(var(--rank-coin-tilt-x))
+        rotateY(var(--rank-coin-tilt-y));
+    transform-origin: center;
+    transform-style: preserve-3d;
+    transition: transform 40ms ease, filter 150ms ease;
+    will-change: transform, filter;
+    cursor: grab;
+}
+
+#rankTreasurySource img[data-rank-drag-key].is-tilting {
+    z-index: 8;
+    transform: rotate(var(--rank-coin-base-rotation))
+        perspective(820px)
+        translateY(-8px)
+        rotateX(var(--rank-coin-tilt-x))
+        rotateY(var(--rank-coin-tilt-y))
+        scale(1.22);
+    filter:
+        drop-shadow(var(--rank-coin-glow-x, 0) var(--rank-coin-glow-y, 0) 9px rgb(var(--rank-coin-glow-color) / 48%))
+        drop-shadow(0 12px 13px rgb(0 0 0 / 48%));
+}
+
+#rankTreasurySource img[data-rank-drag-key="treasury-gold-1"] {
+    --rank-coin-glow-color: 255 196 0;
+}
+
+.rank-table-resources-enabled .rank-side-stack.has-active-treasury-coin,
+.rank-table-resources-enabled .rank-treasury-card.is-treasury-card-active {
+    overflow: visible;
+}
+
+.rank-table-resources-enabled .rank-side-stack.has-active-treasury-coin {
+    z-index: 20;
+}
+
+.rank-table-resources-enabled .rank-treasury-card.is-treasury-card-active {
+    position: relative;
+    z-index: 21;
+}
+
+.rank-table-resources-enabled .rank-side-stack.has-active-deck-card {
+    z-index: 20;
+}
+
+.rank-table-resources-enabled .rank-deck-card.is-deck-card-active {
+    position: relative;
+    z-index: 21;
 }
 
 #rankPlayers .is-rank-physics-target {
@@ -27,10 +119,48 @@
     left: 0;
     top: 0;
     margin: 0;
-    z-index: 2000;
+    z-index: 30000;
     pointer-events: none;
     transition: none;
     animation: none;
     will-change: transform;
     box-shadow: 0 14px 24px rgb(0 0 0 / 35%);
+}
+
+.rank-deck-drag-ghost {
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: block;
+    margin: 0;
+    z-index: 2000;
+    pointer-events: none;
+    transition: none;
+    animation: none;
+    object-fit: cover;
+    will-change: transform;
+    transform-origin: center;
+    filter: drop-shadow(0 28px 28px rgb(0 0 0 / 46%));
+    box-shadow: none;
+}
+
+.rank-coin-drag-ghost {
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: block;
+    margin: 0;
+    z-index: 30000;
+    pointer-events: none;
+    transition: none;
+    animation: none;
+    object-fit: contain;
+    transform-origin: center;
+    will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #rankDeckSource img[data-rank-drag-key] {
+        transition: none;
+    }
 }

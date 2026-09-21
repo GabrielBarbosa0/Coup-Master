@@ -81,6 +81,7 @@
     const PHASES = Object.freeze({
         WAITING: 'waiting',
         STARTER_DRAW: 'starter-draw',
+        DEALING: 'dealing',
         TURN: 'turn',
         RESPONSE: 'response',
         BLOCK_CHALLENGE: 'block-challenge',
@@ -100,6 +101,9 @@
         mandatoryCoupCoins: 10,
         readyCountdownSeconds: 3,
         starterDrawSeconds: 5,
+        dealCardDurationMs: 680,
+        dealCardStaggerMs: 120,
+        dealSettleMs: 240,
         responseSeconds: 15,
         challengeReadSeconds: 4.5,
         turnSeconds: 40,

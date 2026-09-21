@@ -19,6 +19,7 @@ function fixture() {
     for (const uid of ['a', 'b', 'c']) Engine.toggleReady(state, uid, 1001, () => 0);
     Engine.advanceExpired(state, state.deadline + 1, () => 0);
     Engine.advanceExpired(state, state.deadline + 1);
+    Engine.advanceExpired(state, state.deadline + 1);
     state.turnOrder = ['a', 'b', 'c'];
     state.turnIndex = 0;
     state.players.a.coins = 7;

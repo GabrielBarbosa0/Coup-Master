@@ -21,8 +21,8 @@
 
     <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
     <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=compact-mobile-timer-v38">
-    <link rel="stylesheet" href="css/ranked-card-physics.css?v=shared-card-physics-v3">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=mobile-official-log-v46">
+    <link rel="stylesheet" href="css/ranked-card-physics.css?v=coin-specific-neon-v10">
     <link rel="stylesheet" href="css/ranked-reveal.css?v=larger-reveal-card-v5">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
 </head>
@@ -109,9 +109,9 @@
                 <section id="rankTreasuryPanel" class="rank-side-card rank-resource-card rank-treasury-card"
                     aria-labelledby="rankTreasuryTitle">
                     <div id="rankTreasurySource" class="rank-treasury-stack" aria-hidden="true">
-                        <img src="assets/img/coins/moeda-prata.png" alt="">
-                        <img src="assets/img/coins/moeda-prata.png" alt="">
-                        <img src="assets/img/coins/moeda-ouro.png" alt="">
+                        <img src="assets/img/coins/moeda-prata.png" alt="" data-rank-drag-key="treasury-silver-1">
+                        <img src="assets/img/coins/moeda-prata.png" alt="" data-rank-drag-key="treasury-silver-2">
+                        <img src="assets/img/coins/moeda-ouro.png" alt="" data-rank-drag-key="treasury-gold-1">
                     </div>
                     <h2 id="rankTreasuryTitle">Tesouro Central</h2>
                 </section>
@@ -120,7 +120,7 @@
                     aria-labelledby="rankDeckTitle">
                     <h2 id="rankDeckTitle">Baralho</h2>
                     <div id="rankDeckSource" class="rank-deck-image" aria-hidden="true">
-                        <img src="assets/img/cards/base/back.png" alt="">
+                        <img src="assets/img/cards/base/back.png" alt="" data-rank-drag-key="rank-deck">
                     </div>
                     <p><strong id="rankDeckCount">0</strong> cartas</p>
                 </section>
@@ -356,11 +356,13 @@
     <script src="js/pwa/pwa.js" defer></script>
     <script src="js/gamemode/game-modes.js?v=game-modes-i18n-v1" defer></script>
     <script src="js/gamemode/casual/rules-guides.js?v=dynamic-guides-v23" defer></script>
-    <script src="js/gamemode/ranked/ranked-rules.js?v=rank-challenge-reading-v2" defer></script>
-    <script src="js/gamemode/ranked/ranked-engine.js?v=ranked-scoring-v7" defer></script>
-    <script src="js/gamemode/ranked/ranked-card-physics.js?v=shared-card-physics-v3" defer></script>
+    <script src="js/gamemode/ranked/ranked-rules.js?v=initial-deal-phase-v3" defer></script>
+    <script src="js/gamemode/ranked/ranked-engine.js?v=initial-deal-phase-v8" defer></script>
+    <script src="js/gamemode/ranked/ranked-card-physics.js?v=treasury-coin-physics-v9" defer></script>
+    <script src="js/gamemode/ranked/ranked-card-transfers.js?v=initial-deal-phase-v2" defer></script>
+    <script src="js/gamemode/ranked/ranked-coin-transfers.js?v=silver-coins-v2" defer></script>
     <script src="js/gamemode/ranked/ranked-reveal.js?v=reveal-role-article-v7" defer></script>
-    <script src="js/gamemode/ranked/ranked-renderer.js?v=result-trophy-v18" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=initial-deal-phase-v21" defer></script>
     <script src="js/gamemode/ranked/ranked-game.js?v=casual-chat-parity-v6" defer></script>
 </body>
 
