@@ -4,6 +4,8 @@
     root.CoupRankedCardTransfers = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createRankedCardTransfers(root) {
     const BACK_IMAGE = 'assets/img/cards/base/back.png';
+    const INITIAL_DEAL_TIMING = Object.freeze({ duration: 680, stagger: 120, settle: 240 });
+    const STANDARD_TRANSFER_TIMING = Object.freeze({ duration: 575, stagger: 113, settle: 120 });
     const activeGhosts = new Set();
 
     function cardLocations(state) {
@@ -129,8 +131,9 @@
         root.document.body.append(ghost);
         activeGhosts.add(ghost);
 
-        const delay = transfer.initialDeal ? index * 120 : index * 90;
-        const duration = transfer.initialDeal ? 680 : 460;
+        const timing = transfer.initialDeal ? INITIAL_DEAL_TIMING : STANDARD_TRANSFER_TIMING;
+        const delay = index * timing.stagger;
+        const duration = timing.duration;
         const from = source.rect;
         const to = destination.rect;
         const animation = ghost.animate([
@@ -183,11 +186,12 @@
             return;
         }
         batch.transfers.forEach((transfer, index) => animateTransfer(transfer, index, batch.transfers.length));
-        const lastDelay = initialDeal ? (batch.transfers.length - 1) * 120 : (batch.transfers.length - 1) * 90;
+        const timing = initialDeal ? INITIAL_DEAL_TIMING : STANDARD_TRANSFER_TIMING;
+        const lastDelay = (batch.transfers.length - 1) * timing.stagger;
         root.setTimeout?.(() => {
             deckElement()?.classList.remove('is-dealing');
             root.document.body.classList.remove('is-initial-card-deal');
-        }, lastDelay + 920);
+        }, lastDelay + timing.duration + timing.settle);
     }
 
     function cancel() {

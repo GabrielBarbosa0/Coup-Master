@@ -7,6 +7,7 @@
         silver: 'assets/img/coins/moeda-prata.png',
         gold: 'assets/img/coins/moeda-ouro.png'
     });
+    const COIN_TRANSFER_TIMING = Object.freeze({ duration: 538, stagger: 73, settle: 130 });
     const activeGhosts = new Set();
 
     function playerBalances(state) {
@@ -133,8 +134,8 @@
             root.document.body.append(ghost);
             activeGhosts.add(ghost);
 
-            const delay = index * 58;
-            const duration = 430;
+            const delay = index * COIN_TRANSFER_TIMING.stagger;
+            const duration = COIN_TRANSFER_TIMING.duration;
             const size = Math.max(16, Math.min(26, destination.width));
             const fromLeft = source.left + (source.width - size) / 2;
             const fromTop = source.top + (source.height - size) / 2;
@@ -164,7 +165,8 @@
             root.document.querySelectorAll('.is-coin-transfer-target').forEach((node) => {
                 node.classList.remove('is-coin-transfer-target');
             });
-        }, Math.max(0, coins.length - 1) * 58 + 560);
+        }, Math.max(0, coins.length - 1) * COIN_TRANSFER_TIMING.stagger
+            + COIN_TRANSFER_TIMING.duration + COIN_TRANSFER_TIMING.settle);
     }
 
     return Object.freeze({ prepare, play, cancel, planTransfers });
