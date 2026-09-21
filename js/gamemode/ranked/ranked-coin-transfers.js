@@ -7,7 +7,7 @@
         silver: 'assets/img/coins/moeda-prata.png',
         gold: 'assets/img/coins/moeda-ouro.png'
     });
-    const COIN_TRANSFER_TIMING = Object.freeze({ duration: 538, stagger: 73, settle: 130 });
+    const COIN_TRANSFER_TIMING = Object.freeze({ duration: 850, stagger: 110, settle: 160 });
     const activeGhosts = new Set();
 
     function playerBalances(state) {

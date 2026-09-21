@@ -291,14 +291,17 @@
         coin.classList.remove('is-tilting');
         coin.closest('.rank-treasury-card')?.classList.remove('is-treasury-card-active');
         coin.closest('.rank-side-stack')?.classList.remove('has-active-treasury-coin');
+        coin.closest('.rank-player-slot')?.classList.remove('has-active-player-coin');
         coin.style.removeProperty('--rank-coin-tilt-x');
         coin.style.removeProperty('--rank-coin-tilt-y');
         coin.style.removeProperty('--rank-coin-glow-x');
         coin.style.removeProperty('--rank-coin-glow-y');
     }
 
-    function bindTreasuryCoinTilts() {
-        document.querySelectorAll('#rankTreasurySource [data-rank-drag-key]').forEach(coin => {
+    function bindCoinTilts() {
+        document.querySelectorAll(
+            '#rankTreasurySource [data-rank-drag-key], #rankPlayers .rank-coin-icon[data-rank-drag-key]'
+        ).forEach(coin => {
             if (coin.dataset.rankTiltBound === 'true') return;
             coin.dataset.rankTiltBound = 'true';
             coin.addEventListener('pointermove', event => {
@@ -313,6 +316,7 @@
                 coin.classList.add('is-tilting');
                 coin.closest('.rank-treasury-card')?.classList.add('is-treasury-card-active');
                 coin.closest('.rank-side-stack')?.classList.add('has-active-treasury-coin');
+                coin.closest('.rank-player-slot')?.classList.add('has-active-player-coin');
             });
             coin.addEventListener('pointerleave', () => resetCoinTilt(coin));
             coin.addEventListener('pointercancel', () => resetCoinTilt(coin));
@@ -323,11 +327,12 @@
         if (event.button !== 0 || !event.isPrimary || drag) return;
         const source = event.target.closest(
             '#rankPlayers .rank-opponent-hand [data-rank-drag-key], '
+            + '#rankPlayers .rank-coin-icon[data-rank-drag-key], '
             + '#rankDeckSource [data-rank-drag-key], #rankTreasurySource [data-rank-drag-key]'
         );
         if (!source) return;
         const isDeck = source.closest('#rankDeckSource') !== null;
-        const isCoin = source.closest('#rankTreasurySource') !== null;
+        const isCoin = source.closest('#rankTreasurySource') !== null || source.classList.contains('rank-coin-icon');
         if (isDeck || isCoin) {
             event.preventDefault();
             if (isDeck) resetDeckTilt(source);
@@ -365,6 +370,10 @@
     root.addEventListener('pagehide', finish);
     document.addEventListener('keydown', event => { if (event.key === 'Escape') returnToHand(); });
     bindDeckTilt();
-    bindTreasuryCoinTilts();
-    root.CoupRankedCardPhysics = Object.freeze({ sync, cancel: finish });
+    bindCoinTilts();
+    function refresh() {
+        bindDeckTilt();
+        bindCoinTilts();
+    }
+    root.CoupRankedCardPhysics = Object.freeze({ sync, refresh, cancel: finish });
 })(window);

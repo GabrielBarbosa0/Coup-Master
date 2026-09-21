@@ -29,11 +29,17 @@ function fixture() {
     return state;
 }
 
+function performAction(state, ...args) {
+    Engine.performAction(state, ...args);
+    if (state.phase === Rules.PHASES.ANIMATING) Engine.advanceExpired(state, state.deadline);
+    return state;
+}
+
 for (const type of [Rules.ACTIONS.ASSASSINATE, Rules.ACTIONS.STEAL, Rules.ACTIONS.EXAMINE]) {
     random = 0.99;
     const state = fixture();
     delete state.exchangeRole;
-    Engine.performAction(state, 'a', type, 'b', 2000);
+    performAction(state, 'a', type, 'b', 2000);
     const claim = state.pendingAction.claim;
     // Maximum hostility does not force third-party intervention.
     state.discard = Array.from({ length: Rules.SETTINGS.cardsPerRole }, (_, i) => ({ id: `discard-${i}`, role: claim }));
@@ -47,7 +53,7 @@ for (const type of [Rules.ACTIONS.ASSASSINATE, Rules.ACTIONS.STEAL, Rules.ACTION
 
 for (const [type, claim] of [[Rules.ACTIONS.ASSASSINATE, Rules.ROLES.CONTESSA], [Rules.ACTIONS.STEAL, Rules.ROLES.CAPTAIN]]) {
     const state = fixture();
-    Engine.performAction(state, 'a', type, 'b', 2000);
+    performAction(state, 'a', type, 'b', 2000);
     Engine.declareBlock(state, 'b', claim, 2100);
     root.test.applyNextBotDecision(state, 2200);
     assert.equal(state.phase, Rules.PHASES.BLOCK_CHALLENGE);
@@ -63,7 +69,7 @@ for (const [type, claim] of [[Rules.ACTIONS.ASSASSINATE, Rules.ROLES.CONTESSA], 
 
 const defense = fixture();
 defense.players.c.influences[0].role = Rules.ROLES.CONTESSA;
-Engine.performAction(defense, 'a', Rules.ACTIONS.ASSASSINATE, 'c', 2000);
+performAction(defense, 'a', Rules.ACTIONS.ASSASSINATE, 'c', 2000);
 random = 0.5;
 root.test.applyNextBotDecision(defense, 2100);
 assert.equal(defense.phase, Rules.PHASES.BLOCK_CHALLENGE);
@@ -72,23 +78,23 @@ random = 0;
 
 const targetedChallenge = fixture();
 targetedChallenge.players.c.influences.forEach((card) => { card.role = Rules.ROLES.DUKE; });
-Engine.performAction(targetedChallenge, 'a', Rules.ACTIONS.ASSASSINATE, 'c', 2000);
+performAction(targetedChallenge, 'a', Rules.ACTIONS.ASSASSINATE, 'c', 2000);
 assert.equal(root.test.shouldChallengeClaim(targetedChallenge, targetedChallenge.players.c, Rules.ROLES.ASSASSIN, 'a', true), true);
 
 const tax = fixture();
-Engine.performAction(tax, 'a', Rules.ACTIONS.TAX, null, 2000);
+performAction(tax, 'a', Rules.ACTIONS.TAX, null, 2000);
 root.test.applyNextBotDecision(tax, 2100);
 assert.equal(tax.phase, Rules.PHASES.CHALLENGE_REVEAL);
 
 const aid = fixture();
 aid.players.c.influences[0].role = Rules.ROLES.DUKE;
-Engine.performAction(aid, 'a', Rules.ACTIONS.FOREIGN_AID, null, 2000);
+performAction(aid, 'a', Rules.ACTIONS.FOREIGN_AID, null, 2000);
 random = 0.5;
 root.test.applyNextBotDecision(aid, 2100);
 assert.equal(aid.pendingAction.block.uid, 'c');
 
 const coup = fixture();
-Engine.performAction(coup, 'a', Rules.ACTIONS.COUP, 'b', 2000);
+performAction(coup, 'a', Rules.ACTIONS.COUP, 'b', 2000);
 assert.equal(coup.phase, Rules.PHASES.INFLUENCE_LOSS);
 assert.equal(root.test.applyNextBotDecision(coup, 2100), false);
 
@@ -108,7 +114,7 @@ exposedBlock.players.c.influences[1].revealed = true;
 exposedBlock.players.c.investigationExposure = {
     a: { [exposedBlock.players.c.influences[0].id]: Rules.ROLES.CONTESSA }
 };
-Engine.performAction(exposedBlock, 'a', Rules.ACTIONS.STEAL, 'c', 2000);
+performAction(exposedBlock, 'a', Rules.ACTIONS.STEAL, 'c', 2000);
 random = 0;
 assert.equal(root.test.chooseBotBlockClaim(exposedBlock, exposedBlock.players.c), null);
 
@@ -133,7 +139,7 @@ assert.equal(root.test.chooseBotAction(ambiguousPair, ambiguousPair.players.c).t
 
 const ally = fixture();
 ally.players.c.influences[0].role = Rules.ROLES.CAPTAIN;
-Engine.performAction(ally, 'a', Rules.ACTIONS.STEAL, 'b', 2000);
+performAction(ally, 'a', Rules.ACTIONS.STEAL, 'b', 2000);
 random = 0.2;
 assert.equal(root.test.chooseBotBlockClaim(ally, ally.players.c), null);
 ally.players.c.favors = { b: 1 };
@@ -147,17 +153,18 @@ random = 0.01;
 assert.equal(root.test.chooseBotBlockClaim(ally, ally.players.c), Rules.ROLES.CAPTAIN);
 
 const memory = fixture();
-Engine.performAction(memory, 'a', Rules.ACTIONS.STEAL, 'c', 2000);
+performAction(memory, 'a', Rules.ACTIONS.STEAL, 'c', 2000);
 Engine.declareBlock(memory, 'b', Rules.ROLES.CAPTAIN, 2100);
 assert.equal(memory.players.c.favors.b, undefined);
 Engine.advanceExpired(memory, memory.deadline);
 assert.equal(memory.players.c.favors.b, 1);
+Engine.advanceExpired(memory, memory.deadline);
 const restored = JSON.parse(JSON.stringify(memory));
 Engine.normalizeState(restored);
 assert.equal(restored.players.c.favors.b, 1);
 restored.turnIndex = 0;
 restored.players.c.influences[0].role = Rules.ROLES.CAPTAIN;
-Engine.performAction(restored, 'a', Rules.ACTIONS.STEAL, 'b', 25000);
+performAction(restored, 'a', Rules.ACTIONS.STEAL, 'b', 25000);
 random = 0.2;
 root.test.applyNextBotDecision(restored, 25100);
 assert.equal(restored.pendingAction.block.uid, 'c');
@@ -167,7 +174,7 @@ assert.equal(restored.players.c.favors.b, 0);
 
 const failed = fixture();
 failed.players.b.influences.forEach(card => { card.role = Rules.ROLES.DUKE; });
-Engine.performAction(failed, 'a', Rules.ACTIONS.STEAL, 'c', 2000);
+performAction(failed, 'a', Rules.ACTIONS.STEAL, 'c', 2000);
 Engine.declareBlock(failed, 'b', Rules.ROLES.CAPTAIN, 2100);
 Engine.challengeBlock(failed, 'a', 2200);
 Engine.revealChallenge(failed, 'b', failed.players.b.influences[0].id, 2300);
@@ -176,7 +183,7 @@ assert.equal(failed.players.c.coins, 0);
 
 const proven = fixture();
 proven.players.b.influences[0].role = Rules.ROLES.CAPTAIN;
-Engine.performAction(proven, 'a', Rules.ACTIONS.STEAL, 'c', 2000);
+performAction(proven, 'a', Rules.ACTIONS.STEAL, 'c', 2000);
 Engine.declareBlock(proven, 'b', Rules.ROLES.CAPTAIN, 2100);
 Engine.challengeBlock(proven, 'a', 2200);
 Engine.revealChallenge(proven, 'b', proven.players.b.influences[0].id, 2300);

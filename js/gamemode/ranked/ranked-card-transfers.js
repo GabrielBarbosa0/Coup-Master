@@ -5,7 +5,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createRankedCardTransfers(root) {
     const BACK_IMAGE = 'assets/img/cards/base/back.png';
     const INITIAL_DEAL_TIMING = Object.freeze({ duration: 680, stagger: 120, settle: 240 });
-    const STANDARD_TRANSFER_TIMING = Object.freeze({ duration: 575, stagger: 113, settle: 120 });
+    const STANDARD_TRANSFER_TIMING = Object.freeze({ duration: 900, stagger: 120, settle: 160 });
     const activeGhosts = new Set();
 
     function cardLocations(state) {

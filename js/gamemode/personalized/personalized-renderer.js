@@ -1420,6 +1420,7 @@
         playStateSfx(previousState, state);
         updateRankPlayerCallouts(previousState, state);
         renderPlayers();
+        root.CoupRankedCardPhysics?.refresh?.();
         renderTableResources();
         renderPhase();
         renderStarterDrawOverlay();
@@ -1531,7 +1532,7 @@
                     slot.append(createRemovePlayerButton(player));
                 }
             } else {
-                header.append(createCoinCounter(player.coins));
+                header.append(createCoinCounter(player.coins, player.uid));
 
                 const hand = element('div', 'rank-opponent-hand');
                 (player.influences || []).forEach((card) => {
@@ -1559,12 +1560,17 @@
         return player.connected ? t('ranked.online', {}, 'Online') : t('ranked.reconnecting', {}, 'Reconectando');
     }
 
-    function createCoinCounter(coinsValue) {
+    function createCoinCounter(coinsValue, playerUid) {
         const value = Number(coinsValue || 0);
         const counter = element('div', 'rank-coin-count');
+        const icon = element('img', 'rank-coin-icon');
+        icon.src = 'assets/img/coins/moeda-prata.png';
+        icon.alt = '';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.dataset.rankDragKey = `player-coin-${playerUid}`;
         counter.setAttribute('aria-label', t('ranked.coinsLabel', { count: value }, `${value} moeda${value === 1 ? '' : 's'}`));
         counter.append(
-            element('span', 'rank-coin-icon'),
+            icon,
             element('span', 'rank-coin-value', String(value))
         );
         return counter;
@@ -1642,6 +1648,15 @@
             setPhaseText(
                 t('ranked.dealingCards', {}, 'Distribuindo cartas'),
                 t('ranked.dealingCardsDescription', {}, 'Preparando as mãos da partida.')
+            );
+            return;
+        }
+
+        if (state.phase === PHASES.ANIMATING) {
+            stage?.classList.add('is-centered-stage');
+            setPhaseText(
+                t('ranked.resolvingAction', {}, 'Resolvendo ação'),
+                t('ranked.resolvingActionDescription', {}, 'Aguarde a movimentação terminar.')
             );
             return;
         }

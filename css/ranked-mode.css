@@ -8,6 +8,7 @@
     --rank-border-strong: rgba(230, 238, 246, 0.28);
     --rank-text: #e6eef6;
     --rank-muted: rgba(230, 238, 246, 0.62);
+    --rank-silver: #d7e0e9;
     --rank-accent: #1e90ff;
     --rank-danger: #ff3b3b;
     --rank-gold: #ffc400;
@@ -828,7 +829,7 @@ body.is-initial-card-deal .rank-starter-overlay {
     align-items: center;
     justify-content: flex-end;
     gap: 4px;
-    color: var(--rank-gold);
+    color: var(--rank-silver);
     font-size: 18px;
     font-weight: 800;
     text-align: right;
@@ -838,10 +839,8 @@ body.is-initial-card-deal .rank-starter-overlay {
     width: 30px;
     height: 30px;
     flex: 0 0 auto;
-    display: inline-block;
-    background: currentColor;
-    -webkit-mask: url("../assets/img/icons/paid.svg") center / contain no-repeat;
-    mask: url("../assets/img/icons/paid.svg") center / contain no-repeat;
+    display: block;
+    object-fit: contain;
 }
 
 .rank-opponent-hand,

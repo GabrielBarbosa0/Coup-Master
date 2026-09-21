@@ -509,6 +509,7 @@ function testTurnTimeoutUsesMandatoryCoup() {
     state.players.u1.coins = Rules.SETTINGS.mandatoryCoupCoins;
     const deadline = state.deadline;
     Engine.advanceExpired(state, deadline + 1);
+    settleAnimation(state);
     assert.equal(state.players.u1.coins, 3);
     assert.equal(state.pendingLoss.playerUid, 'u2');
     assert.equal(state.pendingLoss.reason, 'Vítima de Golpe de Estado.');
@@ -695,6 +696,29 @@ function testLastCardStillRequiresChallengeChoice() {
     assert.equal(Engine.getActiveUid(state), 'u2');
 }
 
+function testAnimationTransitionDelaysTurnAndResponse() {
+    const income = createStartedState();
+    Engine.performAction(income, 'u1', Rules.ACTIONS.INCOME, null, 2000);
+    assert.equal(income.phase, Rules.PHASES.ANIMATING);
+    assert.equal(Engine.getActiveUid(income), 'u1');
+    assert.equal(income.pendingTransition.type, 'end-turn');
+    assert.equal(Engine.advanceExpired(income, income.deadline - 1), false);
+    const transitionEnd = income.deadline;
+    assert.equal(Engine.advanceExpired(income, transitionEnd), true);
+    assert.equal(income.phase, Rules.PHASES.TURN);
+    assert.equal(Engine.getActiveUid(income), 'u2');
+    assert.equal(income.deadline, transitionEnd + Rules.SETTINGS.turnSeconds * 1000);
+
+    const assassination = createStartedState();
+    assassination.players.u1.coins = 3;
+    Engine.performAction(assassination, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 3000);
+    assert.equal(assassination.phase, Rules.PHASES.ANIMATING);
+    assert.equal(assassination.pendingTransition.type, 'start-action');
+    Engine.advanceExpired(assassination, assassination.deadline);
+    assert.equal(assassination.phase, Rules.PHASES.RESPONSE);
+    assert.equal(assassination.deadline, 3000 + Rules.SETTINGS.transitionAnimationMs + Rules.SETTINGS.responseSeconds * 1000);
+}
+
 testVoluntaryConcessionAndGuards();
 testConcededBlockExecutesOriginalAction();
 testVoluntaryContessaConcessionLosesBoth();
@@ -726,7 +750,8 @@ testSingleInfluenceAttackResolvesAutomatically();
 testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
+testAnimationTransitionDelaysTurnAndResponse();
 
-console.log('ranked-engine: 31 testes aprovados');
+console.log('ranked-engine: 32 testes aprovados');
 
 

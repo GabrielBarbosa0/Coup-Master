@@ -35,6 +35,7 @@ for (const mode of ['ranked', 'personalized']) {
         }
         Engine.advanceExpired(state, state.deadline + 1, () => randomValue);
         Engine.advanceExpired(state, state.deadline + 1);
+        Engine.advanceExpired(state, state.deadline + 1);
         return state;
     }
 

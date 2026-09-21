@@ -45,8 +45,10 @@
     overflow: visible;
 }
 
-#rankTreasurySource img[data-rank-drag-key] {
+#rankTreasurySource img[data-rank-drag-key],
+#rankPlayers .rank-coin-icon[data-rank-drag-key] {
     --rank-coin-glow-color: 244 248 255;
+    --rank-coin-base-rotation: 0deg;
     --rank-coin-tilt-x: 0deg;
     --rank-coin-tilt-y: 0deg;
     transform: rotate(var(--rank-coin-base-rotation))
@@ -60,7 +62,8 @@
     cursor: grab;
 }
 
-#rankTreasurySource img[data-rank-drag-key].is-tilting {
+#rankTreasurySource img[data-rank-drag-key].is-tilting,
+#rankPlayers .rank-coin-icon[data-rank-drag-key].is-tilting {
     z-index: 8;
     transform: rotate(var(--rank-coin-base-rotation))
         perspective(820px)
@@ -79,6 +82,12 @@
 
 .rank-table-resources-enabled .rank-side-stack.has-active-treasury-coin,
 .rank-table-resources-enabled .rank-treasury-card.is-treasury-card-active {
+    overflow: visible;
+}
+
+#rankPlayers .rank-player-slot.has-active-player-coin {
+    position: relative;
+    z-index: 22;
     overflow: visible;
 }
 

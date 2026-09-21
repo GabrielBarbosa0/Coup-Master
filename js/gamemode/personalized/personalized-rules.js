@@ -105,7 +105,7 @@
         dealCardDurationMs: 680,
         dealCardStaggerMs: 120,
         dealSettleMs: 240,
-        transitionAnimationMs: 1150,
+        transitionAnimationMs: 1400,
         responseSeconds: 15,
         challengeReadSeconds: 4.5,
         turnSeconds: 40,
