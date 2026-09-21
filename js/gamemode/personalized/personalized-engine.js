@@ -33,6 +33,7 @@
             pendingLoss: null,
             pendingExchange: null,
             pendingExamine: null,
+            pendingTransition: null,
             matchStats: {},
             matchId: 0,
             readyCountdownStartedAt: null,
@@ -48,6 +49,9 @@
         state.discard = Array.isArray(state.discard) ? state.discard : [];
         state.log = Array.isArray(state.log) ? state.log : [];
         state.starterDraw = state.starterDraw && typeof state.starterDraw === 'object' ? state.starterDraw : null;
+        state.pendingTransition = state.pendingTransition && typeof state.pendingTransition === 'object'
+            ? state.pendingTransition
+            : null;
         state.matchStats = state.matchStats && typeof state.matchStats === 'object' ? state.matchStats : {};
         state.matchId = Number.isFinite(Number(state.matchId)) ? Number(state.matchId) : 0;
         state.readyCountdownStartedAt = state.readyCountdownStartedAt || null;
@@ -526,11 +530,10 @@
             now
         );
 
-        if (!action.challengeable && action.blockClaims.length === 0) {
-            executePendingAction(state, now);
+        if (action.cost > 0) {
+            beginAnimationTransition(state, { type: 'start-action' }, now);
         } else {
-            state.phase = PHASES.RESPONSE;
-            state.deadline = now + SETTINGS.responseSeconds * 1000;
+            continuePendingAction(state, now);
         }
 
         state.updatedAt = now;
@@ -617,6 +620,19 @@
         addLog(state, `${getPlayer(state, challengerUid).name} contestou ${actor.name}.`, 'challenge', now);
 
         beginChallengeReveal(state, actor.uid, challengerUid, pending.claim, false, now);
+        return state;
+    }
+
+    function continuePendingAction(state, now = Date.now()) {
+        const action = Rules.getAction(state.pendingAction?.type);
+        if (!action) return endTurn(state, now);
+        if (!action.challengeable && action.blockClaims.length === 0) {
+            executePendingAction(state, now);
+        } else {
+            state.phase = PHASES.RESPONSE;
+            state.deadline = now + SETTINGS.responseSeconds * 1000;
+            state.updatedAt = now;
+        }
         return state;
     }
 
@@ -989,8 +1005,11 @@
         const drawn = state.deck.splice(Math.max(0, state.deck.length - drawCount), drawCount).map((card) => ({ ...card, revealed: false }));
         player.influences = revealed;
         state.pendingExchange = { playerUid: uid, keepCount: hidden.length, options: [...hidden, ...drawn] };
-        state.phase = PHASES.EXCHANGE;
-        state.deadline = now + SETTINGS.selectionSeconds * 1000;
+        beginAnimationTransition(state, {
+            type: 'resume-phase',
+            phase: PHASES.EXCHANGE,
+            timeoutMs: SETTINGS.selectionSeconds * 1000
+        }, now);
     }
 
     function completeExchange(state, uid, keepIds, now = Date.now()) {
@@ -1067,11 +1086,39 @@
         return state;
     }
 
+    function beginAnimationTransition(state, transition, now = Date.now()) {
+        state.pendingTransition = transition;
+        state.phase = PHASES.ANIMATING;
+        state.deadline = now + SETTINGS.transitionAnimationMs;
+        state.updatedAt = now;
+        return state;
+    }
+
+    function resumeAnimationTransition(state, now = Date.now()) {
+        const transition = state.pendingTransition;
+        state.pendingTransition = null;
+        if (!transition) return false;
+        if (transition.type === 'start-action') {
+            continuePendingAction(state, now);
+        } else if (transition.type === 'resume-phase') {
+            state.phase = transition.phase;
+            state.deadline = now + transition.timeoutMs;
+            state.updatedAt = now;
+        } else if (transition.type === 'end-turn') {
+            completeEndTurn(state, now);
+        }
+        return true;
+    }
+
     function endTurn(state, now = Date.now()) {
         state.pendingAction = null;
         state.pendingLoss = null;
         state.pendingExchange = null;
         state.pendingExamine = null;
+        return beginAnimationTransition(state, { type: 'end-turn' }, now);
+    }
+
+    function completeEndTurn(state, now = Date.now()) {
         if (finishIfWinner(state, now)) return state;
 
         let nextIndex = state.turnIndex;
@@ -1102,6 +1149,7 @@
         state.pendingLoss = null;
         state.pendingExchange = null;
         state.pendingExamine = null;
+        state.pendingTransition = null;
         addLog(state, `${alive[0].name} venceu a partida personalizada.`, 'winner', now);
         state.updatedAt = now;
         return true;
@@ -1183,6 +1231,10 @@
 
         if (state.phase === PHASES.DEALING) {
             return completeInitialDeal(state, now);
+        }
+
+        if (state.phase === PHASES.ANIMATING) {
+            return resumeAnimationTransition(state, now);
         }
 
         if (state.phase === PHASES.TURN) {
