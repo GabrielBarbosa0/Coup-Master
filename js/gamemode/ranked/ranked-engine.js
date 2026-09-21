@@ -1160,6 +1160,7 @@
         if (!pending || !action || !actor || actor.eliminated || countInfluences(actor) === 0) return false;
         if (!action.requiresTarget) return true;
         const target = getPlayer(state, pending.targetUid);
+        if (pending.type === ACTIONS.STEAL) return Boolean(target);
         return Boolean(target && !target.eliminated && countInfluences(target) > 0);
     }
 

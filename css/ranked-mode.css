@@ -327,7 +327,7 @@ textarea::-moz-selection,
 
 .rank-card-transfer-ghost {
     position: fixed;
-    z-index: 12000;
+    z-index: 9000;
     display: block;
     margin: 0;
     pointer-events: none;
@@ -350,7 +350,7 @@ body.is-initial-card-deal .rank-starter-overlay {
 
 .rank-coin-transfer-ghost {
     position: fixed;
-    z-index: 11950;
+    z-index: 8990;
     display: block;
     margin: 0;
     pointer-events: none;

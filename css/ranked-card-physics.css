@@ -128,7 +128,7 @@
     left: 0;
     top: 0;
     margin: 0;
-    z-index: 30000;
+    z-index: 9000;
     pointer-events: none;
     transition: none;
     animation: none;
@@ -142,7 +142,7 @@
     top: 0;
     display: block;
     margin: 0;
-    z-index: 2000;
+    z-index: 9000;
     pointer-events: none;
     transition: none;
     animation: none;
@@ -159,7 +159,7 @@
     top: 0;
     display: block;
     margin: 0;
-    z-index: 30000;
+    z-index: 9000;
     pointer-events: none;
     transition: none;
     animation: none;

@@ -92,6 +92,24 @@ function testStealProofWaitsForChosenLoss() {
     assert.equal(state.players.u2.coins, 0);
 }
 
+function testStealResolvesAfterTargetDiesChallengingCaptain() {
+    const state = createStartedStateWithThree();
+    state.players.u1.influences[0].role = Rules.ROLES.CAPTAIN;
+    state.players.u2.influences[0].revealed = true;
+    state.players.u2.coins = 3;
+
+    performAction(state, 'u1', Rules.ACTIONS.STEAL, 'u2', 2000);
+    Engine.challengeAction(state, 'u2', 2100);
+    answerChallenge(state);
+
+    assert.equal(state.players.u2.eliminated, true);
+    assert.equal(state.players.u1.coins, 4);
+    assert.equal(state.players.u2.coins, 1);
+    assert.equal(state.phase, Rules.PHASES.ANIMATING);
+    settleAnimation(state);
+    assert.equal(Engine.getActiveUid(state), 'u3');
+}
+
 function testImmediateIncome() {
     const state = createStartedState();
     performAction(state, 'u1', Rules.ACTIONS.INCOME, null, 2000);
@@ -726,6 +744,7 @@ testChallengeBotDelayAndTimeout();
 testLastCardStillRequiresChallengeChoice();
 testStealRequiresTwoTargetCoins();
 testStealProofWaitsForChosenLoss();
+testStealResolvesAfterTargetDiesChallengingCaptain();
 testImmediateIncome();
 testReadyCountdownDelaysStart();
 testInitialDealSkipsAmbassador();
@@ -752,6 +771,6 @@ testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 testAnimationTransitionDelaysTurnAndResponse();
 
-console.log('ranked-engine: 32 testes aprovados');
+console.log('ranked-engine: 33 testes aprovados');
 
 
