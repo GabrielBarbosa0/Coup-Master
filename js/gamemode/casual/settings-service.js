@@ -1,6 +1,7 @@
 (function setupCasualSettings(root) {
   const SAMSUNG_DRAG_STORAGE_KEY = 'coupMasterSamsungDragEnabled';
   const HIDE_RELIGION_STORAGE_KEY = 'hideReligion';
+  const CASUAL_THEME_STORAGE_KEY = 'coupMasterCasualTheme';
 
   let samsungDragEnabled = readLocalBoolean(SAMSUNG_DRAG_STORAGE_KEY, true);
 
@@ -61,6 +62,42 @@
     samsungDragEnabled = Boolean(enabled);
     writeLocalBoolean(SAMSUNG_DRAG_STORAGE_KEY, samsungDragEnabled);
     refreshSamsungDragMode();
+  }
+
+  function readCasualTheme() {
+    return 'classic';
+  }
+
+  function applyCasualTheme(theme, persist = true) {
+    const nextTheme = theme === 'classic' ? 'classic' : 'modern';
+    document.documentElement.dataset.casualTheme = nextTheme;
+
+    document.querySelectorAll('[data-casual-theme-option]').forEach((button) => {
+      const isSelected = button.dataset.casualThemeOption === nextTheme;
+      button.classList.toggle('is-active', isSelected);
+      button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+    });
+
+    if (!persist) return;
+    try {
+      localStorage.setItem(CASUAL_THEME_STORAGE_KEY, nextTheme);
+    } catch (error) {
+      // Theme still applies for the current session when storage is unavailable.
+    }
+  }
+
+  function setupCasualThemePreference(options = {}) {
+    applyCasualTheme('classic');
+
+    document.querySelectorAll('[data-casual-theme-option]').forEach((button) => {
+      if (button.dataset.themeBound === 'true') return;
+      button.dataset.themeBound = 'true';
+      button.addEventListener('click', () => {
+        const playSound = options.playSound || root.playSound;
+        if (typeof playSound === 'function') playSound('click');
+        applyCasualTheme(button.dataset.casualThemeOption);
+      });
+    });
   }
 
   function refreshTableLayoutAfterVisibilityChange() {
@@ -136,6 +173,9 @@
   root.CoupCasualSettings = {
     readLocalBoolean,
     writeLocalBoolean,
+    readCasualTheme,
+    applyCasualTheme,
+    setupCasualThemePreference,
     isSamsungDragModeEnabled,
     updateSamsungDragButton,
     refreshSamsungDragMode,

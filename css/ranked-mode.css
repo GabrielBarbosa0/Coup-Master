@@ -3,7 +3,11 @@
     --rank-panel: #232a33;
     --rank-surface: #111923;
     --rank-surface-raised: #18222e;
-    --rank-table-surface: var(--rank-surface);
+    --rank-player-surface: #111923;
+    --rank-resource-surface: #1c252f;
+    --rank-stage-surface: #111923;
+    --rank-log-surface: #232a33;
+    --rank-table-surface: var(--rank-stage-surface);
     --rank-border: rgba(230, 238, 246, 0.16);
     --rank-border-strong: rgba(230, 238, 246, 0.28);
     --rank-text: #e6eef6;
@@ -276,6 +280,7 @@ textarea::-moz-selection,
 
 .rank-header-actions-right {
     justify-content: flex-end;
+    gap: 6px;
 }
 
 .rank-icon-btn,
@@ -285,10 +290,11 @@ textarea::-moz-selection,
     display: inline-grid;
     place-items: center;
     padding: 0;
-    border: 1px solid transparent;
-    border-radius: 8px;
+    border: 2px solid rgba(133, 154, 177, 0.25);
+    border-radius: 7px;
     background: var(--rank-panel);
     cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .rank-icon-btn:hover,
@@ -296,7 +302,9 @@ textarea::-moz-selection,
 .floating-chat-btn:hover,
 .floating-chat-btn:focus-visible {
     border-color: var(--rank-accent);
+    background: #2c3540;
     outline: 0;
+    transform: translateY(-1px);
 }
 
 .rank-icon-btn img,
@@ -605,9 +613,9 @@ body.is-initial-card-deal .rank-starter-overlay {
     position: relative;
     min-height: 138px;
     padding: 10px;
-    border: 1px solid var(--rank-border);
+    border: 2px solid var(--rank-border);
     border-radius: 8px;
-    background: var(--rank-surface);
+    background: var(--rank-player-surface);
 }
 
 .rank-player-slot.is-self {
@@ -1007,7 +1015,7 @@ button.rank-card {
     min-height: 270px;
     border: 1px solid var(--rank-border);
     border-radius: 8px;
-    background: var(--rank-table-surface);
+    background: var(--rank-stage-surface);
 }
 
 .rank-stage {
@@ -3998,6 +4006,7 @@ body[data-rank-view="game"] .rank-timer {
     justify-content: center;
     gap: 4px;
     padding: 13px;
+    background: var(--rank-resource-surface);
     text-align: center;
 }
 
@@ -4172,6 +4181,12 @@ body[data-rank-view="game"] .rank-timer {
 }
 
 @media (min-width: 981px) {
+    .rank-table-resources-enabled .floating-chat-actions {
+        padding: 0;
+        border: 0;
+        background: transparent;
+    }
+
     .rank-table-resources-enabled .rank-layout {
         grid-template-columns: minmax(0, 1fr) minmax(0, calc(25% - 5px));
     }
@@ -4196,7 +4211,7 @@ body[data-rank-view="game"] .rank-timer {
         padding: 0;
         border: 1px solid var(--rank-border);
         border-radius: 8px;
-        background: var(--rank-table-surface);
+        background: var(--rank-log-surface);
         overflow: hidden;
         margin-top: 2px;
     }
@@ -4460,5 +4475,25 @@ body.rank-table-resources-enabled #chatModal .chat-modal-content {
 
     .rank-starter-overlay-result {
         opacity: 1;
+    }
+}
+
+/* Espessura visual compartilhada pelas principais superficies da mesa. */
+.rank-stage.is-centered-stage,
+#rankTreasuryPanel,
+#rankDeckPanel,
+.rank-results-modal {
+    border-width: 2px;
+}
+
+@media (min-width: 981px) {
+    .rank-table-resources-enabled .rank-side-stack > #rankLogModal {
+        border-width: 2px;
+    }
+}
+
+@media (max-width: 980px) {
+    .rank-table-resources-enabled #rankLogModal .rank-log-modal-content {
+        border-width: 2px;
     }
 }

@@ -2424,6 +2424,56 @@ h2 {
     white-space: nowrap;
 }
 
+#settingsModal .setting-label {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+#casualThemeSetting,
+#casualThemeLabel {
+    display: none;
+}
+
+#settingsModal .theme-segmented-control {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 220px;
+    min-height: 42px;
+    padding: 3px;
+    border: 1px solid rgba(230, 238, 246, 0.16);
+    border-radius: 7px;
+    background: #171d26;
+}
+
+#settingsModal .theme-option {
+    min-width: 0;
+    padding: 7px 9px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: rgba(230, 238, 246, 0.62);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+#settingsModal .theme-option:hover,
+#settingsModal .theme-option:focus-visible {
+    color: var(--text);
+    outline: 0;
+}
+
+#settingsModal .theme-option:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+#settingsModal .theme-option.is-active {
+    background: var(--accent);
+    color: #fff;
+}
+
 #settingsModal .room-mode-label {
     min-width: 96px;
     padding: 8px 10px;
@@ -2567,6 +2617,15 @@ h2 {
     #settingsModal .setting-row {
         gap: 8px;
         font-size: 12px;
+    }
+
+    #settingsModal .theme-segmented-control {
+        width: 190px;
+    }
+
+    #settingsModal .theme-option {
+        padding-inline: 6px;
+        font-size: 11px;
     }
 
     #settingsModal .icon-btn {
@@ -3173,6 +3232,42 @@ h2 {
         linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
         rgba(16, 29, 41, 0.92);
     box-shadow: var(--table-shadow);
+}
+
+/* Paleta flat restaurada da mesa anterior aos gradientes (commit 05966e6^). */
+html[data-casual-theme="classic"] .container.prototype-scroll,
+html[data-casual-theme="classic"] .game-table {
+    background: #171d26;
+    background-image: none;
+}
+
+html[data-casual-theme="classic"] .game-table .controls button,
+html[data-casual-theme="classic"] .game-table .room-controls button,
+html[data-casual-theme="classic"] #chatBtn.floating-chat-btn {
+    background: #232a33;
+    background-image: none;
+}
+
+html[data-casual-theme="classic"] .game-table .controls button:hover,
+html[data-casual-theme="classic"] .game-table .controls button:focus-visible,
+html[data-casual-theme="classic"] .game-table .room-controls button:hover,
+html[data-casual-theme="classic"] .game-table .room-controls button:focus-visible,
+html[data-casual-theme="classic"] #chatBtn.floating-chat-btn:hover,
+html[data-casual-theme="classic"] #chatBtn.floating-chat-btn:focus-visible {
+    background: #2c3540;
+    background-image: none;
+}
+
+html[data-casual-theme="classic"] .game-table .player-area:not(.is-empty) {
+    background: rgba(17, 25, 35, 0.94);
+    background-image: none;
+}
+
+html[data-casual-theme="classic"] .game-table .graveyard-area,
+html[data-casual-theme="classic"] .game-table .asylum-area,
+html[data-casual-theme="classic"] .game-table .deck-area {
+    background: rgba(28, 37, 48, 0.96);
+    background-image: none;
 }
 
 .game-table .asylum-area,

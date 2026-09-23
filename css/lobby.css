@@ -165,10 +165,8 @@ body::-webkit-scrollbar {
     z-index: 10;
     /* Fica acima do fundo e da vinheta */
 
-    /* Estética do entry-panel do lobby moderno */
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
-        rgba(16, 29, 41, 0.92);
+    /* Cor flat restaurada do painel anterior aos gradientes. */
+    background: rgba(35, 42, 51, 0.9);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(230, 238, 246, 0.15);
     border-radius: 10px;
@@ -1871,6 +1869,15 @@ input {
     flex: 1 1 0;
 }
 
+.login-page .legal-footer {
+    width: min(92vw, 400px);
+}
+
+.login-page .legal-footer-link {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
 @media (max-height: 640px) {
     .legal-footer:not(.lobby-legal-links) {
         position: static;
@@ -1889,15 +1896,32 @@ body.lobby-page {
     overflow: hidden;
 }
 
-.lobby-page .legal-footer-link,
-.lobby-page .logout-floating-btn,
-.lobby-page .landing-return-floating-btn,
-.lobby-page .discord-floating-btn,
-.lobby-page .leaderboard-floating-btn,
-.lobby-page .language-floating-toggle {
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
-        rgba(16, 29, 41, 0.92);
+.legal-footer-link,
+.logout-floating-btn,
+.landing-return-floating-btn,
+.discord-floating-btn,
+.leaderboard-floating-btn,
+.language-floating-toggle {
+    border: 2px solid rgba(133, 154, 177, 0.25);
+    border-radius: 7px;
+    background: #232a33;
+}
+
+.legal-footer-link:hover,
+.legal-footer-link:focus-visible,
+.logout-floating-btn:hover,
+.logout-floating-btn:focus-visible,
+.landing-return-floating-btn:hover,
+.landing-return-floating-btn:focus-visible,
+.discord-floating-btn:hover,
+.discord-floating-btn:focus-visible,
+.leaderboard-floating-btn:hover,
+.leaderboard-floating-btn:focus-visible,
+.language-floating-toggle:hover,
+.language-floating-toggle:focus-visible,
+.language-floating[open] .language-floating-toggle {
+    border-color: var(--accent);
+    background: #2c3540;
 }
 
 .lobby-page .lobby-box {

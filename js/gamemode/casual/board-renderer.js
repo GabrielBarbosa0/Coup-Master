@@ -101,6 +101,7 @@ function setupHeaderServices() {
   });
 
   window.CoupCasualSettings?.setupReligionVisibilityPreference({ playSound });
+  window.CoupCasualSettings?.setupCasualThemePreference({ playSound });
   window.CoupDeckPresets?.setup({ playSound });
 }
 

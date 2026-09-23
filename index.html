@@ -49,12 +49,13 @@
   <link rel="preload" href="assets/fonts/Cinzel-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
   <script src="js/i18n/initial-language.js?v=i18n-v7"></script>
+  <script src="js/gamemode/casual/theme-init.js?v=casual-theme-v2"></script>
 
   <meta name="color-scheme" content="dark">
 
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
-  <link rel="stylesheet" href="css/casual-mode.css?v=false-duke-info-v21">
+  <link rel="stylesheet" href="css/casual-mode.css?v=casual-theme-v2">
   <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
   <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
   <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
@@ -534,6 +535,16 @@
           </select>
         </div>
 
+        <div id="casualThemeSetting" class="setting-row">
+          <span class="setting-label" id="casualThemeLabel" data-i18n="casual.themeLabel">Tema:</span>
+          <div class="theme-segmented-control" role="group" aria-labelledby="casualThemeLabel">
+            <button class="theme-option is-active" type="button" data-casual-theme-option="modern"
+              aria-pressed="true" data-i18n="casual.themeModern">Moderno</button>
+            <button class="theme-option" type="button" data-casual-theme-option="classic"
+              aria-pressed="false" data-i18n="casual.themeClassic">Clássico</button>
+          </div>
+        </div>
+
         <!-- <div class="setting-row">
           <label>Modo:</label>
           <span id="roomModeLabel" class="room-mode-label" data-mode="casual">Casual</span>
@@ -938,7 +949,7 @@
   <script src="js/gamemode/casual/rules-guides.js?v=connected-alt-rules-v24" defer></script>
   <script src="js/gamemode/casual/spectator-service.js?v=casual-spectator-service-v1" defer></script>
   <script src="js/gamemode/casual/quick-actions.js?v=connected-alt-rules-v2" defer></script>
-  <script src="js/gamemode/casual/settings-service.js?v=app-access-v1" defer></script>
+  <script src="js/gamemode/casual/settings-service.js?v=casual-theme-v2" defer></script>
   <script src="js/gamemode/casual/room-ui.js?v=casual-room-ui-i18n-v1" defer></script>
   <script src="js/gamemode/casual/asylum-controls.js?v=casual-asylum-controls-v2" defer></script>
   <script src="js/gamemode/casual/tutorial-service.js?v=casual-tutorial-service-v1" defer></script>
