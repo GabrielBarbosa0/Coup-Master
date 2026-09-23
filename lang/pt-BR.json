@@ -761,6 +761,11 @@
   },
   "ranked": {
     "leaveRoom": "Sair da Sala",
+    "leavePenaltyTitle": "Sair da partida?",
+    "leavePenaltyMessage": "Você ainda está na partida. Se sair agora, perderá {points} pontos de ranking.",
+    "stayInMatch": "Continuar jogando",
+    "confirmPenalizedLeave": "Sair",
+    "leavePenaltyFailed": "Não foi possível aplicar a penalidade. Tente novamente.",
     "connecting": "Conectando...",
     "connected": "Sincronizado",
     "disconnected": "Desconectado",
@@ -895,7 +900,7 @@
     "challengeRevealPlayer": "{name} está defendendo a declaração de {role}.",
     "proveClaim": "Provar declaração",
     "concedeChallenge": "Ceder à contestação e perder esta influência",
-    "concedeCallout": "Eu cedo.",
+    "concedeCallout": "Vou ceder",
     "playerTurn": "Vez de {name}",
     "playerFallbackLower": "jogador",
     "turnDescriptionLine1": "Escolha uma ação. O sistema aplica custos, abre as janelas de resposta",
@@ -1046,7 +1051,7 @@
       "6": "Pesado demais",
       "7": "Ixi...",
       "8": "Não escapou",
-      "9": "Que mira"
+      "9": "Boa mira"
     },
     "coupReaction": {
       "0": "Que golpe",

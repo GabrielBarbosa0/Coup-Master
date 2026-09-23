@@ -406,7 +406,7 @@
             match = message.match(/^(.+) cedeu à contestação\.$/);
             if (match) {
                 const player = findPlayerByLogName(match[1]);
-                return player ? [{ uid: player.uid, text: t('ranked.concedeCallout', {}, 'Eu cedo.'), key, kind: 'bluff' }] : [];
+                return player ? [{ uid: player.uid, text: t('ranked.concedeCallout', {}, 'Vou ceder'), key, kind: 'bluff' }] : [];
             }
             match = message.match(/^(.+) provou (?:ter .+|o bloqueio)\.$/);
             if (match) {

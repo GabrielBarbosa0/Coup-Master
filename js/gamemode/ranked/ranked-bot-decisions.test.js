@@ -6,7 +6,7 @@ const Engine = require('./ranked-engine.js');
 let random = 0;
 const root = { CoupRankedRules: Rules, CoupRankedEngine: Engine, location: { search: '?room=TEST' } };
 const source = fs.readFileSync(require.resolve('./ranked-game.js'), 'utf8').replace('    boot();', `
-    root.test = { applyNextBotDecision, shouldChallengeClaim, chooseBotBlockClaim, chooseBotAction };
+    root.test = { applyNextBotDecision, shouldChallengeClaim, chooseBotBlockClaim, chooseBotAction, normalizeRankedStats };
 `);
 vm.runInNewContext(source, {
     window: root, document: { body: { dataset: {} } }, URLSearchParams,
@@ -190,5 +190,23 @@ Engine.revealChallenge(proven, 'b', proven.players.b.influences[0].id, 2300);
 Engine.loseInfluence(proven, 'a', proven.players.a.influences[0].id, 2400);
 assert.equal(proven.players.c.favors.b, 1);
 assert.equal(proven.players.c.coins, 2);
+
+const scorePlayer = {
+    uid: 'a', name: 'a', won: true, performanceScore: 0,
+    matchStats: {}
+};
+const scoreResult = { resultKey: 'penalty-test', matchId: 99, endedAt: 5000 };
+const scoreBase = { games: 4, wins: 2, losses: 2 };
+const regularScore = root.test.normalizeRankedStats(scoreBase, scorePlayer, scoreResult, 5000);
+const penalizedScore = root.test.normalizeRankedStats({
+    ...scoreBase,
+    abandonmentPenaltyPoints: 5,
+    abandonedMatches: 1,
+    abandonedRooms: { previous: 4000 }
+}, scorePlayer, scoreResult, 5000);
+assert.equal(penalizedScore.rankScore, regularScore.rankScore - 5);
+assert.equal(penalizedScore.abandonmentPenaltyPoints, 5);
+assert.equal(penalizedScore.abandonedMatches, 1);
+assert.equal(penalizedScore.abandonedRooms.previous, 4000);
 
 console.log('ranked-bots: self-preservation, probabilistic aid, gratitude, repayment, failed/proven blocks and reconnection passed');

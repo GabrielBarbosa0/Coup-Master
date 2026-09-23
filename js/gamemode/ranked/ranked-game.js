@@ -21,6 +21,7 @@
     const BOT_RESPONSE_RANDOM_DELAY_MS = 1400;
     const BOT_RESPONSE_DEADLINE_BUFFER_MS = 650;
     const MATCHMAKING_TICK_MS = 650;
+    const RANKED_LEAVE_PENALTY_POINTS = 5;
 
     function t(key, params = {}, fallback = '') {
         const translated = root.CoupLanguage?.t?.(key, params);
@@ -236,6 +237,10 @@
         const winRate = games ? wins / games : 0;
         const challengeAccuracy = challenges ? successfulChallenges / challenges : 0;
         const wilsonScore = calculateWilsonLowerBound(wins, games);
+        const abandonmentPenaltyPoints = Math.max(0, Number(previous.abandonmentPenaltyPoints || 0));
+        const abandonedRooms = previous.abandonedRooms && typeof previous.abandonedRooms === 'object'
+            ? { ...previous.abandonedRooms }
+            : {};
         countedRooms[resultKey] = result.endedAt || now;
 
         return {
@@ -249,8 +254,11 @@
             winRate,
             currentWinStreak,
             bestWinStreak,
-            rankScore: Math.round(wilsonScore * 1000),
+            rankScore: Math.max(0, Math.round(wilsonScore * 1000) - abandonmentPenaltyPoints),
             confidenceLowerBound: wilsonScore,
+            abandonmentPenaltyPoints,
+            abandonedMatches: Math.max(0, Number(previous.abandonedMatches || 0)),
+            abandonedRooms,
             performancePoints: Number(previous.performancePoints || 0) + matchScore,
             bestMatchScore: hadPreviousGames ? Math.max(Number(previous.bestMatchScore || 0), matchScore) : matchScore,
             worstMatchScore: hadPreviousGames ? Math.min(Number(previous.worstMatchScore || 0), matchScore) : matchScore,
@@ -320,20 +328,70 @@
             .catch(() => null);
     }
 
-    function leaveRoom() {
+    function shouldPenalizeLeave() {
+        const player = rankedState?.players?.[currentUser?.uid];
+        return rankedState?.status === 'active'
+            && rankedState.phase !== Rules.PHASES.FINISHED
+            && player
+            && !player.eliminated
+            && Engine.countInfluences(player) > 0;
+    }
+
+    function applyLeavePenalty() {
+        const now = Date.now();
+        const penaltyKey = `${roomCode}_${rankedState?.matchId || 'active'}`;
+        return db.ref(`rankedStats/${currentUser.uid}`).transaction((current) => {
+            const previous = current && typeof current === 'object' ? current : {};
+            const abandonedRooms = previous.abandonedRooms && typeof previous.abandonedRooms === 'object'
+                ? { ...previous.abandonedRooms }
+                : {};
+            if (abandonedRooms[penaltyKey]) return previous;
+            abandonedRooms[penaltyKey] = now;
+            return {
+                ...previous,
+                uid: currentUser.uid,
+                name: getUserData(currentUser).name,
+                photo: getUserData(currentUser).photo,
+                rankScore: Math.max(0, Number(previous.rankScore || 0) - RANKED_LEAVE_PENALTY_POINTS),
+                abandonmentPenaltyPoints: Math.max(0, Number(previous.abandonmentPenaltyPoints || 0))
+                    + RANKED_LEAVE_PENALTY_POINTS,
+                abandonedMatches: Math.max(0, Number(previous.abandonedMatches || 0)) + 1,
+                abandonedRooms,
+                updatedAt: now
+            };
+        });
+    }
+
+    function leaveRoom(confirmed = false) {
+        const penalizedLeave = shouldPenalizeLeave();
+        if (penalizedLeave && !confirmed) {
+            Renderer.showLeaveConfirmation(RANKED_LEAVE_PENALTY_POINTS);
+            return Promise.resolve(false);
+        }
+
         const finishNavigation = () => {
             presenceDisconnect?.cancel();
             root.location.href = new URL('lobby.html', document.baseURI).href;
         };
 
         if (!rankedStateRef || !rankedState || rankedState.status !== Rules.PHASES.WAITING) {
-            if (rankedStateRef && currentUser) {
-                rankedStateRef.child(`players/${currentUser.uid}/connected`).set(false).finally(finishNavigation);
-            } else finishNavigation();
-            return;
+            const disconnect = () => rankedStateRef && currentUser
+                ? rankedStateRef.child(`players/${currentUser.uid}/connected`).set(false).then(finishNavigation, finishNavigation)
+                : Promise.resolve().then(finishNavigation);
+            if (!penalizedLeave) return disconnect();
+            return applyLeavePenalty()
+                .then(() => {
+                    Renderer.hideLeaveConfirmation();
+                    return disconnect();
+                })
+                .catch((error) => {
+                    Renderer.hideLeaveConfirmation();
+                    Renderer.showError(error.message || t('ranked.leavePenaltyFailed', {}, 'Não foi possível aplicar a penalidade. Tente novamente.'));
+                    throw error;
+                });
         }
 
-        transaction((state) => Engine.leaveWaitingRoom(state, currentUser.uid))
+        return transaction((state) => Engine.leaveWaitingRoom(state, currentUser.uid))
             .then(finishNavigation)
             .catch(() => null);
     }

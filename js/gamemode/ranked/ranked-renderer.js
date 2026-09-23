@@ -410,7 +410,7 @@
             match = message.match(/^(.+) cedeu à contestação\.$/);
             if (match) {
                 const player = findPlayerByLogName(match[1]);
-                return player ? [{ uid: player.uid, text: t('ranked.concedeCallout', {}, 'Eu cedo.'), key, kind: 'bluff' }] : [];
+                return player ? [{ uid: player.uid, text: t('ranked.concedeCallout', {}, 'Vou ceder'), key, kind: 'bluff' }] : [];
             }
             match = message.match(/^(.+) provou (?:ter .+|o bloqueio)\.$/);
             if (match) {
@@ -701,6 +701,14 @@
 
     function bindStaticEvents() {
         document.getElementById('leaveRankBtn')?.addEventListener('click', () => controller.leaveRoom());
+        document.getElementById('rankLeaveCancel')?.addEventListener('click', hideLeaveConfirmation);
+        document.getElementById('rankLeaveConfirm')?.addEventListener('click', () => {
+            const confirm = document.getElementById('rankLeaveConfirm');
+            if (confirm) confirm.disabled = true;
+            controller.leaveRoom(true)?.finally?.(() => {
+                if (confirm?.isConnected) confirm.disabled = false;
+            });
+        });
         document.getElementById('rankRoomCode')?.addEventListener('click', async () => {
             const codeButton = document.getElementById('rankRoomCode');
             try {
@@ -1219,6 +1227,36 @@
         currentActionsGuideIndex = 0;
         flipCard.classList.remove('is-flipped');
         renderActionsGuideFaces(flipCard);
+    }
+
+    function showLeaveConfirmation(points) {
+        const modal = document.getElementById('rankLeaveConfirmModal');
+        const kicker = document.getElementById('rankLeaveConfirmKicker');
+        const title = document.getElementById('rankLeaveConfirmTitle');
+        const text = document.getElementById('rankLeaveConfirmText');
+        const cancel = document.getElementById('rankLeaveCancel');
+        const confirm = document.getElementById('rankLeaveConfirm');
+        if (!modal) return;
+        if (kicker) kicker.textContent = t('common.attention', {}, 'Atenção');
+        if (title) title.textContent = t('ranked.leavePenaltyTitle', {}, 'Sair da partida?');
+        if (text) text.textContent = t(
+            'ranked.leavePenaltyMessage',
+            { points },
+            `Você ainda está na partida. Se sair agora, perderá ${points} pontos de ranking.`
+        );
+        if (cancel) cancel.textContent = t('ranked.stayInMatch', {}, 'Continuar jogando');
+        if (confirm) {
+            confirm.disabled = false;
+            confirm.textContent = t('ranked.confirmPenalizedLeave', {}, 'Sair');
+        }
+        modal.hidden = false;
+        cancel?.focus();
+    }
+
+    function hideLeaveConfirmation() {
+        const modal = document.getElementById('rankLeaveConfirmModal');
+        if (modal) modal.hidden = true;
+        document.getElementById('leaveRankBtn')?.focus();
     }
 
     function setupActionsGuide() {
@@ -2983,7 +3021,9 @@
         updateClock,
         setConnectionStatus,
         hideLoading,
-        showError
+        showError,
+        showLeaveConfirmation,
+        hideLeaveConfirmation
     });
 })(window);
 

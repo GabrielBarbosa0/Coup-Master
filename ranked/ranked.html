@@ -21,7 +21,7 @@
 
     <link rel="stylesheet" href="css/loading.css?v=clean-spinner-v3">
     <link rel="stylesheet" href="css/chat.css?v=selection-lock-v1">
-    <link rel="stylesheet" href="css/ranked-mode.css?v=modal-safe-motion-v1">
+    <link rel="stylesheet" href="css/ranked-mode.css?v=leave-modal-layout-v1">
     <link rel="stylesheet" href="css/ranked-card-physics.css?v=modal-safe-motion-v1">
     <link rel="stylesheet" href="css/ranked-reveal.css?v=larger-reveal-card-v5">
     <link rel="stylesheet" href="css/compat.css?v=samsung-compat-v1">
@@ -324,6 +324,19 @@
         </section>
     </div>
 
+    <div id="rankLeaveConfirmModal" class="rank-modal-overlay" hidden>
+        <section class="rank-modal rank-leave-confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="rankLeaveConfirmTitle"
+            aria-describedby="rankLeaveConfirmText">
+            <span id="rankLeaveConfirmKicker" class="rank-kicker">Atenção</span>
+            <h2 id="rankLeaveConfirmTitle">Sair da partida?</h2>
+            <p id="rankLeaveConfirmText"></p>
+            <div class="rank-modal-actions rank-leave-confirm-actions">
+                <button id="rankLeaveCancel" class="rank-secondary-btn" type="button">Continuar jogando</button>
+                <button id="rankLeaveConfirm" class="rank-primary-btn" type="button">Sair</button>
+            </div>
+        </section>
+    </div>
+
     <audio id="rankBgmAudio" loop>
         <source src="assets/sounds/soundtrack/bgm.webm" type="audio/webm">
     </audio>
@@ -362,8 +375,8 @@
     <script src="js/gamemode/ranked/ranked-card-transfers.js?v=visible-transfers-v1" defer></script>
     <script src="js/gamemode/ranked/ranked-coin-transfers.js?v=visible-transfers-v1" defer></script>
     <script src="js/gamemode/ranked/ranked-reveal.js?v=reveal-role-article-v7" defer></script>
-    <script src="js/gamemode/ranked/ranked-renderer.js?v=player-coin-physics-v1" defer></script>
-    <script src="js/gamemode/ranked/ranked-game.js?v=casual-chat-parity-v6" defer></script>
+    <script src="js/gamemode/ranked/ranked-renderer.js?v=leave-modal-layout-v1" defer></script>
+    <script src="js/gamemode/ranked/ranked-game.js?v=leave-penalty-v1" defer></script>
 </body>
 
 </html>
