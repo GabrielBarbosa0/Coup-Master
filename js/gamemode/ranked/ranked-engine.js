@@ -264,7 +264,22 @@
             coups: 0,
             assassinations: 0,
             steals: 0,
-            coinsStolen: 0
+            coinsStolen: 0,
+            contestedAssassinsWon: 0,
+            condessaBlocks: 0,
+            falseCondessaBluffs: 0,
+            ambassadorExchanges: 0,
+            inquisitorInspections: 0,
+            dukeTaxes: 0,
+            foreignAidBlocks: 0,
+            taxBluffs: 0,
+            captainBlocks: 0,
+            ambassadorBlocks: 0,
+            forcedCoups: 0,
+            influencesLost: 0,
+            claimedRoles: {},
+            eliminatedUids: [],
+            firstInfluenceLostToUid: null
         };
     }
 
@@ -274,6 +289,10 @@
             ...createPlayerMatchStats(),
             ...(state.matchStats[uid] || {})
         };
+        state.matchStats[uid].claimedRoles = state.matchStats[uid].claimedRoles || {};
+        state.matchStats[uid].eliminatedUids = Array.isArray(state.matchStats[uid].eliminatedUids)
+            ? state.matchStats[uid].eliminatedUids
+            : [];
         return state.matchStats[uid];
     }
 
@@ -680,8 +699,10 @@
 
         if (action.cost > 0) actor.coins -= action.cost;
         actorStats.actions += 1;
+        if (action.claim) actorStats.claimedRoles[action.claim] = true;
         if (action.claim && !playerHasHiddenRole(actor, action.claim)) {
             actorStats.bluffs += 1;
+            if (actionType === ACTIONS.TAX) actorStats.taxBluffs += 1;
         }
         if (targetUid) bumpGrudge(state, targetUid, uid, 1);
 
@@ -694,6 +715,7 @@
             claimConfirmed: !action.challengeable,
             passes: {},
             block: null,
+            forcedCoup: actionType === ACTIONS.COUP && actor.coins + action.cost >= SETTINGS.mandatoryCoupCoins,
             createdAt: now
         };
 
@@ -839,6 +861,9 @@
                 replaceProvenInfluence(state, actor.uid, card.id);
             }
             if (!isBlock) pending.claimConfirmed = true;
+            if (!isBlock && pending.type === ACTIONS.ASSASSINATE) {
+                ensureMatchStats(state, actor.uid).contestedAssassinsWon += 1;
+            }
             addLog(state, isBlock ? `${actor.name} provou o bloqueio.` : `${actor.name} provou ter ${Rules.getRole(claim).label}.`, 'challenge-result', now);
             const lossPlan = isBlock
                 ? { reason: 'Contestação incorreta do bloqueio.', continuation: 'accept-block', count: 1 }
@@ -856,6 +881,7 @@
                 count: lossPlan.count,
                 continuation: lossPlan.continuation,
                 reason: 'Contestação aceita.',
+                causedByUid: challengerUid,
                 doubleAssassination: pending.type === ACTIONS.ASSASSINATE
                     && pending.targetUid === uid && lossPlan.count > 1
             };
@@ -877,6 +903,7 @@
         }
 
         pending.block = { uid: blockerUid, claim };
+        ensureMatchStats(state, blockerUid).claimedRoles[claim] = true;
         pending.passes = {};
         state.phase = PHASES.BLOCK_CHALLENGE;
         state.deadline = now + SETTINGS.responseSeconds * 1000;
@@ -945,6 +972,7 @@
         const normalizedCount = Math.max(1, Number(count) || 1);
         state.pendingLoss = {
             playerUid, count: normalizedCount, reason, continuation, requireChoice,
+            causedByUid: offenderUid || null,
             doubleAssassination: state.pendingAction?.type === ACTIONS.ASSASSINATE
                 && state.pendingAction.targetUid === playerUid && normalizedCount > 1
         };
@@ -966,11 +994,21 @@
                 : reason === 'Contestação aceita.' ? 'concession' : 'challengeLoss';
         recordPublicReveal(state, player, card, kind);
         card.revealed = true;
+        const stats = ensureMatchStats(state, player.uid);
+        const offenderUid = state.pendingLoss?.causedByUid;
+        stats.influencesLost += 1;
+        if (!stats.firstInfluenceLostToUid && offenderUid && offenderUid !== player.uid) {
+            stats.firstInfluenceLostToUid = offenderUid;
+        }
         state.discard.push({ id: card.id, role: card.role });
         addLog(state, `${player.name} perdeu ${Rules.getRole(card.role).label}.`, 'loss', now);
 
         if (countInfluences(player) === 0) {
             player.eliminated = true;
+            if (offenderUid && offenderUid !== player.uid) {
+                const offenderStats = ensureMatchStats(state, offenderUid);
+                offenderStats.eliminatedUids = [...new Set([...offenderStats.eliminatedUids, player.uid])];
+            }
             addLog(state, `${player.name} foi eliminado.`, 'elimination', now);
         }
     }
@@ -1085,7 +1123,18 @@
                 protectedPlayer.favors[blocker.uid] = Math.min(3, Math.max(0, Number(protectedPlayer.favors[blocker.uid]) || 0) + 1);
             }
         }
-        if (blocker) ensureMatchStats(state, blocker.uid).blockedActions += 1;
+        if (blocker) {
+            const stats = ensureMatchStats(state, blocker.uid);
+            const claim = pending.block?.claim;
+            stats.blockedActions += 1;
+            if (claim === ROLES.CONTESSA) {
+                stats.condessaBlocks += 1;
+                if (!playerHasHiddenRole(blocker, claim)) stats.falseCondessaBluffs += 1;
+            }
+            if (pending.type === ACTIONS.FOREIGN_AID) stats.foreignAidBlocks += 1;
+            if (claim === ROLES.CAPTAIN) stats.captainBlocks += 1;
+            if (claim === ROLES.AMBASSADOR) stats.ambassadorBlocks += 1;
+        }
         if (blocker) addLog(state, `O bloqueio de ${blocker.name} foi aceito.`, 'block', now);
         endTurn(state, now);
     }
@@ -1112,6 +1161,7 @@
                 break;
             case ACTIONS.TAX:
                 actor.coins += 3;
+                ensureMatchStats(state, actor.uid).dukeTaxes += 1;
                 endTurn(state, now);
                 break;
             case ACTIONS.STEAL: {
@@ -1129,7 +1179,11 @@
             }
             case ACTIONS.COUP:
             case ACTIONS.ASSASSINATE:
-                if (pending.type === ACTIONS.COUP) ensureMatchStats(state, actor.uid).coups += 1;
+                if (pending.type === ACTIONS.COUP) {
+                    const stats = ensureMatchStats(state, actor.uid);
+                    stats.coups += 1;
+                    if (pending.forcedCoup) stats.forcedCoups += 1;
+                }
                 if (pending.type === ACTIONS.ASSASSINATE) ensureMatchStats(state, actor.uid).assassinations += 1;
                 scheduleLoss(
                     state,
@@ -1201,6 +1255,9 @@
         player.influences.push(...kept.map((card) => ({ ...card, revealed: false })));
         state.deck = Rules.shuffle([...state.deck, ...returned]);
         state.pendingExchange = null;
+        if (state.pendingAction?.type === ACTIONS.EXCHANGE_AMBASSADOR) {
+            ensureMatchStats(state, uid).ambassadorExchanges += 1;
+        }
         addLog(state, `${player.name} concluiu a troca.`, 'action-result', now);
         endTurn(state, now);
         return state;
@@ -1256,6 +1313,7 @@
         }
 
         addLog(state, `${getPlayer(state, uid).name} concluiu a investigação.`, 'action-result', now);
+        ensureMatchStats(state, uid).inquisitorInspections += 1;
         state.pendingExamine = null;
         endTurn(state, now);
         return state;
@@ -1335,18 +1393,42 @@
         const winnerUid = state.winnerUid || null;
         const endedAt = state.finishedAt || now;
         const players = {};
+        const playerCount = getPlayers(state).length;
+        const availableRoles = Object.keys(Rules.ROLE_DEFINITIONS)
+            .filter((role) => Rules.isRoleAvailable(state, role));
 
         getPlayers(state).forEach((player) => {
             const stats = ensureMatchStats(state, player.uid);
+            const won = player.uid === winnerUid;
+            const hiddenCards = player.influences.filter((card) => !card.revealed);
+            const claimedRoles = stats.claimedRoles || {};
+            const firstAttacker = stats.firstInfluenceLostToUid;
+            const derivedStats = {
+                ...stats,
+                perfectBluffWins: won && stats.bluffs > 0 && stats.provenBluffs === 0 ? 1 : 0,
+                comebackWins: won && stats.influencesLost > 0 ? 1 : 0,
+                finalInfluenceWins: won && hiddenCards.length === 1 ? 1 : 0,
+                perfectWins: won && hiddenCards.length === SETTINGS.startingInfluences ? 1 : 0,
+                doubleContessaWins: won && hiddenCards.length === 2
+                    && hiddenCards.every((card) => card.role === ROLES.CONTESSA) ? 1 : 0,
+                winsAsFirstPlayer: won && state.starterDraw?.winnerUid === player.uid ? 1 : 0,
+                winsAgainstFivePlayers: won && playerCount === SETTINGS.maxPlayers ? 1 : 0,
+                winsWithNoCoins: won && player.coins === 0 ? 1 : 0,
+                fastestWins: won && state.turnNumber <= playerCount * 3 ? 1 : 0,
+                longestGamesWon: won && state.turnNumber >= playerCount * 10 ? 1 : 0,
+                revengeWins: won && firstAttacker && stats.eliminatedUids.includes(firstAttacker) ? 1 : 0,
+                flawlessChallenges: won && stats.challenges > 0 && stats.failedChallenges === 0 ? 1 : 0,
+                allRolesClaimedWins: won && availableRoles.every((role) => claimedRoles[role]) ? 1 : 0
+            };
             const performance = calculateMatchPerformance(state, player);
             players[player.uid] = {
                 uid: player.uid,
                 name: player.name || 'Jogador',
                 photo: player.photo || '',
                 seat: player.seat,
-                won: player.uid === winnerUid,
+                won,
                 eliminated: Boolean(player.eliminated),
-                matchStats: { ...stats },
+                matchStats: derivedStats,
                 performanceScore: performance.total,
                 performanceBreakdown: performance.breakdown
             };
@@ -1356,7 +1438,7 @@
             schemaVersion: 1,
             matchId: Number(state.matchId || 0),
             winnerUid,
-            playerCount: Object.keys(players).length,
+            playerCount,
             startedAt: state.startedAt || state.createdAt || endedAt,
             endedAt,
             turnNumber: state.turnNumber || 0,

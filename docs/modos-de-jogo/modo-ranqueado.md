@@ -21,6 +21,7 @@ Este modo representa a base competitiva do projeto, mas ainda está em fase beta
 - [13. Bots IA](#13-bots-ia)
 - [14. Temporizadores e Fallbacks](#14-temporizadores-e-fallbacks)
 - [15. Resultado e Pontuação](#15-resultado-e-pontuação)
+- [Conquistas ranqueadas](conquistas-ranqueadas.md)
 - [16. Limitações Competitivas Atuais](#16-limitações-competitivas-atuais)
 - [17. Próximos Passos Recomendados](#17-próximos-passos-recomendados)
 
@@ -440,6 +441,8 @@ O ranqueado grava:
 - `rankedStats/{uid}/countedRooms/{resultKey}`: controle para evitar contagem duplicada.
 
 Esses dados alimentam o perfil ranqueado exibido no lobby.
+
+Os requisitos internos e exatos das 50 conquistas estão documentados em [Conquistas do Modo Ranqueado](conquistas-ranqueadas.md). Esse documento também esclarece critérios ambíguos como Virada de jogo, Golpe relâmpago, Maratona da corte e Vingança servida fria.
 
 ### Sala Personalizada não pontua
 

@@ -1,6 +1,7 @@
 (function initializeRankedGame(root) {
     const Rules = root.CoupRankedRules;
     const Engine = root.CoupRankedEngine;
+    const Achievements = root.CoupRankedAchievements;
     const Renderer = root.CoupRankedRenderer;
     const params = new URLSearchParams(root.location.search);
     const roomCode = (params.get('room') || '').trim().toUpperCase();
@@ -243,7 +244,7 @@
             : {};
         countedRooms[resultKey] = result.endedAt || now;
 
-        return {
+        const normalized = {
             schemaVersion: 1,
             uid: player.uid,
             name: player.name || previous.name || 'Jogador',
@@ -267,6 +268,7 @@
             provenBluffs: Number(previous.provenBluffs || 0) + Number(match.provenBluffs || 0),
             blockedActions: Number(previous.blockedActions || 0) + Number(match.blockedActions || 0),
             honestGames: Number(previous.honestGames || 0) + (Number(match.bluffs || 0) === 0 ? 1 : 0),
+            honestWins: Number(previous.honestWins || 0) + (player.won && Number(match.bluffs || 0) === 0 ? 1 : 0),
             challenges,
             successfulChallenges,
             failedChallenges: Number(previous.failedChallenges || 0) + Number(match.failedChallenges || 0),
@@ -275,11 +277,38 @@
             assassinations: Number(previous.assassinations || 0) + Number(match.assassinations || 0),
             steals: Number(previous.steals || 0) + Number(match.steals || 0),
             coinsStolen: Number(previous.coinsStolen || 0) + Number(match.coinsStolen || 0),
+            perfectBluffWins: Number(previous.perfectBluffWins || 0) + Number(match.perfectBluffWins || 0),
+            comebackWins: Number(previous.comebackWins || 0) + Number(match.comebackWins || 0),
+            finalInfluenceWins: Number(previous.finalInfluenceWins || 0) + Number(match.finalInfluenceWins || 0),
+            perfectWins: Number(previous.perfectWins || 0) + Number(match.perfectWins || 0),
+            contestedAssassinsWon: Number(previous.contestedAssassinsWon || 0) + Number(match.contestedAssassinsWon || 0),
+            doubleContessaWins: Number(previous.doubleContessaWins || 0) + Number(match.doubleContessaWins || 0),
+            condessaBlocks: Number(previous.condessaBlocks || 0) + Number(match.condessaBlocks || 0),
+            falseCondessaBluffs: Number(previous.falseCondessaBluffs || 0) + Number(match.falseCondessaBluffs || 0),
+            ambassadorExchanges: Number(previous.ambassadorExchanges || 0) + Number(match.ambassadorExchanges || 0),
+            inquisitorInspections: Number(previous.inquisitorInspections || 0) + Number(match.inquisitorInspections || 0),
+            dukeTaxes: Number(previous.dukeTaxes || 0) + Number(match.dukeTaxes || 0),
+            foreignAidBlocks: Number(previous.foreignAidBlocks || 0) + Number(match.foreignAidBlocks || 0),
+            taxBluffs: Number(previous.taxBluffs || 0) + Number(match.taxBluffs || 0),
+            captainBlocks: Number(previous.captainBlocks || 0) + Number(match.captainBlocks || 0),
+            ambassadorBlocks: Number(previous.ambassadorBlocks || 0) + Number(match.ambassadorBlocks || 0),
+            forcedCoups: Number(previous.forcedCoups || 0) + Number(match.forcedCoups || 0),
+            winsAsFirstPlayer: Number(previous.winsAsFirstPlayer || 0) + Number(match.winsAsFirstPlayer || 0),
+            winsAgainstFivePlayers: Number(previous.winsAgainstFivePlayers || 0) + Number(match.winsAgainstFivePlayers || 0),
+            winsWithNoCoins: Number(previous.winsWithNoCoins || 0) + Number(match.winsWithNoCoins || 0),
+            fastestWins: Number(previous.fastestWins || 0) + Number(match.fastestWins || 0),
+            longestGamesWon: Number(previous.longestGamesWon || 0) + Number(match.longestGamesWon || 0),
+            revengeWins: Number(previous.revengeWins || 0) + Number(match.revengeWins || 0),
+            flawlessChallenges: Number(previous.flawlessChallenges || 0) + Number(match.flawlessChallenges || 0),
+            allRolesClaimedWins: Number(previous.allRolesClaimedWins || 0) + Number(match.allRolesClaimedWins || 0),
             lastRoomCode: roomCode,
             lastMatchAt: result.endedAt || now,
             countedRooms,
             updatedAt: now
         };
+        normalized.unlockedAchievements = Achievements?.evaluate(normalized)
+            || { ...(previous.unlockedAchievements || {}) };
+        return normalized;
     }
 
     function updatePlayerRankedStats(player, result, now) {

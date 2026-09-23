@@ -737,6 +737,49 @@ function testAnimationTransitionDelaysTurnAndResponse() {
     assert.equal(assassination.deadline, 3000 + Rules.SETTINGS.transitionAnimationMs + Rules.SETTINGS.responseSeconds * 1000);
 }
 
+function testAchievementTelemetry() {
+    const tax = createStartedState();
+    tax.players.u1.influences.forEach((card) => { card.role = Rules.ROLES.CAPTAIN; });
+    performAction(tax, 'u1', Rules.ACTIONS.TAX, null, 2000);
+    Engine.passResponse(tax, 'u2', 2100);
+    assert.equal(tax.matchStats.u1.taxBluffs, 1);
+    assert.equal(tax.matchStats.u1.dukeTaxes, 1);
+    assert.equal(tax.matchStats.u1.claimedRoles[Rules.ROLES.DUKE], true);
+
+    const block = createStartedStateWithThree();
+    block.players.u1.coins = 3;
+    block.players.u2.influences.forEach((card) => { card.role = Rules.ROLES.DUKE; });
+    performAction(block, 'u1', Rules.ACTIONS.ASSASSINATE, 'u2', 3000);
+    Engine.declareBlock(block, 'u2', Rules.ROLES.CONTESSA, 3100);
+    Engine.passResponse(block, 'u1', 3200);
+    Engine.passResponse(block, 'u3', 3300);
+    assert.equal(block.matchStats.u2.condessaBlocks, 1);
+    assert.equal(block.matchStats.u2.falseCondessaBluffs, 1);
+
+    const finished = createStartedState();
+    finished.winnerUid = 'u1';
+    finished.status = Rules.PHASES.FINISHED;
+    finished.phase = Rules.PHASES.FINISHED;
+    finished.turnNumber = 4;
+    finished.players.u1.coins = 0;
+    finished.players.u1.influences[1].revealed = true;
+    finished.matchStats.u1 = {
+        ...finished.matchStats.u1,
+        bluffs: 1,
+        provenBluffs: 0,
+        influencesLost: 1,
+        challenges: 1,
+        failedChallenges: 0
+    };
+    const stats = Engine.buildMatchResults(finished, 5000).players.u1.matchStats;
+    assert.equal(stats.perfectBluffWins, 1);
+    assert.equal(stats.comebackWins, 1);
+    assert.equal(stats.finalInfluenceWins, 1);
+    assert.equal(stats.winsWithNoCoins, 1);
+    assert.equal(stats.fastestWins, 1);
+    assert.equal(stats.flawlessChallenges, 1);
+}
+
 testVoluntaryConcessionAndGuards();
 testConcededBlockExecutesOriginalAction();
 testVoluntaryContessaConcessionLosesBoth();
@@ -770,7 +813,8 @@ testTurnTimeoutUsesMandatoryCoup();
 testInfluenceLossTimeoutNormalizesOldState();
 testMatchStatsTrackActionsAndChallenges();
 testAnimationTransitionDelaysTurnAndResponse();
+testAchievementTelemetry();
 
-console.log('ranked-engine: 33 testes aprovados');
+console.log('ranked-engine: 34 testes aprovados');
 
 

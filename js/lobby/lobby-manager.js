@@ -319,6 +319,8 @@ function getDefaultRankedStats(user) {
         allRolesClaimedWins: 0,
         bluffs: 0,
         honestGames: 0,
+        honestWins: 0,
+        unlockedAchievements: {},
         countedRooms: {}
     };
 }
@@ -349,14 +351,14 @@ function getAchievements(stats) {
         unlocked
     });
 
-    return [
+    const achievements = [
         achievement('firstWin', numberValue(stats.wins) >= 1),
         achievement('courtEntry', numberValue(stats.games) >= 1),
         achievement('knownName', numberValue(stats.games) >= 5),
         achievement('intrigueVeteran', numberValue(stats.games) >= 25),
         achievement('tableLegend', numberValue(stats.games) >= 100),
         achievement('honestPlayer', numberValue(stats.honestGames) >= 1),
-        achievement('unlikelySaint', numberValue(stats.honestGames) >= 5),
+        achievement('unlikelySaint', numberValue(stats.honestWins) >= 5),
         achievement('cleverLiar', numberValue(stats.bluffs) >= 10),
         achievement('lieGod', numberValue(stats.bluffs) >= 50),
         achievement('perfectBluff', numberValue(stats.perfectBluffWins) >= 1),
@@ -401,6 +403,11 @@ function getAchievements(stats) {
         achievement('perfectJudgment', numberValue(stats.flawlessChallenges) >= 1),
         achievement('courtMasks', numberValue(stats.allRolesClaimedWins) >= 1)
     ];
+    const unlocked = window.CoupRankedAchievements?.evaluate(stats) || stats.unlockedAchievements || {};
+    return achievements.map((item, index) => ({
+        ...item,
+        unlocked: Boolean(item.unlocked || unlocked[window.CoupRankedAchievements?.keys?.[index]])
+    }));
 }
 
 function setText(id, value) {

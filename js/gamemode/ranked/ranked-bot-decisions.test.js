@@ -3,8 +3,9 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const Rules = require('./ranked-rules.js');
 const Engine = require('./ranked-engine.js');
+const Achievements = require('./ranked-achievements.js');
 let random = 0;
-const root = { CoupRankedRules: Rules, CoupRankedEngine: Engine, location: { search: '?room=TEST' } };
+const root = { CoupRankedRules: Rules, CoupRankedEngine: Engine, CoupRankedAchievements: Achievements, location: { search: '?room=TEST' } };
 const source = fs.readFileSync(require.resolve('./ranked-game.js'), 'utf8').replace('    boot();', `
     root.test = { applyNextBotDecision, shouldChallengeClaim, chooseBotBlockClaim, chooseBotAction, normalizeRankedStats };
 `);
@@ -208,5 +209,16 @@ assert.equal(penalizedScore.rankScore, regularScore.rankScore - 5);
 assert.equal(penalizedScore.abandonmentPenaltyPoints, 5);
 assert.equal(penalizedScore.abandonedMatches, 1);
 assert.equal(penalizedScore.abandonedRooms.previous, 4000);
+
+const achievementStats = root.test.normalizeRankedStats({}, {
+    uid: 'a', name: 'a', won: true, performanceScore: 0,
+    matchStats: {
+        bluffs: 0, perfectWins: 1, dukeTaxes: 25, flawlessChallenges: 1
+    }
+}, { resultKey: 'achievement-test', matchId: 100, endedAt: 6000 }, 6000);
+assert.equal(achievementStats.honestWins, 1);
+assert.equal(achievementStats.perfectWins, 1);
+assert.equal(achievementStats.dukeTaxes, 25);
+assert.equal(achievementStats.unlockedAchievements.declaredDuke, true);
 
 console.log('ranked-bots: self-preservation, probabilistic aid, gratitude, repayment, failed/proven blocks and reconnection passed');
