@@ -6,6 +6,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Coin Counter Lab - Coup Master</title>
   <style>
+    @font-face {
+      font-family: "Harlean";
+      src: url("../assets/fonts/Harlean-Exfont908e.otf") format("opentype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "AGaramond";
+      src: url("../assets/fonts/AGaramond-Regular-Exfontab8d.otf") format("opentype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "AGaramond";
+      src: url("../assets/fonts/AGaramond-Semibold-Exfonta037.otf") format("opentype");
+      font-weight: 700;
+      font-display: swap;
+    }
+
     :root {
       --bg: #14171e;
       --panel: #1b222c;
@@ -837,6 +856,467 @@
       }
     }
 
+    /* Remaster: aproxima a bancada das proporcoes atuais da mesa casual. */
+    body {
+      min-width: 320px;
+      font-family: AGaramond, Georgia, serif;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+        #171d26;
+      background-size: 42px 42px;
+    }
+
+    .lab-shell {
+      grid-template-columns: 330px minmax(0, 1fr);
+      width: min(1320px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 18px 0;
+    }
+
+    .controls,
+    .stage-wrap {
+      border: 2px solid var(--line);
+      background: rgba(17, 25, 35, 0.96);
+    }
+
+    .controls h1 {
+      font-family: Harlean, AGaramond, serif;
+      font-size: 32px;
+      font-weight: 400;
+    }
+
+    .controls p,
+    .stage-header p {
+      font-size: 14px;
+    }
+
+    .stage-wrap {
+      min-height: calc(100vh - 36px);
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+        #0d1620;
+      background-size: 42px 42px;
+    }
+
+    .stage-header {
+      padding: 14px 16px;
+      background: #1c2530;
+    }
+
+    .stage-header h2 {
+      font-size: 18px;
+    }
+
+    .metric {
+      min-width: 90px;
+      padding: 6px 9px;
+      background: #111923;
+    }
+
+    .metric strong {
+      font-size: 14px;
+    }
+
+    .stage {
+      display: grid;
+      place-items: center;
+      min-height: calc(100vh - 130px);
+      padding: 18px;
+    }
+
+    .table {
+      width: min(100%, 980px);
+      min-height: 0;
+      gap: 10px;
+    }
+
+    .player-grid {
+      grid-template-columns: repeat(2, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    .player-area {
+      grid-template-rows: auto auto minmax(74px, 1fr);
+      min-height: 168px;
+      height: 168px;
+      padding: 10px 12px 8px;
+      background: #111923;
+      box-shadow: none;
+    }
+
+    .player-title {
+      font-size: 14px;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .points,
+    .pile-points {
+      gap: 8px;
+      margin: 5px 0;
+    }
+
+    .points button {
+      width: 22px;
+      height: 22px;
+      background: #dce7ef;
+      color: #0b1117;
+    }
+
+    .coin-readout {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      min-width: 48px;
+      height: 26px;
+      padding: 2px 5px 2px 3px;
+      border: 1px solid rgba(220, 231, 239, 0.38);
+      border-radius: 16px;
+      background: #182531;
+    }
+
+    .coin-readout img {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.22));
+    }
+
+    .score {
+      min-width: 16px;
+      font-size: 16px;
+    }
+
+    .player-stack {
+      min-height: 74px;
+      padding-top: 2px;
+    }
+
+    .fake-card {
+      width: 52px;
+      height: 78px;
+      border: 1px solid #3b5998;
+      border-radius: 4px;
+      background: #fff url('../assets/img/cards/base/back.png') center / cover no-repeat;
+      box-shadow: 0 7px 12px rgba(0, 0, 0, 0.28);
+    }
+
+    .fake-card + .fake-card {
+      margin-left: -10px;
+    }
+
+    .table-center,
+    .decks-wrapper {
+      gap: 10px;
+    }
+
+    .decks-wrapper {
+      grid-template-columns: 140px 140px minmax(260px, 1fr) 140px;
+    }
+
+    .pile-card,
+    .graveyard-area {
+      min-height: 142px;
+      height: 142px;
+      background: #1c2530;
+      box-shadow: none;
+    }
+
+    .pile-card {
+      gap: 5px;
+      padding: 8px;
+    }
+
+    .treasure-card {
+      background: #1c2530;
+    }
+
+    .treasure-card:hover,
+    .treasure-card:focus-visible {
+      box-shadow: none;
+    }
+
+    .pile-title,
+    .pile-count,
+    .graveyard-label {
+      font-size: 10px;
+      letter-spacing: 0;
+    }
+
+    .treasure-stack {
+      width: 68px;
+      height: 58px;
+    }
+
+    .treasure-stack img {
+      width: 30px;
+      height: 30px;
+      filter: drop-shadow(0 7px 10px rgba(0, 0, 0, 0.42));
+    }
+
+    .treasure-stack img:nth-child(1) {
+      left: 2px;
+      top: 17px;
+    }
+
+    .treasure-stack img:nth-child(2) {
+      left: 19px;
+      top: 5px;
+    }
+
+    .treasure-stack img:nth-child(3) {
+      left: 31px;
+      top: 20px;
+      width: 38px;
+      height: 38px;
+    }
+
+    .asylum-image-wrapper {
+      width: 54px;
+      height: 54px;
+    }
+
+    .deck-image-wrapper {
+      width: 52px;
+      height: 78px;
+    }
+
+    .deck-image-wrapper img {
+      width: 52px;
+      height: 78px;
+      border: 1px solid #3b5998;
+      border-radius: 4px;
+      box-shadow: 0 7px 12px rgba(0, 0, 0, 0.28);
+    }
+
+    .graveyard-area {
+      padding: 8px 12px;
+    }
+
+    .graveyard-area::before {
+      width: 58px;
+      height: 58px;
+      opacity: 0.06;
+    }
+
+    @media (max-width: 1120px) {
+      .lab-shell {
+        grid-template-columns: 1fr;
+        width: min(980px, calc(100% - 20px));
+        padding: 10px 0;
+      }
+
+      .controls {
+        position: static;
+        max-height: none;
+      }
+
+      .stage-header {
+        flex-direction: column;
+      }
+
+      .metrics {
+        justify-content: flex-start;
+      }
+
+      .stage-wrap {
+        min-height: auto;
+      }
+
+      .stage {
+        min-height: 0;
+        padding: 12px;
+      }
+
+      .player-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .decks-wrapper {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      body.hide-religion .decks-wrapper {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .graveyard-area {
+        grid-column: 1 / -1;
+        order: -1;
+        min-height: 80px;
+        height: 80px;
+      }
+
+      .pile-card {
+        min-height: 112px;
+        height: 112px;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .lab-shell {
+        width: min(760px, calc(100% - 20px));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stage-header {
+        padding: 12px;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+      }
+
+      .metric {
+        min-width: 0;
+        font-size: 10px;
+      }
+
+      .metric strong {
+        overflow: hidden;
+        font-size: 12px;
+        text-overflow: ellipsis;
+      }
+
+      .stage {
+        padding: 8px;
+      }
+
+      .table,
+      .player-grid,
+      .table-center,
+      .decks-wrapper {
+        gap: 5px;
+      }
+
+      .player-area {
+        grid-template-rows: auto auto minmax(51px, 1fr);
+        min-height: 114px;
+        height: 114px;
+        padding: 6px 4px 5px;
+      }
+
+      .player-header {
+        grid-template-columns: 20px minmax(0, 1fr) 20px;
+        gap: 4px;
+      }
+
+      .player-avatar,
+      .religion-badge {
+        width: 20px;
+        height: 20px;
+      }
+
+      .player-title {
+        font-size: 10px;
+      }
+
+      .points {
+        gap: 5px;
+        margin: 3px 0;
+      }
+
+      .points button {
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+      }
+
+      .coin-readout {
+        min-width: 40px;
+        height: 20px;
+        padding: 1px 4px 1px 2px;
+      }
+
+      .coin-readout img {
+        width: 16px;
+        height: 16px;
+        flex-basis: 16px;
+      }
+
+      .score {
+        min-width: 12px;
+        font-size: 12px;
+      }
+
+      .player-stack {
+        min-height: 51px;
+      }
+
+      .fake-card {
+        width: 34px;
+        height: 51px;
+        border-radius: 3px;
+      }
+
+      .fake-card + .fake-card {
+        margin-left: -8px;
+      }
+
+      .graveyard-area {
+        min-height: 72px;
+        height: 72px;
+        padding: 6px;
+      }
+
+      .pile-card {
+        min-height: 100px;
+        height: 100px;
+        gap: 3px;
+        padding: 4px 6px;
+      }
+
+      .pile-title,
+      .pile-count,
+      .graveyard-label {
+        font-size: 8px;
+      }
+
+      .treasure-stack {
+        width: 54px;
+        height: 46px;
+      }
+
+      .treasure-stack img {
+        width: 24px;
+        height: 24px;
+      }
+
+      .treasure-stack img:nth-child(1) {
+        top: 14px;
+        left: 2px;
+      }
+
+      .treasure-stack img:nth-child(2) {
+        top: 4px;
+        left: 15px;
+      }
+
+      .treasure-stack img:nth-child(3) {
+        top: 16px;
+        left: 25px;
+        width: 30px;
+        height: 30px;
+      }
+
+      .asylum-image-wrapper {
+        width: 44px;
+        height: 44px;
+      }
+
+      .deck-image-wrapper,
+      .deck-image-wrapper img {
+        width: 42px;
+        height: 63px;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .flying-coin {
         animation-duration: 1ms;
@@ -849,7 +1329,7 @@
   <main class="lab-shell">
     <aside class="controls">
       <h1>Coin Counter Lab</h1>
-      <p>Laboratório para testar a animação de moedas, o Tesouro Central e o futuro modal de ações do modo casual.</p>
+      <p>Laboratório visual do contador e das transferências de moedas da mesa casual.</p>
 
       <section class="control-group" aria-label="Ações rápidas">
         <div class="button-grid">
@@ -951,7 +1431,10 @@
               </div>
               <div class="points" data-counter="gabriel">
                 <button type="button" data-coin-adjust="-1" data-player-id="gabriel" aria-label="Remover moeda">-</button>
-                <span class="score" data-score>2</span>
+                <span class="coin-readout">
+                  <img src="../assets/img/coins/moeda-prata.png" alt="">
+                  <span class="score" data-score>2</span>
+                </span>
                 <button type="button" data-coin-adjust="1" data-player-id="gabriel" aria-label="Adicionar moeda">+</button>
               </div>
               <div class="player-stack" aria-hidden="true">
@@ -968,7 +1451,10 @@
               </div>
               <div class="points" data-counter="bot">
                 <button type="button" data-coin-adjust="-1" data-player-id="bot" aria-label="Remover moeda">-</button>
-                <span class="score" data-score>2</span>
+                <span class="coin-readout">
+                  <img src="../assets/img/coins/moeda-prata.png" alt="">
+                  <span class="score" data-score>2</span>
+                </span>
                 <button type="button" data-coin-adjust="1" data-player-id="bot" aria-label="Adicionar moeda">+</button>
               </div>
               <div class="player-stack" aria-hidden="true">
