@@ -2879,11 +2879,6 @@ h2 {
     border-color: var(--accent);
 }
 
-.game-table .player-area.local-player {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.24), var(--table-shadow);
-}
-
 .game-table .player-area.is-empty .points,
 .game-table .player-area.is-empty .religion-status,
 .game-table .player-area.is-empty .player-avatar,

@@ -23,7 +23,7 @@
     const BOT_RESPONSE_DEADLINE_BUFFER_MS = 650;
     const OPENING_ROUND_CHALLENGE_MULTIPLIER = 0.12;
     const MATCHMAKING_TICK_MS = 650;
-    const RANKED_LEAVE_PENALTY_POINTS = 5;
+    const RANKED_LEAVE_PENALTY_POINTS = 10;
 
     function t(key, params = {}, fallback = '') {
         const translated = root.CoupLanguage?.t?.(key, params);

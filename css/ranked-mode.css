@@ -618,11 +618,6 @@ body.is-initial-card-deal .rank-starter-overlay {
     background: var(--rank-player-surface);
 }
 
-.rank-player-slot.is-self {
-    border-color: var(--rank-accent);
-    box-shadow: inset 0 0 0 1px rgba(30, 144, 255, 0.22);
-}
-
 .rank-player-slot.is-active {
     border-color: var(--rank-gold);
 }
@@ -832,23 +827,30 @@ body.is-initial-card-deal .rank-starter-overlay {
 }
 
 .rank-coin-count {
-    min-width: 35px;
     display: inline-flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 4px;
-    color: var(--rank-silver);
-    font-size: 18px;
-    font-weight: 800;
-    text-align: right;
+    gap: 2px;
+    min-width: 0;
+    padding: 2px 5px 2px 3px;
+    border: 1px solid rgba(220, 231, 239, 0.38);
+    border-radius: 16px;
+    background: #182531;
+    box-shadow: 0 0 12px rgba(220, 231, 239, 0.08);
+    color: var(--rank-text);
+    font-family: 'Cinzel', serif;
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1;
+    text-align: center;
 }
 
 .rank-coin-icon {
-    width: 30px;
-    height: 30px;
-    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
     display: block;
     object-fit: contain;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.28));
 }
 
 .rank-opponent-hand,
@@ -1325,8 +1327,12 @@ button.rank-card {
 .rank-action-btn[data-action-role="duque"] { --rank-action-color: #ff72c8; }
 .rank-action-btn[data-action-type="challenge"] { --rank-action-color: #ff5d72; }
 .rank-action-btn[data-action-type="pass"] { --rank-action-color: #46d993; }
+.rank-action-btn[data-action-type="examine-keep"] { --rank-action-color: #46d993; }
+.rank-action-btn[data-action-type="examine-replace"] { --rank-action-color: #42a5ff; }
 .rank-action-btn[data-action-type="challenge"] .rank-action-icon { mask-image: url('../assets/img/icons/pan_tool.svg'); }
 .rank-action-btn[data-action-type="pass"] .rank-action-icon { mask-image: url('../assets/img/icons/thumb_up.svg'); }
+.rank-action-btn[data-action-type="examine-keep"] .rank-action-icon { mask-image: url('../assets/img/icons/thumb_up.svg'); }
+.rank-action-btn[data-action-type="examine-replace"] .rank-action-icon { mask-image: url('../assets/img/icons/cached.svg'); }
 .rank-action-btn[data-action-type="block"] .rank-action-icon { mask-image: url('../assets/img/icons/block.svg'); }
 .rank-action-btn[data-action-role="condessa"] { --rank-action-color: #38d9e6; }
 .rank-action-btn[data-action-role="capitao"] { --rank-action-color: #42a5ff; }
@@ -2995,7 +3001,7 @@ button.rank-card {
 }
 
 .rank-leave-confirm-actions .rank-primary-btn,
-.rank-leave-confirm-actions .rank-secondary-btn {
+.rank-leave-confirm-actions .rank-danger-btn {
     width: 100%;
     min-width: 0;
 }
@@ -3539,10 +3545,16 @@ body[data-rank-view="game"] .rank-player-header {
 body[data-rank-view="game"] .rank-player-avatar {
     width: 28px;
     height: 28px;
+    box-sizing: border-box;
+    border-width: 1px;
+}
+
+body[data-rank-view="game"] .rank-player-avatar.is-ai-avatar {
+    padding: 3px;
 }
 
 body[data-rank-view="game"] .rank-player-name {
-    font-size: 11px;
+    font-size: 12px;
 }
 
 body[data-rank-view="game"] .rank-player-state {
@@ -3550,14 +3562,15 @@ body[data-rank-view="game"] .rank-player-state {
 }
 
 body[data-rank-view="game"] .rank-coin-count {
-    min-width: 28px;
-    gap: 3px;
-    font-size: 15px;
+    min-width: 0;
+    gap: 2px;
+    font-size: 17px;
 }
 
 body[data-rank-view="game"] .rank-coin-icon {
-    width: 26px;
-    height: 26px;
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
 }
 
 body[data-rank-view="game"] .rank-opponent-hand,
@@ -4055,8 +4068,8 @@ body[data-rank-view="game"] .rank-timer {
 }
 
 .rank-table-resources-enabled .rank-treasury-stack img:nth-child(-n + 2) {
-    width: 30.4px;
-    height: 30.4px;
+    width: 30px;
+    height: 30px;
 }
 
 .rank-table-resources-enabled .rank-treasury-stack img:nth-child(3) {
@@ -4294,32 +4307,32 @@ body[data-rank-view="game"] .rank-timer {
 
     .rank-table-resources-enabled .rank-treasury-stack {
         width: 68px;
-        height: 48px;
+        height: 58px;
     }
 
     .rank-table-resources-enabled .rank-treasury-stack img {
-        width: 36px;
-        height: 36px;
+        width: 38px;
+        height: 38px;
     }
 
     .rank-table-resources-enabled .rank-treasury-stack img:nth-child(1) {
-        top: 12px;
+        top: 17px;
         left: 2px;
     }
 
     .rank-table-resources-enabled .rank-treasury-stack img:nth-child(2) {
-        top: 1px;
+        top: 5px;
         left: 19px;
     }
 
     .rank-table-resources-enabled .rank-treasury-stack img:nth-child(3) {
-        top: 14px;
-        left: 32px;
+        top: 20px;
+        left: 31px;
     }
 
     .rank-table-resources-enabled .rank-treasury-stack img:nth-child(-n + 2) {
-        width: 28.8px;
-        height: 28.8px;
+        width: 30px;
+        height: 30px;
     }
 
     .rank-table-resources-enabled .rank-deck-card {
@@ -4374,6 +4387,73 @@ body[data-rank-view="game"] .rank-timer {
         width: 48px;
         height: 72px;
         border-radius: 4px;
+    }
+}
+
+@media (max-width: 700px) {
+    body[data-rank-view="game"] .rank-player-header {
+        grid-template-columns: 20px minmax(0, 1fr) auto;
+        gap: 4px;
+    }
+
+    body[data-rank-view="game"] .rank-player-avatar {
+        width: 20px;
+        height: 20px;
+    }
+
+    body[data-rank-view="game"] .rank-player-avatar.is-ai-avatar {
+        padding: 2px;
+    }
+
+    body[data-rank-view="game"] .rank-player-name {
+        font-size: clamp(8px, 2.7vw, 11px);
+    }
+
+    body[data-rank-view="game"] .rank-coin-count {
+        box-sizing: border-box;
+        gap: 2px;
+        min-width: 40px;
+        height: 20px;
+        padding: 1px 4px 1px 2px;
+        font-size: 12px;
+    }
+
+    body[data-rank-view="game"] .rank-coin-icon {
+        width: 16px;
+        height: 16px;
+        flex-basis: 16px;
+    }
+
+    .rank-table-resources-enabled .rank-treasury-stack {
+        width: 54px;
+        height: 46px;
+    }
+
+    .rank-table-resources-enabled .rank-treasury-stack img {
+        width: 24px;
+        height: 24px;
+    }
+
+    .rank-table-resources-enabled .rank-treasury-stack img:nth-child(-n + 2) {
+        width: 24px;
+        height: 24px;
+    }
+
+    .rank-table-resources-enabled .rank-treasury-stack img:nth-child(1) {
+        top: 14px;
+        left: 2px;
+    }
+
+    .rank-table-resources-enabled .rank-treasury-stack img:nth-child(2) {
+        top: 4px;
+        left: 15px;
+    }
+
+    .rank-table-resources-enabled .rank-treasury-stack img:nth-child(3) {
+        top: 16px;
+        left: 25px;
+        width: 30px;
+        height: 30px;
     }
 }
 

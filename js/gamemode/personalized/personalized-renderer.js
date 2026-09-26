@@ -1989,7 +1989,7 @@
         const back = element('button', 'rank-secondary-btn', t('ranked.backToLobby', {}, 'Voltar ao lobby'));
         back.type = 'button';
         back.addEventListener('click', () => controller.leaveRoom());
-        actions.append(restart, back);
+        actions.append(back, restart);
         panel.append(actions);
         container.append(panel);
     }
@@ -2287,11 +2287,9 @@
         const cards = element('div', 'rank-choice-cards rank-examine-cards');
         cards.append(createCard(card, true));
         const actions = element('div', 'rank-response-actions');
-        const keep = element('button', 'rank-primary-btn', t('ranked.keepInfluence', {}, 'Manter influência'));
-        keep.type = 'button';
+        const keep = responseButton('examine-keep', t('ranked.keepInfluence', {}, 'Manter influência'));
         keep.addEventListener('click', () => controller.completeExamine(false));
-        const replace = element('button', 'rank-secondary-btn', t('ranked.replaceWithDeck', {}, 'Trocar pelo baralho'));
-        replace.type = 'button';
+        const replace = responseButton('examine-replace', t('ranked.replaceWithDeck', {}, 'Trocar pelo baralho'));
         replace.addEventListener('click', () => controller.completeExamine(true));
         actions.append(keep, replace);
         container.append(cards, actions);
