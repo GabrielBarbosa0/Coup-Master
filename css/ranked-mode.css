@@ -3016,7 +3016,7 @@ button.rank-card {
     position: fixed;
     top: 50%;
     right: 8px;
-    z-index: 9500;
+    z-index: 9300;
     transform: translateY(-50%);
 }
 

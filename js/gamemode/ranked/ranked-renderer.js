@@ -845,7 +845,7 @@
         document.addEventListener('pointerdown', (event) => {
             if (!event.isPrimary || event.button !== 0) return;
             const cardElement = event.target.closest('.rank-card');
-            if (!cardElement) return;
+            if (!canOpenRankCardPreview(cardElement)) return;
 
             clearRankCardLongPress();
             rankCardLongPress = {
@@ -854,7 +854,7 @@
                 startX: event.clientX,
                 startY: event.clientY,
                 timer: setTimeout(() => {
-                    if (!rankCardLongPress || !cardElement.isConnected) return;
+                    if (!rankCardLongPress || !cardElement.isConnected || !canOpenRankCardPreview(cardElement)) return;
                     root.CoupRankedCardPhysics?.cancel?.();
                     hideRankCardTooltip();
                     suppressRankCardContextMenuUntil = Date.now() + 800;
@@ -887,7 +887,7 @@
             event.preventDefault();
             if (Date.now() < suppressRankCardContextMenuUntil) return;
             if (event.pointerType === 'touch' || event.pointerType === 'pen') return;
-            if (!cardElement) return;
+            if (!canOpenRankCardPreview(cardElement)) return;
 
             hideRankCardTooltip();
             openRankCardPreviewModal(getRankCardPreviewData(cardElement));
@@ -948,6 +948,7 @@
     }
 
     function openRankCardPreviewModal({ label, image, hidden }) {
+        if (hidden) return;
         const modal = getRankCardPreviewModal();
         const front = modal.querySelector('#rankPreviewFront');
         const inner = modal.querySelector('#rankPreviewFlipCard .flip-card-inner');
@@ -1305,6 +1306,10 @@
             image: cardElement.dataset.previewImage || 'assets/img/cards/base/back.png',
             hidden: cardElement.dataset.previewHidden === 'true'
         };
+    }
+
+    function canOpenRankCardPreview(cardElement) {
+        return Boolean(cardElement) && cardElement.dataset.previewHidden !== 'true';
     }
 
     function getActionsGuidePages() {
