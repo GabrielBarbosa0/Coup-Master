@@ -86,6 +86,24 @@ performAction(tax, 'a', Rules.ACTIONS.TAX, null, 2000);
 root.test.applyNextBotDecision(tax, 2100);
 assert.equal(tax.phase, Rules.PHASES.CHALLENGE_REVEAL);
 
+const openingTax = fixture();
+performAction(openingTax, 'a', Rules.ACTIONS.TAX, null, 2000);
+random = 0.1;
+assert.equal(root.test.shouldChallengeClaim(openingTax, openingTax.players.c, Rules.ROLES.DUKE, 'a'), false);
+random = 0.01;
+assert.equal(root.test.shouldChallengeClaim(openingTax, openingTax.players.c, Rules.ROLES.DUKE, 'a'), true);
+openingTax.exchangeRole = Rules.ROLES.INQUISITOR;
+random = 0.99;
+assert.equal(root.test.shouldChallengeClaim(openingTax, openingTax.players.c, Rules.ROLES.AMBASSADOR, 'a'), true);
+openingTax.exchangeRole = Rules.ROLES.AMBASSADOR;
+random = 0.5;
+assert.equal(root.test.shouldChallengeClaim(openingTax, openingTax.players.c, Rules.ROLES.AMBASSADOR, 'a'), true);
+openingTax.hasPostDealCardDraw = true;
+assert.equal(root.test.shouldChallengeClaim(openingTax, openingTax.players.c, Rules.ROLES.AMBASSADOR, 'a'), false);
+openingTax.turnNumber = openingTax.turnOrder.length + 1;
+random = 0.1;
+assert.equal(root.test.shouldChallengeClaim(openingTax, openingTax.players.c, Rules.ROLES.DUKE, 'a'), true);
+
 const aid = fixture();
 aid.players.c.influences[0].role = Rules.ROLES.DUKE;
 performAction(aid, 'a', Rules.ACTIONS.FOREIGN_AID, null, 2000);

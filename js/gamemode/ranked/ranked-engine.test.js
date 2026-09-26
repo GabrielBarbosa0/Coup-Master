@@ -156,6 +156,7 @@ function testInitialDealSkipsAmbassador() {
     const initialHands = Engine.getPlayers(state).flatMap((player) => player.influences);
     assert.ok(initialHands.every((card) => card.role !== Rules.ROLES.AMBASSADOR));
     assert.ok(state.deck.some((card) => card.role === Rules.ROLES.AMBASSADOR));
+    assert.equal(state.hasPostDealCardDraw, false);
 }
 
 function testAddAiPlayerToWaitingRoom() {
@@ -302,6 +303,7 @@ function testFailedChallengeResumesAction() {
     performAction(state, 'u1', Rules.ACTIONS.TAX, null, 2000);
     Engine.challengeAction(state, 'u2', 2100);
     answerChallenge(state);
+    assert.equal(state.hasPostDealCardDraw, true);
     assert.equal(state.pendingLoss.playerUid, 'u2');
     Engine.loseInfluence(state, 'u2', firstHiddenCard(state, 'u2').id, 2200);
     settleAnimation(state);

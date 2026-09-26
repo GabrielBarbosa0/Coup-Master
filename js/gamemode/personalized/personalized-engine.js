@@ -35,6 +35,7 @@
             pendingExamine: null,
             pendingTransition: null,
             matchStats: {},
+            hasPostDealCardDraw: false,
             matchId: 0,
             readyCountdownStartedAt: null,
             winnerUid: null
@@ -48,6 +49,13 @@
         state.deck = Array.isArray(state.deck) ? state.deck : [];
         state.discard = Array.isArray(state.discard) ? state.discard : [];
         state.log = Array.isArray(state.log) ? state.log : [];
+        if (typeof state.hasPostDealCardDraw !== 'boolean') {
+            const publicProofExists = Array.isArray(state.publicReveals)
+                && state.publicReveals.some((event) => event?.kind === 'proof');
+            const publicDrawActionExists = state.log.some((entry) => entry?.type === 'action-result'
+                && /concluiu (a troca|a investigação)/i.test(entry.message || ''));
+            state.hasPostDealCardDraw = publicProofExists || publicDrawActionExists;
+        }
         state.starterDraw = state.starterDraw && typeof state.starterDraw === 'object' ? state.starterDraw : null;
         state.pendingTransition = state.pendingTransition && typeof state.pendingTransition === 'object'
             ? state.pendingTransition
@@ -364,6 +372,7 @@
         state.startedAt = now;
         state.finishedAt = null;
         state.matchStats = {};
+        state.hasPostDealCardDraw = false;
         state.readyCountdownStartedAt = null;
 
         players.forEach((player) => {
@@ -430,6 +439,7 @@
         state.pendingExchange = null;
         state.pendingExamine = null;
         state.matchStats = {};
+        state.hasPostDealCardDraw = false;
         state.readyCountdownStartedAt = null;
         state.winnerUid = null;
         state.startedAt = null;
@@ -763,6 +773,7 @@
         const replacement = state.deck.pop();
         player.influences[index] = { ...replacement, revealed: false };
         state.deck = Rules.shuffle([...state.deck, { id: provenCard.id, role: provenCard.role }]);
+        state.hasPostDealCardDraw = true;
     }
 
     function scheduleLoss(state, playerUid, reason, continuation, now = Date.now(), count = 1, requireChoice = false) {
@@ -1004,6 +1015,7 @@
         const revealed = player.influences.filter((card) => card.revealed);
         const drawCount = getExchangeDrawCount(actionType);
         const drawn = state.deck.splice(Math.max(0, state.deck.length - drawCount), drawCount).map((card) => ({ ...card, revealed: false }));
+        if (drawn.length) state.hasPostDealCardDraw = true;
         player.influences = revealed;
         state.pendingExchange = { playerUid: uid, keepCount: hidden.length, options: [...hidden, ...drawn] };
         beginAnimationTransition(state, {
@@ -1071,6 +1083,7 @@
                 const replacement = state.deck.pop();
                 target.influences[index] = { ...replacement, revealed: false };
                 state.deck = Rules.shuffle([...state.deck, { id: oldCard.id, role: oldCard.role }]);
+                state.hasPostDealCardDraw = true;
             }
             Object.entries(target.investigationExposure).forEach(([observerUid, exposure]) => {
                 delete exposure[pending.cardId];

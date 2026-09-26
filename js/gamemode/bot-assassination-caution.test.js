@@ -19,6 +19,8 @@ for (const mode of ['ranked', 'personalized']) {
     for (const uid of ['a', 'b']) Engine.joinPlayer(state, { uid, name: uid }, 1001);
     state.status = 'active';
     state.phase = Rules.PHASES.RESPONSE;
+    state.turnOrder = ['a', 'b'];
+    state.turnNumber = state.turnOrder.length + 1;
     state.pendingAction = { type: Rules.ACTIONS.ASSASSINATE, actorUid: 'a', targetUid: 'b', claim: Rules.ROLES.ASSASSIN, passes: {} };
     const bot = state.players.b;
     bot.ai = true;

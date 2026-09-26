@@ -19,6 +19,7 @@
     const BOT_RESPONSE_MIN_DELAY_MS = 1200;
     const BOT_RESPONSE_RANDOM_DELAY_MS = 1400;
     const BOT_RESPONSE_DEADLINE_BUFFER_MS = 650;
+    const OPENING_ROUND_CHALLENGE_MULTIPLIER = 0.12;
 
     function t(key, params = {}, fallback = '') {
         const translated = root.CoupLanguage?.t?.(key, params);
@@ -366,13 +367,29 @@
         return Math.min(3, Math.max(0, Number(bot.favors?.[state.pendingAction?.targetUid]) || 0));
     }
 
+    function hasAmbassadorEnteredPlay(state) {
+        return Boolean(state.hasPostDealCardDraw);
+    }
+
+    function getChallengeCautionMultiplier(state, claim) {
+        const openingTurnCount = Math.max(1, state.turnOrder?.length || Engine.getAlivePlayers(state).length);
+        const isOpeningRound = Number(state.turnNumber || 0) <= openingTurnCount;
+        if (!isOpeningRound) return 1;
+        const ambassadorCannotBeInAnInitialHand = claim === Rules.ROLES.AMBASSADOR
+            && Rules.isRoleAvailable(state, claim)
+            && !hasAmbassadorEnteredPlay(state);
+        return ambassadorCannotBeInAnInitialHand ? 1 : OPENING_ROUND_CHALLENGE_MULTIPLIER;
+    }
+
     function shouldChallengeClaim(state, bot, claim, actorUid, isSelfTarget = false) {
         if (!claim || !actorUid) return false;
+        if (!Rules.isRoleAvailable(state, claim)) return true;
+        const openingCaution = getChallengeCautionMultiplier(state, claim);
         if (shouldStayOutOfConflict(state, bot)) {
             // Do not undermine somebody else's defense; helping the target is rare and risky.
             if (state.phase === Rules.PHASES.BLOCK_CHALLENGE) return false;
             const caution = Engine.countInfluences(bot) === 1 ? 0.25 : 1;
-            return Math.random() < (0.015 + getFavorStrength(state, bot) * 0.04) * caution;
+            return Math.random() < (0.015 + getFavorStrength(state, bot) * 0.04) * caution * openingCaution;
         }
         const facingAssassination = state.phase === Rules.PHASES.RESPONSE
             && state.pendingAction?.type === Rules.ACTIONS.ASSASSINATE
@@ -392,7 +409,7 @@
             const successfulAttacks = Math.min(4, Math.max(0, Number(publicStats.assassinations) || 0));
             const chance = (0.03 + skepticism * 0.07 + exposedBluffs * 0.025)
                 / (1 + successfulAttacks * 0.25);
-            return Math.random() < chance;
+            return Math.random() < chance * openingCaution;
         }
         if (getKnownRoleCount(state, claim) >= Rules.SETTINGS.cardsPerRole) return true;
         const { skepticism } = getPersonality(bot);
@@ -401,7 +418,7 @@
         const pressure = isSelfTarget ? 0.28 : 0.08;
         const actorIsRich = actor?.coins >= Rules.SETTINGS.mandatoryCoupCoins ? -0.08 : 0;
         const chance = (skepticism ** 2) * 0.42 + pressure + grudge + actorIsRich;
-        return Math.random() < Math.max(0.02, Math.min(0.82, chance));
+        return Math.random() < Math.max(0.02, Math.min(0.82, chance)) * openingCaution;
     }
 
     function chooseBotBlockClaim(state, bot) {
