@@ -243,6 +243,13 @@ function setupDeckSurface() {
   attachElementTooltip(deckEl, deckLabel);
 }
 
+function setupTreasuryService() {
+  window.CoupTreasuryControls?.setup({
+    getMyPlayerId: () => myPlayerId,
+    updateScore: (...args) => updateScore(...args)
+  });
+}
+
 function refreshCasualTranslations() {
   renderAll();
   const deckLabel = window.CoupLanguage?.t?.('casual.deck') || 'Baralho';
@@ -288,6 +295,7 @@ function setupUI() {
   setupRoomUiService();
   window.CoupCasualAudio?.setupBackgroundMusicControls();
   setupAsylumService();
+  setupTreasuryService();
   setupDeckSurface();
   setupRulesAndTutorial();
   setupPlayerCoinControls();

@@ -28,6 +28,8 @@
       'assets/img/cards/religion/asilo.png',
       'assets/img/cards/religion/catolico-quadrado.png',
       'assets/img/cards/religion/protestante-quadrado.png',
+      'assets/img/coins/moeda-prata.png',
+      'assets/img/coins/moeda-ouro.png',
       'assets/img/perfil-cards/base/assassino.png',
       'assets/img/perfil-cards/base/capitao.png',
       'assets/img/perfil-cards/base/condessa.png',

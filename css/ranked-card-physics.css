@@ -70,7 +70,7 @@
         translateY(-8px)
         rotateX(var(--rank-coin-tilt-x))
         rotateY(var(--rank-coin-tilt-y))
-        scale(1.22);
+        scale(1.2);
     filter:
         drop-shadow(var(--rank-coin-glow-x, 0) var(--rank-coin-glow-y, 0) 9px rgb(var(--rank-coin-glow-color) / 48%))
         drop-shadow(0 12px 13px rgb(0 0 0 / 48%));

@@ -2346,6 +2346,14 @@ h2 {
     padding: 20px;
 }
 
+#fullRoomModal > .modal-content {
+    box-sizing: border-box;
+    width: min(300px, calc(100vw - 28px));
+    max-width: min(300px, calc(100vw - 28px));
+    margin: 0 auto;
+    padding: 20px;
+}
+
 #settingsModal .standard-modal-content,
 #shareRoomModal > .modal-content,
 #feedbackModal > .modal-content,
@@ -2771,11 +2779,11 @@ h2 {
 .game-table .center-area {
     display: grid;
     grid-template-areas:
-        "players-top players-top players-top"
-        "asylum graveyard deck"
-        "players-bottom players-bottom players-bottom"
-        "status status status";
-    grid-template-columns: minmax(150px, 0.75fr) minmax(520px, 4fr) minmax(150px, 0.75fr);
+        "players-top players-top players-top players-top"
+        "treasury asylum graveyard deck"
+        "players-bottom players-bottom players-bottom players-bottom"
+        "status status status status";
+    grid-template-columns: minmax(130px, 0.75fr) minmax(130px, 0.75fr) minmax(390px, 3.25fr) minmax(130px, 0.75fr);
     grid-template-rows: 200px 210px 200px auto;
     align-content: start;
     gap: var(--table-gap);
@@ -2808,6 +2816,10 @@ h2 {
 
 .game-table .asylum-area {
     grid-area: asylum;
+}
+
+.game-table .treasury-area {
+    grid-area: treasury;
 }
 
 .game-table .graveyard-area {
@@ -3253,6 +3265,7 @@ h2 {
 }
 
 .game-table .graveyard-area,
+.game-table .treasury-area,
 .game-table .asylum-area,
 .game-table .deck-area {
     box-sizing: border-box;
@@ -3295,12 +3308,14 @@ html[data-casual-theme="classic"] .game-table .player-area:not(.is-empty) {
 }
 
 html[data-casual-theme="classic"] .game-table .graveyard-area,
+html[data-casual-theme="classic"] .game-table .treasury-area,
 html[data-casual-theme="classic"] .game-table .asylum-area,
 html[data-casual-theme="classic"] .game-table .deck-area {
     background: rgba(28, 37, 48, 0.96);
     background-image: none;
 }
 
+.game-table .treasury-area,
 .game-table .asylum-area,
 .game-table .deck-area {
     display: flex;
@@ -3315,6 +3330,12 @@ html[data-casual-theme="classic"] .game-table .deck-area {
     border: 2px solid var(--accent2);
 }
 
+.game-table .treasury-area {
+    position: relative;
+    overflow: visible;
+    border: 2px solid rgba(246, 194, 4, 0.72);
+}
+
 .game-table .deck-area {
     border: 2px solid var(--accent);
 }
@@ -3326,6 +3347,107 @@ html[data-casual-theme="classic"] .game-table .deck-area {
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
+}
+
+.game-table .treasury-stack {
+    position: relative;
+    width: 68px;
+    height: 58px;
+    overflow: visible;
+}
+
+.game-table .treasury-stack img {
+    --treasury-coin-rotation: 0deg;
+    --treasury-tilt-x: 0deg;
+    --treasury-tilt-y: 0deg;
+    --treasury-glow-color: 244 248 255;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    cursor: grab;
+    touch-action: none;
+    transform: rotate(var(--treasury-coin-rotation)) perspective(820px)
+        rotateX(var(--treasury-tilt-x)) rotateY(var(--treasury-tilt-y));
+    transform-origin: center;
+    transform-style: preserve-3d;
+    transition: transform 40ms ease, filter 150ms ease;
+    filter: drop-shadow(0 7px 10px rgb(0 0 0 / 42%));
+    will-change: transform, filter;
+}
+
+.game-table .treasury-stack img:nth-child(1) {
+    --treasury-coin-rotation: -15deg;
+    top: 17px;
+    left: 2px;
+}
+
+.game-table .treasury-stack img:nth-child(2) {
+    --treasury-coin-rotation: 10deg;
+    top: 5px;
+    left: 19px;
+}
+
+.game-table .treasury-stack img:nth-child(3) {
+    --treasury-coin-rotation: 24deg;
+    --treasury-glow-color: 255 196 0;
+    top: 20px;
+    left: 31px;
+    width: 38px;
+    height: 38px;
+}
+
+.game-table .treasury-stack img.is-tilting {
+    z-index: 8;
+    transform: rotate(var(--treasury-coin-rotation)) perspective(820px) translateY(-8px)
+        rotateX(var(--treasury-tilt-x)) rotateY(var(--treasury-tilt-y)) scale(1.2);
+    filter:
+        drop-shadow(var(--treasury-glow-x, 0) var(--treasury-glow-y, 0) 9px rgb(var(--treasury-glow-color) / 48%))
+        drop-shadow(0 12px 13px rgb(0 0 0 / 48%));
+}
+
+.game-table .treasury-stack img.is-treasury-drag-source {
+    visibility: hidden;
+}
+
+.game-table .coin-readout.is-treasury-drop-target {
+    border-color: rgba(244, 248, 255, 0.78);
+    box-shadow: 0 0 14px rgb(244 248 255 / 28%);
+}
+
+.game-table .coin-readout.is-treasury-drop-valid {
+    border-color: var(--accent);
+    box-shadow: 0 0 16px rgb(30 144 255 / 46%);
+}
+
+.game-table .coin-readout.is-treasury-drop-hover {
+    border-color: var(--accent);
+    transform: scale(1.06);
+}
+
+.game-table #treasuryTitle {
+    max-width: none;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.treasury-coin-drag-ghost {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 900;
+    display: block;
+    margin: 0;
+    pointer-events: none;
+    object-fit: contain;
+    transform-origin: center;
+    filter: drop-shadow(0 16px 16px rgb(0 0 0 / 48%));
+    will-change: transform;
+}
+
+.is-treasury-coin-dragging,
+.is-treasury-coin-dragging * {
+    cursor: grabbing !important;
 }
 
 .game-table .asylum-image-wrapper {
@@ -3506,11 +3628,11 @@ body.hide-religion .game-table .asylum-area {
 
 body.hide-religion .game-table .center-area {
     grid-template-areas:
-        "players-top players-top"
-        "graveyard deck"
-        "players-bottom players-bottom"
-        "status status";
-    grid-template-columns: minmax(520px, 4fr) minmax(150px, 0.75fr);
+        "players-top players-top players-top"
+        "treasury graveyard deck"
+        "players-bottom players-bottom players-bottom"
+        "status status status";
+    grid-template-columns: minmax(130px, 0.75fr) minmax(520px, 4fr) minmax(150px, 0.75fr);
 }
 
 @media (max-width: 1200px) {
@@ -3523,7 +3645,7 @@ body.hide-religion .game-table .center-area {
     }
 
     .game-table .center-area {
-        grid-template-columns: 130px minmax(470px, 1fr) 130px;
+        grid-template-columns: 120px 120px minmax(350px, 1fr) 130px;
         grid-template-rows: 176px 190px 176px auto;
         min-width: 760px;
     }
@@ -3537,7 +3659,7 @@ body.hide-religion .game-table .center-area {
     }
 
     body.hide-religion .game-table .center-area {
-        grid-template-columns: minmax(470px, 1fr) 130px;
+        grid-template-columns: 120px minmax(470px, 1fr) 130px;
     }
 }
 
@@ -3563,7 +3685,7 @@ body.hide-religion .game-table .center-area {
     }
 
     .game-table .center-area {
-        grid-template-columns: minmax(110px, 0.8fr) minmax(0, 3fr) minmax(110px, 0.8fr);
+        grid-template-columns: minmax(96px, 0.8fr) minmax(96px, 0.8fr) minmax(0, 3fr) minmax(96px, 0.8fr);
         grid-template-rows: minmax(170px, auto) minmax(190px, auto) minmax(170px, auto) auto;
         width: 100%;
         min-width: 0;
@@ -3654,12 +3776,13 @@ body.hide-religion .game-table .center-area {
     }
 
     body.hide-religion .game-table .center-area {
-        grid-template-columns: minmax(0, 3fr) minmax(110px, 0.8fr);
+        grid-template-columns: minmax(96px, 0.8fr) minmax(0, 3fr) minmax(96px, 0.8fr);
     }
 }
 
 @media (max-width: 700px) {
     .game-table .graveyard-area,
+    .game-table .treasury-area,
     .game-table .asylum-area,
     .game-table .deck-area {
         border-width: 2px;
@@ -3727,12 +3850,13 @@ body.hide-religion .game-table .center-area {
     .game-table .decks-wrapper {
         order: 4;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: var(--table-gap);
         width: 100%;
         margin: 0;
     }
 
+    .game-table .decks-wrapper > .treasury-area,
     .game-table .decks-wrapper > .asylum-area,
     .game-table .decks-wrapper > .deck-area {
         grid-area: auto;
@@ -3858,6 +3982,7 @@ body.hide-religion .game-table .center-area {
         box-shadow: none;
     }
 
+    .game-table .treasury-area,
     .game-table .asylum-area,
     .game-table .deck-area {
         min-height: 120px;
@@ -3870,6 +3995,37 @@ body.hide-religion .game-table .center-area {
     .game-table .zone-title,
     .game-table #deck-count {
         font-size: 8px;
+    }
+
+    .game-table #treasuryTitle {
+        font-size: 8px;
+    }
+
+    .game-table .treasury-stack {
+        width: 54px;
+        height: 46px;
+    }
+
+    .game-table .treasury-stack img {
+        width: 24px;
+        height: 24px;
+    }
+
+    .game-table .treasury-stack img:nth-child(1) {
+        top: 14px;
+        left: 2px;
+    }
+
+    .game-table .treasury-stack img:nth-child(2) {
+        top: 4px;
+        left: 15px;
+    }
+
+    .game-table .treasury-stack img:nth-child(3) {
+        top: 16px;
+        left: 25px;
+        width: 30px;
+        height: 30px;
     }
 
     .game-table .asylum-image-wrapper {
@@ -3914,7 +4070,7 @@ body.hide-religion .game-table .center-area {
     }
 
     body.hide-religion .game-table .decks-wrapper {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -3941,6 +4097,38 @@ body.hide-religion .game-table .center-area {
     }
 }
 
+@media (orientation: portrait) and (max-width: 360px) {
+    .game-table .player-area,
+    .game-table .player-area.is-empty {
+        min-height: 114px;
+        height: 114px;
+    }
+
+    .game-table .player-area {
+        grid-template-rows: auto auto minmax(51px, 1fr);
+    }
+
+    .game-table .player-stack,
+    .game-table .player-area.is-empty .player-stack {
+        min-height: 51px;
+    }
+
+    .game-table .graveyard-area {
+        min-height: 72px;
+        height: 72px;
+        padding-block: 6px;
+    }
+
+    .game-table .treasury-area,
+    .game-table .asylum-area,
+    .game-table .deck-area {
+        min-height: 100px;
+        height: 100px;
+        gap: 3px;
+        padding: 4px 6px;
+    }
+}
+
 @media (orientation: landscape) and (max-width: 1024px) and (max-height: 560px) {
     .game-table {
         --table-gap: clamp(4px, 1.2dvh, 7px);
@@ -3959,13 +4147,20 @@ body.hide-religion .game-table .center-area {
 
     .game-table .center-area.extra-row-hidden {
         grid-template-areas:
-            "players-top players-top players-top"
-            "asylum graveyard deck"
-            "status status status";
+            "players-top players-top players-top players-top"
+            "treasury asylum graveyard deck"
+            "status status status status";
         grid-template-rows:
             minmax(136px, min(160px, 41dvh))
             minmax(136px, min(160px, 41dvh))
             auto;
+    }
+
+    body.hide-religion .game-table .center-area.extra-row-hidden {
+        grid-template-areas:
+            "players-top players-top players-top"
+            "treasury graveyard deck"
+            "status status status";
     }
 
     .game-table .player-row.mobile-row-hidden,
