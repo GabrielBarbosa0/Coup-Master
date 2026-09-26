@@ -10,6 +10,10 @@
     transform: none;
 }
 
+#rankTreasurySource .is-rank-drag-source {
+    visibility: hidden;
+}
+
 #rankDeckSource img[data-rank-drag-key] {
     --rank-deck-tilt-x: 0deg;
     --rank-deck-tilt-y: 0deg;
