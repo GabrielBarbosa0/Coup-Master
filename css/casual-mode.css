@@ -2688,7 +2688,7 @@ h2 {
 }
 
 .game-table {
-    --table-content-width: min(82vw, 1460px);
+    --table-content-width: min(82vw, 1100px);
     --table-gap: 14px;
     --card-width: clamp(48px, 4.2vw, 65px);
     --card-radius: clamp(4px, 0.35vw, 6px);
@@ -2895,6 +2895,7 @@ h2 {
 
 .game-table .player-avatar,
 .game-table .religion-badge {
+    box-sizing: border-box;
     width: 28px;
     height: 28px;
     border: 1px solid var(--accent);
@@ -2907,8 +2908,8 @@ h2 {
 }
 
 .game-table .player-avatar.is-system-avatar {
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
     padding: 3px;
     background: rgba(17, 29, 42, 0.96);
     object-fit: contain;
@@ -2937,7 +2938,7 @@ h2 {
     margin: 0;
     overflow: hidden;
     color: var(--text);
-    font-size: clamp(12px, 0.9vw, 15px);
+    font-size: 14px;
     font-weight: 600;
     line-height: 1.2;
     text-align: center;
@@ -2992,6 +2993,36 @@ h2 {
 .game-table .asylum-points button:focus-visible {
     box-shadow: 0 0 0 3px rgba(246, 194, 4, 0.2);
     outline: 0;
+}
+
+.game-table .points button {
+    background: #dce7ef;
+    color: #0b1117;
+}
+
+.game-table .points button:hover,
+.game-table .points button:focus-visible {
+    box-shadow: 0 0 0 3px rgba(220, 231, 239, 0.18);
+}
+
+.game-table .coin-readout {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    padding: 2px 5px 2px 3px;
+    border: 1px solid rgba(220, 231, 239, 0.38);
+    border-radius: 16px;
+    background: #182531;
+    box-shadow: 0 0 12px rgba(220, 231, 239, 0.08);
+}
+
+.game-table .coin-readout img {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.28));
 }
 
 .game-table .score {
@@ -3579,8 +3610,8 @@ body.hide-religion .game-table .center-area {
     }
 
     .game-table .player-avatar.is-system-avatar {
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
         padding: 2px;
     }
 
@@ -3756,8 +3787,8 @@ body.hide-religion .game-table .center-area {
     }
 
     .game-table .player-avatar.is-system-avatar {
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
         padding: 2px;
     }
 
@@ -3778,9 +3809,29 @@ body.hide-religion .game-table .center-area {
         font-size: 16px;
     }
 
+    .game-table .points button {
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+    }
+
+    .game-table .coin-readout {
+        gap: 2px;
+        min-width: 40px;
+        height: 20px;
+        padding: 1px 4px 1px 2px;
+        box-sizing: border-box;
+    }
+
+    .game-table .coin-readout img {
+        width: 16px;
+        height: 16px;
+        flex-basis: 16px;
+    }
+
     .game-table .score {
-        min-width: 14px;
-        font-size: 14px;
+        min-width: 12px;
+        font-size: 12px;
     }
 
     .game-table .player-stack {

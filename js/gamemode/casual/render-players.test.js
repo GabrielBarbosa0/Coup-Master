@@ -8,10 +8,17 @@ vm.runInNewContext(source, { window, document: {} });
 
 const layout = window.CoupRenderPlayers.getMobileSeatLayout;
 const landscapeLayout = window.CoupRenderPlayers.getLandscapeSeatLayout;
+const formatPlayerName = window.CoupRenderPlayers.formatPlayerName;
+const formatPlayerCoins = window.CoupRenderPlayers.formatPlayerCoins;
 const normalize = (value) => JSON.parse(JSON.stringify(value));
 const players = (occupied) => Object.fromEntries(
   occupied.map((pid) => [pid, { uid: `player-${pid}`, online: true }])
 );
+
+assert.equal(formatPlayerName('Gabriel Barbosa'), 'Gabriel Barbosa');
+assert.equal(formatPlayerName('Gabriel Barbosa1'), 'Gabriel Barbosa...');
+assert.equal(formatPlayerCoins(100), 99);
+assert.equal(formatPlayerCoins(-1), 0);
 
 assert.deepEqual(normalize(layout(players([1]), 8)), {
   visible: [1],

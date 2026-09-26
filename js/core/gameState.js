@@ -528,7 +528,7 @@ function updateScore(pid, amount, silent = false) {
   const scoreRef = db.ref(`salas/${roomCode}/gameState/players/${pid}/score`);
   scoreRef.once('value', (snapshot) => {
     let newScore = (snapshot.val() || 0) + amount;
-    if (newScore < 0) newScore = 0; // Impede saldo negativo
+    newScore = Math.min(99, Math.max(0, newScore));
     scoreRef.set(newScore);
   });
 }

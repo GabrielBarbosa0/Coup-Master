@@ -4,6 +4,8 @@
   let mobileSeatMediaQuery = null;
   let landscapeSeatMediaQuery = null;
   let responsiveSeatListenersBound = false;
+  const MAX_PLAYER_COINS = 99;
+  const MAX_VISIBLE_NAME_LENGTH = 15;
 
   const DEFAULT_PLAYER = Object.freeze({
     online: false,
@@ -76,6 +78,17 @@
       columns: visible.length <= 3 ? 1 : 2,
       showBottomRow: visible.some((pid) => pid > 4)
     };
+  }
+
+  function formatPlayerName(name) {
+    const characters = Array.from(String(name || ''));
+    if (characters.length <= MAX_VISIBLE_NAME_LENGTH) return characters.join('');
+    return `${characters.slice(0, MAX_VISIBLE_NAME_LENGTH).join('')}...`;
+  }
+
+  function formatPlayerCoins(value) {
+    const coins = Number.isFinite(Number(value)) ? Math.trunc(Number(value)) : 0;
+    return Math.min(MAX_PLAYER_COINS, Math.max(0, coins));
   }
 
   function getLandscapeSeatLayout(players = {}, maxPlayers = 8) {
@@ -217,7 +230,9 @@
     }
 
     if (nameTxt) {
-      nameTxt.textContent = player.name || t('casual.playerSeat', { seat: pid }, `Jogador ${pid}`);
+      const fullName = player.name || t('casual.playerSeat', { seat: pid }, `Jogador ${pid}`);
+      nameTxt.textContent = formatPlayerName(fullName);
+      nameTxt.dataset.fullName = fullName;
       nameTxt.classList.add('has-quick-actions');
       nameTxt.style.cursor = 'pointer';
       nameTxt.setAttribute('role', 'button');
@@ -313,7 +328,7 @@
     renderPlayerHand(playerEl, player, options.createCardElement, options.updateHandFanLayout);
 
     const scoreEl = playerEl.querySelector('.score');
-    if (scoreEl) scoreEl.textContent = player.score || 0;
+    if (scoreEl) scoreEl.textContent = formatPlayerCoins(player.score);
 
     if (player?.spectators && player.spectators[options.myPlayerId]) {
       playerEl.style.boxShadow = '0 0 8px #1e90ff';
@@ -341,6 +356,8 @@
   root.CoupRenderPlayers = {
     renderPlayers,
     renderEmptyPlayerSlot,
+    formatPlayerName,
+    formatPlayerCoins,
     getMobileSeatLayout,
     getLandscapeSeatLayout,
     applyMobileSeatVisibility
