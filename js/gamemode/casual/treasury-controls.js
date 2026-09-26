@@ -9,9 +9,9 @@
     tilt: 46,
     lift: 36,
     invalidReturnSpring: 0.035,
-    validReturnSpring: 0.095,
+    validReturnSpring: 0.068,
     invalidReturnDamping: 0.86,
-    validReturnDamping: 0.78,
+    validReturnDamping: 0.82,
     maxReturnMs: 1800
   });
   let config = {};
@@ -95,6 +95,7 @@
     frame = null;
     lastTime = 0;
     completed?.ghost?.remove();
+    if (credit) respawnSourceCoin(completed?.source);
     completed?.source?.classList.remove('is-treasury-drag-source');
     clearTargetClasses(completed?.target);
     document.body.classList.remove('is-treasury-coin-dragging');
@@ -142,7 +143,11 @@
     const targetAngle = d.returning ? 0 : clamp(d.vx * d.physics.swing, -d.physics.tilt, d.physics.tilt);
     d.angleVelocity = (d.angleVelocity + (targetAngle - d.angle) * 0.16) * 0.78;
     d.angle += d.angleVelocity * delta;
-    d.ghost.style.transform = `translate3d(${d.x}px, ${d.y}px, 0) rotate(${d.angle}deg)`;
+    const depositVisual = d.returning && d.credit
+      ? getDepositVisual(Math.hypot(d.tx - d.x, d.ty - d.y), d.returnDistance)
+      : { opacity: 1, scale: 1 };
+    d.ghost.style.opacity = depositVisual.opacity.toFixed(3);
+    d.ghost.style.transform = `translate3d(${d.x}px, ${d.y}px, 0) rotate(${d.angle}deg) scale(${depositVisual.scale.toFixed(3)})`;
 
     const settled = Math.hypot(d.tx - d.x, d.ty - d.y) < 1.2
       && Math.hypot(d.vx, d.vy) < 0.55
@@ -201,6 +206,31 @@
     return Math.max(1, Number(coin?.dataset?.coinValue) || 1);
   }
 
+  function getDepositVisual(distance, totalDistance) {
+    const progress = clamp(1 - distance / Math.max(1, totalDistance), 0, 1);
+    const eased = progress * progress * (3 - 2 * progress);
+    return {
+      opacity: 1 - eased * 0.92,
+      scale: 1 - eased * 0.38
+    };
+  }
+
+  function respawnSourceCoin(coin) {
+    if (!coin?.isConnected) return;
+    const respawnId = String(now());
+    coin.dataset.treasuryRespawnId = respawnId;
+    coin.classList.remove('is-treasury-respawning');
+    void coin.offsetWidth;
+    coin.classList.add('is-treasury-respawning');
+    const clearRespawn = () => {
+      if (coin.dataset.treasuryRespawnId !== respawnId) return;
+      coin.classList.remove('is-treasury-respawning');
+      delete coin.dataset.treasuryRespawnId;
+    };
+    coin.addEventListener('animationend', clearRespawn, { once: true });
+    root.setTimeout?.(clearRespawn, 560);
+  }
+
   function release(event) {
     if (!drag || drag.returning || event.pointerId !== drag.pointerId) return;
     if (!drag.active) {
@@ -220,6 +250,7 @@
     drag.vy *= releaseVelocityRetention;
     drag.tx = destination.left + (destination.width - drag.width) / 2;
     drag.ty = destination.top + (destination.height - drag.height) / 2;
+    drag.returnDistance = Math.max(1, Math.hypot(drag.tx - drag.x, drag.ty - drag.y));
     drag.target?.readout?.classList.toggle('is-treasury-drop-valid', credit);
   }
 
@@ -243,6 +274,7 @@
     coin.addEventListener('pointerdown', (event) => {
       if (event.button !== 0 || !event.isPrimary || drag || getPlayerSlots().length === 0) return;
       event.preventDefault();
+      coin.classList.remove('is-treasury-respawning');
       resetTilt(coin);
       drag = {
         source: coin,
@@ -301,6 +333,7 @@
     pointInside,
     findDropTargetFromSlots,
     getCoinValue,
+    getDepositVisual,
     physics: PHYSICS
   });
 })(window);

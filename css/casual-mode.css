@@ -3406,6 +3406,31 @@ html[data-casual-theme="classic"] .game-table .deck-area {
         drop-shadow(0 12px 13px rgb(0 0 0 / 48%));
 }
 
+.game-table .treasury-stack img.is-treasury-drag-source:not(.is-treasury-respawning) {
+    visibility: hidden;
+}
+
+.game-table .treasury-stack img.is-treasury-respawning {
+    animation: treasuryCoinRespawn 420ms cubic-bezier(0.2, 0.78, 0.24, 1) both;
+}
+
+@keyframes treasuryCoinRespawn {
+    0% {
+        opacity: 0;
+        filter: brightness(1.65) drop-shadow(0 0 12px rgb(var(--treasury-glow-color) / 58%));
+    }
+
+    55% {
+        opacity: 1;
+        filter: brightness(1.18) drop-shadow(0 0 8px rgb(var(--treasury-glow-color) / 30%));
+    }
+
+    100% {
+        opacity: 1;
+        filter: drop-shadow(0 7px 10px rgb(0 0 0 / 42%));
+    }
+}
+
 .game-table .coin-readout.is-treasury-drop-target {
     border-color: rgba(244, 248, 255, 0.78);
     box-shadow: 0 0 14px rgb(244 248 255 / 28%);
@@ -3438,7 +3463,26 @@ html[data-casual-theme="classic"] .game-table .deck-area {
     object-fit: contain;
     transform-origin: center;
     filter: drop-shadow(0 16px 16px rgb(0 0 0 / 48%));
-    will-change: transform;
+    will-change: transform, opacity;
+}
+
+.casual-coin-transfer-ghost {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 900;
+    display: block;
+    margin: 0;
+    pointer-events: none;
+    object-fit: contain;
+    transform-origin: center;
+    will-change: left, top, transform, opacity;
+    filter: drop-shadow(0 5px 7px rgb(0 0 0 / 42%));
+}
+
+.game-table .coin-readout.is-casual-coin-transfer-target,
+.game-table .treasury-stack.is-casual-coin-transfer-target {
+    filter: brightness(1.12);
 }
 
 .is-treasury-coin-dragging,

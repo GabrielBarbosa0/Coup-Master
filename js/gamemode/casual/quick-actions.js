@@ -55,6 +55,17 @@
     if (typeof handler === 'function') handler(pid, amount, silent);
   }
 
+  function planCoinTransfer(type, actorPid, targetPid, coupCost) {
+    return root.CoupCasualCoinTransfers?.planQuickAction?.(type, actorPid, targetPid, coupCost) || null;
+  }
+
+  function playCoinTransfer(transfer) {
+    if (!transfer) return;
+    const play = () => root.CoupCasualCoinTransfers?.play?.(transfer);
+    if (typeof root.requestAnimationFrame === 'function') root.requestAnimationFrame(play);
+    else play();
+  }
+
   function quickProfileNumber(value) {
     const number = Number(value);
     return Number.isFinite(number) ? number : 0;
@@ -284,6 +295,7 @@
     const targetScore = targetPlayer.score || 0;
     const gameplayRules = getGameplayRules(state);
     const isSelf = String(quickActionTargetPid) === String(myPlayerId);
+    let coinTransfer = null;
 
     if (isSelf && type !== 'tax') {
       return;
@@ -298,6 +310,7 @@
         }
 
         updateScore(myPlayerId, -gameplayRules.coupCost, true);
+        coinTransfer = planCoinTransfer(type, myPlayerId, quickActionTargetPid, gameplayRules.coupCost);
         triggerSound('unity-sword');
         break;
 
@@ -310,6 +323,7 @@
 
         updateScore(quickActionTargetPid, -2);
         updateScore(myPlayerId, 2);
+        coinTransfer = planCoinTransfer(type, myPlayerId, quickActionTargetPid, gameplayRules.coupCost);
         break;
 
       case 'assassinate':
@@ -320,15 +334,18 @@
         }
 
         updateScore(myPlayerId, -3, true);
+        coinTransfer = planCoinTransfer(type, myPlayerId, quickActionTargetPid, gameplayRules.coupCost);
         triggerSound('ninja-star');
         break;
 
       case 'tax':
         updateScore(myPlayerId, 3);
+        coinTransfer = planCoinTransfer(type, myPlayerId, quickActionTargetPid, gameplayRules.coupCost);
         break;
     }
 
     closePlayerActions();
+    playCoinTransfer(coinTransfer);
   }
 
   function setup(options = {}) {

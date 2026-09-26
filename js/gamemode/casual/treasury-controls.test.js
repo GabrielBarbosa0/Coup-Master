@@ -14,7 +14,13 @@ const document = {
 
 vm.runInNewContext(source, { window, document });
 
-const { pointInside, findDropTargetFromSlots, getCoinValue, physics } = window.CoupTreasuryControls;
+const {
+  pointInside,
+  findDropTargetFromSlots,
+  getCoinValue,
+  getDepositVisual,
+  physics
+} = window.CoupTreasuryControls;
 const target = { left: 10, right: 50, top: 20, bottom: 60 };
 
 assert.equal(pointInside(target, 10, 20), true);
@@ -35,6 +41,10 @@ assert.equal(findDropTargetFromSlots(slots, 70, 40), null);
 assert.equal(getCoinValue({ dataset: { coinValue: '1' } }), 1);
 assert.equal(getCoinValue({ dataset: { coinValue: '5' } }), 5);
 assert.equal(getCoinValue({ dataset: { coinValue: 'invalid' } }), 1);
+assert.deepEqual({ ...getDepositVisual(100, 100) }, { opacity: 1, scale: 1 });
+const absorbedCoin = getDepositVisual(0, 100);
+assert.ok(absorbedCoin.opacity < 0.1);
+assert.ok(absorbedCoin.scale < 0.7);
 assert.ok(physics.invalidReturnSpring < physics.spring);
 assert.ok(physics.invalidReturnSpring < physics.validReturnSpring);
 assert.ok(physics.invalidReturnDamping > physics.validReturnDamping);
