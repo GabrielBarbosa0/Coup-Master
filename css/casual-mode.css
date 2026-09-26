@@ -3406,10 +3406,6 @@ html[data-casual-theme="classic"] .game-table .deck-area {
         drop-shadow(0 12px 13px rgb(0 0 0 / 48%));
 }
 
-.game-table .treasury-stack img.is-treasury-drag-source {
-    visibility: hidden;
-}
-
 .game-table .coin-readout.is-treasury-drop-target {
     border-color: rgba(244, 248, 255, 0.78);
     box-shadow: 0 0 14px rgb(244 248 255 / 28%);
