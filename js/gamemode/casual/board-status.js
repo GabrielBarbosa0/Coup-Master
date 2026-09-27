@@ -1,6 +1,8 @@
 (function setupCasualBoardStatus(root) {
   const QR_CODE_ENDPOINT = 'https://api.qrserver.com/v1/create-qr-code/';
   let config = {};
+  let shareCopyResetTimer = null;
+  let lastShareCopyTarget = null;
 
   function getElement(id) {
     return document.getElementById(id);
@@ -120,21 +122,33 @@
       });
   }
 
-  function notifyShareCopied(button) {
+  function notifyShareCopied(target, message, defaultTitle) {
     playSound('pop');
-    if (!button) return;
+    if (!target) return;
 
-    const originalText = button.textContent;
-    button.textContent = t('ranked.copied', {}, 'COPIADO').toUpperCase();
-    button.classList.add('copied');
+    const status = getElement('shareRoomCopyStatus');
+    if (lastShareCopyTarget && lastShareCopyTarget !== target) {
+      lastShareCopyTarget.classList.remove('copied');
+      lastShareCopyTarget.title = lastShareCopyTarget.dataset.defaultCopyTitle || '';
+    }
 
-    root.setTimeout(() => {
-      button.textContent = originalText;
-      button.classList.remove('copied');
+    target.dataset.defaultCopyTitle = defaultTitle;
+    target.classList.add('copied');
+    target.title = message;
+    lastShareCopyTarget = target;
+    if (status) status.textContent = message;
+
+    if (shareCopyResetTimer) root.clearTimeout(shareCopyResetTimer);
+    shareCopyResetTimer = root.setTimeout(() => {
+      target.classList.remove('copied');
+      target.title = defaultTitle;
+      if (status) status.textContent = t('casual.scanToJoin', {}, 'Escaneie para entrar');
+      shareCopyResetTimer = null;
+      lastShareCopyTarget = null;
     }, 1200);
   }
 
-  function copyText(value, button, fallbackLabel) {
+  function copyText(value, target, fallbackLabel, successMessage, defaultTitle) {
     if (!value) return;
 
     if (!root.navigator?.clipboard?.writeText) {
@@ -143,7 +157,7 @@
     }
 
     root.navigator.clipboard.writeText(value)
-      .then(() => notifyShareCopied(button))
+      .then(() => notifyShareCopied(target, successMessage, defaultTitle))
       .catch((error) => {
         console.error('Erro ao copiar:', error);
         root.alert?.(`${fallbackLabel}: ${value}`);
@@ -151,11 +165,23 @@
   }
 
   function copyShareRoomCode() {
-    copyText(getRoomCode(), getElement('copyShareCodeBtn'), t('casual.roomCode', {}, 'Código da sala'));
+    copyText(
+      getRoomCode(),
+      getElement('shareRoomCodeCopy'),
+      t('casual.roomCode', {}, 'Código da sala'),
+      t('casual.codeCopied', {}, 'Código copiado!'),
+      t('casual.copyCodeHint', {}, 'Clique para copiar o código da sala')
+    );
   }
 
   function copyShareRoomLink() {
-    copyText(getRoomUrl(), getElement('copyShareLinkBtn'), t('casual.roomLink', {}, 'Link da sala'));
+    copyText(
+      getRoomUrl(),
+      getElement('shareRoomLinkCopy'),
+      t('casual.roomLink', {}, 'Link da sala'),
+      t('casual.linkCopied', {}, 'Link copiado!'),
+      t('casual.copyLinkHint', {}, 'Clique no QR Code para copiar o link da sala')
+    );
   }
 
   function openModal(id) {
@@ -201,8 +227,8 @@
   function bindShareRoomModal() {
     const shareRoomBtn = getElement('shareRoomBtn');
     const closeShareRoomBtn = getElement('closeShareRoomBtn');
-    const copyShareCodeBtn = getElement('copyShareCodeBtn');
-    const copyShareLinkBtn = getElement('copyShareLinkBtn');
+    const shareRoomCodeCopy = getElement('shareRoomCodeCopy');
+    const shareRoomLinkCopy = getElement('shareRoomLinkCopy');
     const shareRoomModal = getElement('shareRoomModal');
 
     if (shareRoomBtn && shareRoomBtn.dataset.boardStatusBound !== 'true') {
@@ -215,14 +241,14 @@
       closeShareRoomBtn.addEventListener('click', closeShareRoomModal);
     }
 
-    if (copyShareCodeBtn && copyShareCodeBtn.dataset.boardStatusBound !== 'true') {
-      copyShareCodeBtn.dataset.boardStatusBound = 'true';
-      copyShareCodeBtn.addEventListener('click', copyShareRoomCode);
+    if (shareRoomCodeCopy && shareRoomCodeCopy.dataset.boardStatusBound !== 'true') {
+      shareRoomCodeCopy.dataset.boardStatusBound = 'true';
+      shareRoomCodeCopy.addEventListener('click', copyShareRoomCode);
     }
 
-    if (copyShareLinkBtn && copyShareLinkBtn.dataset.boardStatusBound !== 'true') {
-      copyShareLinkBtn.dataset.boardStatusBound = 'true';
-      copyShareLinkBtn.addEventListener('click', copyShareRoomLink);
+    if (shareRoomLinkCopy && shareRoomLinkCopy.dataset.boardStatusBound !== 'true') {
+      shareRoomLinkCopy.dataset.boardStatusBound = 'true';
+      shareRoomLinkCopy.addEventListener('click', copyShareRoomLink);
     }
 
     if (shareRoomModal && shareRoomModal.dataset.boardStatusBound !== 'true') {

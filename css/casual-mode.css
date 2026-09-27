@@ -667,7 +667,7 @@ h2 {
     align-items: center;
     gap: 8px;
     width: min(210px, 68vw);
-    margin: 0 auto 16px;
+    margin: 0 auto;
     padding: 14px 12px 12px;
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 8px;
@@ -681,6 +681,14 @@ h2 {
     gap: 4px;
     width: 100%;
     min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+    transition: color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
 }
 
 .share-room-label {
@@ -699,6 +707,23 @@ h2 {
     text-transform: uppercase;
 }
 
+.share-room-code-panel:hover .share-room-label,
+.share-room-code-panel:hover #shareRoomCode,
+.share-room-code-panel:focus-visible .share-room-label,
+.share-room-code-panel:focus-visible #shareRoomCode {
+    color: var(--accent);
+}
+
+.share-room-code-panel:focus-visible {
+    box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.55);
+    outline: 0;
+}
+
+.share-room-code-panel.copied .share-room-label,
+.share-room-code-panel.copied #shareRoomCode {
+    color: var(--active);
+}
+
 .share-room-qr-frame {
     display: flex;
     align-items: center;
@@ -708,8 +733,22 @@ h2 {
     aspect-ratio: 1;
     margin: 0;
     padding: 8px;
+    border: 0;
     border-radius: 8px;
     background: #fff;
+    cursor: pointer;
+    outline: 2px solid transparent;
+    transition: outline-color 160ms ease, box-shadow 160ms ease;
+}
+
+.share-room-qr-frame:hover,
+.share-room-qr-frame:focus-visible {
+    outline-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.25);
+}
+
+.share-room-qr-frame.copied {
+    outline-color: var(--active);
 }
 
 .share-room-qr-frame img {
@@ -725,31 +764,6 @@ h2 {
     font-weight: 800;
     letter-spacing: 0;
     text-transform: uppercase;
-}
-
-.share-room-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.share-room-actions .icon-btn {
-    justify-content: center;
-    min-height: 42px;
-    border: 0;
-    background: var(--accent);
-    color: white;
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.share-room-actions .icon-btn:last-child {
-    background: #2c3540;
-}
-
-.share-room-actions .icon-btn.copied {
-    background: var(--active);
-    color: #0b121a;
 }
 
 @media (orientation: landscape) and (max-width: 1024px) and (max-height: 560px) {
@@ -774,7 +788,6 @@ h2 {
     #shareRoomModal .share-room-invite-card {
         width: min(190px, 44vw);
         gap: 4px;
-        margin-bottom: 10px;
         padding: 8px 10px;
     }
 
@@ -787,16 +800,6 @@ h2 {
         padding: 6px;
     }
 
-    #shareRoomModal .share-room-actions {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 7px;
-    }
-
-    #shareRoomModal .share-room-actions .icon-btn {
-        min-height: 32px;
-        padding: 7px 8px;
-        font-size: 10px;
-    }
 }
 
 

@@ -389,21 +389,21 @@
       <h2 data-i18n="casual.shareRoom">Compartilhar Sala</h2>
 
       <div class="share-room-invite-card" aria-label="Convite da sala" data-i18n-aria-label="casual.roomInvite">
-        <div class="share-room-code-panel" aria-label="Código da sala" data-i18n-aria-label="casual.roomCode">
+        <button id="shareRoomCodeCopy" class="share-room-code-panel" type="button"
+          title="Clique para copiar o código da sala" data-i18n-title="casual.copyCodeHint"
+          aria-label="Clique para copiar o código da sala" data-i18n-aria-label="casual.copyCodeHint">
           <span class="share-room-label" data-i18n="casual.roomShortLabel">Sala:</span>
           <strong id="shareRoomCode">...</strong>
-        </div>
+        </button>
 
-        <div class="share-room-qr-frame">
+        <button id="shareRoomLinkCopy" class="share-room-qr-frame" type="button"
+          title="Clique no QR Code para copiar o link da sala" data-i18n-title="casual.copyLinkHint"
+          aria-label="Clique no QR Code para copiar o link da sala" data-i18n-aria-label="casual.copyLinkHint">
           <img id="shareRoomQr" src="" alt="QR Code da sala" data-i18n-alt="casual.roomQr">
-        </div>
+        </button>
 
-        <span class="share-room-scan-label" data-i18n="casual.scanToJoin">Escaneie para entrar</span>
-      </div>
-
-      <div class="share-room-actions">
-        <button id="copyShareCodeBtn" class="icon-btn" type="button" data-i18n="casual.copyCode">COPIAR CÓDIGO</button>
-        <button id="copyShareLinkBtn" class="icon-btn" type="button" data-i18n="casual.copyLink">COPIAR LINK</button>
+        <span id="shareRoomCopyStatus" class="share-room-scan-label" data-i18n="casual.scanToJoin"
+          aria-live="polite">Escaneie para entrar</span>
       </div>
     </div>
   </div>
