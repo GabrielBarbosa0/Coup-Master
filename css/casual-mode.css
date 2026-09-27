@@ -681,14 +681,8 @@ h2 {
     gap: 4px;
     width: 100%;
     min-width: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 4px;
-    background: transparent;
-    font: inherit;
     cursor: pointer;
-    transition: color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+    transition: color 160ms ease;
 }
 
 .share-room-label {
@@ -712,11 +706,6 @@ h2 {
 .share-room-code-panel:focus-visible .share-room-label,
 .share-room-code-panel:focus-visible #shareRoomCode {
     color: var(--accent);
-}
-
-.share-room-code-panel:focus-visible {
-    box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.55);
-    outline: 0;
 }
 
 .share-room-code-panel.copied .share-room-label,

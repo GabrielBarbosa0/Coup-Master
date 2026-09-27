@@ -244,6 +244,11 @@
     if (shareRoomCodeCopy && shareRoomCodeCopy.dataset.boardStatusBound !== 'true') {
       shareRoomCodeCopy.dataset.boardStatusBound = 'true';
       shareRoomCodeCopy.addEventListener('click', copyShareRoomCode);
+      shareRoomCodeCopy.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        copyShareRoomCode();
+      });
     }
 
     if (shareRoomLinkCopy && shareRoomLinkCopy.dataset.boardStatusBound !== 'true') {
