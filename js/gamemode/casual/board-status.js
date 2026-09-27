@@ -133,35 +133,74 @@
     }
 
     target.dataset.defaultCopyTitle = defaultTitle;
+    target.classList.remove('copied');
+    void target.offsetWidth;
     target.classList.add('copied');
     target.title = message;
     lastShareCopyTarget = target;
-    if (status) status.textContent = message;
+    if (status) {
+      status.textContent = message;
+      status.classList.add('copied');
+    }
 
     if (shareCopyResetTimer) root.clearTimeout(shareCopyResetTimer);
     shareCopyResetTimer = root.setTimeout(() => {
       target.classList.remove('copied');
       target.title = defaultTitle;
-      if (status) status.textContent = t('casual.scanToJoin', {}, 'Escaneie para entrar');
+      if (status) {
+        status.textContent = t('casual.scanToJoin', {}, 'Escaneie para entrar');
+        status.classList.remove('copied');
+      }
       shareCopyResetTimer = null;
       lastShareCopyTarget = null;
     }, 1200);
   }
 
-  function copyText(value, target, fallbackLabel, successMessage, defaultTitle) {
-    if (!value) return;
+  function copyWithSelection(value) {
+    const textArea = document.createElement('textarea');
+    textArea.value = value;
+    textArea.setAttribute('readonly', '');
+    textArea.setAttribute('aria-hidden', 'true');
+    textArea.style.position = 'fixed';
+    textArea.style.inset = '-9999px auto auto -9999px';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.select();
+    textArea.setSelectionRange(0, value.length);
 
-    if (!root.navigator?.clipboard?.writeText) {
-      root.alert?.(`${fallbackLabel}: ${value}`);
-      return;
+    let copied = false;
+    try {
+      copied = document.execCommand('copy');
+    } catch (error) {
+      console.warn('Copia alternativa indisponível:', error);
+    } finally {
+      textArea.remove();
     }
 
-    root.navigator.clipboard.writeText(value)
-      .then(() => notifyShareCopied(target, successMessage, defaultTitle))
-      .catch((error) => {
-        console.error('Erro ao copiar:', error);
-        root.alert?.(`${fallbackLabel}: ${value}`);
-      });
+    return copied;
+  }
+
+  async function writeClipboardText(value) {
+    if (root.navigator?.clipboard?.writeText) {
+      try {
+        await root.navigator.clipboard.writeText(value);
+        return true;
+      } catch (error) {
+        console.warn('Clipboard API indisponível; tentando cópia alternativa.', error);
+      }
+    }
+
+    return copyWithSelection(value);
+  }
+
+  async function copyText(value, target, fallbackLabel, successMessage, defaultTitle) {
+    if (!value) return;
+
+    if (await writeClipboardText(value)) {
+      notifyShareCopied(target, successMessage, defaultTitle);
+    } else {
+      root.alert?.(`${fallbackLabel}: ${value}`);
+    }
   }
 
   function copyShareRoomCode() {

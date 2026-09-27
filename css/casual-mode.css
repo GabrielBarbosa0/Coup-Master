@@ -682,6 +682,7 @@ h2 {
     width: 100%;
     min-width: 0;
     cursor: pointer;
+    outline: 0;
     transition: color 160ms ease;
 }
 
@@ -710,7 +711,8 @@ h2 {
 
 .share-room-code-panel.copied .share-room-label,
 .share-room-code-panel.copied #shareRoomCode {
-    color: var(--active);
+    color: var(--accent);
+    animation: shareRoomCopyFlash 600ms ease;
 }
 
 .share-room-qr-frame {
@@ -737,7 +739,8 @@ h2 {
 }
 
 .share-room-qr-frame.copied {
-    outline-color: var(--active);
+    outline-color: var(--accent);
+    animation: shareRoomCopyFlash 600ms ease;
 }
 
 .share-room-qr-frame img {
@@ -753,6 +756,20 @@ h2 {
     font-weight: 800;
     letter-spacing: 0;
     text-transform: uppercase;
+}
+
+.share-room-scan-label.copied {
+    color: var(--accent);
+}
+
+@keyframes shareRoomCopyFlash {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.55;
+    }
 }
 
 @media (orientation: landscape) and (max-width: 1024px) and (max-height: 560px) {
