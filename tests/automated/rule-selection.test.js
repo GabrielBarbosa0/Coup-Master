@@ -3,7 +3,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
-const root = path.resolve(__dirname, '../../..');
+const root = path.resolve(__dirname, '../..');
 
 (async () => {
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
@@ -32,7 +32,7 @@ const root = path.resolve(__dirname, '../../..');
         close: (value) => { (typeof value === 'string' ? document.getElementById(value) : value).style.display = 'none'; }
       };
     });
-    await page.addScriptTag({ content: fs.readFileSync(path.join(__dirname, 'rules-guides.js'), 'utf8') });
+    await page.addScriptTag({ content: fs.readFileSync(path.join(root, 'js/gamemode/casual/rules-guides.js'), 'utf8') });
     await page.evaluate(() => {
       window.CoupRulesGuides.setup({
         isAdmin: () => window.testAdmin,

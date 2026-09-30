@@ -1,12 +1,13 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const Rules = require('./personalized-rules.js');
-const Engine = require('./personalized-engine.js');
+const Rules = require('../../js/gamemode/ranked/ranked-rules.js');
+const Engine = require('../../js/gamemode/ranked/ranked-engine.js');
+const Achievements = require('../../js/gamemode/ranked/ranked-achievements.js');
 let random = 0;
-const root = { CoupPersonalizedRules: Rules, CoupPersonalizedEngine: Engine, location: { search: '?room=TEST' } };
-const source = fs.readFileSync(require.resolve('./personalized-game.js'), 'utf8').replace('    boot();', `
-    root.test = { applyNextBotDecision, shouldChallengeClaim, chooseBotBlockClaim, chooseBotAction };
+const root = { CoupRankedRules: Rules, CoupRankedEngine: Engine, CoupRankedAchievements: Achievements, location: { search: '?room=TEST' } };
+const source = fs.readFileSync(require.resolve('../../js/gamemode/ranked/ranked-game.js'), 'utf8').replace('    boot();', `
+    root.test = { applyNextBotDecision, shouldChallengeClaim, chooseBotBlockClaim, chooseBotAction, normalizeRankedStats };
 `);
 vm.runInNewContext(source, {
     window: root, document: { body: { dataset: {} } }, URLSearchParams,
@@ -209,4 +210,33 @@ Engine.loseInfluence(proven, 'a', proven.players.a.influences[0].id, 2400);
 assert.equal(proven.players.c.favors.b, 1);
 assert.equal(proven.players.c.coins, 2);
 
-console.log('personalized-bots: self-preservation, probabilistic aid, gratitude, repayment, failed/proven blocks and reconnection passed');
+const scorePlayer = {
+    uid: 'a', name: 'a', won: true, performanceScore: 0,
+    matchStats: {}
+};
+const scoreResult = { resultKey: 'penalty-test', matchId: 99, endedAt: 5000 };
+const scoreBase = { games: 4, wins: 2, losses: 2 };
+const regularScore = root.test.normalizeRankedStats(scoreBase, scorePlayer, scoreResult, 5000);
+const penalizedScore = root.test.normalizeRankedStats({
+    ...scoreBase,
+    abandonmentPenaltyPoints: 5,
+    abandonedMatches: 1,
+    abandonedRooms: { previous: 4000 }
+}, scorePlayer, scoreResult, 5000);
+assert.equal(penalizedScore.rankScore, regularScore.rankScore - 5);
+assert.equal(penalizedScore.abandonmentPenaltyPoints, 5);
+assert.equal(penalizedScore.abandonedMatches, 1);
+assert.equal(penalizedScore.abandonedRooms.previous, 4000);
+
+const achievementStats = root.test.normalizeRankedStats({}, {
+    uid: 'a', name: 'a', won: true, performanceScore: 0,
+    matchStats: {
+        bluffs: 0, perfectWins: 1, dukeTaxes: 25, flawlessChallenges: 1
+    }
+}, { resultKey: 'achievement-test', matchId: 100, endedAt: 6000 }, 6000);
+assert.equal(achievementStats.honestWins, 1);
+assert.equal(achievementStats.perfectWins, 1);
+assert.equal(achievementStats.dukeTaxes, 25);
+assert.equal(achievementStats.unlockedAchievements.declaredDuke, true);
+
+console.log('ranked-bots: self-preservation, probabilistic aid, gratitude, repayment, failed/proven blocks and reconnection passed');

@@ -1,20 +1,20 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const Rules = require('./ranked-rules.js');
-const Engine = require('./ranked-engine.js');
+const Rules = require('../../js/gamemode/personalized/personalized-rules.js');
+const Engine = require('../../js/gamemode/personalized/personalized-engine.js');
 
 function fixture() {
     let now = 1000;
     let timerId = 0;
     const timers = new Map();
     const root = {
-        CoupRankedRules: Rules,
-        CoupRankedEngine: Engine,
+        CoupPersonalizedRules: Rules,
+        CoupPersonalizedEngine: Engine,
         setTimeout(fn, delay) { const id = ++timerId; timers.set(id, { fn, at: now + delay }); return id; },
         clearTimeout(id) { timers.delete(id); }
     };
-    const source = fs.readFileSync(require.resolve('./ranked-renderer.js'), 'utf8').replace('})(window);', `
+    const source = fs.readFileSync(require.resolve('../../js/gamemode/personalized/personalized-renderer.js'), 'utf8').replace('})(window);', `
         renderPlayers = () => {};
         root.test = {
             update(next) { const previous = state; state = next; updateRankPlayerCallouts(previous, next); },
@@ -80,4 +80,4 @@ suspended.runUntil(14149);
 assert.equal(suspended.test.active().length, 0);
 suspended.runUntil(14150);
 assert.equal(suspended.test.active()[0].kind, 'proof');
-console.log('ranked-callouts: batched/separate events, concession, suspended tab and cleanup passed');
+console.log('personalized-callouts: batched/separate events, concession, suspended tab and cleanup passed');

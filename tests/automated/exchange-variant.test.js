@@ -4,8 +4,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 for (const mode of ['ranked', 'personalized']) {
-    const Rules = require(`./${mode}/${mode}-rules.js`);
-    const Engine = require(`./${mode}/${mode}-engine.js`);
+    const Rules = require(`../../js/gamemode/${mode}/${mode}-rules.js`);
+    const Engine = require(`../../js/gamemode/${mode}/${mode}-engine.js`);
     const prefix = mode === 'ranked' ? 'CoupRanked' : 'CoupPersonalized';
     const context = vm.createContext({
         window: { location: { search: '' }, [prefix + 'Rules']: Rules, [prefix + 'Engine']: Engine },
@@ -14,11 +14,11 @@ for (const mode of ['ranked', 'personalized']) {
         URL
     });
     // Expose the existing bot selector without starting Firebase or timers.
-    const gameSource = fs.readFileSync(path.join(__dirname, mode, `${mode}-game.js`), 'utf8');
+    const gameSource = fs.readFileSync(path.join(__dirname, '../../js/gamemode', mode, `${mode}-game.js`), 'utf8');
     assert.ok(gameSource.includes('    boot();'));
     vm.runInContext(gameSource.replace('    boot();', '    root.chooseBotAction = chooseBotAction;'), context);
-    vm.runInContext(fs.readFileSync(path.join(__dirname, 'casual/rules-guides.js'), 'utf8'), context);
-    const rendererSource = fs.readFileSync(path.join(__dirname, mode, `${mode}-renderer.js`), 'utf8');
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '../../js/gamemode/casual/rules-guides.js'), 'utf8'), context);
+    const rendererSource = fs.readFileSync(path.join(__dirname, '../../js/gamemode', mode, `${mode}-renderer.js`), 'utf8');
     const rendererExport = `    root.${prefix}Renderer = Object.freeze({`;
     assert.ok(rendererSource.includes(rendererExport));
     vm.runInContext(rendererSource.replace(rendererExport, `

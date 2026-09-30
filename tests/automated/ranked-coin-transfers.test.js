@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const Transfers = require('./ranked-coin-transfers.js');
+const Transfers = require('../../js/gamemode/ranked/ranked-coin-transfers.js');
 
 function state(balances) {
     return {

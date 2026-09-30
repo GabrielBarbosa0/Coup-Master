@@ -11,7 +11,7 @@ function load() {
     querySelectorAll: () => [],
     querySelector: () => null
   };
-  vm.runInNewContext(fs.readFileSync(`${__dirname}/deal-cards.js`, 'utf8'), { window, document });
+  vm.runInNewContext(fs.readFileSync(`${__dirname}/../../js/gamemode/casual/deal-cards.js`, 'utf8'), { window, document });
   return { ...window.CoupCasualDeal, listeners };
 }
 

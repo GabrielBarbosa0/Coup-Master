@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const Transfers = require('./coin-transfers.js');
+const Transfers = require('../../js/gamemode/casual/coin-transfers.js');
 
 test('decompoe pagamentos do golpe em ouro e prata', () => {
   assert.deepEqual(Transfers.coinsForAction('coup', 7), ['gold', 'silver', 'silver']);

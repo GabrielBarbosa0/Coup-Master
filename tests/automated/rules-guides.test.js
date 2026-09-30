@@ -5,7 +5,7 @@ const test = require('node:test');
 
 test('regras alternativas resolvem efeitos de baralho e economia', () => {
   const window = { CoupLanguage: { getLanguage: () => 'pt-BR' } };
-  vm.runInNewContext(fs.readFileSync(`${__dirname}/rules-guides.js`, 'utf8'), { window });
+  vm.runInNewContext(fs.readFileSync(`${__dirname}/../../js/gamemode/casual/rules-guides.js`, 'utf8'), { window });
   const rules = window.CoupRulesGuides;
   const draw = { ruleIds: ['falso-duque', 'justica-lenta'] };
 
@@ -26,7 +26,7 @@ test('regras alternativas resolvem efeitos de baralho e economia', () => {
 for (const language of ['pt-BR', 'en-US']) {
   test(`${language}: Manobra concede uma moeda e permite escolher e trocar a carta`, () => {
     const window = { CoupLanguage: { getLanguage: () => language } };
-    vm.runInNewContext(fs.readFileSync(`${__dirname}/rules-guides.js`, 'utf8'), { window });
+    vm.runInNewContext(fs.readFileSync(`${__dirname}/../../js/gamemode/casual/rules-guides.js`, 'utf8'), { window });
     const pages = window.CoupRulesGuides.buildDynamicGuidePages({ estrategista: 5 });
     const strategist = pages.flatMap((page) => page.entries || [])
       .find((entry) => entry.cardType === 'estrategista').text;
@@ -39,7 +39,7 @@ for (const language of ['pt-BR', 'en-US']) {
     for (const diplomata of [0, 5]) {
       test(`${language}: bloqueio de Assassinato com Condessa=${condessa}, Diplomata=${diplomata}`, () => {
         const window = { CoupLanguage: { getLanguage: () => language } };
-        vm.runInNewContext(fs.readFileSync(`${__dirname}/rules-guides.js`, 'utf8'), { window });
+        vm.runInNewContext(fs.readFileSync(`${__dirname}/../../js/gamemode/casual/rules-guides.js`, 'utf8'), { window });
         const pages = window.CoupRulesGuides.buildDynamicGuidePages({ assassino: 5, condessa, diplomata, mercenario: 5 });
         const entries = pages.flatMap((page) => page.entries || []);
         const assassin = entries.find((entry) => entry.cardType === 'assassino').text;

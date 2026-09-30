@@ -5,12 +5,12 @@ const vm = require('node:vm');
 
 for (const mode of ['ranked', 'personalized']) {
     const title = mode === 'ranked' ? 'Ranked' : 'Personalized';
-    const Rules = require(`./${mode}/${mode}-rules.js`);
-    const Engine = require(`./${mode}/${mode}-engine.js`);
+    const Rules = require(`../../js/gamemode/${mode}/${mode}-rules.js`);
+    const Engine = require(`../../js/gamemode/${mode}/${mode}-engine.js`);
     let seed = 17;
     const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
     const root = { [`Coup${title}Rules`]: Rules, [`Coup${title}Engine`]: Engine, location: { search: '?room=TEST' } };
-    const source = fs.readFileSync(path.join(__dirname, mode, `${mode}-game.js`), 'utf8')
+    const source = fs.readFileSync(path.join(__dirname, '../../js/gamemode', mode, `${mode}-game.js`), 'utf8')
         .replace('    boot();', '    root.test = { chooseBotAction, chooseBotBlockClaim };');
     vm.runInNewContext(source, {
         window: root, document: { body: { dataset: {} } }, URLSearchParams,

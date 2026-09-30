@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
-const Rules = require('./personalized-rules.js');
-const Engine = require('./personalized-engine.js');
+const Rules = require('../../js/gamemode/personalized/personalized-rules.js');
+const Engine = require('../../js/gamemode/personalized/personalized-engine.js');
 
 function createStartedState(exchangeRole = Rules.ROLES.AMBASSADOR) {
     const state = Engine.createState(1000);

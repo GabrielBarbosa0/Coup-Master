@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(__dirname + '/render-players.js', 'utf8');
+const source = fs.readFileSync(__dirname + '/../../js/gamemode/casual/render-players.js', 'utf8');
 const window = {};
 vm.runInNewContext(source, { window, document: {} });
 

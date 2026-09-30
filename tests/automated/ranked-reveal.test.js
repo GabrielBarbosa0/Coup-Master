@@ -1,8 +1,8 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const Rules = require('./ranked-rules.js');
-const Engine = require('./ranked-engine.js');
+const Rules = require('../../js/gamemode/ranked/ranked-rules.js');
+const Engine = require('../../js/gamemode/ranked/ranked-engine.js');
 
 (async () => {
     let now = 10000;
@@ -12,7 +12,7 @@ const Engine = require('./ranked-engine.js');
         CoupRankedRules: Rules, CoupRankedEngine: Engine,
         CoupRankedRenderer: { showError() {} }, location: { search: '?room=TEST' }
     };
-    const source = fs.readFileSync(`${__dirname}/ranked-game.js`, 'utf8').replace('    boot();', `
+    const source = fs.readFileSync(`${__dirname}/../../js/gamemode/ranked/ranked-game.js`, 'utf8').replace('    boot();', `
         root.testTransaction = transaction;
         root.setTestRef = (ref) => { rankedStateRef = ref; };
     `);

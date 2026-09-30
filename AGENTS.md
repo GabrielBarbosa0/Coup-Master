@@ -112,12 +112,12 @@ node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
 node --check js\gamemode\ranked\ranked-renderer.js
 node --check js\gamemode\ranked\ranked-game.js
-node js\gamemode\ranked\ranked-engine.test.js
+node tests\automated\ranked-engine.test.js
 node --check js\gamemode\personalized\personalized-rules.js
 node --check js\gamemode\personalized\personalized-engine.js
 node --check js\gamemode\personalized\personalized-renderer.js
 node --check js\gamemode\personalized\personalized-game.js
-node js\gamemode\personalized\personalized-engine.test.js
+node tests\automated\personalized-engine.test.js
 ```
 
 Para testar localmente, use servidor estatico:

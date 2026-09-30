@@ -7,7 +7,7 @@ async function fixture(mode) {
     let now = 10000;
     let frames = [];
     const title = mode === 'ranked' ? 'Ranked' : 'Personalized';
-    const folder = path.join(__dirname, '..', mode);
+    const folder = path.join(__dirname, '../../js/gamemode', mode);
     const root = {
         [`Coup${title}Rules`]: require(path.join(folder, `${mode}-rules.js`)),
         [`Coup${title}Engine`]: require(path.join(folder, `${mode}-engine.js`)),
@@ -25,7 +25,7 @@ async function fixture(mode) {
         window: root, document: { body, createElement: node, activeElement: null },
         Date: { now: () => now }, Image: function () {}, console
     });
-    vm.runInContext(fs.readFileSync(path.join(__dirname, 'ranked-reveal.js'), 'utf8'), context);
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '../../js/gamemode/ranked/ranked-reveal.js'), 'utf8'), context);
     const renderer = fs.readFileSync(path.join(folder, `${mode}-renderer.js`), 'utf8').replace('})(window);', `
         playStateSfx = updateRankPlayerCallouts = renderPhase = renderStarterDrawOverlay =
             renderMatchResultsModal = renderLog = updateClock = hideLoading = syncSideStackHeight = () => {};

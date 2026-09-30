@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
-const Rules = require('./ranked-rules.js');
-const Engine = require('./ranked-engine.js');
+const Rules = require('../../js/gamemode/ranked/ranked-rules.js');
+const Engine = require('../../js/gamemode/ranked/ranked-engine.js');
 
 function createStartedState(exchangeRole = Rules.ROLES.AMBASSADOR) {
     const state = Engine.createState(1000);

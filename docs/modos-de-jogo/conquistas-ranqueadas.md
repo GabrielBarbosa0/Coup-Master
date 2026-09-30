@@ -93,4 +93,4 @@ Partidas personalizadas não progridem estas conquistas.
 
 O progresso acumulado fica em `rankedStats/{uid}`. O mapa `unlockedAchievements` preserva os desbloqueios permanentemente. As condições específicas de uma partida são calculadas em `matchStats` antes de serem adicionadas ao perfil.
 
-Ao alterar qualquer requisito no código, este documento e os testes de `ranked-achievements.test.js` devem ser atualizados juntos.
+Ao alterar qualquer requisito no código, este documento e `tests/automated/ranked-achievements.test.js` devem ser atualizados juntos.

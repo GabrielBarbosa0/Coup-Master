@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Achievements = require('./ranked-achievements.js');
+const Achievements = require('../../js/gamemode/ranked/ranked-achievements.js');
 
 const qualifyingStats = {
     wins: 1, games: 100, honestGames: 1, honestWins: 5, bluffs: 50,

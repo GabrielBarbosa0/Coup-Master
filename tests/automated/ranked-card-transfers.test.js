@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const Transfers = require('./ranked-card-transfers.js');
+const Transfers = require('../../js/gamemode/ranked/ranked-card-transfers.js');
 
 function state({ status = 'active', phase = 'turn', deck = [], players = {}, exchange = null } = {}) {
     return { status, phase, deck, players, pendingExchange: exchange };

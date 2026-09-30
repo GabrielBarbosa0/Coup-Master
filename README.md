@@ -232,7 +232,6 @@ Coup-Master/
 │   │   └── 📂 personalized/    # Clone inicial do ranqueado para Sala Personalizada
 │   │       ├── personalized-rules.js
 │   │       ├── personalized-engine.js
-│   │       ├── personalized-engine.test.js
 │   │       ├── personalized-renderer.js
 │   │       └── personalized-game.js
 │   ├── 📂 lobby/
@@ -254,6 +253,8 @@ Coup-Master/
 │   ├── alternative-rules-translation-lab.html # Ajustes das regras alternativas
 │   ├── npc-tutorial-lab.html   # Protótipo de tutorial com NPC
 │   └── landing.html            # Landing experimental
+├── 📂 tests/
+│   └── 📂 automated/           # Testes automatizados de lógica e interface
 ├── 📄 index.html               # Tabuleiro principal do jogo em modo normal 2D
 ├── 📄 login.html               # Tela de autenticação Google/visitante
 ├── 📄 lobby.html               # Perfil autenticado, criação e entrada em salas

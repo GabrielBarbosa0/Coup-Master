@@ -63,7 +63,7 @@ O anfitriao pode pressionar D com a mesa em foco para completar as maos dos joga
 
 `casual/deal-cards.js` anima esse evento em todos os clientes ja conectados, com verso durante o voo e a visibilidade normal ao chegar. A animacao usa escala uniforme e os cantos da carta renderizada, sem mudar o tamanho final. Reconexoes nao repetem o ultimo evento. Movimento reduzido, redimensionamento e rolagem encerram o efeito sem alterar o estado. O atalho ignora campos de texto, modais, modificadores e repeticao da tecla; nao se aplica ao ranqueado ou personalizado. A verificacao de anfitriao no cliente segue os controles existentes e nao substitui Firebase Security Rules.
 
-Verificacao adicional: `node js/gamemode/casual/deal-cards.test.js`.
+Verificacao adicional: `node tests/automated/deal-cards.test.js`.
 
 No ranqueado e na Sala Personalizada, Extorquir exige um adversario vivo com pelo menos 2 moedas. A interface oculta a acao quando nao existe alvo elegivel e filtra a selecao de jogadores; o motor e os bots usam a mesma validacao.
 
@@ -73,7 +73,7 @@ Ranqueado e Sala Personalizada sorteiam uma unica variante por partida, com 50% 
 
 As acoes, bloqueios de Extorsao, bots e guia usam essa mesma escolha. O personagem ausente fica oculto no guia, com os demais centralizados; suas acoes e bloqueios sao recusados pelo motor. O log informa a variante em portugues ou ingles. Reconexoes preservam o sorteio; uma nova partida sorteia novamente. Partidas antigas sem `exchangeRole` conservam a disponibilidade dos seis personagens. A escolha manual pelo anfitriao fica para uma etapa futura.
 
-Verificacao adicional: `node js/gamemode/exchange-variant.test.js`.
+Verificacao adicional: `node tests/automated/exchange-variant.test.js`.
 
 O Coup Master e um jogo multiplayer online, em beta, inspirado em jogos de blefe e estrategia politica. A proposta atual e reproduzir uma mesa fisica em formato sandbox: os jogadores continuam responsaveis por declarar acoes, desafiar, aplicar regras sociais e administrar boa parte do fluxo da partida. O software oferece a sala, o tabuleiro compartilhado, cartas, moedas, expansoes, interface visual, audio e sincronizacao em tempo real.
 
@@ -279,7 +279,6 @@ Coup-Master/
         board-renderer.js
       ranked/
         ranked-engine.js
-        ranked-engine.test.js
         ranked-game.js
         ranked-renderer.js
         ranked-rules.js
@@ -311,6 +310,10 @@ Coup-Master/
     npc-tutorial-lab.html
     rules-flipbook.html
     sine-wave-cards.html
+  tests/
+    automated/
+      README.md
+      *.test.js
   AGENTS.md
   .nojekyll
   README.md
@@ -398,7 +401,7 @@ node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
 node --check js\gamemode\ranked\ranked-renderer.js
 node --check js\gamemode\ranked\ranked-game.js
-node js\gamemode\ranked\ranked-engine.test.js
+node tests\automated\ranked-engine.test.js
 ```
 
 Todos os arquivos JS passavam em `node --check` no momento desta analise.
@@ -2430,7 +2433,7 @@ node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
 node --check js\gamemode\ranked\ranked-renderer.js
 node --check js\gamemode\ranked\ranked-game.js
-node js\gamemode\ranked\ranked-engine.test.js
+node tests\automated\ranked-engine.test.js
 ```
 
 ### 22.2 Validacao Manual Recomendada
@@ -2764,7 +2767,7 @@ node --check js\gamemode\ranked\ranked-rules.js
 node --check js\gamemode\ranked\ranked-engine.js
 node --check js\gamemode\ranked\ranked-renderer.js
 node --check js\gamemode\ranked\ranked-game.js
-node js\gamemode\ranked\ranked-engine.test.js
+node tests\automated\ranked-engine.test.js
 ```
 
 Listar arquivos:

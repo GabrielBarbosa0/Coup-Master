@@ -1,8 +1,8 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const Rules = require('./personalized-rules.js');
-const Engine = require('./personalized-engine.js');
+const Rules = require('../../js/gamemode/personalized/personalized-rules.js');
+const Engine = require('../../js/gamemode/personalized/personalized-engine.js');
 
 (async () => {
     let now = 10000;
@@ -12,7 +12,7 @@ const Engine = require('./personalized-engine.js');
         CoupPersonalizedRules: Rules, CoupPersonalizedEngine: Engine,
         CoupPersonalizedRenderer: { showError() {} }, location: { search: '?room=TEST' }
     };
-    const source = fs.readFileSync(`${__dirname}/personalized-game.js`, 'utf8').replace('    boot();', `
+    const source = fs.readFileSync(`${__dirname}/../../js/gamemode/personalized/personalized-game.js`, 'utf8').replace('    boot();', `
         root.testTransaction = transaction;
         root.setTestRef = (ref) => { personalizedStateRef = ref; };
     `);
@@ -43,4 +43,3 @@ const Engine = require('./personalized-engine.js');
     assert.equal(state.revealPresentation.endsAt, now);
     console.log('personalized-reveal: transaction pause, multiple cards, deadline and committed snapshots passed');
 })().catch((error) => { console.error(error); process.exitCode = 1; });
-

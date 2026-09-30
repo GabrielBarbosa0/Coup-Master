@@ -97,7 +97,7 @@ function createBoardStatusHarness({ modernClipboard }) {
     URLSearchParams,
     window
   });
-  const source = fs.readFileSync(path.join(__dirname, 'board-status.js'), 'utf8');
+  const source = fs.readFileSync(path.join(__dirname, '../../js/gamemode/casual/board-status.js'), 'utf8');
   vm.runInContext(source, context);
   window.CoupBoardStatus.setup({ getRoomCode: () => 'ABCD' });
 
