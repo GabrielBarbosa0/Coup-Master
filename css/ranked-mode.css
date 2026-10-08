@@ -544,7 +544,8 @@ body.is-initial-card-deal .rank-starter-overlay {
 }
 
 .rank-waiting-interaction {
-    width: min(360px, 100%);
+    width: 360px;
+    max-width: 100%;
     display: grid;
     gap: 10px;
     align-self: center;
@@ -555,11 +556,11 @@ body.is-initial-card-deal .rank-starter-overlay {
 }
 
 .rank-waiting-summary {
-    display: flex;
+    width: 100%;
+    display: grid;
+    grid-template-columns: max-content minmax(18ch, 1fr);
     align-items: center;
-    justify-content: space-between;
     gap: 14px;
-    flex-wrap: nowrap;
 }
 
 .rank-waiting-interaction>.rank-primary-btn,
@@ -580,15 +581,17 @@ body.is-initial-card-deal .rank-starter-overlay {
     color: var(--rank-muted);
     font-size: 10px;
     font-weight: 800;
+    font-variant-numeric: tabular-nums;
     text-transform: uppercase;
 }
 
 .rank-waiting-countdown {
     display: block;
-    flex: 1 1 auto;
+    min-width: 18ch;
     color: var(--rank-muted);
     font-size: 11px;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
     text-align: right;
     text-transform: uppercase;
     white-space: nowrap;
