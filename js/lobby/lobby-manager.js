@@ -517,6 +517,10 @@ function normalizeLeaderboardEntry(uid, stats) {
     };
 }
 
+function isLeaderboardEligible(entry) {
+    return Number(entry?.wins || 0) >= 1;
+}
+
 function renderLeaderboard(entries) {
     if (!leaderboardList) return;
     lastLeaderboardEntries = entries;
@@ -586,7 +590,7 @@ function fetchLeaderboardEntries() {
 
         snapshot.forEach((child) => {
             const entry = normalizeLeaderboardEntry(child.key, child.val());
-            if (entry.games > 0 || entry.rankScore > 0) entries.push(entry);
+            if (isLeaderboardEligible(entry)) entries.push(entry);
         });
 
         return entries

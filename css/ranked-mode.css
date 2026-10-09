@@ -1042,7 +1042,8 @@ button.rank-card {
 }
 
 .rank-stage.is-centered-stage .rank-phase-description {
-    max-width: 620px;
+    width: min(100%, 58ch);
+    max-width: 58ch;
     margin-inline: auto;
 }
 
@@ -1086,7 +1087,8 @@ button.rank-card {
 }
 
 .rank-stage.is-response-stage .rank-phase-description {
-    max-width: 720px;
+    width: min(100%, 64ch);
+    max-width: 64ch;
     margin-inline: auto;
 }
 
@@ -1154,13 +1156,16 @@ button.rank-card {
 }
 
 .rank-phase-description {
-    max-width: 760px;
+    width: min(100%, 68ch);
+    max-width: 68ch;
     margin: 10px 0 16px;
     margin-inline: auto;
     color: var(--rank-muted);
     font-size: 13px;
     line-height: 1.5;
     text-align: center;
+    text-wrap: balance;
+    overflow-wrap: break-word;
     white-space: pre-line;
 }
 
@@ -4373,6 +4378,14 @@ body[data-rank-view="game"] .rank-timer {
 }
 
 @media (max-width: 560px) {
+    body[data-rank-view="game"] .rank-phase-description,
+    body[data-rank-view="game"] .rank-stage.is-centered-stage .rank-phase-description,
+    body[data-rank-view="game"] .rank-stage.is-response-stage .rank-phase-description {
+        width: min(100%, 56ch);
+        max-width: 56ch;
+        padding-inline: 4px;
+    }
+
     .rank-card-transfer-ghost {
         border-radius: 4px;
     }

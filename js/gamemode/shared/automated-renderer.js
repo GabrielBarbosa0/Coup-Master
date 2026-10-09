@@ -1523,7 +1523,7 @@
         renderPlayers();
         root.CoupRankedCardPhysics?.refresh?.();
         renderTableResources();
-        renderPhase();
+        renderPhase(previousState);
         renderStarterDrawOverlay();
         renderMatchResultsModal();
         if (viewMode === 'game') renderLog();
@@ -1700,7 +1700,7 @@
         return wrapper;
     }
 
-    function renderPhase() {
+    function renderPhase(previousState = null) {
         const title = document.getElementById('rankPhaseTitle');
         const description = document.getElementById('rankPhaseDescription');
         const interaction = document.getElementById('rankInteraction');
@@ -1790,6 +1790,9 @@
         } else if (state.phase === PHASES.BLOCK_CHALLENGE) {
             stage?.classList.add(canCurrentPlayerRespond(state.pendingAction?.block?.uid) ? 'is-response-stage' : 'is-centered-stage');
             setPhaseText(t('ranked.block', {}, 'Bloqueio'), describePendingBlock());
+            if (previousState && previousState.phase !== PHASES.BLOCK_CHALLENGE) {
+                shakeBlockedPhaseText(title, description);
+            }
             renderBlockChallenge(interaction);
         } else if (state.phase === PHASES.CHALLENGE_REVEAL) {
             stage?.classList.add('is-centered-stage');
@@ -1845,6 +1848,23 @@
             });
             description.hidden = !lines.some(Boolean);
         }
+    }
+
+    function shakeBlockedPhaseText(title, description) {
+        if (root.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+        [title, description].filter((node) => node && !node.hidden).forEach((node) => {
+            node.animate?.(
+                [
+                    { transform: 'translateX(0)' },
+                    { transform: 'translateX(-2px)' },
+                    { transform: 'translateX(2px)' },
+                    { transform: 'translateX(-1px)' },
+                    { transform: 'translateX(1px)' },
+                    { transform: 'translateX(0)' }
+                ],
+                { duration: 180, easing: 'ease-out' }
+            );
+        });
     }
 
     function renderWaiting(container) {
@@ -2255,7 +2275,10 @@
         const actionName = roleSuffix && label.endsWith(roleSuffix)
             ? label.slice(0, -roleSuffix.length)
             : label;
-        const claim = pending.claim ? t('ranked.actionClaim', { role: roleLabel(pending.claim) }, ` declarando ${roleLabel(pending.claim)}`) : '';
+        const shouldDescribeClaim = Boolean(pending.claim && pending.type !== ACTIONS.ASSASSINATE);
+        const claim = shouldDescribeClaim
+            ? t('ranked.actionClaim', { role: roleLabel(pending.claim) }, ` declarando ${roleLabel(pending.claim)}`)
+            : '';
         const targetText = target ? t('ranked.actionTarget', { name: targetName }, ` ${targetName}`) : '';
         const text = t('ranked.pendingAction', {
             actor: actorText,
