@@ -1,17 +1,163 @@
 ﻿(function initializeRankedEngine(root, factory) {
     const rules = root?.CoupRankedRules
         || (typeof require === 'function' ? require('./ranked-rules.js') : null);
-    const api = factory(rules);
+    const modelModule = root?.CoupAutomatedModel
+        || (typeof require === 'function' ? require('../shared/automated-model.js') : null);
+    const actionsModule = root?.CoupAutomatedActions
+        || (typeof require === 'function' ? require('../shared/automated-actions.js') : null);
+    const cardsModule = root?.CoupAutomatedCards
+        || (typeof require === 'function' ? require('../shared/automated-cards.js') : null);
+    const turnsModule = root?.CoupAutomatedTurns
+        || (typeof require === 'function' ? require('../shared/automated-turns.js') : null);
+    const lifecycleModule = root?.CoupAutomatedLifecycle
+        || (typeof require === 'function' ? require('../shared/automated-lifecycle.js') : null);
+    const profileModule = root?.CoupRankedProfile
+        || (typeof require === 'function' ? require('./ranked-profile.js') : null);
+    const api = factory(rules, modelModule, actionsModule, cardsModule, turnsModule, lifecycleModule, profileModule);
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;
     }
 
     if (root) root.CoupRankedEngine = api;
-})(typeof window !== 'undefined' ? window : null, function createRankedEngine(Rules) {
+})(typeof window !== 'undefined' ? window : null, function createRankedEngine(
+    Rules,
+    AutomatedModel,
+    AutomatedActions,
+    AutomatedCards,
+    AutomatedTurns,
+    AutomatedLifecycle,
+    ProfileModule
+) {
     if (!Rules) throw new Error('CoupRankedRules precisa ser carregado antes do motor ranqueado.');
+    if (!AutomatedModel) throw new Error('CoupAutomatedModel precisa ser carregado antes do motor ranqueado.');
+    if (!AutomatedActions) throw new Error('CoupAutomatedActions precisa ser carregado antes do motor ranqueado.');
+    if (!AutomatedCards) throw new Error('CoupAutomatedCards precisa ser carregado antes do motor ranqueado.');
+    if (!AutomatedTurns) throw new Error('CoupAutomatedTurns precisa ser carregado antes do motor ranqueado.');
+    if (!AutomatedLifecycle) throw new Error('CoupAutomatedLifecycle precisa ser carregado antes do motor ranqueado.');
+    if (!ProfileModule) throw new Error('CoupRankedProfile precisa ser carregado antes do motor ranqueado.');
 
     const { ACTIONS, PHASES, ROLES, SETTINGS } = Rules;
+    const Model = AutomatedModel.create(Rules);
+    const {
+        getPlayers,
+        getAlivePlayers,
+        countInfluences,
+        getPlayer,
+        getActiveUid,
+        nextFreeSeat,
+        getActionTargets,
+        getResponseUids,
+        getBlockClaimsForPlayer
+    } = Model;
+    let Lifecycle = null;
+    function normalizeState(state) {
+        return Lifecycle.normalizeState(state);
+    }
+    const Profile = ProfileModule.create(Rules, Model, { normalizeState });
+    const {
+        createPlayerMatchStats,
+        ensureMatchStats,
+        calculateMatchPerformance,
+        buildMatchResults
+    } = Profile;
+    Lifecycle = AutomatedLifecycle.create(Rules, Model, Profile, {
+        modeLabel: 'ranqueada',
+        startMessage: 'A partida ranqueada começou. Sorteando quem joga primeiro.',
+        normalizeStateExtension: normalizeRankedLifecycleState,
+        getRequiredPlayerCount: getRankedRequiredPlayerCount,
+        prepareRestart: prepareRankedRestart,
+        resetPlayerForRestart: resetRankedPlayerForRestart,
+        completeRestart: completeRankedRestart
+    });
+    const {
+        createState,
+        createRandomBotPersonality,
+        normalizeBotPersonality,
+        addLog,
+        playerHasHiddenRole,
+        joinPlayer,
+        addAiPlayer,
+        setConnected,
+        leaveWaitingRoom,
+        toggleReady,
+        updateReadyCountdown,
+        maybeStart,
+        restartMatch,
+        completeStarterDraw,
+        completeInitialDeal,
+        bumpGrudge
+    } = Lifecycle;
+    let ActionFlow = null;
+    let Cards = null;
+    const Turns = AutomatedTurns.create(Rules, Model, {
+        normalizeState,
+        addLog,
+        maybeStart,
+        completeStarterDraw,
+        completeInitialDeal,
+        getActionFlow: () => ActionFlow,
+        getCards: () => Cards,
+        getWinnerMessage: Profile.getWinnerMessage
+    });
+    const {
+        beginAnimationTransition,
+        endTurn,
+        finishIfWinner,
+        advanceExpired
+    } = Turns;
+    Cards = AutomatedCards.create(Rules, Model, {
+        normalizeState,
+        ensureMatchStats,
+        bumpGrudge,
+        addLog,
+        beginAnimationTransition,
+        endTurn,
+        finishIfWinner,
+        getActionFlow: () => ActionFlow,
+        onChallengeProven: Profile.onChallengeProven,
+        onInfluenceLost: Profile.onInfluenceLost,
+        onPlayerEliminated: Profile.onPlayerEliminated,
+        onExchangeCompleted: Profile.onExchangeCompleted,
+        onExamineCompleted: Profile.onExamineCompleted,
+        createChallengeLossMetadata: Profile.createChallengeLossMetadata,
+        createScheduledLossMetadata: Profile.createScheduledLossMetadata
+    });
+    const {
+        revealChallenge,
+        scheduleLoss,
+        loseInfluence,
+        beginExchange,
+        completeExchange,
+        beginExamine,
+        completeExamine,
+        canPendingActionContinue
+    } = Cards;
+    ActionFlow = AutomatedActions.create(Rules, Model, {
+        normalizeState,
+        ensureMatchStats,
+        playerHasHiddenRole,
+        bumpGrudge,
+        addLog,
+        beginAnimationTransition,
+        endTurn,
+        scheduleLoss,
+        beginExchange,
+        beginExamine,
+        canPendingActionContinue,
+        onActionDeclared: Profile.onActionDeclared,
+        onBlockDeclared: Profile.onBlockDeclared,
+        onBlockAccepted: Profile.onBlockAccepted,
+        onActionResolved: Profile.onActionResolved,
+        createPendingActionMetadata: Profile.createPendingActionMetadata
+    });
+    const {
+        performAction,
+        passResponse,
+        challengeAction,
+        declareBlock,
+        challengeBlock
+    } = ActionFlow;
     const MATCHMAKING_BOT_JOIN_MIN_MS = 720;
     const MATCHMAKING_BOT_JOIN_SPAN_MS = 720;
     const MATCHMAKING_READY_MIN_MS = 1000;
@@ -26,111 +172,6 @@
         'Marquês Oculto', 'Visconde Sete', 'Oráculo da Corte', 'Máscara Rubra',
         'Corvo Real', 'Duelista Nobre', 'Escriba Cego', 'General de Seda'
     ]);
-
-    function createState(now = Date.now()) {
-        return {
-            schemaVersion: 1,
-            status: PHASES.WAITING,
-            phase: PHASES.WAITING,
-            createdAt: now,
-            updatedAt: now,
-            players: {},
-            turnOrder: [],
-            turnIndex: 0,
-            turnNumber: 0,
-            deck: [],
-            discard: [],
-            log: [],
-            deadline: null,
-            starterDraw: null,
-            pendingAction: null,
-            pendingLoss: null,
-            pendingExchange: null,
-            pendingExamine: null,
-            pendingTransition: null,
-            matchStats: {},
-            hasPostDealCardDraw: false,
-            matchId: 0,
-            readyCountdownStartedAt: null,
-            winnerUid: null
-        };
-    }
-
-    function normalizeState(state) {
-        if (!state || typeof state !== 'object') return state;
-        state.players = state.players || {};
-        state.turnOrder = Array.isArray(state.turnOrder) ? state.turnOrder : [];
-        state.deck = Array.isArray(state.deck) ? state.deck : [];
-        state.discard = Array.isArray(state.discard) ? state.discard : [];
-        state.log = Array.isArray(state.log) ? state.log : [];
-        if (typeof state.hasPostDealCardDraw !== 'boolean') {
-            const publicProofExists = Array.isArray(state.publicReveals)
-                && state.publicReveals.some((event) => event?.kind === 'proof');
-            const publicDrawActionExists = state.log.some((entry) => entry?.type === 'action-result'
-                && /concluiu (a troca|a investigação)/i.test(entry.message || ''));
-            state.hasPostDealCardDraw = publicProofExists || publicDrawActionExists;
-        }
-        state.starterDraw = state.starterDraw && typeof state.starterDraw === 'object' ? state.starterDraw : null;
-        state.pendingTransition = state.pendingTransition && typeof state.pendingTransition === 'object'
-            ? state.pendingTransition
-            : null;
-        state.matchStats = state.matchStats && typeof state.matchStats === 'object' ? state.matchStats : {};
-        state.matchId = Number.isFinite(Number(state.matchId)) ? Number(state.matchId) : 0;
-        state.readyCountdownStartedAt = state.readyCountdownStartedAt || null;
-        state.matchmaking = state.matchmaking && typeof state.matchmaking === 'object' ? state.matchmaking : null;
-        if (state.matchmaking) {
-            const targetPlayers = Number(state.matchmaking.targetPlayers);
-            state.matchmaking.enabled = state.matchmaking.enabled !== false;
-            state.matchmaking.targetPlayers = Number.isFinite(targetPlayers)
-                ? Math.max(SETTINGS.minPlayers, Math.min(SETTINGS.maxPlayers, Math.round(targetPlayers)))
-                : SETTINGS.maxPlayers;
-            state.matchmaking.startedAt = Number(state.matchmaking.startedAt) || state.createdAt || Date.now();
-            state.matchmaking.nextBotAt = state.matchmaking.nextBotAt || null;
-            state.matchmaking.nextReadyAt = state.matchmaking.nextReadyAt || null;
-            state.matchmaking.botReadyAt = state.matchmaking.botReadyAt && typeof state.matchmaking.botReadyAt === 'object'
-                ? state.matchmaking.botReadyAt
-                : {};
-            state.matchmaking.filledAt = state.matchmaking.filledAt || null;
-        }
-        Object.values(state.players).forEach((player) => {
-            player.influences = Array.isArray(player.influences) ? player.influences : [];
-            player.investigationExposure = player.investigationExposure && typeof player.investigationExposure === 'object'
-                && !Array.isArray(player.investigationExposure) ? player.investigationExposure : {};
-            Object.entries(player.investigationExposure).forEach(([observerUid, exposure]) => {
-                if (exposure?.cardId && exposure?.role) {
-                    player.investigationExposure[observerUid] = { [exposure.cardId]: exposure.role };
-                } else if (!exposure || typeof exposure !== 'object' || Array.isArray(exposure)) {
-                    delete player.investigationExposure[observerUid];
-                }
-            });
-            player.coins = Number.isFinite(Number(player.coins)) ? Number(player.coins) : SETTINGS.startingCoins;
-            player.eliminated = Boolean(player.eliminated);
-            player.ai = Boolean(player.ai);
-            if (player.ai) {
-                player.connected = true;
-                player.ready = player.ready !== false;
-                player.grudges = player.grudges && typeof player.grudges === 'object' ? player.grudges : {};
-                player.favors = player.favors && typeof player.favors === 'object' && !Array.isArray(player.favors) ? player.favors : {};
-                player.personality = normalizeBotPersonality(player.personality);
-            }
-        });
-        return state;
-    }
-
-    function clampPercent(value, fallback = 50) {
-        const number = Number(value);
-        if (!Number.isFinite(number)) return fallback;
-        return Math.max(0, Math.min(100, Math.round(number)));
-    }
-
-    function createRandomBotPersonality(random = Math.random) {
-        const roll = () => Math.floor(random() * 101);
-        return {
-            vengefulness: roll(),
-            honesty: roll(),
-            skepticism: roll()
-        };
-    }
 
     function randomDelay(random, min, span) {
         return min + Math.floor(random() * span);
@@ -217,185 +258,52 @@
         return randomItem(dueBots, random);
     }
 
-    function normalizeBotPersonality(personality, random = Math.random) {
-        const source = personality && typeof personality === 'object'
-            ? personality
-            : createRandomBotPersonality(random);
-        return {
-            vengefulness: clampPercent(source.vengefulness),
-            honesty: clampPercent(source.honesty),
-            skepticism: clampPercent(source.skepticism)
-        };
+    function normalizeRankedLifecycleState(state) {
+        state.matchmaking = state.matchmaking && typeof state.matchmaking === 'object' ? state.matchmaking : null;
+        if (!state.matchmaking) return;
+        const targetPlayers = Number(state.matchmaking.targetPlayers);
+        state.matchmaking.enabled = state.matchmaking.enabled !== false;
+        state.matchmaking.targetPlayers = Number.isFinite(targetPlayers)
+            ? Math.max(SETTINGS.minPlayers, Math.min(SETTINGS.maxPlayers, Math.round(targetPlayers)))
+            : SETTINGS.maxPlayers;
+        state.matchmaking.startedAt = Number(state.matchmaking.startedAt) || state.createdAt || Date.now();
+        state.matchmaking.nextBotAt = state.matchmaking.nextBotAt || null;
+        state.matchmaking.nextReadyAt = state.matchmaking.nextReadyAt || null;
+        state.matchmaking.botReadyAt = state.matchmaking.botReadyAt
+            && typeof state.matchmaking.botReadyAt === 'object' ? state.matchmaking.botReadyAt : {};
+        state.matchmaking.filledAt = state.matchmaking.filledAt || null;
     }
 
-    function addLog(state, message, type = 'info', now = Date.now()) {
-        normalizeState(state);
-        const entry = {
-            id: `rank-log-${now}-${state.log?.length || 0}`,
-            message,
-            type,
-            timestamp: now,
-            turn: state.turnNumber || 0
-        };
-        state.log = [...(state.log || []), entry];
+    function getRankedRequiredPlayerCount(state) {
+        const matchmaking = state.matchmaking?.enabled ? state.matchmaking : null;
+        return matchmaking
+            ? Math.max(
+                SETTINGS.minPlayers,
+                Math.min(SETTINGS.maxPlayers, Number(matchmaking.targetPlayers) || SETTINGS.maxPlayers)
+            )
+            : SETTINGS.minPlayers;
     }
 
-    function getPlayers(state) {
-        return Object.values(state.players || {}).sort((left, right) => left.seat - right.seat);
+    function prepareRankedRestart(state, now, helpers) {
+        state.previousBotNames = helpers.getPlayers(state)
+            .filter((player) => player.ai)
+            .map((player) => player.name);
+        helpers.getPlayers(state).filter((player) => player.ai).forEach((player) => {
+            delete state.players[player.uid];
+        });
+        state.matchmaking = null;
     }
 
-    function getAlivePlayers(state) {
-        return getPlayers(state).filter((player) => !player.eliminated && countInfluences(player) > 0);
+    function resetRankedPlayerForRestart(player) {
+        player.connected = player.connected !== false;
+        player.ready = false;
+        player.coins = SETTINGS.startingCoins;
+        player.influences = [];
+        player.eliminated = false;
     }
 
-    function countInfluences(player) {
-        return (player?.influences || []).filter((card) => !card.revealed).length;
-    }
-
-    function getPlayer(state, uid) {
-        return state.players?.[uid] || null;
-    }
-
-    function getActiveUid(state) {
-        return state.turnOrder?.[state.turnIndex] || null;
-    }
-
-    function createPlayerMatchStats() {
-        return {
-            actions: 0,
-            bluffs: 0,
-            provenBluffs: 0,
-            blockedActions: 0,
-            challenges: 0,
-            successfulChallenges: 0,
-            failedChallenges: 0,
-            coups: 0,
-            assassinations: 0,
-            steals: 0,
-            coinsStolen: 0,
-            contestedAssassinsWon: 0,
-            condessaBlocks: 0,
-            falseCondessaBluffs: 0,
-            ambassadorExchanges: 0,
-            inquisitorInspections: 0,
-            dukeTaxes: 0,
-            foreignAidBlocks: 0,
-            taxBluffs: 0,
-            captainBlocks: 0,
-            ambassadorBlocks: 0,
-            forcedCoups: 0,
-            influencesLost: 0,
-            claimedRoles: {},
-            eliminatedUids: [],
-            firstInfluenceLostToUid: null
-        };
-    }
-
-    function ensureMatchStats(state, uid) {
-        normalizeState(state);
-        state.matchStats[uid] = {
-            ...createPlayerMatchStats(),
-            ...(state.matchStats[uid] || {})
-        };
-        state.matchStats[uid].claimedRoles = state.matchStats[uid].claimedRoles || {};
-        state.matchStats[uid].eliminatedUids = Array.isArray(state.matchStats[uid].eliminatedUids)
-            ? state.matchStats[uid].eliminatedUids
-            : [];
-        return state.matchStats[uid];
-    }
-
-    function drawStartingInfluence(state) {
-        for (let index = state.deck.length - 1; index >= 0; index -= 1) {
-            if (state.deck[index]?.role !== Rules.ROLES.AMBASSADOR) {
-                return state.deck.splice(index, 1)[0];
-            }
-        }
-        throw new Error('Não há cartas iniciais válidas suficientes no baralho.');
-    }
-
-    function playerHasHiddenRole(player, role) {
-        return Boolean(player?.influences?.some((card) => !card.revealed && card.role === role));
-    }
-
-    function nextFreeSeat(state) {
-        const occupied = new Set(getPlayers(state).map((player) => player.seat));
-        for (let seat = 1; seat <= SETTINGS.maxPlayers; seat += 1) {
-            if (!occupied.has(seat)) return seat;
-        }
-        return null;
-    }
-
-    function joinPlayer(state, user, now = Date.now()) {
-        normalizeState(state);
-        if (!user?.uid) throw new Error('Usuário inválido.');
-        const existing = getPlayer(state, user.uid);
-
-        if (existing) {
-            existing.connected = true;
-            existing.name = user.name || existing.name;
-            existing.photo = user.photo || existing.photo;
-            updateReadyCountdown(state, now);
-            state.updatedAt = now;
-            return state;
-        }
-
-        if (state.status !== PHASES.WAITING) throw new Error('A partida ranqueada já começou.');
-        pruneDisconnectedWaitingPlayers(state, user.uid, now);
-        const seat = nextFreeSeat(state);
-        if (!seat) throw new Error('A sala ranqueada está cheia.');
-
-        state.players[user.uid] = {
-            uid: user.uid,
-            name: user.name || 'Jogador',
-            photo: user.photo || '',
-            seat,
-            connected: true,
-            ready: false,
-            coins: SETTINGS.startingCoins,
-            influences: [],
-            eliminated: false,
-            joinedAt: now
-        };
-        addLog(state, `${state.players[user.uid].name} entrou na sala.`, 'system', now);
-        updateReadyCountdown(state, now);
-        state.updatedAt = now;
-        return state;
-    }
-
-    function addAiPlayer(state, options = {}, now = Date.now(), random = Math.random) {
-        normalizeState(state);
-        if (state.status !== PHASES.WAITING) throw new Error('A partida ranqueada já começou.');
-        const seat = nextFreeSeat(state);
-        if (!seat) throw new Error('A sala ranqueada está cheia.');
-
-        const rawName = String(options.name || '').trim();
-        const name = rawName.slice(0, 24) || `Bot ${seat}`;
-        const duplicated = getPlayers(state).some((player) => (
-            player.name.toLocaleLowerCase('pt-BR') === name.toLocaleLowerCase('pt-BR')
-        ));
-        if (duplicated) throw new Error('Já existe um jogador com esse nome.');
-
-        const uid = options.uid || `rank-bot-${now}-${Math.floor(random() * 100000)}`;
-        state.players[uid] = {
-            uid,
-            name,
-            photo: options.photo || 'assets/img/icons/robot.svg',
-            seat,
-            connected: true,
-            ready: options.ready !== undefined ? Boolean(options.ready) : true,
-            ai: true,
-            personality: normalizeBotPersonality(options.personality, random),
-            personalityHidden: !options.personality,
-            grudges: {},
-            coins: SETTINGS.startingCoins,
-            influences: [],
-            eliminated: false,
-            joinedAt: now
-        };
-        addLog(state, `${name} entrou como jogador IA.`, 'system', now);
-        updateReadyCountdown(state, now);
-        state.updatedAt = now;
-        return state;
+    function completeRankedRestart(state, now) {
+        ensureMatchmaking(state, now);
     }
 
     function advanceMatchmaking(state, now = Date.now(), random = Math.random) {
@@ -464,1082 +372,6 @@
             return true;
         }
         return false;
-    }
-
-    function setConnected(state, uid, connected, now = Date.now()) {
-        normalizeState(state);
-        const player = getPlayer(state, uid);
-        if (!player) return state;
-        player.connected = Boolean(connected);
-        state.updatedAt = now;
-        return state;
-    }
-
-    function leaveWaitingRoom(state, uid, now = Date.now()) {
-        normalizeState(state);
-        if (state.status !== PHASES.WAITING || !state.players?.[uid]) return state;
-        const name = state.players[uid].name;
-        delete state.players[uid];
-        addLog(state, `${name} saiu da sala.`, 'system', now);
-        updateReadyCountdown(state, now);
-        state.updatedAt = now;
-        return state;
-    }
-
-    function toggleReady(state, uid, now = Date.now(), random = Math.random) {
-        normalizeState(state);
-        if (state.status !== PHASES.WAITING) throw new Error('A partida já começou.');
-        const player = getPlayer(state, uid);
-        if (!player) throw new Error('Jogador não encontrado.');
-        pruneDisconnectedWaitingPlayers(state, uid, now);
-        player.ready = !player.ready;
-        addLog(state, `${player.name} ${player.ready ? 'está pronto' : 'cancelou a prontidão'}.`, 'system', now);
-        updateReadyCountdown(state, now);
-        state.updatedAt = now;
-        return state;
-    }
-
-    function pruneDisconnectedWaitingPlayers(state, preservedUid, now) {
-        if (state.status !== PHASES.WAITING) return;
-        let pruned = false;
-        Object.values(state.players || {}).forEach((player) => {
-            if (player.uid !== preservedUid && player.connected === false) {
-                delete state.players[player.uid];
-                pruned = true;
-                addLog(state, `${player.name} deixou a sala antes do início.`, 'system', now);
-            }
-        });
-        if (pruned) updateReadyCountdown(state, now);
-    }
-
-    function arePlayersReadyToStart(state) {
-        const players = getPlayers(state);
-        const matchmaking = state.matchmaking?.enabled ? state.matchmaking : null;
-        const requiredPlayers = matchmaking
-            ? Math.max(SETTINGS.minPlayers, Math.min(SETTINGS.maxPlayers, Number(matchmaking.targetPlayers) || SETTINGS.maxPlayers))
-            : SETTINGS.minPlayers;
-        return players.length >= requiredPlayers && players.every((player) => player.ready);
-    }
-
-    function updateReadyCountdown(state, now = Date.now()) {
-        if (state.status !== PHASES.WAITING) return false;
-        if (!arePlayersReadyToStart(state)) {
-            state.readyCountdownStartedAt = null;
-            state.deadline = null;
-            return false;
-        }
-
-        if (!state.readyCountdownStartedAt) {
-            state.readyCountdownStartedAt = now;
-            state.deadline = now + SETTINGS.readyCountdownSeconds * 1000;
-            addLog(state, `Todos estão prontos. A partida começa em ${SETTINGS.readyCountdownSeconds} segundos.`, 'system', now);
-        }
-        return true;
-    }
-
-    function maybeStart(state, now = Date.now(), random = Math.random) {
-        normalizeState(state);
-        const players = getPlayers(state);
-        if (!arePlayersReadyToStart(state)) {
-            updateReadyCountdown(state, now);
-            return false;
-        }
-        if (!state.deadline || now < state.deadline) {
-            updateReadyCountdown(state, now);
-            return false;
-        }
-
-        const starterIndex = Math.max(0, Math.min(players.length - 1, Math.floor(random() * players.length)));
-        const starterUid = players[starterIndex]?.uid || players[0]?.uid || null;
-
-        state.exchangeRole = random() < 0.5 ? ROLES.AMBASSADOR : ROLES.INQUISITOR;
-        state.deck = Rules.createDeck(random, state.exchangeRole);
-        state.discard = [];
-        state.turnOrder = players.map((player) => player.uid);
-        state.turnIndex = Math.max(0, state.turnOrder.indexOf(starterUid));
-        state.turnNumber = 0;
-        state.matchId = Number(state.matchId || 0) + 1;
-        state.winnerUid = null;
-        state.startedAt = now;
-        state.finishedAt = null;
-        state.matchStats = {};
-        state.hasPostDealCardDraw = false;
-        state.readyCountdownStartedAt = null;
-
-        players.forEach((player) => {
-            player.coins = SETTINGS.startingCoins;
-            player.eliminated = false;
-            player.ready = false;
-            player.influences = [];
-            if (player.ai) player.favors = {};
-            ensureMatchStats(state, player.uid);
-            for (let index = 0; index < SETTINGS.startingInfluences; index += 1) {
-                const card = drawStartingInfluence(state);
-                player.influences.push({ ...card, revealed: false });
-            }
-        });
-
-        state.status = 'active';
-        addLog(state, `Personagem desta partida: ${Rules.getRole(state.exchangeRole).label}.`, 'important', now);
-        state.phase = PHASES.STARTER_DRAW;
-        state.deadline = now + SETTINGS.starterDrawSeconds * 1000;
-        state.starterDraw = {
-            candidates: state.turnOrder.slice(),
-            winnerUid: starterUid,
-            startedAt: now,
-            endsAt: state.deadline
-        };
-        state.pendingAction = null;
-        state.pendingLoss = null;
-        state.pendingExchange = null;
-        state.pendingExamine = null;
-        addLog(state, 'A partida ranqueada começou. Sorteando quem joga primeiro.', 'important', now);
-        state.updatedAt = now;
-        return true;
-    }
-
-    function restartMatch(state, now = Date.now()) {
-        normalizeState(state);
-        if (state.status !== PHASES.FINISHED) throw new Error('A partida ainda não foi finalizada.');
-
-        state.previousBotNames = getPlayers(state).filter((player) => player.ai).map((player) => player.name);
-        getPlayers(state).filter((player) => player.ai).forEach((player) => {
-            delete state.players[player.uid];
-        });
-        state.matchmaking = null;
-        getPlayers(state).forEach((player) => {
-            player.connected = player.connected !== false;
-            player.ready = false;
-            player.coins = SETTINGS.startingCoins;
-            player.influences = [];
-            player.eliminated = false;
-        });
-
-        state.status = PHASES.WAITING;
-        state.phase = PHASES.WAITING;
-        state.turnOrder = [];
-        state.turnIndex = 0;
-        state.turnNumber = 0;
-        state.deck = [];
-        state.discard = [];
-        state.log = [];
-        state.exchangeRole = null;
-        state.deadline = null;
-        state.starterDraw = null;
-        state.pendingAction = null;
-        state.pendingLoss = null;
-        state.pendingExchange = null;
-        state.pendingExamine = null;
-        state.matchStats = {};
-        state.hasPostDealCardDraw = false;
-        state.readyCountdownStartedAt = null;
-        state.winnerUid = null;
-        state.startedAt = null;
-        state.finishedAt = null;
-        ensureMatchmaking(state, now);
-        addLog(state, 'Sala reiniciada para uma nova partida.', 'system', now);
-        updateReadyCountdown(state, now);
-        state.updatedAt = now;
-        return state;
-    }
-
-    function completeStarterDraw(state, now = Date.now()) {
-        normalizeState(state);
-        if (state.status !== 'active' || state.phase !== PHASES.STARTER_DRAW) return false;
-        const starterUid = state.starterDraw?.winnerUid || getActiveUid(state);
-        const starterIndex = state.turnOrder.indexOf(starterUid);
-        if (starterIndex >= 0) state.turnIndex = starterIndex;
-        const cardCount = getPlayers(state).reduce((total, player) => total + (player.influences?.length || 0), 0);
-        const dealDuration = SETTINGS.dealCardDurationMs
-            + Math.max(0, cardCount - 1) * SETTINGS.dealCardStaggerMs
-            + SETTINGS.dealSettleMs;
-        state.turnNumber = 0;
-        state.phase = PHASES.DEALING;
-        state.deadline = now + dealDuration;
-        if (state.starterDraw) state.starterDraw.completedAt = now;
-        addLog(state, 'Distribuindo as cartas da partida.', 'system', now);
-        state.updatedAt = now;
-        return true;
-    }
-
-    function completeInitialDeal(state, now = Date.now()) {
-        normalizeState(state);
-        if (state.status !== 'active' || state.phase !== PHASES.DEALING) return false;
-        state.turnNumber = 1;
-        state.phase = PHASES.TURN;
-        state.deadline = now + SETTINGS.turnSeconds * 1000;
-        addLog(state, `${getPlayer(state, getActiveUid(state))?.name || 'O jogador sorteado'} começa a partida.`, 'turn', now);
-        state.updatedAt = now;
-        return true;
-    }
-
-    function getActionTargets(state, uid, actionType) {
-        return getAlivePlayers(state).filter((player) => player.uid !== uid
-            && (actionType !== ACTIONS.STEAL || player.coins >= 2));
-    }
-
-    function validateTurnAction(state, uid, actionType, targetUid) {
-        if (state.status !== 'active' || state.phase !== PHASES.TURN) throw new Error('Aguarde a etapa atual terminar.');
-        if (getActiveUid(state) !== uid) throw new Error('Não é o seu turno.');
-
-        const player = getPlayer(state, uid);
-        const action = Rules.getAction(actionType);
-        if (!player || player.eliminated) throw new Error('Jogador indisponivel.');
-        if (!action) throw new Error('Ação inválida.');
-        if (!Rules.isActionAvailable(state, actionType)) throw new Error('Personagem ausente nesta partida.');
-        if (player.coins >= SETTINGS.mandatoryCoupCoins && actionType !== ACTIONS.COUP) {
-            throw new Error(`Com ${SETTINGS.mandatoryCoupCoins} moedas ou mais, o Golpe de Estado é obrigatório.`);
-        }
-        if (player.coins < action.cost) throw new Error('Moedas insuficientes.');
-
-        if (action.requiresTarget) {
-            const target = getPlayer(state, targetUid);
-            if (!target || !getActionTargets(state, uid, actionType).some((player) => player.uid === targetUid)) {
-                throw new Error('Escolha um alvo válido.');
-            }
-        }
-    }
-
-    function performAction(state, uid, actionType, targetUid = null, now = Date.now()) {
-        normalizeState(state);
-        validateTurnAction(state, uid, actionType, targetUid);
-        const action = Rules.getAction(actionType);
-        const actor = getPlayer(state, uid);
-        const actorStats = ensureMatchStats(state, uid);
-
-        if (action.cost > 0) actor.coins -= action.cost;
-        actorStats.actions += 1;
-        if (action.claim) actorStats.claimedRoles[action.claim] = true;
-        if (action.claim && !playerHasHiddenRole(actor, action.claim)) {
-            actorStats.bluffs += 1;
-            if (actionType === ACTIONS.TAX) actorStats.taxBluffs += 1;
-        }
-        if (targetUid) bumpGrudge(state, targetUid, uid, 1);
-
-        state.pendingAction = {
-            id: `rank-action-${state.turnNumber}-${now}`,
-            type: actionType,
-            actorUid: uid,
-            targetUid: targetUid || null,
-            claim: action.claim || null,
-            claimConfirmed: !action.challengeable,
-            passes: {},
-            block: null,
-            forcedCoup: actionType === ACTIONS.COUP && actor.coins + action.cost >= SETTINGS.mandatoryCoupCoins,
-            createdAt: now
-        };
-
-        addLog(
-            state,
-            `${actor.name} escolheu ${action.label}${targetUid ? ` contra ${getPlayer(state, targetUid).name}` : ''}.`,
-            'action',
-            now
-        );
-
-        if (action.cost > 0) {
-            beginAnimationTransition(state, { type: 'start-action' }, now);
-        } else {
-            continuePendingAction(state, now);
-        }
-
-        state.updatedAt = now;
-        return state;
-    }
-
-    function bumpGrudge(state, playerUid, offenderUid, amount = 1) {
-        const player = getPlayer(state, playerUid);
-        const offender = getPlayer(state, offenderUid);
-        if (!player?.ai || !offender || playerUid === offenderUid) return;
-        player.grudges = player.grudges && typeof player.grudges === 'object' ? player.grudges : {};
-        player.grudges[offenderUid] = Math.max(0, Number(player.grudges[offenderUid] || 0) + amount);
-    }
-
-    function getResponseUids(state) {
-        const pending = state.pendingAction;
-        if (!pending || state.phase !== PHASES.RESPONSE) return [];
-        return getAlivePlayers(state)
-            .filter((player) => canPlayerRespondToAction(state, player.uid))
-            .map((player) => player.uid);
-    }
-
-    function canPlayerRespondToAction(state, uid) {
-        const pending = state.pendingAction;
-        const player = getPlayer(state, uid);
-        if (!pending || !player || player.eliminated || uid === pending.actorUid || pending.passes?.[uid]) return false;
-        const canChallenge = Boolean(pending.claim && !pending.claimConfirmed);
-        const canBlock = getBlockClaimsForPlayer(state, uid).length > 0;
-        return canChallenge || canBlock;
-    }
-
-    function getBlockClaimsForPlayer(state, uid) {
-        const pending = state.pendingAction;
-        const action = pending ? Rules.getAction(pending.type) : null;
-        if (!pending || !action || state.phase !== PHASES.RESPONSE || uid === pending.actorUid) return [];
-        if (pending.type === ACTIONS.STEAL && pending.targetUid !== uid) {
-            return action.blockClaims.includes(ROLES.CAPTAIN) ? [ROLES.CAPTAIN] : [];
-        }
-        if (action.blockScope === 'target' && pending.targetUid !== uid) return [];
-        return action.blockClaims.filter((role) => Rules.isRoleAvailable(state, role));
-    }
-
-    function passResponse(state, uid, now = Date.now()) {
-        normalizeState(state);
-        if (![PHASES.RESPONSE, PHASES.BLOCK_CHALLENGE].includes(state.phase)) {
-            throw new Error('Não há resposta pendente.');
-        }
-
-        const pending = state.pendingAction;
-        if (!pending) throw new Error('Ação pendente não encontrada.');
-        const excludedUid = state.phase === PHASES.BLOCK_CHALLENGE ? pending.block?.uid : pending.actorUid;
-        const eligible = state.phase === PHASES.RESPONSE
-            ? getResponseUids(state)
-            : getAlivePlayers(state).map((player) => player.uid).filter((playerUid) => playerUid !== excludedUid);
-        if (!eligible.includes(uid)) throw new Error('Você não pode responder agora.');
-
-        pending.passes = pending.passes || {};
-        if (pending.passes[uid]) throw new Error('Sua resposta já foi registrada.');
-        pending.passes[uid] = true;
-        addLog(state, `${getPlayer(state, uid).name} passou.`, 'response', now);
-
-        if (eligible.every((playerUid) => pending.passes[playerUid])) {
-            if (state.phase === PHASES.BLOCK_CHALLENGE) acceptBlock(state, now);
-            else executePendingAction(state, now);
-        }
-        state.updatedAt = now;
-        return state;
-    }
-
-    function challengeAction(state, challengerUid, now = Date.now()) {
-        normalizeState(state);
-        const pending = state.pendingAction;
-        if (state.phase !== PHASES.RESPONSE || !pending?.claim || pending.claimConfirmed) {
-            throw new Error('Esta ação não pode ser contestada agora.');
-        }
-        const challenger = getPlayer(state, challengerUid);
-        if (challengerUid === pending.actorUid || !challenger || challenger.eliminated || pending.passes?.[challengerUid]) {
-            throw new Error('Contestação inválida.');
-        }
-
-        const actor = getPlayer(state, pending.actorUid);
-        const challengerStats = ensureMatchStats(state, challengerUid);
-        challengerStats.challenges += 1;
-        addLog(state, `${getPlayer(state, challengerUid).name} contestou ${actor.name}.`, 'challenge', now);
-
-        beginChallengeReveal(state, actor.uid, challengerUid, pending.claim, false, now);
-        return state;
-    }
-
-    function continuePendingAction(state, now = Date.now()) {
-        const action = Rules.getAction(state.pendingAction?.type);
-        if (!action) return endTurn(state, now);
-        if (!action.challengeable && action.blockClaims.length === 0) {
-            executePendingAction(state, now);
-        } else {
-            state.phase = PHASES.RESPONSE;
-            state.deadline = now + SETTINGS.responseSeconds * 1000;
-            state.updatedAt = now;
-        }
-        return state;
-    }
-
-    function beginChallengeReveal(state, playerUid, challengerUid, claim, isBlock, now) {
-        state.pendingAction.challenge = { playerUid, challengerUid, claim, isBlock, revealAfter: now + SETTINGS.challengeReadSeconds * 1000 };
-        state.phase = PHASES.CHALLENGE_REVEAL;
-        state.deadline = now + SETTINGS.selectionSeconds * 1000;
-        state.updatedAt = now;
-    }
-
-    function revealChallenge(state, uid, cardId, now = Date.now()) {
-        normalizeState(state);
-        const pending = state.pendingAction;
-        const challenge = pending?.challenge;
-        if (state.phase !== PHASES.CHALLENGE_REVEAL || challenge?.playerUid !== uid) {
-            throw new Error('Você não precisa responder a uma contestação agora.');
-        }
-        const actor = getPlayer(state, uid);
-        const card = actor?.influences.find((item) => item.id === cardId && !item.revealed);
-        if (!card) throw new Error('Escolha uma influência válida.');
-        if (actor.ai && now < challenge.revealAfter) throw new Error('Aguarde a resposta à contestação.');
-        const { challengerUid, claim, isBlock } = challenge;
-        const challengerStats = ensureMatchStats(state, challengerUid);
-        delete pending.challenge;
-
-        if (card.role === claim) {
-            recordPublicReveal(state, actor, card, 'proof');
-            challengerStats.failedChallenges += 1;
-            if (isBlock || !isExchangeAction(pending.type)) {
-                replaceProvenInfluence(state, actor.uid, card.id);
-            }
-            if (!isBlock) pending.claimConfirmed = true;
-            if (!isBlock && pending.type === ACTIONS.ASSASSINATE) {
-                ensureMatchStats(state, actor.uid).contestedAssassinsWon += 1;
-            }
-            addLog(state, isBlock ? `${actor.name} provou o bloqueio.` : `${actor.name} provou ter ${Rules.getRole(claim).label}.`, 'challenge-result', now);
-            const lossPlan = isBlock
-                ? { reason: 'Contestação incorreta do bloqueio.', continuation: 'accept-block', count: 1 }
-                : getFailedActionChallengeLossPlan(state, challengerUid);
-            scheduleLoss(state, challengerUid, lossPlan.reason, lossPlan.continuation, now, lossPlan.count, true);
-        } else {
-            challengerStats.successfulChallenges += 1;
-            ensureMatchStats(state, actor.uid).provenBluffs += 1;
-            addLog(state, `${actor.name} cedeu à contestação.`, 'challenge-result', now);
-            const lossPlan = isBlock ? getBluffedBlockLossPlan(state, uid) : { count: 1, continuation: 'cancel-action' };
-            if (pending.actorUid !== uid) bumpGrudge(state, uid, pending.actorUid, 2);
-            // Consume the chosen card first, before resolving any forced second loss.
-            state.pendingLoss = {
-                playerUid: uid,
-                count: lossPlan.count,
-                continuation: lossPlan.continuation,
-                reason: 'Contestação aceita.',
-                causedByUid: challengerUid,
-                doubleAssassination: pending.type === ACTIONS.ASSASSINATE
-                    && pending.targetUid === uid && lossPlan.count > 1
-            };
-            state.phase = PHASES.INFLUENCE_LOSS;
-            loseInfluence(state, uid, card.id, now);
-        }
-        state.updatedAt = now;
-        return state;
-    }
-
-    function declareBlock(state, blockerUid, claim, now = Date.now()) {
-        normalizeState(state);
-        const pending = state.pendingAction;
-        const legalClaims = getBlockClaimsForPlayer(state, blockerUid);
-        const blocker = getPlayer(state, blockerUid);
-        if (state.phase !== PHASES.RESPONSE || !pending || !blocker || blocker.eliminated
-            || pending.passes?.[blockerUid] || !legalClaims.includes(claim)) {
-            throw new Error('Este bloqueio não é permitido.');
-        }
-
-        pending.block = { uid: blockerUid, claim };
-        ensureMatchStats(state, blockerUid).claimedRoles[claim] = true;
-        pending.passes = {};
-        state.phase = PHASES.BLOCK_CHALLENGE;
-        state.deadline = now + SETTINGS.responseSeconds * 1000;
-        addLog(
-            state,
-            `${getPlayer(state, blockerUid).name} bloqueou com ${Rules.getRole(claim).label}.`,
-            'block',
-            now
-        );
-        state.updatedAt = now;
-        return state;
-    }
-
-    function challengeBlock(state, challengerUid, now = Date.now()) {
-        normalizeState(state);
-        const pending = state.pendingAction;
-        const block = pending?.block;
-        if (state.phase !== PHASES.BLOCK_CHALLENGE || !block) throw new Error('Não há bloqueio para contestar.');
-        const challenger = getPlayer(state, challengerUid);
-        if (challengerUid === block.uid || !challenger || challenger.eliminated || pending.passes?.[challengerUid]) {
-            throw new Error('Contestação inválida.');
-        }
-
-        const blocker = getPlayer(state, block.uid);
-        const challengerStats = ensureMatchStats(state, challengerUid);
-        challengerStats.challenges += 1;
-        addLog(state, `${getPlayer(state, challengerUid).name} contestou o bloqueio de ${blocker.name}.`, 'challenge', now);
-
-        beginChallengeReveal(state, blocker.uid, challengerUid, block.claim, true, now);
-        return state;
-    }
-
-    function getFailedActionChallengeLossPlan(state, challengerUid) {
-        const pending = state.pendingAction;
-        if (pending?.type === ACTIONS.ASSASSINATE && pending.targetUid === challengerUid) {
-            return {
-                count: Math.min(2, Math.max(1, countInfluences(getPlayer(state, challengerUid)))),
-                continuation: 'end-turn',
-                reason: 'Contestação incorreta e vítima de assassinato.'
-            };
-        }
-        return { count: 1, continuation: 'execute-action', reason: 'Contestação incorreta.' };
-    }
-
-    function getBluffedBlockLossPlan(state, blockerUid) {
-        const pending = state.pendingAction;
-        if ([ACTIONS.ASSASSINATE, ACTIONS.COUP].includes(pending?.type) && pending.targetUid === blockerUid) {
-            return { count: Math.min(2, Math.max(1, countInfluences(getPlayer(state, blockerUid)))), continuation: 'end-turn' };
-        }
-        return { count: 1, continuation: 'execute-action' };
-    }
-
-    function replaceProvenInfluence(state, uid, cardId) {
-        const player = getPlayer(state, uid);
-        const index = player.influences.findIndex((card) => card.id === cardId && !card.revealed);
-        if (index < 0 || state.deck.length === 0) return;
-        const provenCard = player.influences[index];
-        const replacement = state.deck.pop();
-        player.influences[index] = { ...replacement, revealed: false };
-        state.deck = Rules.shuffle([...state.deck, { id: provenCard.id, role: provenCard.role }]);
-        state.hasPostDealCardDraw = true;
-    }
-
-    function scheduleLoss(state, playerUid, reason, continuation, now = Date.now(), count = 1, requireChoice = false) {
-        const offenderUid = state.pendingAction?.actorUid;
-        if (offenderUid && offenderUid !== playerUid) bumpGrudge(state, playerUid, offenderUid, 2);
-        const normalizedCount = Math.max(1, Number(count) || 1);
-        state.pendingLoss = {
-            playerUid, count: normalizedCount, reason, continuation, requireChoice,
-            causedByUid: offenderUid || null,
-            doubleAssassination: state.pendingAction?.type === ACTIONS.ASSASSINATE
-                && state.pendingAction.targetUid === playerUid && normalizedCount > 1
-        };
-        state.phase = PHASES.INFLUENCE_LOSS;
-        state.deadline = now + SETTINGS.selectionSeconds * 1000;
-        state.updatedAt = now;
-        resolveAutomaticLossIfForced(state, now);
-    }
-
-    function revealInfluenceForLoss(state, player, card, now) {
-        const reason = state.pendingLoss?.reason;
-        const doubleAssassination = Boolean(state.pendingLoss?.doubleAssassination);
-        const assassinationSecondLoss = state.pendingAction?.type === ACTIONS.ASSASSINATE
-            && state.pendingAction.targetUid === player.uid && state.pendingLoss?.count === 1
-            && (reason === 'Contestação aceita.' || reason === 'Contestação incorreta e vítima de assassinato.');
-        const kind = doubleAssassination ? 'doubleAssassination'
-            : reason === 'Vítima de Golpe de Estado.' ? 'coup'
-            : reason === 'Vítima de assassinato.' || assassinationSecondLoss ? 'assassination'
-                : reason === 'Contestação aceita.' ? 'concession' : 'challengeLoss';
-        recordPublicReveal(state, player, card, kind);
-        card.revealed = true;
-        const stats = ensureMatchStats(state, player.uid);
-        const offenderUid = state.pendingLoss?.causedByUid;
-        stats.influencesLost += 1;
-        if (!stats.firstInfluenceLostToUid && offenderUid && offenderUid !== player.uid) {
-            stats.firstInfluenceLostToUid = offenderUid;
-        }
-        state.discard.push({ id: card.id, role: card.role });
-        addLog(state, `${player.name} perdeu ${Rules.getRole(card.role).label}.`, 'loss', now);
-
-        if (countInfluences(player) === 0) {
-            player.eliminated = true;
-            if (offenderUid && offenderUid !== player.uid) {
-                const offenderStats = ensureMatchStats(state, offenderUid);
-                offenderStats.eliminatedUids = [...new Set([...offenderStats.eliminatedUids, player.uid])];
-            }
-            addLog(state, `${player.name} foi eliminado.`, 'elimination', now);
-        }
-    }
-
-    function recordPublicReveal(state, player, card, kind) {
-        state.revealSequence = (Number(state.revealSequence) || 0) + 1;
-        state.publicReveals = [...(state.publicReveals || []), {
-            sequence: state.revealSequence, playerUid: player.uid, playerName: player.name,
-            role: card.role, cardId: card.id, kind
-        }].slice(-12);
-    }
-
-    function resolveAutomaticLossIfForced(state, now = Date.now()) {
-        const pendingLoss = state.pendingLoss;
-        const player = getPlayer(state, pendingLoss?.playerUid);
-        const hidden = player?.influences?.filter((card) => !card.revealed) || [];
-        const onlyOneCardRemains = hidden.length === 1;
-        if (!pendingLoss || !player || hidden.length === 0
-            || (pendingLoss.requireChoice && !onlyOneCardRemains)
-            || (!onlyOneCardRemains && hidden.length > pendingLoss.count)) return false;
-
-        hidden.slice(0, pendingLoss.count).forEach((card) => {
-            revealInfluenceForLoss(state, player, card, now);
-            pendingLoss.count -= 1;
-        });
-
-        if (finishIfWinner(state, now)) return true;
-
-        if (pendingLoss.count <= 0) {
-            const continuation = pendingLoss.continuation;
-            state.pendingLoss = null;
-            continueAfterLoss(state, continuation, now);
-            state.updatedAt = now;
-        }
-        return true;
-    }
-
-    function loseInfluence(state, uid, cardId, now = Date.now()) {
-        normalizeState(state);
-        const pendingLoss = state.pendingLoss;
-        if (state.phase !== PHASES.INFLUENCE_LOSS || pendingLoss?.playerUid !== uid) {
-            throw new Error('Você não precisa perder uma influência agora.');
-        }
-
-        const player = getPlayer(state, uid);
-        const card = player?.influences.find((influence) => influence.id === cardId && !influence.revealed);
-        if (!card) throw new Error('Escolha uma influência válida.');
-
-        revealInfluenceForLoss(state, player, card, now);
-        pendingLoss.count -= 1;
-
-        if (finishIfWinner(state, now)) return state;
-        if (resolveAutomaticLossIfForced(state, now)) return state;
-        if (pendingLoss.count > 0) {
-            state.deadline = now + SETTINGS.selectionSeconds * 1000;
-            state.updatedAt = now;
-            return state;
-        }
-
-        const continuation = pendingLoss.continuation;
-        state.pendingLoss = null;
-        continueAfterLoss(state, continuation, now);
-        state.updatedAt = now;
-        return state;
-    }
-
-    function continueAfterLoss(state, continuation, now) {
-        if (continuation === 'resume-action') {
-            if (!canPendingActionContinue(state)) {
-                addLog(state, 'A ação foi encerrada porque o alvo não está mais disponível.', 'action-result', now);
-                endTurn(state, now);
-                return;
-            }
-            state.phase = PHASES.RESPONSE;
-            state.pendingAction.passes = {};
-            const hasBlockResponse = getAlivePlayers(state).some((player) => (
-                player.uid !== state.pendingAction.actorUid && getBlockClaimsForPlayer(state, player.uid).length > 0
-            ));
-            if (!hasBlockResponse) {
-                executePendingAction(state, now);
-                return;
-            }
-            state.deadline = now + SETTINGS.responseSeconds * 1000;
-            return;
-        }
-        if (continuation === 'execute-action') {
-            executePendingAction(state, now);
-            return;
-        }
-        if (continuation === 'accept-block') {
-            acceptBlock(state, now);
-            return;
-        }
-        if (continuation === 'cancel-action' || continuation === 'end-turn') {
-            endTurn(state, now);
-        }
-    }
-
-    function acceptBlock(state, now = Date.now()) {
-        const blocker = getPlayer(state, state.pendingAction?.block?.uid);
-        const pending = state.pendingAction;
-        const protectedPlayer = getPlayer(state, pending?.targetUid);
-        if (pending?.type === ACTIONS.STEAL && pending.block?.claim === ROLES.CAPTAIN
-            && blocker && protectedPlayer && blocker.uid !== protectedPlayer.uid) {
-            // Only a successful protection creates gratitude; returning it spends one favor.
-            if (blocker.ai) {
-                blocker.favors = blocker.favors || {};
-                blocker.favors[protectedPlayer.uid] = Math.max(0, (Number(blocker.favors[protectedPlayer.uid]) || 0) - 1);
-            }
-            if (protectedPlayer.ai) {
-                protectedPlayer.favors = protectedPlayer.favors || {};
-                protectedPlayer.favors[blocker.uid] = Math.min(3, Math.max(0, Number(protectedPlayer.favors[blocker.uid]) || 0) + 1);
-            }
-        }
-        if (blocker) {
-            const stats = ensureMatchStats(state, blocker.uid);
-            const claim = pending.block?.claim;
-            stats.blockedActions += 1;
-            if (claim === ROLES.CONTESSA) {
-                stats.condessaBlocks += 1;
-                if (!playerHasHiddenRole(blocker, claim)) stats.falseCondessaBluffs += 1;
-            }
-            if (pending.type === ACTIONS.FOREIGN_AID) stats.foreignAidBlocks += 1;
-            if (claim === ROLES.CAPTAIN) stats.captainBlocks += 1;
-            if (claim === ROLES.AMBASSADOR) stats.ambassadorBlocks += 1;
-        }
-        if (blocker) addLog(state, `O bloqueio de ${blocker.name} foi aceito.`, 'block', now);
-        endTurn(state, now);
-    }
-
-    function executePendingAction(state, now = Date.now()) {
-        const pending = state.pendingAction;
-        if (!pending) return state;
-        if (!canPendingActionContinue(state)) {
-            addLog(state, 'A ação foi encerrada porque o alvo não está mais disponível.', 'action-result', now);
-            endTurn(state, now);
-            return state;
-        }
-        const actor = getPlayer(state, pending.actorUid);
-        const target = pending.targetUid ? getPlayer(state, pending.targetUid) : null;
-
-        switch (pending.type) {
-            case ACTIONS.INCOME:
-                actor.coins += 1;
-                endTurn(state, now);
-                break;
-            case ACTIONS.FOREIGN_AID:
-                actor.coins += 2;
-                endTurn(state, now);
-                break;
-            case ACTIONS.TAX:
-                actor.coins += 3;
-                ensureMatchStats(state, actor.uid).dukeTaxes += 1;
-                endTurn(state, now);
-                break;
-            case ACTIONS.STEAL: {
-                const amount = Math.min(2, target.coins);
-                target.coins -= amount;
-                actor.coins += amount;
-                if (amount > 0) {
-                    const stats = ensureMatchStats(state, actor.uid);
-                    stats.steals += 1;
-                    stats.coinsStolen += amount;
-                }
-                addLog(state, `${actor.name} roubou ${amount} moeda(s) de ${target.name}.`, 'action-result', now);
-                endTurn(state, now);
-                break;
-            }
-            case ACTIONS.COUP:
-            case ACTIONS.ASSASSINATE:
-                if (pending.type === ACTIONS.COUP) {
-                    const stats = ensureMatchStats(state, actor.uid);
-                    stats.coups += 1;
-                    if (pending.forcedCoup) stats.forcedCoups += 1;
-                }
-                if (pending.type === ACTIONS.ASSASSINATE) ensureMatchStats(state, actor.uid).assassinations += 1;
-                scheduleLoss(
-                    state,
-                    target.uid,
-                    pending.type === ACTIONS.COUP ? 'Vítima de Golpe de Estado.' : 'Vítima de assassinato.',
-                    'end-turn',
-                    now
-                );
-                break;
-            case ACTIONS.EXCHANGE_AMBASSADOR:
-            case ACTIONS.EXCHANGE_INQUISITOR:
-                beginExchange(state, actor.uid, pending.type, now);
-                break;
-            case ACTIONS.EXAMINE:
-                beginExamine(state, actor.uid, target.uid, now);
-                break;
-            default:
-                endTurn(state, now);
-        }
-        state.updatedAt = now;
-        return state;
-    }
-
-    function canPendingActionContinue(state) {
-        const pending = state.pendingAction;
-        const action = pending ? Rules.getAction(pending.type) : null;
-        const actor = pending ? getPlayer(state, pending.actorUid) : null;
-        if (!pending || !action || !actor || actor.eliminated || countInfluences(actor) === 0) return false;
-        if (!action.requiresTarget) return true;
-        const target = getPlayer(state, pending.targetUid);
-        if (pending.type === ACTIONS.STEAL) return Boolean(target);
-        return Boolean(target && !target.eliminated && countInfluences(target) > 0);
-    }
-
-    function isExchangeAction(actionType) {
-        return [ACTIONS.EXCHANGE_AMBASSADOR, ACTIONS.EXCHANGE_INQUISITOR].includes(actionType);
-    }
-
-    function getExchangeDrawCount(actionType) {
-        return actionType === ACTIONS.EXCHANGE_INQUISITOR ? 1 : 2;
-    }
-
-    function beginExchange(state, uid, actionType, now) {
-        const player = getPlayer(state, uid);
-        const hidden = player.influences.filter((card) => !card.revealed);
-        const revealed = player.influences.filter((card) => card.revealed);
-        const drawCount = getExchangeDrawCount(actionType);
-        const drawn = state.deck.splice(Math.max(0, state.deck.length - drawCount), drawCount).map((card) => ({ ...card, revealed: false }));
-        if (drawn.length) state.hasPostDealCardDraw = true;
-        player.influences = revealed;
-        state.pendingExchange = { playerUid: uid, keepCount: hidden.length, options: [...hidden, ...drawn] };
-        beginAnimationTransition(state, {
-            type: 'resume-phase',
-            phase: PHASES.EXCHANGE,
-            timeoutMs: SETTINGS.selectionSeconds * 1000
-        }, now);
-    }
-
-    function completeExchange(state, uid, keepIds, now = Date.now()) {
-        normalizeState(state);
-        const pending = state.pendingExchange;
-        if (state.phase !== PHASES.EXCHANGE || pending?.playerUid !== uid) throw new Error('Não há troca pendente.');
-        const uniqueIds = [...new Set(keepIds || [])];
-        if (uniqueIds.length !== pending.keepCount) throw new Error(`Escolha ${pending.keepCount} influência(s).`);
-        if (uniqueIds.some((id) => !pending.options.some((card) => card.id === id))) throw new Error('Escolha de troca inválida.');
-
-        const player = getPlayer(state, uid);
-        const kept = pending.options.filter((card) => uniqueIds.includes(card.id));
-        const returned = pending.options.filter((card) => !uniqueIds.includes(card.id)).map(({ id, role }) => ({ id, role }));
-        player.influences.push(...kept.map((card) => ({ ...card, revealed: false })));
-        state.deck = Rules.shuffle([...state.deck, ...returned]);
-        state.pendingExchange = null;
-        if (state.pendingAction?.type === ACTIONS.EXCHANGE_AMBASSADOR) {
-            ensureMatchStats(state, uid).ambassadorExchanges += 1;
-        }
-        addLog(state, `${player.name} concluiu a troca.`, 'action-result', now);
-        endTurn(state, now);
-        return state;
-    }
-
-    function beginExamine(state, actorUid, targetUid, now) {
-        const target = getPlayer(state, targetUid);
-        if (!target || target.eliminated || countInfluences(target) === 0) {
-            addLog(state, 'A investigação foi encerrada porque o alvo não está mais disponível.', 'action-result', now);
-            endTurn(state, now);
-            return;
-        }
-        const hidden = target.influences.filter((card) => !card.revealed);
-        if (!hidden.length) {
-            addLog(state, 'A investigação foi encerrada porque o alvo não tem influências ocultas.', 'action-result', now);
-            endTurn(state, now);
-            return;
-        }
-        const examined = hidden[Math.floor(Math.random() * hidden.length)];
-        state.pendingExamine = {
-            actorUid,
-            targetUid,
-            cardId: examined.id,
-            role: examined.role
-        };
-        state.phase = PHASES.EXAMINE;
-        state.deadline = now + SETTINGS.selectionSeconds * 1000;
-    }
-
-    function completeExamine(state, uid, replace, now = Date.now()) {
-        normalizeState(state);
-        const pending = state.pendingExamine;
-        if (state.phase !== PHASES.EXAMINE || pending?.actorUid !== uid) throw new Error('Não há investigação pendente.');
-
-        const target = getPlayer(state, pending.targetUid);
-        target.investigationExposure = target.investigationExposure || {};
-
-        if (replace && state.deck.length > 0) {
-            const index = target.influences.findIndex((card) => card.id === pending.cardId && !card.revealed);
-            if (index >= 0) {
-                const oldCard = target.influences[index];
-                const replacement = state.deck.pop();
-                target.influences[index] = { ...replacement, revealed: false };
-                state.deck = Rules.shuffle([...state.deck, { id: oldCard.id, role: oldCard.role }]);
-                state.hasPostDealCardDraw = true;
-            }
-            Object.entries(target.investigationExposure).forEach(([observerUid, exposure]) => {
-                delete exposure[pending.cardId];
-                if (!Object.keys(exposure).length) delete target.investigationExposure[observerUid];
-            });
-        } else {
-            target.investigationExposure[uid] = target.investigationExposure[uid] || {};
-            target.investigationExposure[uid][pending.cardId] = pending.role;
-        }
-
-        addLog(state, `${getPlayer(state, uid).name} concluiu a investigação.`, 'action-result', now);
-        ensureMatchStats(state, uid).inquisitorInspections += 1;
-        state.pendingExamine = null;
-        endTurn(state, now);
-        return state;
-    }
-
-    function beginAnimationTransition(state, transition, now = Date.now()) {
-        state.pendingTransition = transition;
-        state.phase = PHASES.ANIMATING;
-        state.deadline = now + SETTINGS.transitionAnimationMs;
-        state.updatedAt = now;
-        return state;
-    }
-
-    function resumeAnimationTransition(state, now = Date.now()) {
-        const transition = state.pendingTransition;
-        state.pendingTransition = null;
-        if (!transition) return false;
-        if (transition.type === 'start-action') {
-            continuePendingAction(state, now);
-        } else if (transition.type === 'resume-phase') {
-            state.phase = transition.phase;
-            state.deadline = now + transition.timeoutMs;
-            state.updatedAt = now;
-        } else if (transition.type === 'end-turn') {
-            completeEndTurn(state, now);
-        }
-        return true;
-    }
-
-    function endTurn(state, now = Date.now()) {
-        state.pendingAction = null;
-        state.pendingLoss = null;
-        state.pendingExchange = null;
-        state.pendingExamine = null;
-        return beginAnimationTransition(state, { type: 'end-turn' }, now);
-    }
-
-    function completeEndTurn(state, now = Date.now()) {
-        if (finishIfWinner(state, now)) return state;
-
-        let nextIndex = state.turnIndex;
-        for (let attempts = 0; attempts < state.turnOrder.length; attempts += 1) {
-            nextIndex = (nextIndex + 1) % state.turnOrder.length;
-            const candidate = getPlayer(state, state.turnOrder[nextIndex]);
-            if (candidate && !candidate.eliminated && countInfluences(candidate) > 0) break;
-        }
-        state.turnIndex = nextIndex;
-        state.turnNumber += 1;
-        state.phase = PHASES.TURN;
-        state.deadline = now + SETTINGS.turnSeconds * 1000;
-        state.updatedAt = now;
-        addLog(state, `Turno de ${getPlayer(state, getActiveUid(state)).name}.`, 'turn', now);
-        return state;
-    }
-
-    function finishIfWinner(state, now = Date.now()) {
-        if (state.status !== 'active') return state.status === PHASES.FINISHED;
-        const alive = getAlivePlayers(state);
-        if (alive.length !== 1) return false;
-        state.status = PHASES.FINISHED;
-        state.phase = PHASES.FINISHED;
-        state.winnerUid = alive[0].uid;
-        state.finishedAt = now;
-        state.deadline = null;
-        state.pendingAction = null;
-        state.pendingLoss = null;
-        state.pendingExchange = null;
-        state.pendingExamine = null;
-        state.pendingTransition = null;
-        addLog(state, `${alive[0].name} venceu a partida ranqueada.`, 'winner', now);
-        state.updatedAt = now;
-        return true;
-    }
-
-    function buildMatchResults(state, now = Date.now()) {
-        normalizeState(state);
-        const winnerUid = state.winnerUid || null;
-        const endedAt = state.finishedAt || now;
-        const players = {};
-        const playerCount = getPlayers(state).length;
-        const availableRoles = Object.keys(Rules.ROLE_DEFINITIONS)
-            .filter((role) => Rules.isRoleAvailable(state, role));
-
-        getPlayers(state).forEach((player) => {
-            const stats = ensureMatchStats(state, player.uid);
-            const won = player.uid === winnerUid;
-            const hiddenCards = player.influences.filter((card) => !card.revealed);
-            const claimedRoles = stats.claimedRoles || {};
-            const firstAttacker = stats.firstInfluenceLostToUid;
-            const derivedStats = {
-                ...stats,
-                perfectBluffWins: won && stats.bluffs > 0 && stats.provenBluffs === 0 ? 1 : 0,
-                comebackWins: won && stats.influencesLost > 0 ? 1 : 0,
-                finalInfluenceWins: won && hiddenCards.length === 1 ? 1 : 0,
-                perfectWins: won && hiddenCards.length === SETTINGS.startingInfluences ? 1 : 0,
-                doubleContessaWins: won && hiddenCards.length === 2
-                    && hiddenCards.every((card) => card.role === ROLES.CONTESSA) ? 1 : 0,
-                winsAsFirstPlayer: won && state.starterDraw?.winnerUid === player.uid ? 1 : 0,
-                winsAgainstFivePlayers: won && playerCount === SETTINGS.maxPlayers ? 1 : 0,
-                winsWithNoCoins: won && player.coins === 0 ? 1 : 0,
-                fastestWins: won && state.turnNumber <= playerCount * 3 ? 1 : 0,
-                longestGamesWon: won && state.turnNumber >= playerCount * 10 ? 1 : 0,
-                revengeWins: won && firstAttacker && stats.eliminatedUids.includes(firstAttacker) ? 1 : 0,
-                flawlessChallenges: won && stats.challenges > 0 && stats.failedChallenges === 0 ? 1 : 0,
-                allRolesClaimedWins: won && availableRoles.every((role) => claimedRoles[role]) ? 1 : 0
-            };
-            const performance = calculateMatchPerformance(state, player);
-            players[player.uid] = {
-                uid: player.uid,
-                name: player.name || 'Jogador',
-                photo: player.photo || '',
-                seat: player.seat,
-                won,
-                eliminated: Boolean(player.eliminated),
-                matchStats: derivedStats,
-                performanceScore: performance.total,
-                performanceBreakdown: performance.breakdown
-            };
-        });
-
-        return {
-            schemaVersion: 1,
-            matchId: Number(state.matchId || 0),
-            winnerUid,
-            playerCount,
-            startedAt: state.startedAt || state.createdAt || endedAt,
-            endedAt,
-            turnNumber: state.turnNumber || 0,
-            players
-        };
-    }
-
-    function calculateMatchPerformance(state, player) {
-        const stats = ensureMatchStats(state, player.uid);
-        const hiddenInfluences = countInfluences(player);
-        const breakdown = [];
-        const add = (label, value) => {
-            const points = Number(value || 0);
-            if (points) breakdown.push({ label, points });
-        };
-
-        add(player.uid === state.winnerUid ? 'Vitória' : 'Derrota', player.uid === state.winnerUid ? 30 : -8);
-        add('Golpes de Estado', stats.coups * 6);
-        add('Assassinatos', stats.assassinations * 7);
-        add('Roubos', stats.steals * 4);
-        add('Desafios vencidos', stats.successfulChallenges * 8);
-        add('Desafios perdidos', stats.failedChallenges * -6);
-        add('Blefes revelados', stats.provenBluffs * -7);
-        add('Influências preservadas', hiddenInfluences * 3);
-        add('Eliminação', player.eliminated ? -5 : 0);
-
-        return {
-            total: breakdown.reduce((sum, item) => sum + item.points, 0),
-            breakdown
-        };
-    }
-
-    function advanceExpired(state, now = Date.now(), random = Math.random) {
-        normalizeState(state);
-        if (!state.deadline || now < state.deadline || ![PHASES.WAITING, 'active'].includes(state.status)) return false;
-
-        if (state.status === PHASES.WAITING) {
-            return maybeStart(state, now, random);
-        }
-
-        if (state.phase === PHASES.STARTER_DRAW) {
-            return completeStarterDraw(state, now);
-        }
-
-        if (state.phase === PHASES.DEALING) {
-            return completeInitialDeal(state, now);
-        }
-
-        if (state.phase === PHASES.ANIMATING) {
-            return resumeAnimationTransition(state, now);
-        }
-
-        if (state.phase === PHASES.TURN) {
-            const activeUid = getActiveUid(state);
-            const activePlayer = getPlayer(state, activeUid);
-            if (activePlayer.coins >= SETTINGS.mandatoryCoupCoins) {
-                const target = getAlivePlayers(state).find((player) => player.uid !== activeUid);
-                performAction(state, activeUid, ACTIONS.COUP, target.uid, now);
-            } else {
-                performAction(state, activeUid, ACTIONS.INCOME, null, now);
-            }
-        } else if (state.phase === PHASES.RESPONSE) {
-            executePendingAction(state, now);
-        } else if (state.phase === PHASES.BLOCK_CHALLENGE) {
-            acceptBlock(state, now);
-        } else if (state.phase === PHASES.CHALLENGE_REVEAL) {
-            const challenge = state.pendingAction.challenge;
-            const player = getPlayer(state, challenge.playerUid);
-            const hidden = player.influences.filter((card) => !card.revealed);
-            const card = hidden.find((item) => item.role === challenge.claim) || hidden[0];
-            if (card) revealChallenge(state, player.uid, card.id, now);
-            else endTurn(state, now);
-        } else if (state.phase === PHASES.INFLUENCE_LOSS) {
-            const player = getPlayer(state, state.pendingLoss?.playerUid);
-            const card = player?.influences?.find((influence) => !influence.revealed);
-            if (card) loseInfluence(state, player.uid, card.id, now);
-            else endTurn(state, now);
-        } else if (state.phase === PHASES.EXCHANGE) {
-            completeExchange(
-                state,
-                state.pendingExchange.playerUid,
-                state.pendingExchange.options.slice(0, state.pendingExchange.keepCount).map((card) => card.id),
-                now
-            );
-        } else if (state.phase === PHASES.EXAMINE) {
-            completeExamine(state, state.pendingExamine.actorUid, false, now);
-        }
-        return true;
     }
 
     return Object.freeze({

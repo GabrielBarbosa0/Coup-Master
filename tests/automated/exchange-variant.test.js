@@ -18,8 +18,8 @@ for (const mode of ['ranked', 'personalized']) {
     assert.ok(gameSource.includes('    boot();'));
     vm.runInContext(gameSource.replace('    boot();', '    root.chooseBotAction = chooseBotAction;'), context);
     vm.runInContext(fs.readFileSync(path.join(__dirname, '../../js/gamemode/casual/rules-guides.js'), 'utf8'), context);
-    const rendererSource = fs.readFileSync(path.join(__dirname, '../../js/gamemode', mode, `${mode}-renderer.js`), 'utf8');
-    const rendererExport = `    root.${prefix}Renderer = Object.freeze({`;
+    const rendererSource = fs.readFileSync(path.join(__dirname, '../../js/gamemode/shared/automated-renderer.js'), 'utf8');
+    const rendererExport = '    const renderer = Object.freeze({';
     assert.ok(rendererSource.includes(rendererExport));
     vm.runInContext(rendererSource.replace(rendererExport, `
         root.inspectVariant = (nextState) => {
@@ -28,6 +28,7 @@ for (const mode of ['ranked', 'personalized']) {
         };
         root.translateVariantLog = translateLogMessage;
     ` + rendererExport), context);
+    context.window.CoupAutomatedRenderer.create({ mode, Rules, Engine, globalName: `${prefix}Renderer` });
 
     function start(state, randomValue) {
         for (const player of Engine.getPlayers(state)) {

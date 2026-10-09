@@ -1,5 +1,10 @@
 # AGENTS.md
 
+## Modos automatizados
+
+- Mantenha renderizacao comum em `js/gamemode/shared/automated-renderer.js`; os renderers de `ranked` e `personalized` devem apenas configurar a fabrica.
+- Mantenha agendamento de bots e prazos em `js/gamemode/shared/automated-controller.js`. Firebase, matchmaking, ranking e poderes do anfitriao permanecem nos controladores especificos.
+
 Guia para IAs e agentes de codigo trabalhando neste repositorio.
 
 ## Projeto
@@ -23,6 +28,13 @@ Scripts principais:
 - `js/i18n/language-service.js`: sistema global de idioma alternativo, carrega `lang/*.json`, aplica `data-i18n`, persiste idioma local e expoe `window.CoupLanguage.t()`.
 - `js/login/login-manager.js`: login Google/anonimo e persistencia de sessao local.
 - `js/gamemode/game-modes.js`: contrato compartilhado dos modos casual, ranqueado e Sala Personalizada.
+- `js/gamemode/shared/automated-rules.js`: personagens, acoes, fases, tempos e baralho compartilhados pelos modos automatizados.
+- `js/gamemode/shared/automated-model.js`: consultas puras compartilhadas de jogadores, influencias, assentos, alvos, respostas, bloqueios e vencedor.
+- `js/gamemode/shared/automated-actions.js`: validacao, declaracao, respostas, bloqueios e efeitos economicos compartilhados; telemetria competitiva entra por callbacks do ranqueado.
+- `js/gamemode/shared/automated-cards.js`: contestacoes, revelacoes, perdas de influencia, trocas e investigacoes compartilhadas; metricas competitivas entram por callbacks do ranqueado.
+- `js/gamemode/shared/automated-turns.js`: transicoes animadas, avancos de turno, vencedor e expiracao de todas as fases ativas dos modos automatizados.
+- `js/gamemode/shared/automated-lifecycle.js`: estado, normalizacao, sala de espera, bots, prontidao, inicio, distribuicao e reinicio comuns aos modos automatizados.
+- `js/gamemode/shared/ranked-modifiers.js`: catalogo e sorteio isolado dos modificadores experimentais, ainda sem integracao nos modos ativos.
 - `js/core/rules.js`: tipos de carta, criacao de deck e utilitarios.
 - `js/core/gameState.js`: conexao com sala, mutacoes e listeners do Firebase.
 - `js/lobby/lobby-manager.js`: lobby/salas/logout/limpeza.
@@ -46,12 +58,14 @@ Scripts principais:
 - `js/gamemode/casual/render-players.js`: renderizacao dos slots, avatares, maos, moedas e badges do casual.
 - `js/gamemode/casual/table-render.js`: renderizacao da area central, cemitério/freeCards e status do tabuleiro.
 - `js/gamemode/casual/board-renderer.js`: coordenador principal do casual; organiza setup dos modulos, `renderAll`, `clearDOM` e wrappers globais esperados por `gameState.js`.
-- `js/gamemode/ranked/ranked-rules.js`: personagens, acoes e tempos oficiais do ranqueado.
-- `js/gamemode/ranked/ranked-engine.js`: maquina de estados pura para turnos, contestacoes, bloqueios e eliminacoes.
+- `js/gamemode/ranked/ranked-rules.js`: fachada que publica as regras compartilhadas como `CoupRankedRules`.
+- `js/gamemode/ranked/ranked-profile.js`: estatisticas competitivas, callbacks de telemetria, desempenho e resultados ranqueados.
+- `js/gamemode/ranked/ranked-engine.js`: adaptador da maquina compartilhada com matchmaking e ciclo de sala ranqueados.
 - `js/gamemode/ranked/ranked-game.js`: autenticacao, transacoes, presenca e listeners Firebase do ranqueado.
 - `js/gamemode/ranked/ranked-renderer.js`: interface e chat da tela ranqueada.
-- `js/gamemode/personalized/personalized-rules.js`: clone inicial das regras automatizadas do ranqueado para Sala Personalizada.
-- `js/gamemode/personalized/personalized-engine.js`: clone inicial do motor ranqueado para a Sala Personalizada.
+- `js/gamemode/personalized/personalized-rules.js`: fachada que publica as regras compartilhadas como `CoupPersonalizedRules`.
+- `js/gamemode/personalized/personalized-profile.js`: estatisticas basicas, desempenho e resultados sem telemetria competitiva.
+- `js/gamemode/personalized/personalized-engine.js`: adaptador da maquina compartilhada com administracao da Sala Personalizada.
 - `js/gamemode/personalized/personalized-game.js`: conexao Firebase da Sala Personalizada usando `personalizedState`.
 - `js/gamemode/personalized/personalized-renderer.js`: interface da Sala Personalizada baseada no renderer ranqueado.
 
@@ -108,16 +122,32 @@ node --check js\gamemode\casual\render-cards.js
 node --check js\gamemode\casual\render-players.js
 node --check js\gamemode\casual\table-render.js
 node --check js\gamemode\casual\board-renderer.js
+node --check js\gamemode\shared\automated-rules.js
+node --check js\gamemode\shared\automated-model.js
+node --check js\gamemode\shared\automated-actions.js
+node --check js\gamemode\shared\automated-cards.js
+node --check js\gamemode\shared\automated-turns.js
+node --check js\gamemode\shared\automated-lifecycle.js
 node --check js\gamemode\ranked\ranked-rules.js
+node --check js\gamemode\ranked\ranked-profile.js
 node --check js\gamemode\ranked\ranked-engine.js
 node --check js\gamemode\ranked\ranked-renderer.js
 node --check js\gamemode\ranked\ranked-game.js
 node tests\automated\ranked-engine.test.js
 node --check js\gamemode\personalized\personalized-rules.js
+node --check js\gamemode\personalized\personalized-profile.js
 node --check js\gamemode\personalized\personalized-engine.js
 node --check js\gamemode\personalized\personalized-renderer.js
 node --check js\gamemode\personalized\personalized-game.js
 node tests\automated\personalized-engine.test.js
+node tests\automated\automated-engine-contract.test.js
+node tests\automated\automated-rules.test.js
+node tests\automated\automated-model.test.js
+node tests\automated\automated-actions.test.js
+node tests\automated\automated-cards.test.js
+node tests\automated\automated-turns.test.js
+node tests\automated\automated-profiles.test.js
+node tests\automated\automated-adapters.test.js
 ```
 
 Para testar localmente, use servidor estatico:

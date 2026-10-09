@@ -2,6 +2,7 @@
     const Rules = root.CoupPersonalizedRules;
     const Engine = root.CoupPersonalizedEngine;
     const Renderer = root.CoupPersonalizedRenderer;
+    const SharedController = root.CoupAutomatedController?.create(Rules, Engine, root);
     const params = new URLSearchParams(root.location.search);
     const roomCode = (params.get('room') || '').trim().toUpperCase();
     const viewMode = document.body?.dataset.rankView || 'game';
@@ -11,8 +12,6 @@
     let personalizedStateRef = null;
     let roomHostUid = null;
     let presenceDisconnect = null;
-    let deadlineAdvancePending = false;
-    let botActionPending = false;
 
     const BOT_DECISION_MIN_DELAY_MS = 3060;
     const BOT_DECISION_RANDOM_DELAY_MS = 1020;
@@ -591,59 +590,25 @@
         return false;
     }
 
-    function hasPendingBotDecision(state) {
-        if (!state || state.status !== 'active') return false;
-        if (Date.now() < (state.revealPresentation?.endsAt || 0)) return false;
-        if (state.phase === Rules.PHASES.TURN) return Boolean(Engine.getPlayer(state, Engine.getActiveUid(state))?.ai);
-        if (state.phase === Rules.PHASES.RESPONSE) {
-            const responseUids = Engine.getResponseUids(state);
-            return Engine.getAlivePlayers(state).some((player) => (
-                player.ai && responseUids.includes(player.uid)
-            ));
-        }
-        if (state.phase === Rules.PHASES.BLOCK_CHALLENGE) {
-            const pending = state.pendingAction;
-            const blockerUid = pending?.block?.uid;
-            return Engine.getAlivePlayers(state).some((player) => (
-                player.ai && player.uid !== blockerUid && !pending?.passes?.[player.uid]
-            ));
-        }
-        if (state.phase === Rules.PHASES.CHALLENGE_REVEAL) return Boolean(Engine.getPlayer(state, state.pendingAction?.challenge?.playerUid)?.ai);
-        if (state.phase === Rules.PHASES.INFLUENCE_LOSS) return Boolean(Engine.getPlayer(state, state.pendingLoss?.playerUid)?.ai);
-        if (state.phase === Rules.PHASES.EXCHANGE) return Boolean(Engine.getPlayer(state, state.pendingExchange?.playerUid)?.ai);
-        if (state.phase === Rules.PHASES.EXAMINE) return Boolean(Engine.getPlayer(state, state.pendingExamine?.actorUid)?.ai);
-        return false;
-    }
-
     function startBotDriver() {
-        root.setInterval(() => {
-            if (!hasPendingBotDecision(personalizedState) || botActionPending) return;
-            botActionPending = true;
-            const delay = getBotDecisionDelay(personalizedState);
-            root.setTimeout(() => {
-                transaction((state) => {
-                    if (!applyNextBotDecision(state, Date.now())) {
-                        throw new Error(t('ranked.noPendingAiAction', {}, 'Nenhuma ação de IA pendente.'));
-                    }
-                    return state;
-                }, { silent: true }).catch(() => null).finally(() => {
-                    botActionPending = false;
-                });
-            }, delay);
-        }, 900);
+        if (!SharedController) return;
+        SharedController.startBotDriver({
+            getState: () => personalizedState,
+            transaction,
+            applyDecision: applyNextBotDecision,
+            getDelay: getBotDecisionDelay,
+            noDecisionMessage: () => t('ranked.noPendingAiAction', {}, 'Nenhuma ação de IA pendente.')
+        });
     }
 
     function startTimers() {
-        root.setInterval(() => {
-            Renderer.updateClock(Date.now());
-            if (!personalizedState?.deadline || Date.now() < personalizedState.deadline || deadlineAdvancePending) return;
-            deadlineAdvancePending = true;
-            transaction((state) => Engine.advanceExpired(state, Date.now()), { silent: true })
-                .catch(() => null)
-                .finally(() => {
-                    deadlineAdvancePending = false;
-                });
-        }, 500);
+        if (!SharedController) return;
+        SharedController.startDeadlineDriver({
+            getState: () => personalizedState,
+            updateClock: (now) => Renderer.updateClock(now),
+            transaction,
+            advanceExpired: (state, now) => Engine.advanceExpired(state, now)
+        });
     }
 
     function boot() {

@@ -26,13 +26,19 @@ async function fixture(mode) {
         Date: { now: () => now }, Image: function () {}, console
     });
     vm.runInContext(fs.readFileSync(path.join(__dirname, '../../js/gamemode/ranked/ranked-reveal.js'), 'utf8'), context);
-    const renderer = fs.readFileSync(path.join(folder, `${mode}-renderer.js`), 'utf8').replace('})(window);', `
+    const renderer = fs.readFileSync(path.join(__dirname, '../../js/gamemode/shared/automated-renderer.js'), 'utf8').replace('    const renderer = Object.freeze({', `
         playStateSfx = updateRankPlayerCallouts = renderPhase = renderStarterDrawOverlay =
             renderMatchResultsModal = renderLog = updateClock = hideLoading = syncSideStackHeight = () => {};
         renderPlayers = () => { root.visible = JSON.parse(JSON.stringify(state)); };
         root.redraw = renderPlayers;
-    })(window);`);
+        const renderer = Object.freeze({`);
     vm.runInContext(renderer, context);
+    root.CoupAutomatedRenderer.create({
+        mode,
+        Rules: root[`Coup${title}Rules`],
+        Engine: root[`Coup${title}Engine`],
+        globalName: `Coup${title}Renderer`
+    });
     async function advance(ms) {
         now += ms;
         const pending = frames;

@@ -11,6 +11,40 @@ Commit base da atualizacao parcial: `9ffcbaf` (`suporte ao discord`)
 
 ## 1. Sumario Executivo
 
+### Controladores e renderizacao automatizados compartilhados (2026-10-09)
+
+`js/gamemode/shared/automated-renderer.js` passa a concentrar toda a renderizacao da mesa, sala de espera, perfis, guia, chat, registro, resultados, audio e falas dos modos automatizados. `ranked-renderer.js` e `personalized-renderer.js` agora sao adaptadores finos que informam regras, motor, identidade global e perfil visual. O renderer seleciona explicitamente as extensoes ranqueadas (matchmaking, pre-carregamento, nova partida e confirmacao de saida) ou personalizadas (adicao e remocao pelo anfitriao, reinicio e textos da sala), sem duplicar a base de aproximadamente tres mil linhas.
+
+`js/gamemode/shared/automated-controller.js` coordena a deteccao de decisoes pendentes de IA, o agendamento dessas decisoes e o avanco de prazos. Os controladores de cada modo preservam autenticacao, Firebase, presenca, chat, persistencia de ranking, matchmaking e administracao da sala. A politica probabilistica dos bots permanece junto dos controladores nesta etapa para conservar seus testes estatisticos antes de uma extracao dedicada. Cobertura: `automated-controller.test.js`, `automated-adapters.test.js`, suites de falas, revelacao e variantes.
+
+### Adaptadores finais dos modos automatizados (2026-10-09)
+
+`js/gamemode/shared/automated-lifecycle.js` concentra criacao e normalizacao do estado, personalidades de bots, logs, entrada e saida da sala, prontidao, contagem regressiva, inicio da partida, distribuicao inicial, reinicio e memoria de rancor. `ranked-engine.js` passa a adaptar apenas o matchmaking gradual, o numero exigido de participantes e a renovacao dos bots entre partidas. `personalized-engine.js` conserva somente a remocao de participantes autorizada pelo anfitriao. Configuracoes e callbacks explicitos preservam as diferencas sem condicionais por nome de modo no nucleo. Um teste arquitetural impede a reintroducao dessas funcoes comuns nos adaptadores. Cobertura: `automated-adapters.test.js`, contratos compartilhados e suites especificas dos motores.
+
+### Perfis automatizados separados (2026-10-09)
+
+`js/gamemode/ranked/ranked-profile.js` e `js/gamemode/personalized/personalized-profile.js` implementam o mesmo contrato de extensao para a maquina automatizada. Cada perfil define estatisticas iniciais, normalizacao de `matchStats`, callbacks de acoes e cartas, metadados pendentes, texto de vitoria, calculo de desempenho e formato dos resultados. O perfil ranqueado conserva telemetria de conquistas, autoria de perdas, papeis declarados e estatisticas derivadas; o personalizado usa callbacks neutros e nao cria esses campos. Os motores apenas conectam o perfil correspondente aos modulos compartilhados, preservando suas APIs publicas e formatos Firebase. Cobertura: `automated-profiles.test.js`, contratos compartilhados e suites especificas dos motores.
+
+### Turnos e temporizadores automatizados compartilhados (2026-10-08)
+
+`js/gamemode/shared/automated-turns.js` concentra transicoes animadas, limpeza de pendencias no fim da jogada, escolha do proximo jogador vivo, deteccao e finalizacao do vencedor e expiracao das fases de turno, resposta, bloqueio, contestacao, perda, troca e investigacao. Sorteio inicial, distribuicao e inicio apos prontidao continuam implementados por modo, mas sao acionados pelo mesmo coordenador de prazos. O texto de vitoria entra por callback para preservar a identidade de Ranqueado e Sala Personalizada. O modulo acessa acoes e cartas por referencias tardias, evitando dependencia circular direta. Cobertura: `automated-turns.test.js`, contratos compartilhados e suites especificas dos motores.
+
+### Cartas e influencias automatizadas compartilhadas (2026-10-08)
+
+`js/gamemode/shared/automated-cards.js` concentra prova e concessao de contestacoes, revelacoes publicas, reposicao de influencia comprovada, perdas simples e duplas, eliminacao, troca por Embaixador/Inquisidor e investigacao. O modulo usa o contrato de regras e as consultas do modelo compartilhado, retomando o fluxo de acoes por uma referencia tardia apenas quando a perda termina. Callbacks do perfil ranqueado preservam autoria da perda, influencias perdidas, eliminacoes, assassinatos comprovados, trocas de Embaixador e investigacoes; nenhum desses campos competitivos e criado no estado personalizado. As APIs publicas dos motores e os formatos Firebase permanecem inalterados. Cobertura: `automated-cards.test.js`, contratos compartilhados e suites especificas dos dois motores.
+
+### Fluxo de acoes automatizado compartilhado (2026-10-08)
+
+`js/gamemode/shared/automated-actions.js` concentra validacao e declaracao de acoes, cobranca de custos, janelas de resposta, inicio de contestacoes, declaracao e aceitacao de bloqueios e resolucao dos efeitos de Renda, Ajuda Externa, Taxar, Extorquir, Golpe e Assassinato. Troca, investigacao e perda de influencia sao delegadas ao modulo compartilhado de cartas; encerramento e avancos de turno sao delegados ao modulo compartilhado de turnos. O modulo recebe regras, modelo e servicos explicitamente, sem consultar nomes de modo. Pontos de extensao do perfil ranqueado preservam `claimedRoles`, `taxBluffs`, `dukeTaxes`, `forcedCoups` e as metricas avancadas de bloqueio; o estado personalizado nao recebe esses campos. Cobertura: `automated-actions.test.js`, `automated-engine-contract.test.js` e suites especificas dos motores.
+
+### Modelo automatizado compartilhado (2026-10-08)
+
+`js/gamemode/shared/automated-model.js` concentra consultas sem escrita no estado: ordenacao e busca de jogadores, influencias vivas, assento livre, jogador ativo, alvos legais, participantes aptos a responder, bloqueios permitidos e identificacao do vencedor. O modulo recebe `CoupAutomatedRules` ao ser criado e nao conhece Ranqueado ou Sala Personalizada. Os dois motores delegam essas consultas ao mesmo modelo, mas preservam suas APIs publicas, mutacoes, textos de log, matchmaking, administracao da sala e formatos Firebase. As quatro paginas carregam o modelo entre a fachada de regras e o motor; o service worker inclui o arquivo no app shell. Cobertura: `automated-model.test.js` e `automated-engine-contract.test.js`.
+
+### Regras automatizadas compartilhadas (2026-10-08)
+
+Ranqueado e Sala Personalizada usam o mesmo contrato imutavel em `js/gamemode/shared/automated-rules.js` para personagens, acoes, fases, tempos, variantes Embaixador/Inquisidor e criacao do baralho. `ranked-rules.js` e `personalized-rules.js` permanecem como fachadas finas para preservar, respectivamente, os globais `CoupRankedRules` e `CoupPersonalizedRules` e os caminhos usados pelos testes Node. As quatro paginas carregam o nucleo antes da fachada; o service worker inclui o novo arquivo no app shell. Os motores e seus estados Firebase nao foram alterados nesta etapa. Cobertura: `automated-rules.test.js` e `automated-engine-contract.test.js`.
+
 ### Cautela contra assassinato (2026-09-16)
 
 Nos dois modos automatizados, o alvo de assassinato com duas influencias trata a perda dupla separadamente: contestacao tem chance base de 3% a 10% conforme ceticismo, ajustada por blefes publicamente expostos e assassinatos executados do atacante. Rancor nao aumenta essa chance. Certeza por cartas conhecidas ainda permite contestar, sem contar duas vezes cartas presentes no descarte e nas maos reveladas. Condessa verdadeira sempre bloqueia. Blefe de Condessa com duas influencias usa no maximo 18%, reduzido por honestidade e pelo historico publico de contestacoes do atacante. Com uma unica influencia, as chances de defesa anteriores permanecem. Nao consulta maos ocultas adversarias nem o contador privado de blefes. Cobertura: `bot-assassination-caution.test.js`.
@@ -184,11 +218,20 @@ Ordem no ranqueado:
 
 1. Firebase CDN e `js/firebase/firebase.js`.
 2. `js/ui/asset-preloader.js`, `js/pwa/pwa.js` e `js/gamemode/game-modes.js`.
-3. `js/gamemode/ranked/ranked-rules.js`: contrato imutavel de acoes, personagens e tempos.
-4. `js/gamemode/ranked/ranked-engine.js`: transicoes puras da partida.
-5. `js/gamemode/ranked/ranked-renderer.js`: DOM responsivo, respostas, mao, log, chat e liberacao do loading apos pre-carregar assets.
-6. `js/gamemode/ranked/ranked-game.js`: autenticacao, sala, presenca, transacoes e deadlines.
-7. `js/gamemode/personalized/personalized-*.js`: clone inicial da base ranqueada para Sala Personalizada, com `personalizedState` proprio.
+3. `js/gamemode/shared/automated-rules.js`: contrato imutavel de acoes, personagens e tempos dos modos automatizados.
+4. `js/gamemode/ranked/ranked-rules.js`: fachada que publica o contrato como `CoupRankedRules`.
+5. `js/gamemode/shared/automated-model.js`: consultas puras do estado usadas pelos dois motores.
+6. `js/gamemode/shared/automated-actions.js`: fluxo compartilhado de acoes, respostas e bloqueios.
+7. `js/gamemode/shared/automated-cards.js`: contestacoes, perdas, trocas e investigacoes compartilhadas.
+8. `js/gamemode/shared/automated-turns.js`: transicoes de turno, vencedor e expiracao de fases.
+9. `js/gamemode/shared/automated-lifecycle.js`: estado, espera, prontidao, inicio e reinicio compartilhados.
+10. `js/gamemode/ranked/ranked-profile.js`: telemetria, pontuacao e resultados competitivos.
+11. `js/gamemode/ranked/ranked-engine.js`: adaptador final de matchmaking e revanche ranqueados.
+12. `js/gamemode/ranked/ranked-renderer.js`: DOM responsivo, respostas, mao, log, chat e liberacao do loading apos pre-carregar assets.
+13. `js/gamemode/ranked/ranked-game.js`: autenticacao, sala, presenca, transacoes e deadlines.
+14. `js/gamemode/personalized/personalized-rules.js`: fachada que publica o mesmo contrato como `CoupPersonalizedRules`.
+15. `js/gamemode/personalized/personalized-profile.js`: estatisticas e resultados basicos da sala personalizada.
+16. `js/gamemode/personalized/personalized-engine.js`, `personalized-renderer.js` e `personalized-game.js`: adaptacao personalizada com `personalizedState` proprio.
 
 Ordem no lobby:
 
@@ -280,8 +323,22 @@ Coup-Master/
       ranked/
         ranked-engine.js
         ranked-game.js
+        ranked-profile.js
         ranked-renderer.js
         ranked-rules.js
+      personalized/
+        personalized-engine.js
+        personalized-game.js
+        personalized-profile.js
+        personalized-renderer.js
+        personalized-rules.js
+      shared/
+        automated-actions.js
+        automated-cards.js
+        automated-lifecycle.js
+        automated-turns.js
+        automated-model.js
+        automated-rules.js
     lobby/
       lobby-manager.js
     pwa/

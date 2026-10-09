@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coup-master-pwa-v182';
+const CACHE_NAME = 'coup-master-pwa-v190';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '::1', '[::1]'];
 const IS_LOCALHOST = LOCAL_HOSTNAMES.includes(new URL(self.location.href).hostname);
 
@@ -40,11 +40,21 @@ const APP_SHELL = [
   './js/gamemode/game-modes.js',
   './js/gamemode/casual/board-renderer.js',
   './css/ranked-mode.css',
+  './js/gamemode/shared/automated-rules.js',
+  './js/gamemode/shared/automated-model.js',
+  './js/gamemode/shared/automated-actions.js',
+  './js/gamemode/shared/automated-cards.js',
+  './js/gamemode/shared/automated-turns.js',
+  './js/gamemode/shared/automated-lifecycle.js',
+  './js/gamemode/shared/automated-renderer.js',
+  './js/gamemode/shared/automated-controller.js',
   './js/gamemode/ranked/ranked-rules.js',
+  './js/gamemode/ranked/ranked-profile.js',
   './js/gamemode/ranked/ranked-engine.js',
   './js/gamemode/ranked/ranked-renderer.js',
   './js/gamemode/ranked/ranked-game.js',
   './js/gamemode/personalized/personalized-rules.js',
+  './js/gamemode/personalized/personalized-profile.js',
   './js/gamemode/personalized/personalized-engine.js',
   './js/gamemode/personalized/personalized-renderer.js',
   './js/gamemode/personalized/personalized-game.js',

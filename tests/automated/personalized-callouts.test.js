@@ -14,15 +14,16 @@ function fixture() {
         setTimeout(fn, delay) { const id = ++timerId; timers.set(id, { fn, at: now + delay }); return id; },
         clearTimeout(id) { timers.delete(id); }
     };
-    const source = fs.readFileSync(require.resolve('../../js/gamemode/personalized/personalized-renderer.js'), 'utf8').replace('})(window);', `
+    const source = fs.readFileSync(require.resolve('../../js/gamemode/shared/automated-renderer.js'), 'utf8').replace('    const renderer = Object.freeze({', `
         renderPlayers = () => {};
         root.test = {
             update(next) { const previous = state; state = next; updateRankPlayerCallouts(previous, next); },
             active() { return Array.from(rankPlayerCallouts.values()); },
             clear: clearAllRankPlayerCallouts
         };
-    })(window);`);
+        const renderer = Object.freeze({`);
     vm.runInNewContext(source, { window: root, Date: { now: () => now }, console });
+    root.CoupAutomatedRenderer.create({ mode: 'personalized', Rules, Engine });
     const state = Engine.createState(1000);
     Engine.joinPlayer(state, { uid: 'a', name: 'Lorde Sombra' }, 1000);
     Engine.joinPlayer(state, { uid: 'b', name: 'Augusto' }, 1000);
